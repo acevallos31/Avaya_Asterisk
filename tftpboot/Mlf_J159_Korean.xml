@@ -1,0 +1,2309 @@
+<?xml version="1.0"?>
+<root><data name="languageName"><projects>j159</projects><value>Korean</value></data>
+
+
+<!--Labels for different Languages in the CURRENT language-->
+
+<data name="LBL_ENGLISH"><projects>j159</projects><value>영어</value></data>
+<data name="LBL_CANADIAN_FRENCH"><projects>j159</projects><value>캐나다 프랑스어</value></data>
+<data name="LBL_PARISIAN_FRENCH"><projects>j159</projects><value>불어</value></data>
+<data name="LBL_LATIN_AMERICAN_SPANISH"><projects>j159</projects><value>중남미 스페인어</value></data>
+<data name="LBL_CASTILIAN_SPANISH"><projects>j159</projects><value>스페인어</value></data>
+<data name="LBL_GERMAN"><projects>j159</projects><value>독일어</value></data>
+<data name="LBL_ITALIAN"><projects>j159</projects><value>이탈리아어</value></data>
+<data name="LBL_DUTCH"><projects>j159</projects><value>네덜란드어</value></data>
+<data name="LBL_BRAZILIAN_PORTUGUESE"><projects>j159</projects><value>포르투갈어</value></data>
+<data name="LBL_JAPANESE"><projects>j159</projects><value>일본어</value></data>
+<data name="LBL_CHINESE"><projects>j159</projects><value>중국어</value></data>
+<data name="LBL_KOREAN"><projects>j159</projects><value>한국어</value></data>
+<data name="LBL_RUSSIAN"><projects>j159</projects><value>러시아어</value></data>
+<data name="LBL_HEBREW"><projects>j159</projects><value>헤브라이어</value></data>
+<data name="LBL_ARABIC"><projects>j159</projects><value>아랍어</value></data>
+<data name="LBL_ENGLARGE"><projects>j159</projects><value>영어LRG</value></data>
+<data name="LBL_POLISH"><projects>j159</projects><value>폴란드어</value></data>
+<data name="LBL_TURKISH"><projects>j159</projects><value>터키어</value></data>
+<data name="LBL_THAI"><projects>j159</projects><value>타이어</value></data>
+<data name="LBL_TRADITIONAL_CHINESE"><projects>j159</projects><value>중국어</value></data>
+
+
+<!--Labels for different Languages in the NATIVE language-->
+
+<data name="NATIVE_IN_ENGLISH"><projects>j159</projects><value>English</value></data>
+<data name="NATIVE_IN_CANADIAN_FRENCH"><projects>j159</projects><value>Français canad.</value></data>
+<data name="NATIVE_IN_PARISIAN_FRENCH"><projects>j159</projects><value>Français</value></data>
+<data name="NATIVE_IN_LATIN_AMERICAN_SPANISH"><projects>j159</projects><value>Español LA</value></data>
+<data name="NATIVE_IN_CASTILIAN_SPANISH"><projects>j159</projects><value>Español</value></data>
+<data name="NATIVE_IN_GERMAN"><projects>j159</projects><value>Deutsch</value></data>
+<data name="NATIVE_IN_ITALIAN"><projects>j159</projects><value>Italiano</value></data>
+<data name="NATIVE_IN_DUTCH"><projects>j159</projects><value>Nederlands</value></data>
+<data name="NATIVE_IN_BRAZILIAN_PORTUGUESE"><projects>j159</projects><value>Português (BR)</value></data>
+<data name="NATIVE_IN_JAPANESE"><projects>j159</projects><value>日本語</value></data>
+<data name="NATIVE_IN_CHINESE"><projects>j159</projects><value>中文</value></data>
+<data name="NATIVE_IN_KOREAN"><projects>j159</projects><value>한국어</value></data>
+<data name="NATIVE_IN_RUSSIAN"><projects>j159</projects><value>Русский</value></data>
+<data name="NATIVE_IN_HEBREW"><projects>j159</projects><value>עברית</value></data>
+<data name="NATIVE_IN_ARABIC"><projects>j159</projects><value>العربية</value></data>
+<data name="NATIVE_IN_ENGLARGE"><projects>j159</projects><value>Englarge</value></data>
+<data name="NATIVE_IN_POLISH"><projects>j159</projects><value>Polski</value></data>
+<data name="NATIVE_IN_TURKISH"><projects>j159</projects><value>Türkçe</value></data>
+<data name="NATIVE_IN_THAI"><projects>j159</projects><value>ไทย</value></data>
+<data name="NATIVE_IN_TRADITIONAL_CHINESE"><projects>j159</projects><value>繁體中文</value></data>
+
+
+<!--Character Input Method Type-->
+
+<data name="INPUTMETHOD"><projects>j159</projects><value>0</value></data>
+
+
+<!--FONT Type-->
+
+<data name="FONT"><projects>j159</projects><value>Korean</value></data>
+
+
+<!--Keyboard Layout Type-->
+
+<data name="KEYBOARD_LAYOUT"><projects>j159</projects><value>0</value></data>
+
+
+<!--SOFTKEY Labels - MAX LENGTH 8 chars-->
+
+<data name="NAME_IN_OTHER"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_ENGLISH"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_FRENCH_CANADIAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_FRENCH_PARISIAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_SPANISH_LATIN_AMERICAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_SPANISH_CASTILIAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_GERMAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_ITALIAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_DUTCH"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_PORTUGUESE_BRAZILIAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_JAPANESE"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_CHINESE_SIMPLIFIED"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_KOREAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_RUSSIAN"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_HEBREW"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_ARABIC"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_POLISH"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_TURKISH"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_THAI"><projects>j159</projects><value></value></data>
+<data name="NAME_IN_TRADITIONAL_CHINESE"><projects>j159</projects><value></value></data>
+<data name="SK_ADD2CTC"><projects>j159</projects><value>+연락처</value></data>
+<data name="SK_ADD"><projects>j159</projects><value>추가</value></data>
+<data name="SK_ALL"><projects>j159</projects><value>모두</value></data>
+<data name="SK_ALPHALOW"><projects>j159</projects><value>abc</value></data>
+<data name="SK_ALPHAUP"><projects>j159</projects><value>ABC</value></data>
+<data name="SK_HEX"><projects>j159</projects><value></value></data>
+<data name="SK_ANSWER"><projects>j159</projects><value>응답</value></data>
+<data name="SK_BACK"><projects>j159</projects><value>뒤로</value></data>
+<data name="SK_BKSP"><projects>j159</projects><value>지우기</value></data>
+<data name="SK_BRIDGE"><projects>j159</projects><value>브리지</value></data>
+<data name="SK_BROWSER"><projects>j159</projects><value>브라우저</value></data>
+<data name="SK_CALL"><projects>j159</projects><value>통화</value></data>
+<data name="SK_CANCEL"><projects>j159</projects><value>취소</value></data>
+<data name="SK_CHANGE"><projects>j159</projects><value>토글</value></data>
+<data name="SK_CLEAR"><projects>j159</projects><value>지우기</value></data>
+<data name="SK_CLRALL"><projects>j159</projects><value>포맷</value></data>
+<data name="SK_COMPL"><projects>j159</projects><value>완료</value></data>
+<data name="SK_CONF"><projects>j159</projects><value>회의</value></data>
+<data name="SK_CONTIN"><projects>j159</projects><value>계속</value></data>
+<data name="SK_DELETE"><projects>j159</projects><value>삭제</value></data>
+<data name="SK_DETAILS"><projects>j159</projects><value>상세</value></data>
+<data name="SK_DROP"><projects>j159</projects><value>끊기</value></data>
+<data name="SK_EDIT"><projects>j159</projects><value>편집</value></data>
+<data name="SK_EMERGNUM"><projects>j159</projects><value>긴급</value></data>
+<data name="SK_ENTER"><projects>j159</projects><value>입력</value></data>
+<data name="SK_ENDCALL"><projects>j159</projects><value>종료</value></data>
+<data name="SK_EXIT"><projects>j159</projects><value>나가기</value></data>
+<data name="SK_EXTEND"><projects>j159</projects><value>확장</value></data>
+<data name="SK_HOLD"><projects>j159</projects><value>보류</value></data>
+<data name="SK_IGNORE"><projects>j159</projects><value>무시</value></data>
+<data name="SK_INSERT"><projects>j159</projects><value>삽입</value></data>
+<data name="SK_JOIN"><projects>j159</projects><value>참여</value></data>
+<data name="SK_LOGIN"><projects>j159</projects><value>로그인</value></data>
+<data name="SK_LOGOUT"><projects>j159</projects><value>로그아웃</value></data>
+<data name="SK_MORE"><projects>j159</projects><value>더보기</value></data>
+<data name="SK_NEW"><projects>j159</projects><value>신규</value></data>
+<data name="SK_NEXT"><projects>j159</projects><value>다음</value></data>
+<data name="SK_NUM"><projects>j159</projects><value>123</value></data>
+<data name="SK_OK"><projects>j159</projects><value>확인</value></data>
+<data name="SK_PING"><projects>j159</projects><value>Ping</value></data>
+<data name="SK_PLAY"><projects>j159</projects><value>재생</value></data>
+<data name="SK_PREVI"><projects>j159</projects><value>이전</value></data>
+<data name="SK_REDIAL"><projects>j159</projects><value>재발신</value></data>
+<data name="SK_REFRESH"><projects>j159</projects><value>새로고침</value></data>
+<data name="SK_RESET"><projects>j159</projects><value>재설정</value></data>
+<data name="SK_RESTART"><projects>j159</projects><value>재시작</value></data>
+<data name="SK_RESUME"><projects>j159</projects><value>재개</value></data>
+<data name="SK_RETRY"><projects>j159</projects><value>재시도</value></data>
+<data name="SK_SAVE"><projects>j159</projects><value>저장</value></data>
+<data name="SK_SEARCH"><projects>j159</projects><value>검색</value></data>
+<data name="SK_SELECT"><projects>j159</projects><value>선택</value></data>
+<data name="SK_SKILLS"><projects>j159</projects><value>스킬</value></data>
+<data name="SK_NETWORKS"><projects>j159</projects><value>네트워크</value></data>
+<data name="SK_SYMBOL"><projects>j159</projects><value>기호</value></data>
+<data name="SK_TEST"><projects>j159</projects><value>테스트</value></data>
+<data name="SK_TTLCASE"><projects>j159</projects><value>Abc</value></data>
+<data name="SK_XFER"><projects>j159</projects><value>호전환</value></data>
+<data name="SK_TALK"><projects>j159</projects><value>대화</value></data>
+<data name="SK_UNLOCK"><projects>j159</projects><value>해제</value></data>
+<data name="SK_SNOOZE"><projects>j159</projects><value>스누즈</value></data>
+<data name="SK_DISMISS"><projects>j159</projects><value>해제</value></data>
+<data name="SK_UNMUTE"><projects>j159</projects><value>음소거 해제</value></data>
+<data name="SK_TURN_ON"><projects>j159</projects><value>켜기</value></data>
+<data name="SK_TURN_OFF"><projects>j159</projects><value>꺼짐</value></data>
+<data name="SK_ALL_ON"><projects>j159</projects><value>모두 켜기</value></data>
+<data name="SK_ALL_OFF"><projects>j159</projects><value>모두 끄기</value></data>
+<data name="SK_RELEASE"><projects>j159</projects><value>해제</value></data>
+<data name="SK_RECORD"><projects>j159</projects><value>레코딩</value></data>
+<data name="SK_STOP"><projects>j159</projects><value>중지</value></data>
+<data name="SK_RETURN"><projects>j159</projects><value>돌아가기</value></data>
+<data name="SK_SCLRALL"><projects>j159</projects><value>포맷</value></data>
+<data name="SK_START"><projects>j159</projects><value>시작</value></data>
+<data name="SK_SCAN"><projects>j159</projects><value>스캔</value></data>
+<data name="SK_CONNECT"><projects>j159</projects><value>연결</value></data>
+<data name="SK_DISCONNECT"><projects>j159</projects><value>연결 끊기</value></data>
+<data name="SK_UNPAIR"><projects>j159</projects><value>언페어링</value></data>
+<data name="SK_LISTEN"><projects>j159</projects><value>듣기</value></data>
+<data name="SK_COACH"><projects>j159</projects><value>코칭</value></data>
+<data name="SK_END_COACH"><projects>j159</projects><value>코칭종료</value></data>
+<data name="SK_REDIRECT"><projects>j159</projects><value>리디렉션</value></data>
+<data name="SK_TOVMAIL"><projects>j159</projects><value>음성 메일</value></data>
+<data name="SK_HELD_CALL"><projects>j159</projects><value>보류호</value></data>
+<data name="SK_FORGET"><projects>j159</projects><value>지움</value></data>
+<data name="SK_INFO"><projects>j159</projects><value>정보</value></data>
+<data name="SK_NOW"><projects>j159</projects><value>즉시</value></data>
+<data name="SK_REMOVE"><projects>j159</projects><value>제거</value></data>
+<data name="SK_ADMIN"><projects>j159</projects><value>관리</value></data>
+<data name="SK_RECENTS"><projects>j159</projects><value>최근 통화 내역</value></data>
+<data name="SK_MERGECALLS"><projects>j159</projects><value>병합</value></data>
+<data name="SK_SWAP"><projects>j159</projects><value>전환</value></data>
+<data name="SK_NEWCALL"><projects>j159</projects><value>새 통화</value></data>
+<data name="SK_REPLACE"><projects>j159</projects><value>바꾸기</value></data>
+<data name="SK_CONFIG"><projects>j159</projects><value>구성</value></data>
+<data name="SK_NEVER"><projects>j159</projects><value>사용안함</value></data>
+<data name="SK_CONFIRM"><projects>j159</projects><value>확인</value></data>
+<data name="SK_PAIR"><projects>j159</projects><value>페어링</value></data>
+<data name="SK_SOURCES"><projects>j159</projects><value>소스</value></data>
+<data name="SK_GROUPS"><projects>j159</projects><value>그룹</value></data>
+<data name="SK_MOVE"><projects>j159</projects><value>이동</value></data>
+<data name="SK_RELABEL"><projects>j159</projects><value>라벨변경</value></data>
+<data name="SK_HELP"><projects>j159</projects><value>도움말</value></data>
+<data name="SK_NEW_GROUP"><projects>j159</projects><value>새 그룹</value></data>
+<data name="SK_MEMBERS"><projects>j159</projects><value>멤버</value></data>
+<data name="SK_MONTH"><projects>j159</projects><value>월</value></data>
+<data name="SK_PRIORITY"><projects>j159</projects><value>우선 순위</value></data>
+<data name="SK_ADD_MEMBERS"><projects>j159</projects><value>+멤버</value></data>
+<data name="SK_DIAL"><projects>j159</projects><value>다이얼</value></data>
+<data name="SK_CUSTOM"><projects>j159</projects><value>정의</value></data>
+<data name="SK_COMBINE"><projects>j159</projects><value>결합</value></data>
+<data name="SK_RENAME"><projects>j159</projects><value>이름 변경</value></data>
+<data name="SK_CONTACT"><projects>j159</projects><value>연락처</value></data>
+<data name="SK_FEATURE"><projects>j159</projects><value>기능</value></data>
+<data name="SK_APP"><projects>j159</projects><value>앱</value></data>
+<data name="SK_AUTODIAL"><projects>j159</projects><value>자동 다이얼</value></data>
+<data name="SK_NO"><projects>j159</projects><value>아니요</value></data>
+<data name="SK_SKIP"><projects>j159</projects><value>건너뛰기</value></data>
+<data name="SK_TODAY"><projects>j159</projects><value>오늘</value></data>
+<data name="SK_DAY"><projects>j159</projects><value>요일</value></data>
+<data name="SK_DISMISS_ALL"><projects>j159</projects><value>모두 해제</value></data>
+<data name="SK_PREVIEW"><projects>j159</projects><value>미리보기</value></data>
+<data name="SK_MUTE"><projects>j159</projects><value>음소거</value></data>
+<data name="SK_DISABLE"><projects>j159</projects><value>비활성</value></data>
+<data name="SK_ENABLE"><projects>j159</projects><value>활성화</value></data>
+<data name="SK_BARGE_IN"><projects>j159</projects><value>통화 참여</value></data>
+<data name="SK_BLF"><projects>j159</projects><value>BLF</value></data>
+<data name="SK_UPDATE_TONIGHT_sbm"><projects>j159</projects><value>오늘 밤 적용</value></data>
+<data name="SK_UPDATE_NOW_sbm"><projects>j159</projects><value>지금 적용</value></data>
+<data name="SK_PRIVATE_HOLD"><projects>j159</projects><value>전용 보류</value></data>
+<data name="SK_ACCEPT"><projects>j159</projects><value>수락</value></data>
+<data name="SK_OPTIONS"><projects>j159</projects><value>옵션</value></data>
+<data name="SK_UNKNOWN"><projects>j159</projects><value>알 수 없음</value></data>
+<data name="SK_STATUS"><projects>j159</projects><value>상태</value></data>
+<data name="SK_UPDATE"><projects>j159</projects><value>업데이트</value></data>
+<data name="SK_DECLINE"><projects>j159</projects><value>통화 거부</value></data>
+<data name="SK_PAGE"><projects>j159</projects><value>페이징</value></data>
+<data name="SK_GREETING"><projects>j159</projects><value>인사말</value></data>
+<data name="SK_PAUSE"><projects>j159</projects><value>중단</value></data>
+<data name="SK_CALLBACK"><projects>j159</projects><value>콜백</value></data>
+<data name="SK_FEATURES"><projects>j159</projects><value>기능</value></data>
+<data name="SK_COPY_USB"><projects>j159</projects><value>USB 복사</value></data>
+<data name="SK_GENERATE"><projects>j159</projects><value>생성</value></data>
+<data name="SK_COUNTRY"><projects>j159</projects><value>국가</value></data>
+<data name="SK_HIDE"><projects>j159</projects><value>숨기기</value></data>
+<data name="SK_SHOW"><projects>j159</projects><value>표시</value></data>
+<data name="SK_LINK"><projects>j159</projects><value>링크</value></data>
+<data name="SK_CODE"><projects>j159</projects><value>코드</value></data>
+<data name="SK_DISCOVER"><projects>j159</projects><value></value></data>
+<data name="SK_GUEST"><projects>j159</projects><value>게스트</value></data>
+<data name="SK_SHARE"><projects>j159</projects><value>공유</value></data>
+<data name="SK_NIGHT"><projects>j159</projects><value>야간</value></data>
+<data name="SK_HOME"><projects>j159</projects><value>집</value></data>
+<data name="SK_QR_CODE"><projects>j159</projects><value>QR 코드</value></data>
+
+
+<!--MIRCHI - LABELS - MAX LENGTH variable chars-->
+
+<data name="LBL_PASSWD"><projects>j159</projects><value>암호</value></data>
+<data name="LBL_ENTNAME"><projects>j159</projects><value>이름 입력</value></data>
+<data name="PS_XFERFAILED"><projects>j159</projects><value>호 전환 실패</value></data>
+<data name="PS_CONFFAILED"><projects>j159</projects><value>회의 실패</value></data>
+<data name="AS_OPTSET"><projects>j159</projects><value>옵션 및 설정</value></data>
+<data name="LBL_USEDHCP"><projects>j159</projects><value>DHCP 사용</value></data>
+<data name="LBL_USEDHCPV6"><projects>j159</projects><value>DHCP(V6) 사용</value></data>
+<data name="LBL_USESLAAC"><projects>j159</projects><value>SLAAC 사용</value></data>
+<data name="LBL_TITLE_PHONE"><projects>j159</projects><value>전화기</value></data>
+<data name="LBL_PHONE_LOCKED"><projects>j159</projects><value>전화기 잠김</value></data>
+<data name="LBL_PHONE"><projects>j159</projects><value>전화기</value></data>
+<data name="LBL_PHONEV4"><projects>j159</projects><value>전화기(V4)</value></data>
+<data name="LBL_PHONEV6"><projects>j159</projects><value>전화기(V6)</value></data>
+<data name="LBL_PHONEV6LL"><projects>j159</projects><value>전화기(V6LL)</value></data>
+<data name="LBL_WEBSERVER"><projects>j159</projects><value>웹 서버</value></data>
+<data name="LBL_WEB_ON_HTTP"><projects>j159</projects><value>웹(HTTP)</value></data>
+<data name="AS_AUTOGCWC"><projects>j159</projects><value>자동 음량 제어</value></data>
+<data name="AS_HANDSET_AUTOGCWC"><projects>j159</projects><value>핸드셋 자동 음량 제어</value></data>
+<data name="AS_HEADSET_AUTOGCWC"><projects>j159</projects><value>헤드셋 자동 음량 제어</value></data>
+<data name="AS_SPEAKER_AUTOGCWC"><projects>j159</projects><value>스피커 자동 음량 제어</value></data>
+<data name="LBL_HEDSET"><projects>j159</projects><value>헤드셋</value></data>
+<data name="AS_NETWORK_INTERFACES"><projects>j159</projects><value>네트워크 인터페이스</value></data>
+<data name="LBL_ERRLOG"><projects>j159</projects><value>로그 레벨</value></data>
+<data name="LBL_RLOGENB"><projects>j159</projects><value>Syslog 활성화됨</value></data>
+<data name="LBL_RLOGSRVR"><projects>j159</projects><value>Syslog 서버</value></data>
+<data name="LBL_SIGNLING"><projects>j159</projects><value>신호 생성</value></data>
+<data name="LBL_AVENV"><projects>j159</projects><value>Avaya 환경</value></data>
+<data name="LBL_UIDFIELD"><projects>j159</projects><value>사용자 ID</value></data>
+<data name="LBL_REDIAL"><projects>j159</projects><value>재발신</value></data>
+<data name="LBL_APPLICS"><projects>j159</projects><value>애플리케이션</value></data>
+<data name="LBL_LGCLS"><projects>j159</projects><value>통화 로그</value></data>
+<data name="LBL_TMFMT"><projects>j159</projects><value>시간 형식</value></data>
+<data name="LBL_AUDIO"><projects>j159</projects><value>오디오</value></data>
+<data name="AS_DOT1XP"><projects>j159</projects><value>802.1x 매개 변수</value></data>
+<data name="SK_DEFAULT"><projects>j159</projects><value>기본값</value></data>
+<data name="PS_VOLUMEWARNG"><projects>j159</projects><value>고음은 청각을 손상시킬 수 있습니다</value></data>
+<data name="PS_CONF"><projects>j159</projects><value>회의</value></data>
+<data name="LBL_ALL"><projects>j159</projects><value>모두</value></data>
+<data name="LS_ALLCALL"><projects>j159</projects><value>모든 통화</value></data>
+<data name="LS_MISSED"><projects>j159</projects><value>부재중</value></data>
+<data name="LS_OUTGOING"><projects>j159</projects><value>발신</value></data>
+<data name="LS_ANSWERED"><projects>j159</projects><value>수신</value></data>
+<data name="LBL_WORK"><projects>j159</projects><value>직장 전화</value></data>
+<data name="LBL_WORK2"><projects>j159</projects><value>직장2</value></data>
+<data name="LBL_MOBILE"><projects>j159</projects><value>휴대전화</value></data>
+<data name="LBL_HOME"><projects>j159</projects><value>집 전화</value></data>
+<data name="LBL_HOME2"><projects>j159</projects><value>집2</value></data>
+<data name="LBL_OTHER"><projects>j159</projects><value>기타</value></data>
+<data name="LBL_ASSISTANT"><projects>j159</projects><value>비서</value></data>
+<data name="LBL_COMPANY"><projects>j159</projects><value>회사</value></data>
+<data name="LBL_CAR"><projects>j159</projects><value>자동차</value></data>
+<data name="LBL_12HOUR"><projects>j159</projects><value>12 시간제</value></data>
+<data name="LBL_24HOUR"><projects>j159</projects><value>24 시간제</value></data>
+<data name="LBL_SETTINGS"><projects>j159</projects><value>설정</value></data>
+<data name="LBL_WEBHELP"><projects>j159</projects><value>웹 앱</value></data>
+<data name="LBL_DURATION"><projects>j159</projects><value>지속 시간</value></data>
+<data name="LBL_DETAILS"><projects>j159</projects><value>상세</value></data>
+<data name="PT_CONFNUM"><projects>j159</projects><value>회의 %d</value></data>
+<data name="LBL_PRESENCE_STATE_AUTOMATIC"><projects>j159</projects><value>자동</value></data>
+<data name="LBL_PRESENCE_STATE_AVAILABLE"><projects>j159</projects><value>통화 가능</value></data>
+<data name="LBL_PRESENCE_STATE_BUSY"><projects>j159</projects><value>통화 중</value></data>
+<data name="LBL_PRESENCE_STATE_ON_THE_PHONE"><projects>j159</projects><value>통화 중</value></data>
+<data name="LBL_PRESENCE_STATE_AWAY"><projects>j159</projects><value>자리 비움</value></data>
+<data name="LBL_PRESENCE_STATE_OUT_OF_OFFICE"><projects>j159</projects><value>부재중</value></data>
+<data name="LBL_PRESENCE_STATE_DO_NOT_DISTURB"><projects>j159</projects><value>방해 금지</value></data>
+<data name="LBL_PRESENCE_STATE_OFFLINE"><projects>j159</projects><value>오프라인</value></data>
+<data name="LBL_TRANSFER"><projects>j159</projects><value>호 전환</value></data>
+<data name="LBL_SIP_PROXY_DETAILS"><projects>j159</projects><value>SIP 프록시 상세 정보</value></data>
+<data name="LBL_BT_STATUS_CONNECTED"><projects>j159</projects><value>연결됨</value></data>
+<data name="LBL_BT_STATUS_CONNECTING"><projects>j159</projects><value>연결 중</value></data>
+<data name="LBL_BT_STATUS_NOT_CONNECTED"><projects>j159</projects><value>연결 안 됨</value></data>
+<data name="LBL_BT_STATUS_NOT_PAIRED"><projects>j159</projects><value>페어링 X</value></data>
+<data name="LBL_BT_STATUS_PAIRING"><projects>j159</projects><value>페어링</value></data>
+<data name="LBL_WIFI_DEBUG"><projects>j159</projects><value>Wi-Fi 디버그</value></data>
+<data name="LBL_NEW_CALL"><projects>j159</projects><value>새 통화</value></data>
+<data name="LBL_SELECT"><projects>j159</projects><value>선택</value></data>
+<data name="LBL_AM"><projects>j159</projects><value>am</value></data>
+<data name="LBL_PM"><projects>j159</projects><value>pm</value></data>
+
+
+<!--TITLE LINE Strings-->
+
+<data name="PS_FEAT"><projects>j159</projects><value>기능</value></data>
+<data name="LBL_WIFI_SSID"><projects>j159</projects><value>SSID</value></data>
+<data name="LBL_WIFI_NETWORK_LIST"><projects>j159</projects><value>Wi-Fi 네트워크</value></data>
+<data name="LBL_WIFI_NETWORK_INFO"><projects>j159</projects><value>Wi-Fi 네트워크 정보</value></data>
+<data name="LBL_WIFI_NETWORK_CONNECT"><projects>j159</projects><value>Wi-Fi 네트워크 %s에 연결</value></data>
+<data name="LBL_SCANNING"><projects>j159</projects><value>스캔 중...</value></data>
+<data name="LBL_NOWIFI"><projects>j159</projects><value>검색된 Wi-Fi 없음</value></data>
+<data name="LBL_SWITCH_WIFI"><projects>j159</projects><value>Wi-Fi로 전환하려면 네트워크를 누르십시오.</value></data>
+<data name="LBL_ETHLINK_UP"><projects>j159</projects><value>이더넷 링크가 작동 중입니다.</value></data>
+<data name="LBL_SWITCH_ETH"><projects>j159</projects><value>재시작을 눌러 이더넷으로 전환하십시오.</value></data>
+<data name="LBL_PRESS_CANCEL_REMAIN_WIFI"><projects>j159</projects><value>Wi-Fi를 유지하려면 취소를 누릅니다.</value></data>
+<data name="LBL_SWITCH_NET"><projects>j159</projects><value>다른 네트워크를 선택하려면 네트워크를 누르십시오.</value></data>
+<data name="LBL_MEETING"><projects>j159</projects><value>일정</value></data>
+<data name="LBL_JANUARY"><projects>j159</projects><value>1월</value></data>
+<data name="LBL_FEBRUARY"><projects>j159</projects><value>2월</value></data>
+<data name="LBL_MARCH"><projects>j159</projects><value>3월</value></data>
+<data name="LBL_APRIL"><projects>j159</projects><value>4월</value></data>
+<data name="LBL_MAY"><projects>j159</projects><value>5월</value></data>
+<data name="LBL_JUNE"><projects>j159</projects><value>6월</value></data>
+<data name="LBL_JULY"><projects>j159</projects><value>7월</value></data>
+<data name="LBL_AUGUST"><projects>j159</projects><value>8월</value></data>
+<data name="LBL_SEPTEMBER"><projects>j159</projects><value>9월</value></data>
+<data name="LBL_OCTOBER"><projects>j159</projects><value>10월</value></data>
+<data name="LBL_NOVEMBER"><projects>j159</projects><value>11월</value></data>
+<data name="LBL_DECEMBER"><projects>j159</projects><value>12월</value></data>
+<data name="LBL_SERVICE_OBSERVING"><projects>j159</projects><value>서비스 관찰</value></data>
+<data name="LBL_MODE_SELECTION"><projects>j159</projects><value>모드 선택</value></data>
+<data name="LBL_BASIC_OPTIONS"><projects>j159</projects><value>기본 옵션</value></data>
+<data name="LBL_NO_TALK_OPTIONS"><projects>j159</projects><value>말하지 않음 옵션</value></data>
+<data name="LBL_NEXT_CALL_OPTIONS"><projects>j159</projects><value>다음 통화 옵션</value></data>
+<data name="LBL_BY_LOCATION_OPTIONS"><projects>j159</projects><value>위치별 옵션</value></data>
+<data name="LBL_OBSERVE_EXTENSION"><projects>j159</projects><value>내선 관찰:</value></data>
+<data name="LBL_CALL_FOR"><projects>j159</projects><value>통화:</value></data>
+<data name="LBL_FORWARDED_BY"><projects>j159</projects><value>찬신전환수신:</value></data>
+<data name="LBL_LOCAL"><projects>j159</projects><value>로컬</value></data>
+<data name="LBL_SELECT_RINGTONE"><projects>j159</projects><value>벨소리 선택</value></data>
+<data name="LBL_ADD_SIP_PROXY"><projects>j159</projects><value>SIP 프록시 추가</value></data>
+<data name="LBL_EDIT_SIP_PROXY"><projects>j159</projects><value>SIP 프록시 편집</value></data>
+<data name="LBL_FONTSIZE_DEMO_TEXT"><projects>j159</projects><value>A</value></data>
+<data name="SK_CTCTS"><projects>j159</projects><value>연락처</value></data>
+<data name="TT_PHNLCKD"><projects>j159</projects><value>전화기 잠김</value></data>
+<data name="LBL_DIRECTORY"><projects>j159</projects><value>디렉토리</value></data>
+
+
+<!--SUBTITLE Strings-->
+
+<data name="PS_INCCALL"><projects>j159</projects><value>수신 통화</value></data>
+<data name="PS_DIALING"><projects>j159</projects><value>다이얼</value></data>
+<data name="AS_BRITNES"><projects>j159</projects><value>밝기</value></data>
+<data name="LBL_LANG"><projects>j159</projects><value>언어</value></data>
+<data name="AS_AGCSET"><projects>j159</projects><value>자동 음량 제어 설정</value></data>
+<data name="AS_AUDIOP"><projects>j159</projects><value>오디오 매개 변수</value></data>
+<data name="AS_IPADDRP"><projects>j159</projects><value>IP 매개 변수</value></data>
+<data name="AS_PHONESET"><projects>j159</projects><value>전화기</value></data>
+<data name="AS_SYSTEM"><projects>j159</projects><value>시스템</value></data>
+<data name="AS_QOS"><projects>j159</projects><value>서비스 품질</value></data>
+<data name="AS_RINGTYPE"><projects>j159</projects><value>벨 종류...</value></data>
+<data name="AS_SERVICE"><projects>j159</projects><value>서비스</value></data>
+<data name="AS_SPDDIAL"><projects>j159</projects><value>단축 번호 항목 할당</value></data>
+<data name="AS_DIALOPT"><projects>j159</projects><value>다이얼 옵션</value></data>
+<data name="AS_PING"><projects>j159</projects><value>Ping</value></data>
+<data name="LBL_MY_PRESENCE"><projects>j159</projects><value>내 프레즌스</value></data>
+<data name="LBL_AVAILABLE"><projects>j159</projects><value>사용 가능</value></data>
+<data name="LBL_OFFLINE"><projects>j159</projects><value>오프라인</value></data>
+<data name="LBL_AWAY_TIMER"><projects>j159</projects><value>자리 비움 시간</value></data>
+<data name="LBL_MANUAL"><projects>j159</projects><value>수동</value></data>
+<data name="LBL_WARNING"><projects>j159</projects><value>경고</value></data>
+<data name="PS_BARGEIN_FAILED"><projects>j159</projects><value>통화에 참여하지 못했습니다.</value></data>
+
+
+<!--PROMPTLINE Strings-->
+
+<data name="PL_CONTACTDISABLED"><projects>j159</projects><value>연락처 비활성화됨</value></data>
+<data name="PL_DWNLDCONFIG"><projects>j159</projects><value>구성 다운로드 중...</value></data>
+<data name="PL_LOGGINGIN"><projects>j159</projects><value>로그인 중
+구성 다운로드 중...</value></data>
+<data name="PL_REGISTERING"><projects>j159</projects><value>통화 서버에 등록 중...</value></data>
+<data name="PL_FEATTMOUT"><projects>j159</projects><value>기능 호출 타임 아웃</value></data>
+<data name="PL_FEATFAILED"><projects>j159</projects><value>기능 호출 실패</value></data>
+<data name="PL_SEARCHING"><projects>j159</projects><value>검색 중...</value></data>
+<data name="PL_NEEDIN"><projects>j159</projects><value>입력란은 필수적으로 입력</value></data>
+<data name="PL_INVCHAR"><projects>j159</projects><value>잘못된 문자. 확인후 재입력 요망</value></data>
+<data name="PL_BUTN2SEL"><projects>j159</projects><value>선택하려면 버튼을 사용하십시오</value></data>
+<data name="PL_FEATUNAV"><projects>j159</projects><value>기능을 사용할 수 없습니다</value></data>
+<data name="PL_ACQUIRINGSERVICE"><projects>j159</projects><value>서비스 취득 중...</value></data>
+<data name="PL_LIMITED"><projects>j159</projects><value>제한된 전화 서비스</value></data>
+<data name="PL_ECF_ENTER_CF_NUM"><projects>j159</projects><value>착신 전환 대상 번호 입력</value></data>
+<data name="PL_FEATINPROGRESS"><projects>j159</projects><value>기능 호출 진행 중</value></data>
+<data name="PL_YOUARENEEDED"><projects>j159</projects><value>필요</value></data>
+<data name="PL_ENTER_CWC"><projects>j159</projects><value>통화 작업 코드</value></data>
+<data name="PL_SPRESSDIAL"><projects>j159</projects><value>다이얼패드로 검색</value></data>
+<data name="PL_SO_VDN_EXT"><projects>j159</projects><value>VDN 내선:</value></data>
+<data name="PL_SO_VDN_LOC"><projects>j159</projects><value>위치:</value></data>
+<data name="PL_CONF_SETUP_PROMPT"><projects>j159</projects><value>수신자 선택 또는 전화</value></data>
+<data name="AT_LOADING"><projects>j159</projects><value>로딩</value></data>
+<data name="AT_LOAD"><projects>j159</projects><value>로딩중</value></data>
+
+
+<!--LABEL Strings-->
+
+<data name="LBL_YES"><projects>j159</projects><value>예</value></data>
+<data name="LBL_NO"><projects>j159</projects><value>아니요</value></data>
+<data name="LBL_ON"><projects>j159</projects><value>켜짐</value></data>
+<data name="LBL_OFF"><projects>j159</projects><value>꺼짐</value></data>
+<data name="LBL_HALF"><projects>j159</projects><value>절반</value></data>
+<data name="LBL_FULL"><projects>j159</projects><value>전체</value></data>
+<data name="LBL_DSABLD"><projects>j159</projects><value>비활성</value></data>
+<data name="LBL_ENABLD"><projects>j159</projects><value>활성화됨</value></data>
+<data name="LBL_ACTIV"><projects>j159</projects><value>활성</value></data>
+<data name="LBL_USERNAME"><projects>j159</projects><value>사용자 이름</value></data>
+<data name="LBL_USERID"><projects>j159</projects><value>사용자 ID</value></data>
+<data name="LBL_APTLOC"><projects>j159</projects><value>위치:</value></data>
+<data name="LBL_APTDETAILS"><projects>j159</projects><value>상세 정보:</value></data>
+<data name="LBL_FIRSTNAME"><projects>j159</projects><value>이름</value></data>
+<data name="LBL_LASTNAME"><projects>j159</projects><value>성</value></data>
+<data name="LBL_NUMBER"><projects>j159</projects><value>번호 %d</value></data>
+<data name="LBL_SEARCH_KEYWORDS"><projects>j159</projects><value>키워드 검색</value></data>
+<data name="LBL_TYPE"><projects>j159</projects><value>유형</value></data>
+<data name="LBL_COMPLIANT"><projects>j159</projects><value>호환됨</value></data>
+<data name="LBL_NOTCOMPLIANT"><projects>j159</projects><value>호환되지 않음</value></data>
+<data name="MSG_UNAV"><projects>j159</projects><value>통화 불가</value></data>
+<data name="MSG_ABOUTAV"><projects>j159</projects><value>Avaya 정보</value></data>
+<data name="MSG_NTWKIN"><projects>j159</projects><value>네트워크 정보</value></data>
+<data name="AT_NTWKINF"><projects>j159</projects><value>네트워크 정보</value></data>
+<data name="MSG_NETWORK_INTERFACES"><projects>j159</projects><value>네트워크 인터페이스</value></data>
+<data name="LBL_DSPTIM"><projects>j159</projects><value>통화 타이머 표시</value></data>
+<data name="LBL_LIST"><projects>j159</projects><value>목록</value></data>
+<data name="LBL_1NUMB"><projects>j159</projects><value>단일 번호</value></data>
+<data name="LBL_VISUAL"><projects>j159</projects><value>시각 알람</value></data>
+<data name="LBL_SPEAKR"><projects>j159</projects><value>스피커</value></data>
+<data name="LBL_HNDSET"><projects>j159</projects><value>핸드셋</value></data>
+<data name="LBL_NONE"><projects>j159</projects><value>(없음)</value></data>
+<data name="LBL_BTNCLK"><projects>j159</projects><value>버튼 음</value></data>
+<data name="LBL_ERRORT"><projects>j159</projects><value>오류 음</value></data>
+<data name="LBL_SIPDMN"><projects>j159</projects><value>SIP 도메인</value></data>
+<data name="LBL_PRESENCESRVR"><projects>j159</projects><value>프레즌스 서버</value></data>
+<data name="LBL_SIPPRXYSRVR"><projects>j159</projects><value>SIP 프록시</value></data>
+<data name="LBL_SNTPSRVR"><projects>j159</projects><value>SNTP 서버</value></data>
+<data name="LBL_RESTURL"><projects>j159</projects><value>REST 서버</value></data>
+<data name="LBL_STUNSRVR"><projects>j159</projects><value>STUN 서버</value></data>
+<data name="LBL_AUTO"><projects>j159</projects><value>자동</value></data>
+<data name="LBL_AUTO_2"><projects>j159</projects><value>자동:</value></data>
+<data name="LBL_HTTPSRVR"><projects>j159</projects><value>HTTP 서버</value></data>
+<data name="LBL_HTTPSSRVR"><projects>j159</projects><value>HTTPS 서버</value></data>
+<data name="LBL_DNSSRVR"><projects>j159</projects><value>DNS 서버</value></data>
+<data name="LBL_EXCHSRVR"><projects>j159</projects><value>Exchange서버</value></data>
+<data name="LBL_EMERGS"><projects>j159</projects><value>비상</value></data>
+<data name="LBL_ALERTS"><projects>j159</projects><value>알람</value></data>
+<data name="LBL_CRITICL"><projects>j159</projects><value>중요</value></data>
+<data name="LBL_ERRORS"><projects>j159</projects><value>오류</value></data>
+<data name="LBL_WARNS"><projects>j159</projects><value>경고</value></data>
+<data name="LBL_NOTES"><projects>j159</projects><value>공지 사항</value></data>
+<data name="LBL_INFO"><projects>j159</projects><value>정보</value></data>
+<data name="LBL_DEBUG"><projects>j159</projects><value>디버그</value></data>
+<data name="LBL_MASK"><projects>j159</projects><value>마스크</value></data>
+<data name="LBL_VLANID"><projects>j159</projects><value>VLAN ID</value></data>
+<data name="LBL_ETHERN"><projects>j159</projects><value>이더넷</value></data>
+<data name="LBL_PCENET"><projects>j159</projects><value>PC 이더넷</value></data>
+<data name="LBL_NETWORK_MODE"><projects>j159</projects><value>네트워크 모드</value></data>
+<data name="LBL_NETWORK_MODE_ETHERNET"><projects>j159</projects><value>이더넷</value></data>
+<data name="LBL_NETWORK_MODE_WIFI"><projects>j159</projects><value>Wi-Fi</value></data>
+<data name="LBL_10HALF"><projects>j159</projects><value>10Mbps 반이중</value></data>
+<data name="LBL_10FULL"><projects>j159</projects><value>10Mbps 전이중</value></data>
+<data name="LBL_100HALF"><projects>j159</projects><value>100Mbps 반이중</value></data>
+<data name="LBL_100FULL"><projects>j159</projects><value>100Mbps 전이중</value></data>
+<data name="LBL_MSEC"><projects>j159</projects><value>msec</value></data>
+<data name="LBL_1000FLL"><projects>j159</projects><value>1000Mbps전이중</value></data>
+<data name="LBL_PKTLOS"><projects>j159</projects><value>패킷 손실</value></data>
+<data name="LBL_PKTD"><projects>j159</projects><value>패킷화 지연</value></data>
+<data name="LBL_1WAYD"><projects>j159</projects><value>일방 네트워크 지연</value></data>
+<data name="LBL_NTWKJD"><projects>j159</projects><value>네트워크 지터 지연</value></data>
+<data name="LBL_MOSCQ"><projects>j159</projects><value>MOS-CQ</value></data>
+<data name="LBL_MOSLQ"><projects>j159</projects><value>MOS-LQ</value></data>
+<data name="LBL_RFACTOR"><projects>j159</projects><value>R 비율</value></data>
+<data name="LBL_SIGNALLEVEL"><projects>j159</projects><value>신호 수준</value></data>
+<data name="LBL_SIGNAL_STRENGTH"><projects>j159</projects><value>신호 강도</value></data>
+<data name="LBL_SIGNAL_STRENGTH_WEAK"><projects>j159</projects><value>약함</value></data>
+<data name="LBL_SIGNAL_STRENGTH_FAIR"><projects>j159</projects><value>보통</value></data>
+<data name="LBL_SIGNAL_STRENGTH_STRONG"><projects>j159</projects><value>강함</value></data>
+<data name="LBL_SIGNAL_STRENGTH_VERYSTRONG"><projects>j159</projects><value>매우 강함</value></data>
+<data name="LBL_RNDTRIPDELAY"><projects>j159</projects><value>왕복 지연</value></data>
+<data name="LBL_LOSSRATE"><projects>j159</projects><value>손실률</value></data>
+<data name="LBL_802D1Q"><projects>j159</projects><value>802.1Q</value></data>
+<data name="LBL_VLANT"><projects>j159</projects><value>VLAN 테스트</value></data>
+<data name="LBL_L2AUD"><projects>j159</projects><value>L2 음성</value></data>
+<data name="LBL_L2SIG"><projects>j159</projects><value>L2 신호</value></data>
+<data name="LBL_L3AUD"><projects>j159</projects><value>L3 음성</value></data>
+<data name="LBL_L3SIG"><projects>j159</projects><value>L3 신호</value></data>
+<data name="LBL_ETH_L2AUD"><projects>j159</projects><value>이더넷 L2 음성</value></data>
+<data name="LBL_ETH_L2SIG"><projects>j159</projects><value>이더넷 L2 신호</value></data>
+<data name="LBL_ETH_L3AUD"><projects>j159</projects><value>이더넷 L3 음성</value></data>
+<data name="LBL_ETH_L3SIG"><projects>j159</projects><value>이더넷 L3 신호</value></data>
+<data name="LBL_WIFI_L2AUD"><projects>j159</projects><value>Wi-Fi L2 음성</value></data>
+<data name="LBL_WIFI_L2SIG"><projects>j159</projects><value>Wi-Fi L2 신호</value></data>
+<data name="LBL_WIFI_L3AUD"><projects>j159</projects><value>Wi-Fi L3 음성</value></data>
+<data name="LBL_WIFI_L3SIG"><projects>j159</projects><value>Wi-Fi L3 신호</value></data>
+<data name="LBL_MODEL"><projects>j159</projects><value>모델</value></data>
+<data name="LBL_PHNSN"><projects>j159</projects><value>시리얼 번호</value></data>
+<data name="LBL_MACADD"><projects>j159</projects><value>MAC</value></data>
+<data name="LBL_FIPS_ENABLED"><projects>j159</projects><value>FIPS</value></data>
+<data name="LBL_FIPS_OP_MODE"><projects>j159</projects><value>FIPS OP 모드</value></data>
+<data name="LBL_FIPS_EXCEPTIONS"><projects>j159</projects><value>FIPS 예외</value></data>
+<data name="LBL_GROUP"><projects>j159</projects><value>그룹</value></data>
+<data name="LBL_SOFTWAREVERSION"><projects>j159</projects><value>SW 버전</value></data>
+<data name="LBL_BACKUPSWVERSION"><projects>j159</projects><value>백업 SW 버전</value></data>
+<data name="LBL_PASSTH"><projects>j159</projects><value>패스스루 모드</value></data>
+<data name="LBL_SUPPLC"><projects>j159</projects><value>서플리컨트</value></data>
+<data name="LBL_RESTRICTED"><projects>j159</projects><value>제한됨</value></data>
+<data name="LBL_LOGCAT"><projects>j159</projects><value>로그 범주</value></data>
+<data name="LBL_DEVID"><projects>j159</projects><value>장치 ID</value></data>
+<data name="LBL_ONWTPXYLGOF"><projects>j159</projects><value>로그오프가 활성화됨</value></data>
+<data name="LBL_SUPMULTIPROC"><projects>j159</projects><value>멀티캐스트</value></data>
+<data name="LBL_MULTIPT"><projects>j159</projects><value>패스스루</value></data>
+<data name="LBL_PXYLGOF"><projects>j159</projects><value>프록시 로그오프</value></data>
+<data name="LBL_UNASSGND"><projects>j159</projects><value>미할당</value></data>
+<data name="Call-Forward-Busy"><projects>j159</projects><value>통화 중 착신 전환</value></data>
+<data name="Call-Forward-No-Answer"><projects>j159</projects><value>무응답 착신 전환</value></data>
+<data name="LBL_WMLTXT"><projects>j159</projects><value>여기에 문자입력</value></data>
+<data name="LBL_REALM"><projects>j159</projects><value>영역</value></data>
+<data name="LBL_NUMBERWC"><projects>j159</projects><value>번호</value></data>
+<data name="LBL_NAMEWC"><projects>j159</projects><value>이름</value></data>
+<data name="LBL_NAME"><projects>j159</projects><value>이름:</value></data>
+<data name="LBL_EDIT_GROUP"><projects>j159</projects><value>편집 그룹</value></data>
+<data name="LBL_REGPOLICY"><projects>j159</projects><value>등록 정책</value></data>
+<data name="LBL_FAILBACKPOLICY"><projects>j159</projects><value>장애 복구 정책</value></data>
+<data name="LBL_MODULE1"><projects>j159</projects><value>모듈 1</value></data>
+<data name="LBL_MODULE2"><projects>j159</projects><value>모듈 2</value></data>
+<data name="LBL_MODULE3"><projects>j159</projects><value>모듈 3</value></data>
+<data name="LBL_CLPKUPINDICATION"><projects>j159</projects><value>콜 픽업 표시</value></data>
+<data name="LBL_DIALING_MODE"><projects>j159</projects><value>다이얼링 모드</value></data>
+<data name="LBL_PHONE_KEYS_CUSTOMIZATION"><projects>j159</projects><value>전화기 키 사용자 정의</value></data>
+<data name="LBL_ASSIGN_SPEEDDIAL_ENTRIES"><projects>j159</projects><value>단축 번호 항목 할당</value></data>
+<data name="LBL_EXCHANGE_CREDENTIALS"><projects>j159</projects><value>Exchange 증명서</value></data>
+<data name="LBL_ENABLE_EXCHANGE_CONTACTS"><projects>j159</projects><value>Exchange 연락처 사용</value></data>
+<data name="LBL_LOG_BRIDGED_CALLS"><projects>j159</projects><value>브리지된 통화 내역</value></data>
+<data name="LBL_DND_INVOKES_SAC"><projects>j159</projects><value>시스템 DND 링크</value></data>
+<data name="LBL_AUDIO_PATH"><projects>j159</projects><value>오디오 경로</value></data>
+<data name="LBL_HEADSET_SIGNALING"><projects>j159</projects><value>헤드셋 시그널</value></data>
+<data name="LBL_HEADSET_SIGNALING_HOOK_ALERT"><projects>j159</projects><value>스위치후크 및 알람</value></data>
+<data name="LBL_HEADSET_SIGNALING_HOOK_ONLY"><projects>j159</projects><value>스위치후크만</value></data>
+<data name="LBL_HANDSET_EQUALIZATION"><projects>j159</projects><value>핸드셋 균등화</value></data>
+<data name="LBL_HANDSET_EQUALIZATION_AUDIO"><projects>j159</projects><value>오디오 옵션</value></data>
+<data name="LBL_HANDSET_EQUALIZATION_HAC"><projects>j159</projects><value>HAC 옵션</value></data>
+<data name="LBL_HEADSET_PROFILE"><projects>j159</projects><value>헤드셋 프로필</value></data>
+<data name="LBL_HANDSET_PROFILE"><projects>j159</projects><value>핸드셋 프로필</value></data>
+<data name="LBL_PERSONALIZE_RINGING"><projects>j159</projects><value>벨소리 개인 설정</value></data>
+<data name="LBL_PERSONALIZE_RINGING_PRIMARY"><projects>j159</projects><value>주번호</value></data>
+<data name="LBL_PERSONALIZE_RINGING_TEAM_KEY"><projects>j159</projects><value>팀 키</value></data>
+<data name="LBL_PERSONALIZE_RINGING_BRIDGED_CA"><projects>j159</projects><value>브리지된 CA</value></data>
+<data name="LBL_PERSONALIZE_RINGING_CALL_PICKUP"><projects>j159</projects><value>콜 픽업</value></data>
+<data name="LBL_PERSONALIZE_RINGING_CALL_PARK"><projects>j159</projects><value>통화 파크</value></data>
+<data name="LBL_PERSONALIZE_RINGING_PICKUP_BLF"><projects>j159</projects><value>BLF 수신 통화</value></data>
+<data name="LBL_PERSONALIZE_RINGING_PARK_BLF"><projects>j159</projects><value>BLF 파크된 통화</value></data>
+<data name="LBL_PHN_SCR_WIDTH"><projects>j159</projects><value>전화기 화면 너비</value></data>
+<data name="LBL_LIGHTOFF"><projects>j159</projects><value>화면 끄기</value></data>
+<data name="LBL_CLASSICTONE"><projects>j159</projects><value>클래식 톤</value></data>
+<data name="LBL_CLNSCR"><projects>j159</projects><value>터치 스크린 클리닝</value></data>
+<data name="LBL_ADBLE"><projects>j159</projects><value>청각적</value></data>
+<data name="LBL_VSUL"><projects>j159</projects><value>시각적</value></data>
+<data name="LBL_BOTH"><projects>j159</projects><value>시청각</value></data>
+<data name="LBL_NONE_VALUE"><projects>j159</projects><value>없음</value></data>
+<data name="LBL_NAMEPASS"><projects>j159</projects><value>이름/암호 프롬프트</value></data>
+<data name="LBL_TXTSIZ"><projects>j159</projects><value>텍스트 크기</value></data>
+<data name="LBL_TEAMBTNPREFIX"><projects>j159</projects><value>T:%s</value></data>
+<data name="LBL_ECF_ALL_NO_COLON"><projects>j159</projects><value>모두 착신 전환</value></data>
+<data name="LBL_ECF_BUSY_NO_COLON"><projects>j159</projects><value>통화 중인 경우 착신 전환</value></data>
+<data name="LBL_ECF_NOREPLY_NO_COLON"><projects>j159</projects><value>응답 없을 시 전달</value></data>
+<data name="LBL_INTERNAL"><projects>j159</projects><value>내부</value></data>
+<data name="LBL_EXTERNAL"><projects>j159</projects><value>외부</value></data>
+<data name="LBL_PROCESSING"><projects>j159</projects><value>처리 중</value></data>
+<data name="LBL_MWIFORAGENTID"><projects>j159</projects><value>MWI는 상담원 ID를 나타냅니다.</value></data>
+<data name="LBL_AGTSKILLSLOGIN"><projects>j159</projects><value>상담원 스킬 로그인</value></data>
+<data name="LBL_AGTSKILLSNOTLOGIN"><projects>j159</projects><value>상담원 스킬 로그인하지 않음</value></data>
+<data name="LBL_KEYRPTDELAY"><projects>j159</projects><value>암호 반복 지연</value></data>
+<data name="LBL_SHORT"><projects>j159</projects><value>짧음</value></data>
+<data name="LBL_LONG"><projects>j159</projects><value>김</value></data>
+<data name="LBL_LONGEST"><projects>j159</projects><value>최장</value></data>
+<data name="LBL_MUTEALERT"><projects>j159</projects><value>알람 음소거</value></data>
+<data name="LBL_DEFAULT"><projects>j159</projects><value>기본값</value></data>
+<data name="LBL_MWIFOREXTENSION"><projects>j159</projects><value>MWI는 내선을 표시합니다.</value></data>
+<data name="LBL_SNOCALL"><projects>j159</projects><value>통화 없음</value></data>
+<data name="LBL_CALL_FWD_RING"><projects>j159</projects><value>착신 전환 벨</value></data>
+<data name="LBL_RICHTONE_CHEERFUL"><projects>j159</projects><value>신나는 소리</value></data>
+<data name="LBL_RICHTONE_CHIMES"><projects>j159</projects><value>차임 벨소리</value></data>
+<data name="LBL_RICHTONE_TELEPHONE_BELL"><projects>j159</projects><value>전화 벨소리</value></data>
+<data name="LBL_RICHTONE_XYLOPHONE"><projects>j159</projects><value>실로폰 소리</value></data>
+<data name="LBL_RICHTONE_DRUM_BEAT"><projects>j159</projects><value>드럼 소리</value></data>
+<data name="LBL_RICHTONE_SHIMMER"><projects>j159</projects><value>아른거리는 소리</value></data>
+<data name="LBL_REASON_CFI"><projects>j159</projects><value>CFI</value></data>
+<data name="LBL_REASON_CFB"><projects>j159</projects><value>CFB</value></data>
+<data name="LBL_REASON_CFNR"><projects>j159</projects><value>CFNR</value></data>
+<data name="LBL_REASON_SAC"><projects>j159</projects><value>SAC</value></data>
+<data name="LBL_PROFILE"><projects>j159</projects><value>프로필 %d</value></data>
+<data name="LBL_HDPROF"><projects>j159</projects><value>헤드셋 프로필</value></data>
+<data name="LBL_HNPROF_NORMAL"><projects>j159</projects><value>일반</value></data>
+<data name="LBL_HNPROF_AMPLIFIED"><projects>j159</projects><value>증폭</value></data>
+<data name="LBL_HNPROF_HEARING_AID"><projects>j159</projects><value>보청기</value></data>
+<data name="OPT_REGPOLICY_ALTERNATE"><projects>j159</projects><value>대체</value></data>
+<data name="OPT_REGPOLICY_SIMULTANEOUS"><projects>j159</projects><value>동시</value></data>
+<data name="OPT_FAILBACKPOLICY_ADMIN"><projects>j159</projects><value>관리</value></data>
+<data name="OPT_FAILBACKPOLICY_AUTO"><projects>j159</projects><value>자동</value></data>
+<data name="LBL_CURRENT_LANG"><projects>j159</projects><value>현재 언어</value></data>
+<data name="LBL_SO_TYPE_BASIC"><projects>j159</projects><value>기본</value></data>
+<data name="LBL_SO_TYPE_NO_TALK"><projects>j159</projects><value>말하지 않음</value></data>
+<data name="LBL_SO_TYPE_NEXT_CALL"><projects>j159</projects><value>다음 통화</value></data>
+<data name="LBL_SO_TYPE_BY_LOCATION"><projects>j159</projects><value>위치별</value></data>
+<data name="LBL_CONTACTS"><projects>j159</projects><value>연락처</value></data>
+<data name="LBL_BT_PAIRED"><projects>j159</projects><value>페어링된 장치</value></data>
+<data name="LBL_BT_AVAILABLE"><projects>j159</projects><value>사용 가능한 장치</value></data>
+<data name="LBL_BT_PASSKEY_ERROR"><projects>j159</projects><value>암호 오류</value></data>
+<data name="LBL_DESTINATION"><projects>j159</projects><value>대상</value></data>
+<data name="LBL_EXTENSION"><projects>j159</projects><value>내선</value></data>
+<data name="LBL_EXT"><projects>j159</projects><value>내선 :</value></data>
+<data name="LBL_DATE"><projects>j159</projects><value>날짜:</value></data>
+<data name="LBL_TIME"><projects>j159</projects><value>시간:</value></data>
+<data name="LBL_ZONE"><projects>j159</projects><value>시간대:</value></data>
+<data name="LBL_ROOM"><projects>j159</projects><value>회의실:</value></data>
+<data name="LBL_FLOOR"><projects>j159</projects><value>층 수:</value></data>
+<data name="LBL_BUILDING"><projects>j159</projects><value>건물:</value></data>
+<data name="LBL_LOCATION"><projects>j159</projects><value>위치:</value></data>
+<data name="LBL_LINKSPEED"><projects>j159</projects><value>링크 속도</value></data>
+<data name="LBL_IPADDRESS"><projects>j159</projects><value>IP 주소</value></data>
+<data name="LBL_SECURITY"><projects>j159</projects><value>보안</value></data>
+<data name="LBL_SECURITY_SHORTENED"><projects>j159</projects><value>보안</value></data>
+<data name="LBL_EAP_METHOD"><projects>j159</projects><value>EAP 방법</value></data>
+<data name="LBL_PHASE2AUTHENTICATION"><projects>j159</projects><value>2 단계 인증</value></data>
+<data name="LBL_IDENTITY"><projects>j159</projects><value>ID</value></data>
+<data name="LBL_ANONYMOUS_IDENTITY"><projects>j159</projects><value>익명 ID</value></data>
+<data name="LBL_UNKNOWN"><projects>j159</projects><value>알 수 없음</value></data>
+<data name="LBL_PROXYSELECTIONPOLICY"><projects>j159</projects><value>SIP 프록시 정책</value></data>
+<data name="OPT_PROXYPOLICY_AUTO"><projects>j159</projects><value>자동</value></data>
+<data name="OPT_PROXYPOLICY_MANUAL"><projects>j159</projects><value>수동</value></data>
+<data name="LBL_PRESENCE_INTEGRATION"><projects>j159</projects><value>프레즌스 통합</value></data>
+<data name="LBL_NETWORK"><projects>j159</projects><value>네트워크</value></data>
+<data name="LBL_BT"><projects>j159</projects><value>블루투스</value></data>
+<data name="LBL_HELP"><projects>j159</projects><value>도움말</value></data>
+<data name="LBL_BT_BATTERY_LOW_POPUP"><projects>j159</projects><value>무선 핸드셋 배터리 전원이 위험 수준으로 낮아졌습니다.
+충전을 위해 핸드셋을 받침대 위에 놓으십시오.</value></data>
+<data name="LBL_BT_HANDSET_CHARGER_FAILURE"><projects>j159</projects><value>무선 핸드셋 충전 실패.
+받침대 연결 상태를 확인하고 '재시도'를 눌러 충전기를 켜십시오.</value></data>
+<data name="LBL_BT_SECOND_HANDSET_POPUP"><projects>j159</projects><value>무선 핸드셋이 이미 페어링되었습니다.
+새 무선 핸드셋과
+페어링하시겠습니까?</value></data>
+<data name="LBL_BT_CHANGE_AUDIO_PATH_POPUP"><projects>j159</projects><value>기본 블루투스 헤드셋이 없습니다.
+기본 오디오 경로를 "스피커"로 변경하시겠습니까?</value></data>
+<data name="LBL_BT_UNPAIR_FAILED"><projects>j159</projects><value>블루투스 장치 언페어링 중
+'%s'
+실패</value></data>
+<data name="LBL_BT_UNPAIR_POPUP"><projects>j159</projects><value>블루투스 장치 언페어링:
+'%s'</value></data>
+<data name="LBL_BT_FORGET_POPUP"><projects>j159</projects><value>블루투스 장치 자동 연결 안 함:
+'%s'</value></data>
+<data name="LBL_BT_CHANGE_DEFAULT_FAILED"><projects>j159</projects><value>기본 블루투스 장치 설정
+'%s'
+실패</value></data>
+<data name="LBL_BT_CHANGE_DEFAULT_SUCCESS"><projects>j159</projects><value>기본 블루투스 장치 설정
+'%s'
+성공</value></data>
+<data name="LBL_BT_PAIRING_ALREADY_PAIRED"><projects>j159</projects><value>블루투스 장치가 이미 페어링됨
+'%s'
+거부됨</value></data>
+<data name="LBL_BT_PAIRING_MAX_LIMIT"><projects>j159</projects><value>장치를 더 이상 추가할 수 없습니다.
+하나 이상의 장치를 언페어링하십시오.</value></data>
+<data name="LBL_BT_DISCONNECTING_IN_PROGRESS"><projects>j159</projects><value>블루투스 장치 연결 해제 중
+'%s'
+진행 중...</value></data>
+<data name="LBL_BT_DISCONNECTING_ERROR"><projects>j159</projects><value>블루투스 장치 연결 해제 중
+'%s'
+실패</value></data>
+<data name="LBL_BT_CONNECTING_POPUP"><projects>j159</projects><value>블루투스 장치 연결 중
+'%s'
+취소를 눌러 중단</value></data>
+<data name="LBL_BT_CONNECTING_IN_PROGRESS"><projects>j159</projects><value>블루투스 장치 연결 중
+'%s'
+진행 중...</value></data>
+<data name="LBL_BT_CONNECTING_TIMEOUT"><projects>j159</projects><value>연결 실패.'%s' 장치가 켜져 있고 범위 내에 있는지 확인하십시오.</value></data>
+<data name="LBL_BT_CONNECTING_ERROR"><projects>j159</projects><value>블루투스 장치 연결 중
+'%s'
+실패</value></data>
+<data name="LBL_BT_PAIRING_ERROR"><projects>j159</projects><value>블루투스 장치 페어링
+'%s'
+실패</value></data>
+<data name="LBL_BT_PASSKEY_MISMATCH"><projects>j159</projects><value>%ls'
+블루투스 장치 페어링이
+중단되었습니다. 암호가 일치하지 않습니다.</value></data>
+<data name="LBL_BT_PASSKEY_CONFIRM_POPUP"><projects>j159</projects><value>%ls'
+ 블루투스 장치에
+제공된 암호 
+'%u'
+확인을 눌러 계속하십시오.</value></data>
+<data name="LBL_BT_PASSKEY_DISPLAY_POPUP"><projects>j159</projects><value>%ls'
+ 블루투스 장치에
+제공된 암호 
+'%u'
+확인을 눌러 원격 장치에서 동일한 암호를 사용합니다.</value></data>
+<data name="LBL_BT_SCANNING_REJECTED"><projects>j159</projects><value>스캔이 거부됨</value></data>
+<data name="LBL_BT_SCANNING_POPUP"><projects>j159</projects><value>스캔 중...
+중단하려면 중지를 누르십시오.</value></data>
+<data name="LBL_BT_ENABLE"><projects>j159</projects><value>블루투스 사용</value></data>
+<data name="LBL_BT_NO_DEVICES"><projects>j159</projects><value>&lt;장치 없음&gt;</value></data>
+<data name="LBL_BT_DEVICES"><projects>j159</projects><value>블루투스 장치</value></data>
+<data name="LBL_BT_DEVICES_2"><projects>j159</projects><value>장치...</value></data>
+<data name="LBL_BT_DEVICES_3"><projects>j159</projects><value>장치</value></data>
+<data name="LBL_BT_HEADSET"><projects>j159</projects><value>블루투스 헤드셋</value></data>
+<data name="LBL_AWAY_TIMER_VALUE"><projects>j159</projects><value>자리 비움 시간 값</value></data>
+<data name="LBL_OPENSSL_VER"><projects>j159</projects><value>OpenSSL 버전</value></data>
+<data name="LBL_OPENSSH_VER"><projects>j159</projects><value>OpenSSH 버전</value></data>
+<data name="LBL_DATE_FORMAT"><projects>j159</projects><value>날짜 형식</value></data>
+<data name="LBL_DATE_FMTOPT_DEFAULT"><projects>j159</projects><value>기본값</value></data>
+<data name="LBL_DATE_FMTOPT_1"><projects>j159</projects><value>월/일</value></data>
+<data name="LBL_DATE_FMTOPT_2"><projects>j159</projects><value>일/월</value></data>
+<data name="LBL_DATE_FMTOPT_3"><projects>j159</projects><value>월.일</value></data>
+<data name="LBL_DATE_FMTOPT_4"><projects>j159</projects><value>일.월</value></data>
+<data name="LBL_DATE_FMTOPT_5"><projects>j159</projects><value>월-일</value></data>
+<data name="LBL_DATE_FMTOPT_6"><projects>j159</projects><value>일-월</value></data>
+<data name="LBL_DATE_FMTOPT_7"><projects>j159</projects><value>월 일</value></data>
+<data name="LBL_HR"><projects>j159</projects><value>시간</value></data>
+<data name="LBL_HRS"><projects>j159</projects><value>시간</value></data>
+<data name="LBL_MIN"><projects>j159</projects><value>분</value></data>
+<data name="LBL_MINS"><projects>j159</projects><value>분</value></data>
+<data name="LBL_SUN_SHORT"><projects>j159</projects><value>일</value></data>
+<data name="LBL_MON_SHORT"><projects>j159</projects><value>월</value></data>
+<data name="LBL_TUE_SHORT"><projects>j159</projects><value>화</value></data>
+<data name="LBL_WED_SHORT"><projects>j159</projects><value>수</value></data>
+<data name="LBL_THU_SHORT"><projects>j159</projects><value>목</value></data>
+<data name="LBL_FRI_SHORT"><projects>j159</projects><value>금</value></data>
+<data name="LBL_SAT_SHORT"><projects>j159</projects><value>토</value></data>
+<data name="LBL_JAN_SHORT"><projects>j159</projects><value>1</value></data>
+<data name="LBL_FEB_SHORT"><projects>j159</projects><value>2</value></data>
+<data name="LBL_MAR_SHORT"><projects>j159</projects><value>3</value></data>
+<data name="LBL_APR_SHORT"><projects>j159</projects><value>4</value></data>
+<data name="LBL_MAY_SHORT"><projects>j159</projects><value>5</value></data>
+<data name="LBL_JUN_SHORT"><projects>j159</projects><value>6</value></data>
+<data name="LBL_JUL_SHORT"><projects>j159</projects><value>7</value></data>
+<data name="LBL_AUG_SHORT"><projects>j159</projects><value>8</value></data>
+<data name="LBL_SEP_SHORT"><projects>j159</projects><value>9</value></data>
+<data name="LBL_OCT_SHORT"><projects>j159</projects><value>10</value></data>
+<data name="LBL_NOV_SHORT"><projects>j159</projects><value>11</value></data>
+<data name="LBL_DEC_SHORT"><projects>j159</projects><value>12</value></data>
+<data name="LBL_VERIFYING_CREDENTIALS"><projects>j159</projects><value>로그인 중
+증명서 확인 중...</value></data>
+<data name="LBL_CERT_PWD"><projects>j159</projects><value>인증서 암호:</value></data>
+<data name="LBL_PROXY"><projects>j159</projects><value>SIP 프록시</value></data>
+<data name="LBL_ADDRESS"><projects>j159</projects><value>주소</value></data>
+<data name="LBL_EMPTY_SIP_PROXY_LIST"><projects>j159</projects><value>SIP 프록시 목록이 비어있음</value></data>
+<data name="LBL_INACTIVE"><projects>j159</projects><value>비활성</value></data>
+<data name="LBL_ACCESS_CODE"><projects>j159</projects><value>액세스 코드</value></data>
+<data name="LBL_CERTI"><projects>j159</projects><value>인증서</value></data>
+<data name="LBL_CERTIEXPIRY"><projects>j159</projects><value>인증서 만료</value></data>
+<data name="LBL_MISSING"><projects>j159</projects><value>누락</value></data>
+<data name="LBL_EXPIRED"><projects>j159</projects><value>만료됨</value></data>
+<data name="LBL_SERIAL_PORT"><projects>j159</projects><value>시리얼 포트 모드</value></data>
+<data name="LBL_PORT_MIRRORING"><projects>j159</projects><value>포트 미러링</value></data>
+<data name="LBL_ADJUNCT"><projects>j159</projects><value>보조</value></data>
+<data name="LBL_UNABLE_TO_CONTACT_HOST"><projects>j159</projects><value>호스트에 연결할 수 없음</value></data>
+<data name="LBL_NO_FINGERPRINT"><projects>j159</projects><value>지문 없음</value></data>
+<data name="LBL_VERSION_NUMBER"><projects>j159</projects><value>버전 번호</value></data>
+<data name="LBL_UPGRADE_DATE"><projects>j159</projects><value>업그레이드 날짜</value></data>
+<data name="LBL_UPGRADE_STATUS"><projects>j159</projects><value>업그레이드 상태</value></data>
+<data name="LBL_REASON_CODE"><projects>j159</projects><value>사유 코드</value></data>
+<data name="LBL_FILENAME"><projects>j159</projects><value>파일 이름</value></data>
+<data name="LBL_USER"><projects>j159</projects><value>사용자</value></data>
+<data name="LBL_LOGIN"><projects>j159</projects><value>로그인</value></data>
+<data name="LBL_LOGOUT"><projects>j159</projects><value>로그아웃</value></data>
+<data name="LBL_LOCK"><projects>j159</projects><value>잠금</value></data>
+<data name="LBL_UNLOCK"><projects>j159</projects><value>해제</value></data>
+<data name="LBL_UNLOCK_GUEST"><projects>j159</projects><value>%ls 게스트 잠금 해제</value></data>
+<data name="LBL_ADMIN_SETTINGS"><projects>j159</projects><value>관리</value></data>
+<data name="LBL_ABOUT_PHONE"><projects>j159</projects><value>정보</value></data>
+<data name="LBL_CUSTOMIZE_KEY"><projects>j159</projects><value>키 사용자 정의</value></data>
+<data name="LBL_RESTORE"><projects>j159</projects><value>복원</value></data>
+<data name="SK_RESTORE"><projects>j159</projects><value>복원</value></data>
+<data name="LBL_RECENTS"><projects>j159</projects><value>최근 통화 내역</value></data>
+<data name="LBL_UPGRADE_INFO"><projects>j159</projects><value>업그레이드 정보</value></data>
+<data name="LBL_SSH"><projects>j159</projects><value>SSH 액세스</value></data>
+<data name="LBL_CLI"><projects>j159</projects><value>CLI</value></data>
+<data name="LBL_SVC_CONTROL"><projects>j159</projects><value>서비스 모드 제어</value></data>
+<data name="LBL_SVC_RECORD"><projects>j159</projects><value>서비스 모드 기록</value></data>
+<data name="LBL_ROUTER"><projects>j159</projects><value>게이트웨이</value></data>
+<data name="LBL_ROUTERV4"><projects>j159</projects><value>게이트웨이(V4)</value></data>
+<data name="LBL_ROUTERV6"><projects>j159</projects><value>게이트웨이(V6)</value></data>
+<data name="LBL_ROUTERV6PREFIX"><projects>j159</projects><value>국번</value></data>
+<data name="LBL_MULTICAST"><projects>j159</projects><value>멀티캐스트</value></data>
+<data name="LBL_UNICAST"><projects>j159</projects><value>유니캐스트</value></data>
+<data name="LBL_GENREPORT"><projects>j159</projects><value>보고서 만드는 중...</value></data>
+<data name="LBL_COULD_NOT_CREATE_REPORT"><projects>j159</projects><value>보고서를 생성할 수 없습니다</value></data>
+<data name="LBL_REPORT_IS_SENT"><projects>j159</projects><value>보고서 전송됨</value></data>
+<data name="LBL_REPORT_IS_SAVED"><projects>j159</projects><value>전화기에 로컬로 전화기 보고서를 저장하는 데 성공</value></data>
+<data name="OPT_AVENV_AUTO"><projects>j159</projects><value>자동</value></data>
+<data name="OPT_AVENV_NO"><projects>j159</projects><value>아니요</value></data>
+<data name="LBL_NO_FEATURES_CONFIGURED"><projects>j159</projects><value>구성된 기능 없음</value></data>
+<data name="LBL_PHONEREPORT"><projects>j159</projects><value>전화기 보고</value></data>
+<data name="LBL_SUCCESSFUL"><projects>j159</projects><value>성공</value></data>
+<data name="LBL_FAILED"><projects>j159</projects><value>실패</value></data>
+<data name="LBL_NO_CALLS_TO_DISPLAY"><projects>j159</projects><value>표시할 통화 없음</value></data>
+<data name="LBL_HTTPPORT"><projects>j159</projects><value>HTTP 포트</value></data>
+<data name="LBL_HTTPDIR"><projects>j159</projects><value>HTTP 디렉토리</value></data>
+<data name="LBL_HTTPSPORT"><projects>j159</projects><value>HTTPS 포트</value></data>
+<data name="LBL_HTTPSDIR"><projects>j159</projects><value>HTTPS 디렉토리</value></data>
+<data name="LBL_KBPS"><projects>j159</projects><value>Kbps</value></data>
+<data name="LBL_DBM"><projects>j159</projects><value>dBm</value></data>
+<data name="LBL_AUTOANSWER"><projects>j159</projects><value>자동 응답</value></data>
+<data name="LBL_GUEST_LOGIN_DURATION"><projects>j159</projects><value>지속 시간(시간)</value></data>
+<data name="LBL_GUEST_LOGIN_EXTEND_DURATION"><projects>j159</projects><value>새 지속 시간(시간)</value></data>
+<data name="LBL_GUEST_LOGIN"><projects>j159</projects><value>게스트 로그인</value></data>
+<data name="LBL_PHONE_TO_PC_PAIRING"><projects>j159</projects><value>전화기와 PC 페어링</value></data>
+<data name="LBL_DEVICE_PAIRING"><projects>j159</projects><value>장치 페어링</value></data>
+<data name="LBL_PAIRING_STATUS"><projects>j159</projects><value>페어링 상태</value></data>
+<data name="LBL_PAIRING_IN_PROGRESS"><projects>j159</projects><value>페어링 진행 중...</value></data>
+<data name="LBL_WAITING_FOR_CREDENTIALS"><projects>j159</projects><value>증명서 대기 중...</value></data>
+<data name="LBL_ENXCHGCAL"><projects>j159</projects><value>Exchange 일정 사용</value></data>
+<data name="LBL_FIRST_DAY_OF_WEEK"><projects>j159</projects><value>시작 요일</value></data>
+<data name="LBL_LIST_STYLE"><projects>j159</projects><value>목록 스타일</value></data>
+<data name="LBL_MODERATOR_CODE"><projects>j159</projects><value>호스트 코드</value></data>
+<data name="LBL_EXPANDED"><projects>j159</projects><value>확장됨</value></data>
+<data name="LBL_COMPACT"><projects>j159</projects><value>압축</value></data>
+<data name="LBL_BACKUP_RESTORE"><projects>j159</projects><value>백업/복원</value></data>
+<data name="LBL_MANUAL_RESTORE"><projects>j159</projects><value>수동 복원</value></data>
+<data name="LBL_MANUAL_BACKUP"><projects>j159</projects><value>수동 백업</value></data>
+<data name="LBL_IPOFFICE_MODE"><projects>j159</projects><value>IP Office 모드</value></data>
+<data name="LBL_SEARCH"><projects>j159</projects><value>검색</value></data>
+<data name="LBL_SEARCH_RESULTS"><projects>j159</projects><value>검색 결과</value></data>
+<data name="LBL_VUSTATS"><projects>j159</projects><value>Vu 통계</value></data>
+<data name="LBL_SKILL"><projects>j159</projects><value>스킬:</value></data>
+<data name="LBL_TRUNK_GROUP"><projects>j159</projects><value>트렁크 그룹</value></data>
+<data name="LBL_CONTACTS_SOURCE"><projects>j159</projects><value>연락처 소스</value></data>
+<data name="LBL_CONTACTS_LOCAL"><projects>j159</projects><value>내 연락처</value></data>
+<data name="LBL_CONTACTS_PS_EXCHANGE"><projects>j159</projects><value>내 Exchange</value></data>
+<data name="LBL_CONTACTS_GB_EXCHANGE"><projects>j159</projects><value>Global Exchange</value></data>
+<data name="LBL_CONTACTS_SYSTEM"><projects>j159</projects><value>시스템 연락처</value></data>
+<data name="LBL_CONTACTS_LDAP"><projects>j159</projects><value>LDAP 연락처</value></data>
+<data name="LBL_CONTACTS_ALL"><projects>j159</projects><value>모든 소스</value></data>
+<data name="LBL_CONTACTS_MULTIPLE"><projects>j159</projects><value>여러 연락처</value></data>
+<data name="LBL_DISPLAYSET"><projects>j159</projects><value>디스플레이</value></data>
+<data name="LBL_BACKGROUND"><projects>j159</projects><value>배경</value></data>
+<data name="LBL_BUTTON_MODULE_BACKGROUND"><projects>j159</projects><value>버튼 모듈 백그라운드</value></data>
+<data name="LBL_SCREEN_SAVER"><projects>j159</projects><value>화면 보호기</value></data>
+<data name="LBL_BUTTON_MODULE_SCREEN_SAVER"><projects>j159</projects><value>버튼 모듈 화면 보호기</value></data>
+<data name="LBL_SCREEN_SAVER_TIMER"><projects>j159</projects><value>타이머(분)</value></data>
+<data name="LBL_ACTIVATE_SCREEN_SAVER"><projects>j159</projects><value>화면 보호기 활성화</value></data>
+<data name="LBL_BACKLIGHT_TIMER"><projects>j159</projects><value>백라이트 타이머</value></data>
+<data name="LBL_MY_TIME"><projects>j159</projects><value>내 시간</value></data>
+<data name="LBL_TIMEZONE"><projects>j159</projects><value>시간대</value></data>
+<data name="LBL_SYMBOL_TITLE"><projects>j159</projects><value>삽입할 기호 선택</value></data>
+<data name="LBL_BT_ENTER_PASSKEY_HINT"><projects>j159</projects><value>4~16자리 장치 PIN 입력</value></data>
+<data name="LBL_CALL_DETAILS"><projects>j159</projects><value>통화 상세 정보</value></data>
+<data name="LBL_RECENTS_QUICK_SEARCH"><projects>j159</projects><value>빠른 검색</value></data>
+<data name="LBL_RECENTS_CALL_TO"><projects>j159</projects><value>통화 대상:</value></data>
+<data name="LBL_RECENTS_CALL_FROM"><projects>j159</projects><value>수신 통화:</value></data>
+<data name="LBL_AGENT_LOGIN"><projects>j159</projects><value>상담원로그인</value></data>
+<data name="LBL_SENT_RECEIVED"><projects>j159</projects><value>송신: %d / 수신: %d</value></data>
+<data name="LBL_WAIT_CONTACTING_HOST"><projects>j159</projects><value>호스트에 접속 중입니다. 잠시 기다려 주십시오...</value></data>
+<data name="LBL_SUCCESS_CONTACT_HOST"><projects>j159</projects><value>호스트에 연결됨</value></data>
+<data name="LBL_IP_ADDRESS_OR_FQDN_HINT"><projects>j159</projects><value>IP 주소 또는 FQDN</value></data>
+<data name="LBL_SIP_PROXY_SERVER"><projects>j159</projects><value>SIP 프록시 목록</value></data>
+<data name="LBL_MAIN_MENU"><projects>j159</projects><value>주 메뉴</value></data>
+<data name="LBL_PROTOC"><projects>j159</projects><value>프로토콜</value></data>
+<data name="LBL_GROUP_NAME_HINT"><projects>j159</projects><value>그룹 이름 입력</value></data>
+<data name="LBL_IP_ADDRESS_HINT"><projects>j159</projects><value>IP 주소</value></data>
+<data name="LBL_TPORTPORT"><projects>j159</projects><value>SIP 포트</value></data>
+<data name="LBL_EXCHANGE_USERNAME"><projects>j159</projects><value>Exchange 사용자 이름</value></data>
+<data name="LBL_EXCHANGE_PASSWORD"><projects>j159</projects><value>Exchange 암호</value></data>
+<data name="LBL_EXCHANGE_DOMAIN"><projects>j159</projects><value>Exchange 도메인</value></data>
+<data name="LBL_EXCHANGE_NAME_PASSWORD_PROMPT"><projects>j159</projects><value>이름/암호 프롬프트</value></data>
+<data name="LBL_ENABLE_REMINDER"><projects>j159</projects><value>미리 알림</value></data>
+<data name="LBL_REMINDER_TONE"><projects>j159</projects><value>미리 알림음</value></data>
+<data name="LBL_REMINDER_TIME"><projects>j159</projects><value>미리 알림 시간</value></data>
+<data name="LBL_SNOOZE_TIME"><projects>j159</projects><value>스누즈 시간</value></data>
+<data name="LBL_ALL_DAY"><projects>j159</projects><value>하루 종일</value></data>
+<data name="LBL_TODAY"><projects>j159</projects><value>오늘</value></data>
+<data name="LBL_TOMORROW"><projects>j159</projects><value>내일</value></data>
+<data name="LBL_DURATION_ALL"><projects>j159</projects><value>하루</value></data>
+<data name="LBL_DURATION_DAY"><projects>j159</projects><value>종일</value></data>
+<data name="LBL_NEW_CONTACT"><projects>j159</projects><value>새 연락처</value></data>
+<data name="LBL_EDIT_CONTACT"><projects>j159</projects><value>연락처 편집</value></data>
+<data name="LBL_NICKNAME"><projects>j159</projects><value>별명</value></data>
+<data name="LBL_ENTER_NUMBER"><projects>j159</projects><value>전화번호 입력</value></data>
+<data name="LBL_ADD_NUMBER"><projects>j159</projects><value>번호 추가</value></data>
+<data name="LBL_AUTO_MODE"><projects>j159</projects><value>자동</value></data>
+<data name="LBL_MANUAL_MODE"><projects>j159</projects><value>수동</value></data>
+<data name="LBL_DEFAULT_RINGTONE"><projects>j159</projects><value>기본 벨소리</value></data>
+<data name="LBL_SYSTEM_RINGTONE"><projects>j159</projects><value>시스템</value></data>
+<data name="LBL_CALL_PRIORITY"><projects>j159</projects><value>통화 우선 순위</value></data>
+<data name="LBL_ADD_MEMBER"><projects>j159</projects><value>멤버 추가</value></data>
+<data name="LBL_MOVE"><projects>j159</projects><value>이동</value></data>
+<data name="LBL_RELABEL"><projects>j159</projects><value>라벨변경</value></data>
+<data name="LBL_ADD"><projects>j159</projects><value>추가</value></data>
+<data name="LBL_AUTODIALS"><projects>j159</projects><value>자동 다이얼</value></data>
+<data name="LBL_INCOMING_CALL_NUMBER"><projects>j159</projects><value>수신 통화 (%d/%d)</value></data>
+<data name="LBL_COMBINE"><projects>j159</projects><value>결합</value></data>
+<data name="LBL_SELECT_FEATURE"><projects>j159</projects><value>기능 선택</value></data>
+<data name="LBL_SELECT_CALL_ON_HOLD"><projects>j159</projects><value>보류 호 선택</value></data>
+<data name="LBL_SELECT_NUMBER"><projects>j159</projects><value>번호 선택</value></data>
+<data name="LBL_SELECT_CONTACT"><projects>j159</projects><value>연락처 선택</value></data>
+<data name="LBL_EMERGENCY_CALL"><projects>j159</projects><value>비상 전화</value></data>
+<data name="LBL_CALL"><projects>j159</projects><value>통화</value></data>
+<data name="LBL_DELETE"><projects>j159</projects><value>삭제</value></data>
+<data name="LBL_NEW_DEVICE_FOUND"><projects>j159</projects><value>새 장치 발견됨</value></data>
+<data name="LBL_CERTIFICATE_INSTALLATION"><projects>j159</projects><value>인증서 %ls 설치</value></data>
+<data name="LBL_ENTER_CERTIFICATE_PASSWORD"><projects>j159</projects><value>인증서 암호 입력</value></data>
+<data name="LBL_NEW_GROUP"><projects>j159</projects><value>새 그룹</value></data>
+<data name="LBL_DIALCODE"><projects>j159</projects><value>다이얼 코드</value></data>
+<data name="LBL_PICKUP_NUMBER"><projects>j159</projects><value>픽업 번호</value></data>
+<data name="LBL_ENTER_PASSWD_TO_UNLOCK"><projects>j159</projects><value>암호를 입력하여 잠금 해제</value></data>
+<data name="LBL_RCCODE"><projects>j159</projects><value>수신 코딩</value></data>
+<data name="LBL_ERROR"><projects>j159</projects><value>오류</value></data>
+<data name="LBL_CALENDAR_REMINDER"><projects>j159</projects><value>일정 미리 알림</value></data>
+<data name="LBL_DUE_IN"><projects>j159</projects><value>만료:</value></data>
+<data name="LBL_CONTACT"><projects>j159</projects><value>연락처</value></data>
+<data name="LBL_TEAM_BUTTON"><projects>j159</projects><value>팀 버튼</value></data>
+<data name="LBL_CALL_PICKUP"><projects>j159</projects><value>콜 픽업</value></data>
+<data name="LBL_SHOW_SCREENSAVER_CLOCK"><projects>j159</projects><value>시계</value></data>
+<data name="LBL_SEARCH_SOURCE_LOCAL"><projects>j159</projects><value>내 연락처</value></data>
+<data name="LBL_SEARCH_SOURCE_PPM"><projects>j159</projects><value>시스템</value></data>
+<data name="LBL_SEARCH_SOURCE_EXCHG_GLOBAL"><projects>j159</projects><value>Exchg</value></data>
+<data name="LBL_SEARCH_SOURCE_EXCHG_PERSONAL"><projects>j159</projects><value>내 Exchg</value></data>
+<data name="LBL_NETWORK_CONFIG"><projects>j159</projects><value>네트워크 구성</value></data>
+<data name="LBL_SEARCHING"><projects>j159</projects><value>검색 중</value></data>
+<data name="LBL_HEADSET_SELECTION"><projects>j159</projects><value>헤드셋 선택</value></data>
+<data name="LBL_WIRED"><projects>j159</projects><value>유선</value></data>
+<data name="LBL_HEADSET_MIC_LEVEL"><projects>j159</projects><value>헤드셋 마이크 수준</value></data>
+<data name="LBL_SCREENSAVER_DETAILS"><projects>j159</projects><value>화면 보호기 상세 정보</value></data>
+<data name="LBL_DEFAULT_IMAGE_NAME"><projects>j159</projects><value>기본 이미지 %d: (%s)</value></data>
+<data name="LBL_BKGR_IMAGE_RED"><projects>j159</projects><value>빨강</value></data>
+<data name="LBL_BKGR_IMAGE_DARK"><projects>j159</projects><value>어두움</value></data>
+<data name="LBL_BKGR_IMAGE_ABSTRACT"><projects>j159</projects><value>요약</value></data>
+<data name="LBL_BKGR_IMAGE_PINK"><projects>j159</projects><value>분홍</value></data>
+<data name="LBL_BKGR_IMAGE_BLUE"><projects>j159</projects><value>청색</value></data>
+<data name="LBL_BKGR_IMAGE_NORTHERN_LIGHT"><projects>j159</projects><value>북극광</value></data>
+<data name="LBL_BKGR_IMAGE_AVAYA_DEVICE"><projects>j159</projects><value>Avaya 장치</value></data>
+<data name="LBL_SCRSVR_IMAGE_AVAYA"><projects>j159</projects><value>Avaya</value></data>
+<data name="LBL_SCRSVR_IMAGE_ABSTRACT"><projects>j159</projects><value>요약</value></data>
+<data name="LBL_SCRSVR_IMAGE_BUTTERFLY"><projects>j159</projects><value>나비</value></data>
+<data name="LBL_SCRSVR_IMAGE_KALEIDOSCOPE"><projects>j159</projects><value>만화경</value></data>
+<data name="LBL_SCRSVR_IMAGE_RAINBOW"><projects>j159</projects><value>무지개</value></data>
+<data name="LBL_SCRSVR_IMAGE_SANDSTONE"><projects>j159</projects><value>사암</value></data>
+<data name="LBL_SCRSVR_IMAGE_AVAYA_DEVICE"><projects>j159</projects><value>Avaya 장치</value></data>
+<data name="LBL_CONFERENCE_DETAILS"><projects>j159</projects><value>회의 정보</value></data>
+<data name="LBL_HEADSET_GAIN"><projects>j159</projects><value>음량 수준</value></data>
+<data name="LBL_POWERCYCLE_REQUIRED"><projects>j159</projects><value>전원 주기 요구됨</value></data>
+<data name="LBL_INCOMING_CALLS"><projects>j159</projects><value>수신 통화</value></data>
+<data name="LBL_ETHERNET_MAC"><projects>j159</projects><value>이더넷 MAC</value></data>
+<data name="LBL_WIFI_MAC"><projects>j159</projects><value>Wi-Fi MAC</value></data>
+<data name="LBL_BLUETOOTH_MAC"><projects>j159</projects><value>블루투스 MAC</value></data>
+<data name="LBL_ENTER_CODE"><projects>j159</projects><value>코드 입력</value></data>
+<data name="LBL_ENTER_ENROLLMENT_CODE"><projects>j159</projects><value>등록 코드 입력</value></data>
+<data name="LBL_BUSY_LAMP_FIELD"><projects>j159</projects><value>통화 중 램프 필드</value></data>
+<data name="LBL_BROADWORKS_ANYWHERE"><projects>j159</projects><value>BroadWorks Anywhere</value></data>
+<data name="LBL_LOCATIONS"><projects>j159</projects><value>위치</value></data>
+<data name="LBL_DESCRIPTION"><projects>j159</projects><value>설명</value></data>
+<data name="LBL_BROADWORKS_CALL_CONTROL"><projects>j159</projects><value>BroadWorks 통화 제어</value></data>
+<data name="LBL_USE_DIVERSION_INHIBITOR"><projects>j159</projects><value>전환 금지 프로그램 사용</value></data>
+<data name="LBL_ANSWER_CONFIRMATION_REQUIRED"><projects>j159</projects><value>응답 확인 필요</value></data>
+<data name="LBL_RING_REMINDER"><projects>j159</projects><value>벨 미리 알림</value></data>
+<data name="LBL_CALL_FWD_ALWAYS"><projects>j159</projects><value>착신 전환</value></data>
+<data name="LBL_ALERTING"><projects>j159</projects><value>알림</value></data>
+<data name="LBL_INCLUDE_CLICK_TO_DIAL"><projects>j159</projects><value>클릭하여 다이얼 포함</value></data>
+<data name="LBL_INCLUDE_GROUP_PAGING"><projects>j159</projects><value>그룹 페이징 포함</value></data>
+<data name="LBL_INCLUDE_SHARED_CALL_APPEARANCE"><projects>j159</projects><value>공유 통화 상태 화면 포함</value></data>
+<data name="LBL_INCLUDE_BROADWORKS_ANYWHERE"><projects>j159</projects><value>BroadWorks Anywhere 포함</value></data>
+<data name="LBL_INCLUDE_EXECUTIVE_ASSISTANT"><projects>j159</projects><value>중요 고객 지원 포함</value></data>
+<data name="LBL_FIXED_ALERTING_POLICY"><projects>j159</projects><value>고정 알림 정책</value></data>
+<data name="LBL_MOBILITY"><projects>j159</projects><value>Mobility</value></data>
+<data name="LBL_FIXED"><projects>j159</projects><value>고정</value></data>
+<data name="LBL_PHONE_NUMBER"><projects>j159</projects><value>모바일 번호 선택</value></data>
+<data name="LBL_ENTER_DESCRIPTION"><projects>j159</projects><value>설명 입력</value></data>
+<data name="LBL_DEVICE_TO_RING"><projects>j159</projects><value>전화걸기 장치</value></data>
+<data name="LBL_ALERT_AGENT_CALLS"><projects>j159</projects><value>상담원 통화 알람</value></data>
+<data name="LBL_ALERT_CLICK_TO_DIAL_CALLS"><projects>j159</projects><value>클릭하여 다이얼 통화 알람</value></data>
+<data name="LBL_ALERT_GROUP_PAGING_CALLS"><projects>j159</projects><value>알람 그룹 페이징 통화</value></data>
+<data name="LBL_USE_MOBILITY_CALLING_LINE_ID"><projects>j159</projects><value>이동성 통화 회선 ID 사용</value></data>
+<data name="LBL_BROADWORKS_MOBILITY"><projects>j159</projects><value>BroadWorks Mobility</value></data>
+<data name="LBL_PARKED_AT"><projects>j159</projects><value>파크된 번호:</value></data>
+<data name="LBL_PARKED_CALL_RANGE"><projects>j159</projects><value>파크된 통화(%d/%d)</value></data>
+<data name="LBL_PARKED_CALL"><projects>j159</projects><value>파크된 통화</value></data>
+<data name="LBL_AUDIO_BUTTON"><projects>j159</projects><value>오디오 버튼</value></data>
+<data name="LBL_ANSWER"><projects>j159</projects><value>응답</value></data>
+<data name="LBL_EXECUTIVE"><projects>j159</projects><value>실행</value></data>
+<data name="LBL_EXECUTIVE_ASSISTANT"><projects>j159</projects><value>실행-도우미</value></data>
+<data name="LBL_CALL_PARK"><projects>j159</projects><value>통화 파크</value></data>
+<data name="LBL_GENERAL_SETTINGS"><projects>j159</projects><value>일반 설정</value></data>
+<data name="LBL_CALL_FILTERING"><projects>j159</projects><value>통화 필터링</value></data>
+<data name="LBL_CALL_SCREENING"><projects>j159</projects><value>통화 스크리닝</value></data>
+<data name="LBL_CALL_ALERTING"><projects>j159</projects><value>통화 알림</value></data>
+<data name="LBL_DIVERSION"><projects>j159</projects><value>전환</value></data>
+<data name="LBL_EXECUTIVE_MANAGEMENT"><projects>j159</projects><value>실행 관리</value></data>
+<data name="LBL_NO_CONFIGURABLE_FEATURES"><projects>j159</projects><value>구성 가능 기능 없음</value></data>
+<data name="LBL_SETTINGS_NOT_ACCESSIBLE"><projects>j159</projects><value>설정 액세스 불가</value></data>
+<data name="LBL_SIMULTANEOUS_RING_PERSONAL"><projects>j159</projects><value>동시 벨울림</value></data>
+<data name="LBL_SIM_RING_DONT_RING_WITH_ACTIVE_CALL"><projects>j159</projects><value>활성 통화에 벨 울림 안 함</value></data>
+<data name="LBL_SIM_RING_NUMBER_LIST"><projects>j159</projects><value>번호</value></data>
+<data name="LBL_CALL_FWD_NO_ANSWER"><projects>j159</projects><value>무응답 시 착신 전환</value></data>
+<data name="LBL_NUMBER_OF_RINGS"><projects>j159</projects><value>벨 울림 횟수</value></data>
+<data name="LBL_PARK_NOTIFICATION"><projects>j159</projects><value>파크 알림</value></data>
+<data name="LBL_SIP_CONTROLLERS"><projects>j159</projects><value>SIP 컨트롤러</value></data>
+<data name="LBL_SIP_CONTROLLER_DETAILS"><projects>j159</projects><value>SIP 컨트롤러 상세 정보</value></data>
+<data name="LBL_HOST_NAME"><projects>j159</projects><value>호스트 이름</value></data>
+<data name="LBL_PORT"><projects>j159</projects><value>포트</value></data>
+<data name="LBL_USER_DOMAIN"><projects>j159</projects><value>사용자 도메인</value></data>
+<data name="LBL_STATUS"><projects>j159</projects><value>상태</value></data>
+<data name="LBL_NOT_ACTIVE"><projects>j159</projects><value>활성화되지 않음</value></data>
+<data name="LBL_PRIORITY"><projects>j159</projects><value>우선 순위</value></data>
+<data name="LBL_PRIMARY"><projects>j159</projects><value>주번호</value></data>
+<data name="LBL_SECONDARY"><projects>j159</projects><value>보조</value></data>
+<data name="LBL_EXPERIENCING_DELAYS"><projects>j159</projects><value>지연되고 있습니다...</value></data>
+<data name="LBL_SIM_RING_ADD_NUMBER"><projects>j159</projects><value>번호 추가</value></data>
+<data name="LBL_SIM_RING_EDIT_NUMBER"><projects>j159</projects><value>번호 편집</value></data>
+<data name="LBL_NOT_CONFIGURED"><projects>j159</projects><value>구성되지 않음</value></data>
+<data name="LBL_SHARED_LINES"><projects>j159</projects><value>공유 회선</value></data>
+<data name="LBL_CALL_RETRIEVE_TIMEOUT"><projects>j159</projects><value>통화 검색 시간 초과</value></data>
+<data name="LBL_CALL_RETRIEVE_FAILED"><projects>j159</projects><value>통화 검색 실패</value></data>
+<data name="LBL_LINE"><projects>j159</projects><value>회선/포트</value></data>
+<data name="LBL_AUTHNAME"><projects>j159</projects><value>인증 사용자 이름</value></data>
+<data name="LBL_XSI_WEB_PASSWORD"><projects>j159</projects><value>웹 액세스 암호</value></data>
+<data name="LBL_XSI_AUTH_METHOD"><projects>j159</projects><value>인증 방법</value></data>
+<data name="LBL_XSI_USER_ID"><projects>j159</projects><value>사용자 ID</value></data>
+<data name="LBL_XSI_AUTHENTICATION"><projects>j159</projects><value>XSI 인증</value></data>
+<data name="LBL_SIM_RING_INPUT_NUMBER"><projects>j159</projects><value>전화번호 또는 SIP-URI</value></data>
+<data name="LBL_EDIT"><projects>j159</projects><value>편집</value></data>
+<data name="LBL_SIP_SERVER_DETAILS"><projects>j159</projects><value>SIP 서버 상세 정보</value></data>
+<data name="LBL_SIP_SERVERS"><projects>j159</projects><value>SIP 서버</value></data>
+<data name="LBL_PROTOCOL"><projects>j159</projects><value>프로토콜</value></data>
+<data name="LBL_PERSONALIZE_RINGING_PRIORITY"><projects>j159</projects><value>우선순위 알람</value></data>
+<data name="LBL_PERSONALIZE_RINGING_ALT_NUM1"><projects>j159</projects><value>대체 번호 1</value></data>
+<data name="LBL_PERSONALIZE_RINGING_ALT_NUM2"><projects>j159</projects><value>대체 번호 2</value></data>
+<data name="LBL_PERSONALIZE_RINGING_REMINDER"><projects>j159</projects><value>벨 미리 알림</value></data>
+<data name="LBL_CONNECTING"><projects>j159</projects><value>연결 중</value></data>
+<data name="LBL_EMPTY"><projects>j159</projects><value>&lt;비었음&gt;</value></data>
+<data name="LBL_CONFIGURED"><projects>j159</projects><value>&lt;구성됨&gt;</value></data>
+<data name="LBL_DISPLAY_NAME"><projects>j159</projects><value>표시 이름</value></data>
+<data name="LBL_AUTH_USERNAME"><projects>j159</projects><value>사용자이름 인증</value></data>
+<data name="LBL_AUTH_PASSWORD"><projects>j159</projects><value>암호 인증</value></data>
+<data name="LBL_BARGE_IN"><projects>j159</projects><value>통화 참여</value></data>
+<data name="LBL_AUTHENTICATION_FAILED"><projects>j159</projects><value>인증 실패</value></data>
+<data name="LBL_LONG_LONG_DOUBLE"><projects>j159</projects><value>장-장-두 번</value></data>
+<data name="LBL_SHORT_SHORT_LONG"><projects>j159</projects><value>단-단-장</value></data>
+<data name="LBL_SHORT_LONG_SHORT"><projects>j159</projects><value>단-장-단</value></data>
+<data name="LBL_MOBILE_ALERTING"><projects>j159</projects><value>모바일 ID 알림</value></data>
+<data name="LBL_PROFILE_ALERTING"><projects>j159</projects><value>프로필 ID 알림</value></data>
+<data name="LBL_MOBILE_IDENTITIES_ALERTED"><projects>j159</projects><value>모바일 ID 알람:</value></data>
+<data name="LBL_PH_NUMBER"><projects>j159</projects><value>전화번호</value></data>
+<data name="LBL_ALTERNATE_PHONE_NUMBER"><projects>j159</projects><value>대체 전화번호</value></data>
+<data name="LBL_CALL_APPEARANCE_COUNT"><projects>j159</projects><value>통화 상태</value></data>
+<data name="LBL_ENTER_PARK_DESTINATION"><projects>j159</projects><value>파크 대상 입력</value></data>
+<data name="LBL_SELECT_A_CALL_TO_PARK"><projects>j159</projects><value>파크할 통화 선택</value></data>
+<data name="LBL_GROUP_ID"><projects>j159</projects><value>그룹 ID</value></data>
+<data name="LBL_DEPARTMENT"><projects>j159</projects><value>부서</value></data>
+<data name="LBL_EMAIL_ADDRESS"><projects>j159</projects><value>이메일 주소</value></data>
+<data name="LBL_ZIP_CODE"><projects>j159</projects><value>우편번호</value></data>
+<data name="LBL_COUNTRY"><projects>j159</projects><value>국가</value></data>
+<data name="LBL_ALERTING_ON_CALLS"><projects>j159</projects><value>통화 알람</value></data>
+<data name="LBL_BEACON_LED"><projects>j159</projects><value>신호 LED</value></data>
+<data name="LBL_NO_CONTACTS_IN_GROUP"><projects>j159</projects><value>그룹에 컨택 없음</value></data>
+<data name="LBL_TOO_MANY_LINES"><projects>j159</projects><value>행이 너무 많음</value></data>
+<data name="LBL_SERVER_TYPE"><projects>j159</projects><value>서버 유형</value></data>
+<data name="LBL_GENERIC_SIP"><projects>j159</projects><value>일반 SIP</value></data>
+<data name="LBL_WMLTXTJ100"><projects>j159</projects><value>텍스트 입력</value></data>
+<data name="LBL_LONG_TERM_ACOUSTIC_PROTECTION"><projects>j159</projects><value>장기 음향 보호</value></data>
+<data name="LBL_ACOUSTIC_PROTECTION_DYNAMIC"><projects>j159</projects><value>동적</value></data>
+<data name="LBL_ACOUSTIC_PROTECTION_4_HOURS"><projects>j159</projects><value>4시간</value></data>
+<data name="LBL_ACOUSTIC_PROTECTION_8_HOURS"><projects>j159</projects><value>8시간</value></data>
+<data name="LBL_SELECT_APPLICATION"><projects>j159</projects><value>애플리케이션 선택</value></data>
+<data name="LBL_PRIMARY_DISPLAY"><projects>j159</projects><value>주 디스플레이</value></data>
+<data name="LBL_SECONDARY_DISPLAY"><projects>j159</projects><value>보조 디스플레이</value></data>
+<data name="LBL_PREVIEW"><projects>j159</projects><value>미리 보기</value></data>
+<data name="LBL_DEVICE_TYPE"><projects>j159</projects><value>장치 유형</value></data>
+<data name="LBL_UPDATE"><projects>j159</projects><value>업데이트</value></data>
+<data name="LBL_PAGING"><projects>j159</projects><value>페이징</value></data>
+<data name="LBL_PAGE_FROM"><projects>j159</projects><value>다음에서부터 페이징</value></data>
+<data name="LBL_PRODUCT_ID"><projects>j159</projects><value>제품 ID</value></data>
+<data name="LBL_NUM_CALLS_IN_QUEUE"><projects>j159</projects><value>대기열: %d</value></data>
+<data name="LBL_NUM_CALLS_IN_QUEUE_SHORT"><projects>j159</projects><value>대기: %d</value></data>
+<data name="LBL_WAIT"><projects>j159</projects><value>대기 중: %d</value></data>
+<data name="LBL_WAIT_SHORT"><projects>j159</projects><value>대기: %d</value></data>
+<data name="LBL_USB_POWER_FAULT"><projects>j159</projects><value>USB 전원 결함</value></data>
+<data name="LBL_CALL_CENTER"><projects>j159</projects><value>콜 센터</value></data>
+<data name="LBL_SIGN_OUT"><projects>j159</projects><value>로그아웃</value></data>
+<data name="LBL_SIGN_IN"><projects>j159</projects><value>로그인</value></data>
+<data name="LBL_UNAVAILABLE"><projects>j159</projects><value>통화 불가</value></data>
+<data name="LBL_WRAP_UP"><projects>j159</projects><value>상담 완료</value></data>
+<data name="LBL_UNAVAILABLE_REASON"><projects>j159</projects><value>통화 불가 사유</value></data>
+<data name="LBL_GET_UPDATES"><projects>j159</projects><value>업데이트 진행</value></data>
+<data name="LBL_LAST_UPDATE"><projects>j159</projects><value>마지막 업데이트</value></data>
+<data name="LBL_GUEST_LOGOUT"><projects>j159</projects><value>게스트 로그아웃</value></data>
+<data name="LBL_GUEST_LOGOUT_SHORT"><projects>j159</projects><value>게스트로그아웃</value></data>
+<data name="LBL_GUEST_LOGIN_SHORT"><projects>j159</projects><value>게스트 로그인</value></data>
+<data name="LBL_CC_STATUS_EMPTY"><projects>j159</projects><value>대기 통화 없음</value></data>
+<data name="LBL_TRESHOLD_EXCEEDED"><projects>j159</projects><value>대기 통화 임계값 초과</value></data>
+<data name="LBL_CALL_COMPLETED_ELSEWHERE"><projects>j159</projects><value>통화가 다른 곳에서 완료됨</value></data>
+<data name="LBL_ANY"><projects>j159</projects><value>임의</value></data>
+<data name="LBL_DISPOSITION_CODE"><projects>j159</projects><value>처리 코드</value></data>
+<data name="LBL_CC_STATUS_NORMAL"><projects>j159</projects><value>보통 대기 통화 수</value></data>
+<data name="LBL_EMERGENCY_ESCALATION"><projects>j159</projects><value>긴급 통화 에스컬레이션</value></data>
+<data name="LBL_SELECT_SUPERVISOR"><projects>j159</projects><value>감독자 선택</value></data>
+<data name="LBL_ESCALATION"><projects>j159</projects><value>에스컬레이션</value></data>
+<data name="LBL_CONNECTED"><projects>j159</projects><value>연결된 통화: %s</value></data>
+<data name="LBL_CONNECTED_2"><projects>j159</projects><value>연결된 통화: %s(%s)</value></data>
+<data name="LBL_INCOMING"><projects>j159</projects><value>수신 통화: %s</value></data>
+<data name="LBL_CALLING"><projects>j159</projects><value>전화 거는 중: %s</value></data>
+<data name="LBL_ON_HOLD"><projects>j159</projects><value>보류 중 통화: %s</value></data>
+<data name="LBL_PARK"><projects>j159</projects><value>파크</value></data>
+<data name="LBL_PAGE"><projects>j159</projects><value>페이징</value></data>
+<data name="LBL_CALL_PARK_WITH_PARK_SLOT"><projects>j159</projects><value>파크(%s)</value></data>
+<data name="LBL_ENTER_PIN_TO_UNLOCK"><projects>j159</projects><value>잠금 해제하려면 PIN 입력</value></data>
+<data name="LBL_INVALID_PIN"><projects>j159</projects><value>잘못된 PIN</value></data>
+<data name="LBL_ATTEMPT_N_OF_M"><projects>j159</projects><value>%d번 (최대 횟수: %d)</value></data>
+<data name="LBL_PAGE_DESTINATION"><projects>j159</projects><value>페이징 대상</value></data>
+<data name="LBL_PAGE_VALUE"><projects>j159</projects><value>페이징: %s</value></data>
+<data name="LBL_CALL_FORWARD_DELAY"><projects>j159</projects><value>착신 전환 지연</value></data>
+<data name="LBL_AUTO_LOCK"><projects>j159</projects><value>자동 잠금(분)</value></data>
+<data name="LBL_LDAP_DIRECTORY"><projects>j159</projects><value>LDAP 디렉터리</value></data>
+<data name="LBL_PARK_SLOT_PAGE_DESTINATION"><projects>j159</projects><value>파크(%s)&gt; 페이지: %s</value></data>
+<data name="LBL_ON_HOLD_2"><projects>j159</projects><value>보류 중 통화: %s&gt;%s</value></data>
+<data name="LBL_INCOMING_2"><projects>j159</projects><value>수신 통화: %s&gt;%s</value></data>
+<data name="LBL_BT_PAIRING_POWERED_OFF"><projects>j159</projects><value>페어링 실패.
+'%ls' 장치가 켜져 있고 범위 내에 있는지 확인하십시오.</value></data>
+<data name="LBL_INCOMING_INDICATION"><projects>j159</projects><value>수신 통화 표시</value></data>
+<data name="LBL_PARKED_INDICATION"><projects>j159</projects><value>파크된 통화 표시</value></data>
+<data name="LBL_INDICATION_DELAY"><projects>j159</projects><value>표시 지연</value></data>
+<data name="LBL_SEARCH_TYPE"><projects>j159</projects><value>검색 유형</value></data>
+<data name="LBL_PARK_SLOT_PAGE_DESTINATION_2"><projects>j159</projects><value>파크(%s)&gt; 페이지: %s&gt;%s</value></data>
+<data name="LBL_PAGE_VALUE_2"><projects>j159</projects><value>파크&gt; 페이지: %s&gt;%s</value></data>
+<data name="LBL_STARTS_WITH"><projects>j159</projects><value>다음으로 시작:</value></data>
+<data name="LBL_CONTAINS"><projects>j159</projects><value>다음을 포함:</value></data>
+<data name="LBL_PARK_PAGE"><projects>j159</projects><value>파크&gt; 페이지: %s</value></data>
+<data name="LBL_VISUAL_VOICEMAIL"><projects>j159</projects><value>시각적 음성 메일</value></data>
+<data name="LBL_INBOX"><projects>j159</projects><value>수신함...</value></data>
+<data name="LBL_USB"><projects>j159</projects><value>USB</value></data>
+<data name="LBL_USB_DEVICE"><projects>j159</projects><value>USB 장치</value></data>
+<data name="LBL_VOICEMAILS"><projects>j159</projects><value>음성 메일(%d개)</value></data>
+<data name="LBL_ENTER_PIN"><projects>j159</projects><value>PIN 입력</value></data>
+<data name="LBL_USERNAME_HINT"><projects>j159</projects><value>사용자 이름</value></data>
+<data name="LBL_PASSWORD_HINT"><projects>j159</projects><value>암호</value></data>
+<data name="LBL_USE_VOICEMAIL_BUTTON"><projects>j159</projects><value>음성 메일 버튼 사용</value></data>
+<data name="LBL_ACCESS_PIN"><projects>j159</projects><value>액세스 PIN</value></data>
+<data name="LBL_VISUAL_VOICEMAIL_OPTIONS"><projects>j159</projects><value>옵션</value></data>
+<data name="LBL_VMTOTEXT_VISUAL_VOICEMAIL_OPTIONS"><projects>j159</projects><value>음성 메일에서 텍스트로</value></data>
+<data name="LBL_CALLBACK_VISUAL_VOICEMAIL_OPTIONS"><projects>j159</projects><value>콜백</value></data>
+<data name="LBL_MARK_AS_R_VISUAL_VOICEMAIL_OPTIONS"><projects>j159</projects><value>읽음으로 표시</value></data>
+<data name="LBL_MARK_AS_UNR_VISUAL_VOICEMAIL_OPTIONS"><projects>j159</projects><value>읽지 않음으로 표시</value></data>
+<data name="LBL_USB_POWER_LEVEL"><projects>j159</projects><value>USB 전원</value></data>
+<data name="LBL_USB_POWER_LEVEL_LOW"><projects>j159</projects><value>낮음(USB-A 전용)</value></data>
+<data name="LBL_USB_POWER_LEVEL_MEDIUM"><projects>j159</projects><value>중간(공유)</value></data>
+<data name="LBL_USB_POWER_LEVEL_HIGH"><projects>j159</projects><value>높음(공유)</value></data>
+<data name="LBL_HTTP"><projects>j159</projects><value></value></data>
+<data name="LBL_HTTP_HINT"><projects>j159</projects><value></value></data>
+<data name="LBL_HTTPS"><projects>j159</projects><value></value></data>
+<data name="LBL_HTTPS_HINT"><projects>j159</projects><value></value></data>
+<data name="LBL_DNS"><projects>j159</projects><value></value></data>
+<data name="LBL_SNTP"><projects>j159</projects><value></value></data>
+<data name="LBL_LINE_APPEARANCE_IS_BUSY"><projects>j159</projects><value>회선 표시 사용 중</value></data>
+<data name="LBL_VISUAL_VOICEMAIL_PLAY"><projects>j159</projects><value>재생</value></data>
+<data name="LBL_VISUAL_VOICEMAIL_PLAYING"><projects>j159</projects><value>재생 중</value></data>
+<data name="LBL_VISUAL_VOICEMAIL_PAUSE"><projects>j159</projects><value>중단됨</value></data>
+<data name="LBL_VISUAL_VOICEMAIL_PLAY2"><projects>j159</projects><value>재생</value></data>
+<data name="LBL_AUTHENTICATION"><projects>j159</projects><value>인증</value></data>
+<data name="LBL_EMAIL"><projects>j159</projects><value>이메일</value></data>
+<data name="LBL_SERVER"><projects>j159</projects><value>서버</value></data>
+<data name="LBL_USB_HEADSET_DEV_INFO"><projects>j159</projects><value>장치 정보</value></data>
+<data name="LBL_USB_HEADSET_DEV_MANUFACTURER"><projects>j159</projects><value>제조업체</value></data>
+<data name="LBL_USB_HEADSET_DEV_FW"><projects>j159</projects><value>FW 버전</value></data>
+<data name="LBL_USB_HEADSET_DEV_SN"><projects>j159</projects><value>시리얼 번호</value></data>
+<data name="LBL_USB_HEADSET_DEV_NOT_SUPPORTED"><projects>j159</projects><value>지원되지 않음</value></data>
+<data name="LBL_IP_OR_FQDN_HINT"><projects>j159</projects><value>IP:포트, FQDN: 포트</value></data>
+<data name="LBL_SECURE_SYSLOG"><projects>j159</projects><value>로그 서버 보안</value></data>
+<data name="LBL_RECORDING"><projects>j159</projects><value>녹음</value></data>
+<data name="LBL_RECORDING_2"><projects>j159</projects><value>녹음: %s&gt;%s</value></data>
+<data name="LBL_AUTOMATIC_UPDATE"><projects>j159</projects><value>자동 업데이트</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_POLICY"><projects>j159</projects><value>자동 업데이트 정책</value></data>
+<data name="LBL_NEXT_UPDATE"><projects>j159</projects><value>다음 업데이트</value></data>
+<data name="LBL_LAST_UPGRADE"><projects>j159</projects><value>마지막 업그레이드</value></data>
+<data name="LBL_DISABLED"><projects>j159</projects><value>비활성</value></data>
+<data name="LBL_WEEKLY"><projects>j159</projects><value>매주</value></data>
+<data name="LBL_DAILY"><projects>j159</projects><value>매일</value></data>
+<data name="LBL_MONTHLY"><projects>j159</projects><value>매월</value></data>
+<data name="LBL_UPDATE_INFO"><projects>j159</projects><value>업데이트 정보</value></data>
+<data name="LBL_UPDATE_STATUS"><projects>j159</projects><value>상태</value></data>
+<data name="LBL_UPDATE_POLICY"><projects>j159</projects><value>정책</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_DAYS"><projects>j159</projects><value>업데이트 예정 일</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_TIME_OF_DAY"><projects>j159</projects><value>업데이트 예정 시간</value></data>
+<data name="LBL_PROMPT_ON_UPGRADE"><projects>j159</projects><value>업그레이드 시 프롬프트 표시</value></data>
+<data name="LBL_AVAYA_SPACE_ID"><projects>j159</projects><value>Avaya Space ID: %ls</value></data>
+<data name="LBL_AVAYA_SPACE_PASSWORD"><projects>j159</projects><value>Avaya Space 암호: %ls</value></data>
+<data name="LBL_RECORDING_PAUSED"><projects>j159</projects><value>녹음 일시 중지됨: %s</value></data>
+<data name="LBL_RECORDING_PAUSED_2"><projects>j159</projects><value>녹음 일시 중지됨: %s&gt;%s</value></data>
+<data name="LBL_REPORT_EXISTS"><projects>j159</projects><value>새 전화기 보고서를 생성하려면 "생성"을 누르고, 기존 보고서를 플래시 드라이브에 복사하려면 "USB 복사"를 누르십시오.</value></data>
+<data name="LBL_FLASH_DRIVE"><projects>j159</projects><value>플래시 드라이브</value></data>
+<data name="LBL_KEYBOARD"><projects>j159</projects><value>키보드</value></data>
+<data name="LBL_DIRECT_NUMBERS"><projects>j159</projects><value>직통 번호</value></data>
+<data name="LBL_SELECT_COUNTRY"><projects>j159</projects><value>국가 선택</value></data>
+<data name="LBL_AVAYA_SPACES"><projects>j159</projects><value></value></data>
+<data name="LBL_SPACES"><projects>j159</projects><value></value></data>
+<data name="LBL_PROMPT_DIRECT_NUMBER"><projects>j159</projects><value>직통 번호 프롬프트</value></data>
+<data name="LBL_USB_DO_NOT_UNPLUG"><projects>j159</projects><value>작업 진행 중에는 USB 플래시 드라이브를 분리하지 마십시오.</value></data>
+<data name="LBL_USB_REPORT_COPIED_SUCCESSFULLY"><projects>j159</projects><value>전화기 보고서를 USB 플래시 드라이브로 복사했습니다.</value></data>
+<data name="LBL_USB_REPORT_COPY_FAILED"><projects>j159</projects><value>전화기 보고서를 USB 플래시 드라이브로 복사하지 못했습니다.</value></data>
+<data name="LBL_SELECT_DIRECT_NUMBER"><projects>j159</projects><value>직통 번호 선택</value></data>
+<data name="LBL_RING_DELEGATES"><projects>j159</projects><value>대표자에 벨 울림</value></data>
+<data name="LBL_UNITED_STATES"><projects>j159</projects><value>미국</value></data>
+<data name="LBL_CANADA"><projects>j159</projects><value>캐나다</value></data>
+<data name="LBL_ARGENTINA"><projects>j159</projects><value>아르헨티나</value></data>
+<data name="LBL_AUSTRALIA"><projects>j159</projects><value>호주</value></data>
+<data name="LBL_AUSTRIA"><projects>j159</projects><value>오스트리아</value></data>
+<data name="LBL_BELGIUM"><projects>j159</projects><value>벨기에</value></data>
+<data name="LBL_BRAZIL"><projects>j159</projects><value>브라질</value></data>
+<data name="LBL_CHILE"><projects>j159</projects><value>칠레</value></data>
+<data name="LBL_COLOMBIA"><projects>j159</projects><value>콜롬비아</value></data>
+<data name="LBL_CROATIA"><projects>j159</projects><value>크로아티아</value></data>
+<data name="LBL_CYPRUS"><projects>j159</projects><value>키프로스</value></data>
+<data name="LBL_CZECH_REPUBLIC"><projects>j159</projects><value>체코 공화국</value></data>
+<data name="LBL_DENMARK"><projects>j159</projects><value>덴마크</value></data>
+<data name="LBL_DOMINICAN_REPUBLIC"><projects>j159</projects><value>도미니카 공화국</value></data>
+<data name="LBL_ESTONIA"><projects>j159</projects><value>에스토니아</value></data>
+<data name="LBL_FINLAND"><projects>j159</projects><value>핀란드</value></data>
+<data name="LBL_FRANCE"><projects>j159</projects><value>프랑스</value></data>
+<data name="LBL_GERMANY"><projects>j159</projects><value>독일</value></data>
+<data name="LBL_GREECE"><projects>j159</projects><value>그리스</value></data>
+<data name="LBL_HONG_KONG"><projects>j159</projects><value>홍콩</value></data>
+<data name="LBL_HUNGARY"><projects>j159</projects><value>헝가리</value></data>
+<data name="LBL_INDIA"><projects>j159</projects><value>인도</value></data>
+<data name="LBL_IRELAND"><projects>j159</projects><value>아일랜드</value></data>
+<data name="LBL_ISRAEL"><projects>j159</projects><value>이스라엘</value></data>
+<data name="LBL_ITALY"><projects>j159</projects><value>이탈리아</value></data>
+<data name="LBL_JAPAN"><projects>j159</projects><value>일본</value></data>
+<data name="LBL_LUXEMBOURG"><projects>j159</projects><value>룩셈부르크</value></data>
+<data name="LBL_MALAYSIA"><projects>j159</projects><value>말레이시아</value></data>
+<data name="LBL_MEXICO"><projects>j159</projects><value>멕시코</value></data>
+<data name="LBL_NETHERLANDS"><projects>j159</projects><value>네덜란드</value></data>
+<data name="LBL_NEW_ZEALAND"><projects>j159</projects><value>뉴질랜드</value></data>
+<data name="LBL_NORWAY"><projects>j159</projects><value>노르웨이</value></data>
+<data name="LBL_PANAMA"><projects>j159</projects><value>파나마</value></data>
+<data name="LBL_PERU"><projects>j159</projects><value>페루</value></data>
+<data name="LBL_PHILIPPINES"><projects>j159</projects><value>필리핀</value></data>
+<data name="LBL_POLAND"><projects>j159</projects><value>폴란드</value></data>
+<data name="LBL_PORTUGAL"><projects>j159</projects><value>포르투갈</value></data>
+<data name="LBL_ROMANIA"><projects>j159</projects><value>루마니아</value></data>
+<data name="LBL_SINGAPORE"><projects>j159</projects><value>싱가포르</value></data>
+<data name="LBL_SLOVAKIA"><projects>j159</projects><value>슬로바키아</value></data>
+<data name="LBL_SLOVENIA"><projects>j159</projects><value>슬로베니아</value></data>
+<data name="LBL_SOUTH_KOREA"><projects>j159</projects><value>한국</value></data>
+<data name="LBL_SPAIN"><projects>j159</projects><value>스페인</value></data>
+<data name="LBL_SWEDEN"><projects>j159</projects><value>스웨덴</value></data>
+<data name="LBL_SWITZERLAND"><projects>j159</projects><value>스위스</value></data>
+<data name="LBL_TAIWAN"><projects>j159</projects><value>대만</value></data>
+<data name="LBL_TURKEY"><projects>j159</projects><value>터키</value></data>
+<data name="LBL_UNITED_KINGDOM"><projects>j159</projects><value>영국</value></data>
+<data name="LBL_GUEST"><projects>j159</projects><value>게스트</value></data>
+<data name="LBL_SPACES_MY_ACCOUNT"><projects>j159</projects><value>내 계정</value></data>
+<data name="LBL_SPACES_DISPLAY_NAME"><projects>j159</projects><value>표시 이름</value></data>
+<data name="LBL_SPACES_USERNAME"><projects>j159</projects><value>사용자 이름@도메인</value></data>
+<data name="LBL_USER_CODE"><projects>j159</projects><value>사용자 코드:</value></data>
+<data name="LBL_SPACE"><projects>j159</projects><value>스페이스</value></data>
+<data name="LBL_SPACES_HINT_ALL"><projects>j159</projects><value>스페이스 또는 사용자</value></data>
+<data name="LBL_ALL_SPACES"><projects>j159</projects><value>모든 스페이스</value></data>
+<data name="LBL_FAVORITE_SPACES"><projects>j159</projects><value>즐겨찾는 스페이스</value></data>
+<data name="LBL_RECENT_SPACES"><projects>j159</projects><value>최근 스페이스</value></data>
+<data name="LBL_DIRECT_SPACES"><projects>j159</projects><value>다이렉트 스페이스</value></data>
+<data name="LBL_MEETING_ROOM"><projects>j159</projects><value>미팅룸</value></data>
+<data name="LBL_DIRECT_SPACE"><projects>j159</projects><value>다이렉트 스페이스</value></data>
+<data name="LBL_SPACES_CONNECTING"><projects>j159</projects><value>연결 중...</value></data>
+<data name="LBL_PEOPLE"><projects>j159</projects><value>사람</value></data>
+<data name="LBL_MY_MEETING_ROOM"><projects>j159</projects><value>내 미팅룸</value></data>
+<data name="LBL_CHAT_NOTIFICATION"><projects>j159</projects><value></value></data>
+<data name="LBL_RETRYING"><projects>j159</projects><value>재시도 중</value></data>
+<data name="LBL_SPACES_CALL_LOG"><projects>j159</projects><value>스페이스 통화 로그</value></data>
+<data name="LBL_CALLS_SPACES"><projects>j159</projects><value>통화</value></data>
+<data name="LBL_ALERTING_ON_CHAT"><projects>j159</projects><value></value></data>
+<data name="LBL_GROUP_SPACES"><projects>j159</projects><value></value></data>
+<data name="LBL_INDICATION_MODE"><projects>j159</projects><value></value></data>
+<data name="LBL_INDICATOR"><projects>j159</projects><value></value></data>
+<data name="LBL_DOT1X_AUTHENTICATION_METHODS"><projects>j159</projects><value>인증 방법</value></data>
+<data name="LBL_MIGRATE_CONTACTS"><projects>j159</projects><value>연락처 마이그레이션</value></data>
+<data name="LBL_CONTACT_ADMIN"><projects>j159</projects><value>관리자에게 문의하십시오.</value></data>
+<data name="LBL_REGULATORY"><projects>j159</projects><value>규정</value></data>
+<data name="LBL_NIGHT_MODE"><projects>j159</projects><value>야간 모드</value></data>
+<data name="LBL_TLS_IDENTITY"><projects>j159</projects><value>TLS ID</value></data>
+<data name="LBL_AADS_URL"><projects>j159</projects><value></value></data>
+<data name="LBL_AADS_HINT"><projects>j159</projects><value>https://example.com:443/acs/resources/configurations</value></data>
+<data name="LBL_AADS_CONFIG"><projects>j159</projects><value>AADS 구성</value></data>
+<data name="LBL_HELDURL"><projects>j159</projects><value>보류된 서버</value></data>
+<data name="LBL_INCOMING_CALL_POPUP"><projects>j159</projects><value>수신 통화 팝업</value></data>
+<data name="LBL_CALL_ON_OFFHOOK"><projects>j159</projects><value>오프 후크 통화</value></data>
+<data name="LBL_GMT_OFFSET"><projects>j159</projects><value>GMT 오프셋</value></data>
+<data name="LBL_INVALID"><projects>j159</projects><value>유효하지 않음</value></data>
+<data name="LBL_DAYLING_SAVING"><projects>j159</projects><value>일광 절약 시간제</value></data>
+<data name="LBL_DAYLING_SAVING_OFFSET"><projects>j159</projects><value>일광 절약 오프셋</value></data>
+<data name="LBL_ADD_WIFI_NETWORK"><projects>j159</projects><value>WiFi 네트워크 추가</value></data>
+<data name="LBL_ADD_NETWORK"><projects>j159</projects><value>네트워크 추가</value></data>
+<data name="LBL_SUMMARIZED_CALL_LOGS"><projects>j159</projects><value>요약된 통화 로그</value></data>
+<data name="LBL_BOOT_LOGS"><projects>j159</projects><value>부트 로그</value></data>
+<data name="LBL_HW_VERSION"><projects>j159</projects><value></value></data>
+
+
+<!--POP UP BOX Strings-->
+
+<data name="MSG_DISCINPROG"><projects>j159</projects><value>검색 %s</value></data>
+<data name="MSG_SRVRLKFAILED"><projects>j159</projects><value>서버 링크 다운...</value></data>
+<data name="LBL_CLRALENT"><projects>j159</projects><value>모든 항목을 삭제하겠습니까?</value></data>
+<data name="LBL_RUSURE"><projects>j159</projects><value>계속하시겠습니까?</value></data>
+<data name="MSG_AUTHFAIL"><projects>j159</projects><value>인증 실패.</value></data>
+<data name="MSG_BADIMG"><projects>j159</projects><value>이미지 랜더링 안됨</value></data>
+<data name="MSG_BADPG"><projects>j159</projects><value>페이지 표시 불가능</value></data>
+<data name="MSG_HTTPAU"><projects>j159</projects><value>HTTP 인증</value></data>
+<data name="MSG_SHUTUP"><projects>j159</projects><value>취소를 눌러 오디오 경고 종료</value></data>
+<data name="PL_AUDCNLC"><projects>j159</projects><value>취소를 눌러 통화 재개</value></data>
+<data name="MSG_ALERT_J100"><projects>j159</projects><value>수신 오디오 경고</value></data>
+<data name="MSG_STATUS_UNAVAILABLE"><projects>j159</projects><value>링크 복원
+전화가 끊어질 수 있음</value></data>
+<data name="MSG_ABTAVAYA"><projects>j159</projects><value>Avaya J100 시리즈 IP 전화기
+버전: %s
+%s
+© 2023 Avaya Inc.</value></data>
+<data name="MSG_UNREG_LOGOUT"><projects>j159</projects><value>다른 장치가 이 내선에 로그인했습니다.</value></data>
+<data name="MSG_LOGOUT"><projects>j159</projects><value>로그아웃 중...</value></data>
+<data name="MSG_OVRD_REDIRECT"><projects>j159</projects><value>리디렉션 다시 정의?</value></data>
+<data name="MSG_SEL_XFER_METHOD"><projects>j159</projects><value>즉시 호 전환하거나 %s님과 우선 대화</value></data>
+<data name="MSG_UNAUTH_PREC_DOMAIN"><projects>j159</projects><value>잘못된 MLPP 네트워크 도메인이 구성되었습니다. 시스템 관리자에게 문의하십시오.</value></data>
+<data name="MSG_DELETE_CONTACT"><projects>j159</projects><value>이 연락처를 삭제하시겠습니까?</value></data>
+<data name="MSG_CERT_WARNING"><projects>j159</projects><value>ID 인증서 %s가 %d일 후에 만료됨</value></data>
+<data name="MSG_CERT_EXPIRED"><projects>j159</projects><value>ID 인증서 %s가 만료됨</value></data>
+<data name="MSG_ADMIN_MENU_LOCK"><projects>j159</projects><value>관리자 메뉴가 잠겨 있음</value></data>
+<data name="MSG_MERGE_CALLS"><projects>j159</projects><value>통화를 병합하시겠습니까?</value></data>
+<data name="MSG_TRANSF_CALL_ON_HOLD"><projects>j159</projects><value>보류 중인 통화로 호전환하시겠습니까?</value></data>
+<data name="MSG_MAKE_EMERGENCY_CALL"><projects>j159</projects><value>긴급 통화?</value></data>
+<data name="MSG_WAITING_FOR_8021X"><projects>j159</projects><value>802.1X 인증
+대기 중...</value></data>
+<data name="MSG_DELETE_SIP_PROXY"><projects>j159</projects><value>SIP 프록시 서버를 삭제하시겠습니까?</value></data>
+<data name="MSG_WAITING_FOR_DHCP"><projects>j159</projects><value>DHCP 대기 중...</value></data>
+<data name="MSG_BOOT_ERROR"><projects>j159</projects><value>부팅 오류...</value></data>
+<data name="MSG_CLEAR_SPEED_DIAL"><projects>j159</projects><value>이 단축번호를 지우시겠습니까?</value></data>
+<data name="MSG_REPLACE_SPEED_DIAL"><projects>j159</projects><value>이 단축번호를 바꾸시겠습니까?</value></data>
+<data name="MSG_LOGOUT_CONFIRMATION"><projects>j159</projects><value>로그아웃하겠습니까?</value></data>
+<data name="MSG_RESET_VALUES_CONFIRMATION"><projects>j159</projects><value>전화기를 초기화하고 재설정하시겠습니까?</value></data>
+<data name="MSG_RESTART_PHONE_CONFIRMATION"><projects>j159</projects><value>전화기를 재시작하시겠습니까?</value></data>
+<data name="MSG_ACTIVE_CALL_LOGOUT_CONFIRMATION"><projects>j159</projects><value>로그아웃하면 활성 통화가 종료됩니다. 로그 아웃 하시겠습니까?</value></data>
+<data name="MSG_CONFIG_PROV_SERVER"><projects>j159</projects><value>구성 프로비저닝 서버</value></data>
+<data name="MSG_ENTER_PROV_SERV"><projects>j159</projects><value>프로비저닝 정보 입력</value></data>
+<data name="MSG_ENTER_PROV_SERVER"><projects>j159</projects><value>프로비저닝 정보 입력</value></data>
+<data name="MSG_INVALID_INPUT"><projects>j159</projects><value>잘못된 입력</value></data>
+<data name="MSG_CONNECTION_ERROR"><projects>j159</projects><value>연결 오류</value></data>
+<data name="MSG_CONNECTION_VERIFY"><projects>j159</projects><value>연결 확인중입니다. 잠시만 기다려 주시기 바랍니다.</value></data>
+<data name="MSG_PHONE_REPORT_GENERATED"><projects>j159</projects><value>보고서 만드는 중...</value></data>
+<data name="MSG_PAIRING_FAILED"><projects>j159</projects><value>PC와의 페어링에 실패했습니다. 다시 시도하시겠습니까?</value></data>
+<data name="MSG_START_PAIRING"><projects>j159</projects><value>PC와의 페어링을 시작하시겠습니까?</value></data>
+<data name="MSG_PRESS_CONFIRM_IF_SAME"><projects>j159</projects><value>PC에 표신된 단어와 동일하면 확인 누름</value></data>
+<data name="MSG_BACKUP_SUCCESSFUL"><projects>j159</projects><value>백업 성공</value></data>
+<data name="MSG_BACKUP_FAIL"><projects>j159</projects><value>백업 실패</value></data>
+<data name="MSG_RETRIEVAL_SUCCESSFUL"><projects>j159</projects><value>검색 성공</value></data>
+<data name="MSG_RETRIEVAL_FAIL"><projects>j159</projects><value>검색 실패</value></data>
+<data name="MSG_BACKUP_IN_PROGRESS"><projects>j159</projects><value>백업 중</value></data>
+<data name="MSG_RETRIEVAL_IN_PROGRESS"><projects>j159</projects><value>검색 진행 중</value></data>
+<data name="MSG_FILE_OBTAINED_PLEASE_WAIT"><projects>j159</projects><value>파일 찾음. 기다려 주십시오.</value></data>
+<data name="MSG_GUEST_SESSION_EXTEND"><projects>j159</projects><value>게스트 세션을 확장하려면 확장 누름</value></data>
+<data name="MSG_RECENTS_DELETE_ALL_SEARCHED"><projects>j159</projects><value>검색된 모든 통화 내역을 삭제하시겠습니까</value></data>
+<data name="MSG_RECENTS_DELETE_ALL_RECORDS"><projects>j159</projects><value>모든 통화 내역을 삭제하시겠습니까?</value></data>
+<data name="MSG_RECENTS_DELETE_FILTER"><projects>j159</projects><value>모든 %ls 통화 내역을 삭제하시겠습니까?</value></data>
+<data name="MSG_RECENTS_DELETE_THIS_RECORD"><projects>j159</projects><value>최근 통화 내역을 삭제하시겠습니까?</value></data>
+<data name="MSG_RECENTS_NO_RECORDS"><projects>j159</projects><value>표시할 내역 없음</value></data>
+<data name="MSG_RECENTS_EXTENSION_RESTRICTED"><projects>j159</projects><value>발신자 내선이 제한됨</value></data>
+<data name="MSG_RECENTS_NO_IDLE_CALL"><projects>j159</projects><value>유휴 통화 표시 없음</value></data>
+<data name="MSG_ANOTHER_USER_LOGGED_IN"><projects>j159</projects><value>사용자가 다른 장치에 이미 로그인되어 있음</value></data>
+<data name="MSG_EXCHANGE_CREDENTIALS_MISSING"><projects>j159</projects><value>Exchange 사용자 이름과 암호가 누락되었습니다.
+지금 바로 구성을 눌러 증명서를 입력하십시오.</value></data>
+<data name="MSG_CALENDAR_INTEGRATION_NOT_ACTIVE"><projects>j159</projects><value>일정 통합이 비활성 상태입니다.
+지금 바로 구성을 눌러 활성화하십시오.</value></data>
+<data name="MSG_WAITING_FOR_AUTHENTICATION"><projects>j159</projects><value>인증 대기 중...</value></data>
+<data name="MSG_WBPSWD_RESET_DEFAULT_CONFIRMATION"><projects>j159</projects><value>기본값으로 재설정하시겠습니까?</value></data>
+<data name="MSG_SELECT_PARTICIPANT"><projects>j159</projects><value>참가자 선택:</value></data>
+<data name="MSG_SELECT_DESTINATION"><projects>j159</projects><value>대상 선택:</value></data>
+<data name="MSG_USE_CTCTS_RCNTS_PHONE_DIALPAD_SOFTKEYS"><projects>j159</projects><value>연락처, 최근 내역, 전화를 누르거나 다이얼패드 또는 소프트키 옵션을 사용합니다.</value></data>
+<data name="MSG_USE_CTCTS_PHONE_DIALPAD_SOFTKEYS"><projects>j159</projects><value>연락처, 전화를 누르거나 다이얼패드 또는 소프트키 옵션을 사용합니다.</value></data>
+<data name="MSG_USE_RCNTS_PHONE_DIALPAD_SOFTKEYS"><projects>j159</projects><value>최근 내역, 전화를 누르거나 다이얼패드 또는 소프트키 옵션을 사용합니다.</value></data>
+<data name="MSG_USE_PHONE_DIALPAD_SOFTKEYS"><projects>j159</projects><value>전화를 누르거나 다이얼패드 또는 소프트키 옵션을 사용합니다.</value></data>
+<data name="MSG_SELECT_HELD_CALL_TO_CONFERENCE"><projects>j159</projects><value>회의를 진행할 보류호를 선택합니다.</value></data>
+<data name="MSG_WEBPASSWD_RESET_CONFIRMATION"><projects>j159</projects><value>기본값으로 재설정하시겠습니까?</value></data>
+<data name="MSG_CONFIRM_LANGUAGE_CHANGE"><projects>j159</projects><value>언어를 변경하시겠습니까?</value></data>
+<data name="MSG_END_CALL_IN_MINUTE"><projects>j159</projects><value>통화가 %d분 후 종료됨</value></data>
+<data name="MSG_END_CALL_IN_MINUTES"><projects>j159</projects><value>통화가 %d분 후 종료됨</value></data>
+<data name="MSG_DELETE_GROUP"><projects>j159</projects><value>이 그룹을 삭제하시겠습니까?</value></data>
+<data name="MSG_CONNECTING_TO_EXCHANGE"><projects>j159</projects><value>Exchange 서버에 연결 중</value></data>
+<data name="MSG_GENERATING_REPORT"><projects>j159</projects><value>보고서를 생성 중입니다. 몇 분 정도 소요될 수 있습니다</value></data>
+<data name="MSG_CERTIFICATE_ERROR"><projects>j159</projects><value>인증서 오류</value></data>
+<data name="MSG_CONFIRM_DELETE_KEY"><projects>j159</projects><value>키를 삭제하시겠습니까?</value></data>
+<data name="MSG_NUMBER_ALREADY_EXISTS"><projects>j159</projects><value>%s 번호가 이미 %s에 있습니다.</value></data>
+<data name="MSG_OVERRIDE_REDIRECTION"><projects>j159</projects><value>리디렉션 다시 정의?</value></data>
+<data name="MSG_NO_CONNECTION_TO_AUDIO_DEVICE"><projects>j159</projects><value>선택한 오디오 장치에 연결할 수 없습니다. 다른 장치를 선택하십시오.</value></data>
+<data name="MSG_NUMBERS_ALREADY_EXIST_ADD_REMAINING"><projects>j159</projects><value>이 연락처의 일부 전화번호가 이미 로컬 연락처에 있습니다. 나머지 전화번호와 함께 연락처를 추가하시겠습니까?</value></data>
+<data name="MSG_NUMBER_ALREADY_EXIST_COMBINE_ADDITIONAL"><projects>j159</projects><value>%ls 번호가 이미 %ls에 있습니다. 추가 번호를 이 연락처와 결합하시겠습니까?</value></data>
+<data name="MSG_ALL_NUMBERS_EXIST_CANNOT_ADD_CONTACT"><projects>j159</projects><value>모든 번호가 이미 로컬 연락처에 있습니다. 연락처를 추가할 수 없습니다.</value></data>
+<data name="MSG_FIPS_SELFTEST_FAILED"><projects>j159</projects><value>FIPS 자체 테스트 실패. 재시작을 눌러 재시도 또는 관리를 눌러 비-FIPS 모드로 재부팅</value></data>
+<data name="MSG_CONTACT_ALREADY_EXIST_COMBINE_WITH_EXISTING"><projects>j159</projects><value>%ls이(가) 이미 로컬 연락처 목록에 있습니다. 이 연락처와 결합하시겠습니까?</value></data>
+<data name="MSG_NO_BLUETOOTH_DEVICES_CONNECTED"><projects>j159</projects><value>연결된 블루투스 장치가 없습니다. 블루투스를 눌러 블루투스 메뉴로 이동하십시오.</value></data>
+<data name="MSG_POWER_REQUIREMENTS_CHANGED"><projects>j159</projects><value>필요 전력이 변경되었습니다. 전화기 전원을 차단했다가 다시 연결하십시오.</value></data>
+<data name="MSG_RESTORE_CUSTOM_KEY"><projects>j159</projects><value>사용자 정의된 키를 모두 소거하려면 복원을 눌러 관리자 설정으로 복원합니다.</value></data>
+<data name="MSG_CUSTOMIZATION_NOT_AVAILABLE"><projects>j159</projects><value>현재 사용자 정의 기능을 사용할 수 없습니다.</value></data>
+<data name="MSG_WIFI_SERVICE_NOT_RUNNING"><projects>j159</projects><value>Wi-Fi 서비스가 실행되지 않습니다.</value></data>
+<data name="MSG_PHONE_OPERATIONS_DISABLED"><projects>j159</projects><value>이 메뉴에서는 전화 작업이 비활성됨</value></data>
+<data name="MSG_INVALID_DIGIT_PRESSED"><projects>j159</projects><value>잘못된 작업입니다. 뒤로를 눌러 다이얼하십시오.</value></data>
+<data name="MSG_NO_MEMBERS_IN_GROUP"><projects>j159</projects><value>이 그룹에 멤버가 없습니다.</value></data>
+<data name="MSG_WIRELESS_IN_USE_ERROR"><projects>j159</projects><value>무선 헤드셋이 사용 중입니다.</value></data>
+<data name="MSG_DELETE_LOCATION"><projects>j159</projects><value>저장을 누르면 선택한 위치가 완전히 제거됩니다.</value></data>
+<data name="MSG_SELECT_MOBILE_FROM_THE_LIST"><projects>j159</projects><value>목록에서 모바일을 선택합니다. 새 모바일을 추가하려면 관리자에게 문의하십시오.</value></data>
+<data name="MSG_EXPERIENCING_SIGNAL_DELAYS"><projects>j159</projects><value>신호가 지연되고 있습니다. 잠시만 기다리십시오...</value></data>
+<data name="MSG_XSI_CONNECTION_FAILED"><projects>j159</projects><value>XSI 연결에 실패했습니다.
+
+메뉴가 종료됩니다.</value></data>
+<data name="MSG_WANT_DELETE_LOCATION"><projects>j159</projects><value>위치를 삭제하시겠습니까?</value></data>
+<data name="MSG_BM_FW_UPDATE_AVAIL"><projects>j159</projects><value>업데이트된 펌웨어를 다운로드했습니다.</value></data>
+<data name="MSG_BM_FW_UPDATE_INFO"><projects>j159</projects><value>이 장치는 업데이트 적용 시 3분 간 사용이 중단됩니다. 00시부터 03시 사이에는 자동 적용됩니다.</value></data>
+<data name="MSG_CONFIGURE_ALERTING"><projects>j159</projects><value>모바일 ID 알람을 구성합니다. 더 많은 ID를 추가하려면 관리자에게 연락하십시오.</value></data>
+<data name="MSG_CONFIGURE_PROFILE_IDENTITY"><projects>j159</projects><value>프로필 ID 추가 알람 설정을 구성합니다.</value></data>
+<data name="MSG_WANT_DELETE_NUMBER"><projects>j159</projects><value>이 번호를 삭제하시겠습니까?</value></data>
+<data name="MSG_ACOUSTIC_PROTECTION_NOT_AVAILABLE"><projects>j159</projects><value>장기 음향 보호는 헤드셋 프로필 "% s"에서만 사용할 수 있습니다.</value></data>
+<data name="MSG_CONFIGURE_MOBILE_IDENTITY"><projects>j159</projects><value>모바일 ID 추가 알람 설정을 구성합니다.</value></data>
+<data name="MSG_NHC_CONNECTING"><projects>j159</projects><value>%s에 연결 중</value></data>
+<data name="MSG_NHC_INVALID_NUM"><projects>j159</projects><value>전화 번호가 잘못됨</value></data>
+<data name="MSG_NHC_PARTY_UNAVAILABLE"><projects>j159</projects><value>%s 참가자가 통화 불가  상태입니다</value></data>
+<data name="MSG_NHC_PARTY_BUSY"><projects>j159</projects><value>%s 수신자가 통화중입니다</value></data>
+<data name="MSG_NHC_DENIED"><projects>j159</projects><value>회의가 거부되었습니다</value></data>
+<data name="MSG_EVENT_LOOP_FOUND"><projects>j159</projects><value>전환 루프가 감지되고 중지됩니다.</value></data>
+<data name="MSG_LONG_CHAIN_FOUND"><projects>j159</projects><value>전환 체인이 너무 길어서 중지되었습니다.</value></data>
+<data name="MSG_AUTO_DISCOVERY_SUCCESSFUL"><projects>j159</projects><value>자동 검색 성공</value></data>
+<data name="MSG_AUTO_DISCOVERY_FAILED_INVALID_CFG"><projects>j159</projects><value>자동 검색 실패 - 구성이 잘못됨</value></data>
+<data name="MSG_DISCOVERY_NO_RESPONSE"><projects>j159</projects><value>자동 검색 실패 - 응답 없음</value></data>
+<data name="MSG_WAITING_FOR_CONFIG"><projects>j159</projects><value>구성 대기 중</value></data>
+<data name="MSG_USB_DRAWING_EXCESSIVE_POWER"><projects>j159</projects><value>USB 장치에 과도한 전류가 흐르고 있습니다.
+USB 장치를 제거하십시오.</value></data>
+<data name="MSG_ADD_ENOUGH_POWER"><projects>j159</projects><value>PoE 스위치를 'H'로 토글
+혹은
+외부 전력 공급 사용</value></data>
+<data name="MSG_GET_UPDATES_CONFIRMATION"><projects>j159</projects><value>업데이트시 전화기가 재부팅 될 수 있습니다.</value></data>
+<data name="MSG_XFER_NOW"><projects>j159</projects><value>%s(으)로 호 전환</value></data>
+<data name="MSG_PROV_SERVER_NOT_REACHED"><projects>j159</projects><value>프로비저닝 서버에 연결할 수 없음</value></data>
+<data name="MSG_PROV_SERVER_NO_SETTINGS"><projects>j159</projects><value>프로비저닝 서버에서 구성을 검색할 수 없음</value></data>
+<data name="MSG_UNREG_LOGOUT_LONG"><projects>j159</projects><value>다른 장치가 이 내선에 로그인했습니다. 같은 내선을 계속 사용하려면 '로그인'을 누르십시오.</value></data>
+<data name="MSG_FORCED_LOGOUT_BY_MAX_USER_LOGIN"><projects>j159</projects><value>전화 서비스를 다시 연결하려면 '로그인'을 누르십시오.</value></data>
+<data name="MSG_FAILED_LOGIN_TO_EXCHANGE_OAUTH_SERVER"><projects>j159</projects><value>Exchange 서버에 연결하지 못했습니다.</value></data>
+<data name="MSG_FAILED_LOGIN_TO_EXCHANGE_SERVER_AFTER_OAUTH"><projects>j159</projects><value>Exchange 서버에 연결하지 못했습니다. 이메일 및 서버 주소를 확인하십시오.</value></data>
+<data name="MSG_IN_YOUR_BROWSER_GOTO_URI_UC"><projects>j159</projects><value>브라우저에서 
+%ls
+(으)로 이동합니다. 사용자 코드: %ls</value></data>
+<data name="MSG_EXCHANGE_AUTH_TIMEDOUT_TRY_AGAIN"><projects>j159</projects><value>Exchange 인증이 시간 초과되었습니다. 다시 시도하십시오.</value></data>
+<data name="MSG_FAILED_TO_INITIATE_AUTH_CONTACT_ADMIN"><projects>j159</projects><value>인증을 시작하지 못했습니다. 관리자에게 문의하십시오.</value></data>
+<data name="MSG_AUTHENTICATION_TIMEOUT_SOON_REAUTHENTICATE"><projects>j159</projects><value>곧 Microsoft Exchange 인증 시간이 초과됩니다. 다시 인증하시겠습니까?</value></data>
+<data name="MSG_DO_YOU_WANT_CONNECT_MS_EXCHANGE"><projects>j159</projects><value>Microsoft Exchange 서버에 연결하시겠습니까?</value></data>
+<data name="MSG_EMAIL_MISSING"><projects>j159</projects><value>Exchange 이메일 주소가 없습니다. 구성을 눌러 입력하십시오.</value></data>
+<data name="MSG_AUTH_REQUIRED"><projects>j159</projects><value>인증 필요</value></data>
+<data name="MSG_VVM_PLAYBACK_FAILED"><projects>j159</projects><value>기능을 사용할 수 없습니다. 시스템 관리자에게 문의하십시오.</value></data>
+<data name="MSG_AUTOUPDATE_RESTART_PHONE_CONFIRMATION"><projects>j159</projects><value>새 펌웨어를 사용할 수 있습니다. 전화기를 다시 시작하여 변경 사항을 적용하시겠습니까?</value></data>
+<data name="MSG_DEFINE_IF_DELEGATES_SHOULD_RECEIVE_CALLS_DND"><projects>j159</projects><value>DND를 활성화할 때 대표자가 전화를 받아야 하는지 여부를 정의합니다.</value></data>
+<data name="MSG_MYCERT_RENEWAL_FAILURE"><projects>j159</projects><value>REST 인증서 %s 갱신 실패</value></data>
+<data name="MSG_SPACE_LOGIN_LINK"><projects>j159</projects><value>코드'를 스캔하거나 '링크'로 이동
+%ls
+코드 입력: %ls</value></data>
+<data name="MSG_SPACES_LOGOUT_CONFIRMATION"><projects>j159</projects><value>Avaya Spaces에서 
+로그아웃하시겠습니까?</value></data>
+<data name="MSG_SSO_CONNECTING_TO_CONFIG_SERVER"><projects>j159</projects><value>구성 서비스에 연결 중...</value></data>
+<data name="MSG_SSO_CONNECTING_TO_AUTHORIZATION_SERVER"><projects>j159</projects><value>인증 서비스에 연결 중...</value></data>
+<data name="MSG_SSO_SCAN_QR_CODE"><projects>j159</projects><value>QR 코드를 스캔하여 회사 자격 증명으로 로그인합니다.
+자세한 내용을 보려면 '링크'를 누르십시오.</value></data>
+<data name="MSG_SINGLE_SIGN_ON"><projects>j159</projects><value>단일 로그온</value></data>
+<data name="MSG_ACCEPT_SHARED_CONTROL"><projects>j159</projects><value>공유 제어를 수락하시겠습니까?</value></data>
+<data name="MSG_EXPIRES_IN"><projects>j159</projects><value>만료 시간: %ls</value></data>
+<data name="MSG_RECENTS_DELETE_DISPLAYED_RECORDS"><projects>j159</projects><value>표시된 %ls 통화 기록을 삭제하시겠습니까?</value></data>
+<data name="MSG_ADD_EXTERNAL_POWER_SUPPLY"><projects>j159</projects><value>외부 전원 공급 장치로 전화기에 전원을 공급합니다.</value></data>
+
+
+<!--TOAST Strings-->
+
+<data name="TST_NO_REDIAL_NUMBER"><projects>j159</projects><value>재발신할 번호 없음</value></data>
+<data name="TST_NO_MATCHING_NAME"><projects>j159</projects><value>일치하는 이름 없음</value></data>
+<data name="TST_NO_MATCH_FOUND"><projects>j159</projects><value>일치하는 연락처 없음</value></data>
+<data name="TST_CONTACT_SEARCH_FAILED"><projects>j159</projects><value>연락처 검색 실패</value></data>
+<data name="TST_LDAP_CONTACT_SEARCH_FAILED"><projects>j159</projects><value>서버 오류로 인해 LDAP 검색에 실패했습니다. 반환 코드 = %d</value></data>
+<data name="TST_NO_SERVICE_AVAILABLE"><projects>j159</projects><value>서비스를 사용할 수 없음</value></data>
+<data name="TST_INVALID_NAME_PASSWD"><projects>j159</projects><value>잘못된 이름 또는 암호</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD"><projects>j159</projects><value>인증서 설치 암호 입력</value></data>
+<data name="TST_INVALID_PWD_ABORT_INSTALL"><projects>j159</projects><value>잘못된 암호, 인증서 설치 중단 중</value></data>
+<data name="TST_VERIFY_PWD"><projects>j159</projects><value>암호 확인 중...</value></data>
+<data name="TST_INVALID_PWD"><projects>j159</projects><value>잘못된 암호</value></data>
+<data name="TST_EMERGENCY_CALLS_ONLY"><projects>j159</projects><value>전화기가 긴급통화 전용으로 활성화 돼있습니다.</value></data>
+<data name="TST_INVALID_ACCESS_CODE"><projects>j159</projects><value>잘못된 액세스 코드</value></data>
+<data name="TST_ADMIN_UNAVAIL_PHONE_IN_USE"><projects>j159</projects><value>통화 중에는 관리 기능 사용 불가</value></data>
+<data name="TST_NO_SIP_PROXIES_CONFIGURED"><projects>j159</projects><value>구성된 SIP 프록시 없음</value></data>
+<data name="TST_FEATURE_ACT_FAILED"><projects>j159</projects><value>기능 활성화 실패</value></data>
+<data name="TST_LIMITED_SERVICE_IN_EFFECT"><projects>j159</projects><value>제한된 서비스 적용</value></data>
+<data name="TST_PROXY_ADDRESS_INVALID"><projects>j159</projects><value>입력된 프록시 주소가 잘못됨</value></data>
+<data name="TST_PROXY_PORT_INVALID"><projects>j159</projects><value>입력된 포트가 잘못됨</value></data>
+<data name="TST_LOCK_UNAVAIL_PHONE_IN_USE"><projects>j159</projects><value>통화 중 잠금 불가</value></data>
+<data name="TST_GUEST_SESSION_EXPIRES"><projects>j159</projects><value>%d분 후 게스트 세션 만료</value></data>
+<data name="TST_GUEST_SESSION_HAS_EXPIRED"><projects>j159</projects><value>게스트 세션이 만료됨</value></data>
+<data name="TST_FEATURE_IS_CURRENTLY_UNAVAILABLE"><projects>j159</projects><value>현재 기능을 사용할 수 없음</value></data>
+<data name="TST_UNABLE_MAKE_CALL"><projects>j159</projects><value>전화를 걸 수 없음</value></data>
+<data name="TST_NO_ONE_SOURCE_ON"><projects>j159</projects><value>하나 이상의 소스가 켜져 있어야 함</value></data>
+<data name="TST_LDAP_DISABLED"><projects>j159</projects><value>LDAP는 다른 소스와 함께 선택될 수 없음 - LDAP 비활성화됨</value></data>
+<data name="TST_LDAP_ENABLED"><projects>j159</projects><value>LDAP 선택됨 - 다른 검색 소스 비활성화됨</value></data>
+<data name="TST_NO_FEATURES_CONFIGURED"><projects>j159</projects><value>이 내선에 대한 기능이 구성되지 않음</value></data>
+<data name="TST_FAILED_LOGIN_TO_EXCHANGE_SERVER"><projects>j159</projects><value>Exchange 서버에 로그인 실패. 사용자 이름과 암호 확인</value></data>
+<data name="TST_PRESS_DETAILS_TO_ADD_CONTACT_DATA"><projects>j159</projects><value>연락처가 저장되었습니다. 상세 정보를 눌러 별명 또는 번호를 추가하거나 벨소리를 사용자 정의하십시오.</value></data>
+<data name="TST_GUEST_LOGIN_UNAVAILABLE_PHONE_IN_USE"><projects>j159</projects><value>통화 중일 때는 게스트 로그인 사용 불가</value></data>
+<data name="TST_NEW_DEVICE_FOR_PAIRING"><projects>j159</projects><value>페어링에 사용할 수 있는 새 장치가 감지됨</value></data>
+<data name="TST_PRESS_MEMBERS_TO_ADD_TO_GROUP"><projects>j159</projects><value>+멤버를 눌러 이 그룹에 멤버 추가</value></data>
+<data name="TST_NUMBER_REMOVE_UNAVAILABLE"><projects>j159</projects><value>전화번호가 하나 이상 있어야 함</value></data>
+<data name="TST_NUMBER_ALREADY_EXISTS"><projects>j159</projects><value>해당 전화번호가 이미 있습니다.</value></data>
+<data name="TST_GROUP_NAME_ALREADY_TAKEN"><projects>j159</projects><value>그룹 이름이 이미 사용됨</value></data>
+<data name="TST_CONNECTION_SUCCESSFUL"><projects>j159</projects><value>연결 성공</value></data>
+<data name="TST_UPDATING_SPEED_DIALS"><projects>j159</projects><value>단축번호를 업데이트하는 데 몇 초 정도 소요될 수 있습니다.</value></data>
+<data name="TST_TOO_MANY_MATCHES"><projects>j159</projects><value>검색된 일치 항목이 너무 많음. 목록에서 선택 또는 뒤로가 검색 범위를 좁히십시오</value></data>
+<data name="TST_ALL_CALL_APPEARANCES_IN_USE"><projects>j159</projects><value>모든 회선 사용 중</value></data>
+<data name="TST_PHONE_IS_LOCKED"><projects>j159</projects><value>전화기 잠김</value></data>
+<data name="TST_RECEIVING_PRIORITY_CALL"><projects>j159</projects><value>우선 순위 통화 수신 중</value></data>
+<data name="TST_USE_DIALPAD_FOR_QUICK_SEARCH"><projects>j159</projects><value>빠른 검색 시 다이얼패드 사용</value></data>
+<data name="TST_CORRECT_VALUES_RANGE"><projects>j159</projects><value>올바른 %ls 값: %d-%d</value></data>
+<data name="TST_CONTACTS_SEARCH_ERRORS"><projects>j159</projects><value>검색 데이터를 수신하는 동안 네트워크 오류 발생. 결과가 불완전할 수 있음</value></data>
+<data name="TST_CONTACTS_SEARCH_ERRORS_SYSTEM"><projects>j159</projects><value>시스템 데이터를 수신하는 동안 네트워크 오류 발생. 결과가 불완전할 수 있음</value></data>
+<data name="TST_CONTACTS_SEARCH_ERRORS_EXCHANGE"><projects>j159</projects><value>Exchange 데이터를 수신하는 동안 네트워크 오류 발생. 결과가 불완전할 수 있음</value></data>
+<data name="TST_CONTACTS_SEARCH_ERRORS_NO_RESULTS"><projects>j159</projects><value>검색 데이터를 수신하는 동안 네트워크 오류 발생. 결과가 불완전할 수 있음</value></data>
+<data name="TST_CONTACTS_SEARCH_ERRORS_NO_RESULTS_SYSTEM"><projects>j159</projects><value>시스템 데이터를 수신하는 동안 네트워크 오류 발생. 결과가 불완전할 수 있음</value></data>
+<data name="TST_CONTACTS_SEARCH_ERRORS_NO_RESULTS_EXCHANGE"><projects>j159</projects><value>Exchange 데이터를 수신하는 동안 네트워크 오류 발생. 결과가 불완전할 수 있음</value></data>
+<data name="TST_CALL_NOT_MEASURED"><projects>j159</projects><value>통화 측정 안 됨</value></data>
+<data name="TST_PHONE_REBOOT_ON_EXIT"><projects>j159</projects><value>관리자 메뉴를 종료할 때 새 설정을 적용하기 위해 전화기가 재부팅됩니다.</value></data>
+<data name="TST_SCREEN_SAVER_UNAVAILABLE"><projects>j159</projects><value>활성 통화 중에는 화면 보호기를 활성화할 수 없음</value></data>
+<data name="TST_CHANGE_HEADSET_TO_BLUETOOTH"><projects>j159</projects><value>'헤드셋 선택'을 블루투스로 변경하시겠습니까?</value></data>
+<data name="TST_CHANGE_HEADSET_TO_WIRED"><projects>j159</projects><value>헤드셋 선택이 "유선"으로 변경되었습니다</value></data>
+<data name="TST_LOGGING_CALLS_IS_DISABLED"><projects>j159</projects><value>통화 로깅이 비활성화됨</value></data>
+<data name="TST_NO_PREFIXES"><projects>j159</projects><value>국번이 구성되지 않았습니다.</value></data>
+<data name="TST_NETWORK_UNAVAILABLE_FOR_ACTIVE_CALL"><projects>j159</projects><value>활성 통화가 있을 때 네트워크 구성을 사용할 수 없습니다.</value></data>
+<data name="TST_SELECT_DESTINATION"><projects>j159</projects><value>대상 선택</value></data>
+<data name="TST_NO_CONTACTS_AVAILABLE"><projects>j159</projects><value>사용 가능한 연락처 없음</value></data>
+<data name="TST_CANT_CHANGE_DEFAULT_HEADSET_DURING_CALL"><projects>j159</projects><value>활성 통화 중 기본 헤드셋 변경 불가</value></data>
+<data name="TST_MOBILE_NUMBER_LIST_IS_EMPTY"><projects>j159</projects><value>모바일</value></data>
+<data name="TST_NO_MATCH_FOUND_MODIFY_REQUEST"><projects>j159</projects><value>일치하는 연락처가 없습니다. 검색 요청을 수정하십시오.</value></data>
+<data name="TST_CALL_MUTED"><projects>j159</projects><value>통화가 음소거됨</value></data>
+<data name="TST_FEATURE_CONFIGURATION_NOT_AVAILABLE_YET"><projects>j159</projects><value>기능 구성은 아직 사용할 수 없습니다</value></data>
+<data name="TST_XSI_CONNECTION_IS_NOT_AVAILABLE"><projects>j159</projects><value>XSI 연결을 이용할 수 없습니다</value></data>
+<data name="TST_INVALID_USER_ID"><projects>j159</projects><value>잘못된 사용자 ID</value></data>
+<data name="TST_INVALID_USER_ID_OR_WEB_ACCESS_PASSWORD"><projects>j159</projects><value>잘못된 사용자 ID 또는 웹 액세스 암호</value></data>
+<data name="TST_LINE_IS_IN_USE"><projects>j159</projects><value>회선 사용 중. 상태를 변경 할 수 없음</value></data>
+<data name="TST_MOBILITY_FEATURE_IS_NOT_ENABLED"><projects>j159</projects><value>이 기능을 구성하려면 관리자에게 문의하십시오.</value></data>
+<data name="TST_ALLOWED_VALUES"><projects>j159</projects><value>허용된 값은  0, 2-20입니다.</value></data>
+<data name="TST_FAILED_TO_CREATE_XSI"><projects>j159</projects><value>XSI  이벤트 채널 생성 실패: 서버가 응답하지 않습니다</value></data>
+<data name="TST_EMERG_ACK_FAILED"><projects>j159</projects><value>승인 실패.</value></data>
+<data name="TST_NETWORK_CONFIGURATION_ISSUE"><projects>j159</projects><value>네트워크 구성 문제. STUN 솔루션 실패</value></data>
+<data name="TST_GUEST_LOGIN_IS_IN_PROGRESS"><projects>j159</projects><value>게스트 로그인 진행 중...</value></data>
+<data name="TST_GUEST_LOGOUT_IS_IN_PROGRESS"><projects>j159</projects><value>게스트 로그아웃 중...</value></data>
+<data name="TST_DISPOSITION_CODE_LIST_IS_EMPTY"><projects>j159</projects><value>처리 코드 목록이 비어 있음</value></data>
+<data name="TST_THERE_ARE_NO_SUPERVISORS"><projects>j159</projects><value>감독자가 없음</value></data>
+<data name="TST_WRAP_UP_IS_REQUIRED_TO_SET_DISPOSITION_CODE"><projects>j159</projects><value>상담 완료 후에만 처리 코드 지정 가능</value></data>
+<data name="TST_ESCALATION_IS_NOT_AVAILABLE"><projects>j159</projects><value>에스컬레이션 실행 불가능</value></data>
+<data name="TST_PARK_FAC_NOT_ADMINISTERED"><projects>j159</projects><value>이 기능을 사용하려면 CALL_PARK_DYNAMIC_FAC이 정의되어야 합니다. 관리자에게 문의하십시오.</value></data>
+<data name="TST_UNLOCK_IS_TEMP_BLOCKED"><projects>j159</projects><value>잠금 해제가 일시적으로 차단됨</value></data>
+<data name="TST_ADD_CONTACTS_MAPPING_ERROR"><projects>j159</projects><value>추가할 수 없습니다. 필드 매핑이 누락되었습니다. 관리자에게 문의하십시오.</value></data>
+<data name="TST_SERVICE_UNAVAILABLE"><projects>j159</projects><value>현재 서비스를 사용할 수 없습니다.</value></data>
+<data name="TST_DIALING_BLOCKED"><projects>j159</projects><value>이 번호에 대한 다이얼링이 차단되어 있습니다. 관리자에게 문의하십시오.</value></data>
+<data name="TST_VVM_TOO_MANY_REQUEST"><projects>j159</projects><value>다중 인증 요청 실패. 나중에 시도하십시오.</value></data>
+<data name="TST_VVM_INVALID_ACCESS_CODE"><projects>j159</projects><value>액세스 코드가 잘못되었습니다.</value></data>
+<data name="TST_VVM_CREDENTIALS_NOT_APPLICABLE"><projects>j159</projects><value>현재 extensionType에는 자격 증명이 적용되지 않습니다. 관리자에게 문의하십시오.</value></data>
+<data name="TST_VVM_VALIDATION_PROHIBITED"><projects>j159</projects><value>IVR PIN에 대한 변경 및 검증은 허용되지 않습니다. 관리자에게 문의하십시오.</value></data>
+<data name="TST_USERNAME_REQUIRED"><projects>j159</projects><value>암호가 정의되어 있는 경우 사용자 이름은 필수입니다.</value></data>
+<data name="TST_DELETE_FAILED"><projects>j159</projects><value>메시지를 삭제하지 못했습니다.</value></data>
+<data name="TST_INVALID_HTTP_SYNTAX"><projects>j159</projects><value>HTTP를 저장할 수 없습니다. 잘못된 구문입니다. 예: avaya.com:8080/prov</value></data>
+<data name="TST_INVALID_HTTPS_SYNTAX"><projects>j159</projects><value>HTTPS를 저장할 수 없습니다. 잘못된 구문입니다. 예: avaya.com:449/prov</value></data>
+<data name="TST_AUTH_SUCCESSFUL"><projects>j159</projects><value>인증 성공.</value></data>
+<data name="TST_OPERATION_FAILED"><projects>j159</projects><value>작업 실패</value></data>
+<data name="TST_USE_USB_HEADSET_NOW"><projects>j159</projects><value>지금 %ls USB 헤드셋을 사용하시겠습니까?</value></data>
+<data name="TST_USB_HEADSET_DISCONNECTED"><projects>j159</projects><value>USB 헤드셋 연결 해제됨</value></data>
+<data name="TST_USB_HEADSET_CONNECTED"><projects>j159</projects><value>USB 헤드셋 연결됨</value></data>
+<data name="TST_TRANSCRIPTION_IN_PROGRESS"><projects>j159</projects><value>음성 메일 텍스트 변환이 진행 중입니다. 나중에 시도하십시오.</value></data>
+<data name="TST_TRANSCRIPTION_FAILED"><projects>j159</projects><value>음성 메일 텍스트 변환을 사용할 수 없습니다.</value></data>
+<data name="TST_UPDATE_FAILED"><projects>j159</projects><value>작업이 실패했습니다.</value></data>
+<data name="TST_PLAYBACK_PAUSE_TIMEOUT"><projects>j159</projects><value>음성 메시지 재생이 만료되었습니다.</value></data>
+<data name="TST_SYNC_FAILED"><projects>j159</projects><value>메시지 목록을 검색할 수 없습니다.</value></data>
+<data name="TST_USB_HEADSET_IN_USE_ERROR"><projects>j159</projects><value>USB 장치 사용 중</value></data>
+<data name="TST_USB_HEADSET_NO_DEVICE_CONNECTED"><projects>j159</projects><value>연결된 USB 장치가 없습니다.</value></data>
+<data name="TST_USB_HEADSET_DISCONNECTED_ON_CALL"><projects>j159</projects><value>USB 장치가 연결 해제되었습니다. 헤드셋 선택이 유선으로 변경되었습니다.</value></data>
+<data name="TST_USB_KEYBOARD_CONNECTED"><projects>j159</projects><value>USB 키보드 연결됨</value></data>
+<data name="TST_USB_FLASH_DRIVE_CONNECTED"><projects>j159</projects><value>USB 플래시 드라이브 연결됨</value></data>
+<data name="TST_USB_FLASH_DRIVE_CONNECTED_NOT_SUPPORTED"><projects>j159</projects><value>지원하지 않는 USB 플래시 드라이브입니다. 다른 드라이브를 시도하십시오.</value></data>
+<data name="TST_ZOOM_LICENSE_REQUIRED"><projects>j159</projects><value>전화기를 Zoom과 함께 사용하려면 라이선스가 필요합니다.</value></data>
+<data name="TST_RECENTS_REFRESH_FAILED"><projects>j159</projects><value>최근 레코드를 새로고침하지 못했습니다.</value></data>
+<data name="TST_RECENTS_REFRESH_FAILED_REASON"><projects>j159</projects><value>최근 레코드를 새로고침하지 못한 이유:%ls.</value></data>
+<data name="TST_CALL_LOGS_DELETE_FAILED"><projects>j159</projects><value>최근 레코드를 삭제하지 못했습니다.</value></data>
+<data name="TST_CALL_LOG_DELETE_FAILED"><projects>j159</projects><value>최근 레코드를 삭제하지 못했습니다.</value></data>
+<data name="TST_SPACES_SOURCE_ENABLED"><projects>j159</projects><value>Avaya Spaces가 소스로 활성화되어 다른 소스는 비활성화되었습니다.</value></data>
+<data name="TST_SPACES_SOURCE_DISABLED"><projects>j159</projects><value>Avaya Spaces가 소스로 비활성화되었습니다. 다른 소스 사용 시 활성화할 수 없습니다.</value></data>
+<data name="TST_SPACES_PAIRING_STATUS_POLLING_TIMEOUT"><projects>j159</projects><value>로그인 시간이 초과되었습니다.
+다시 시도하십시오.</value></data>
+<data name="TST_SPACES_PAIRING_STATUS_CONNECT_TIMEOUT"><projects>j159</projects><value>Avaya Spaces에 로그인하지 못했습니다.</value></data>
+<data name="TST_SHARING_HIDE_NOTIFICATION"><projects>j159</projects><value>공유'를 누르면 PC 화면 공유가 프레젠테이션 모드에서만 실행됩니다.
+앞으로 이 프롬프트를 '숨깁니다'.</value></data>
+<data name="TST_SHARING_SHOW_NOTIFICATION"><projects>j159</projects><value>공유'를 누르면 PC 화면 공유가 프레젠테이션 모드에서만 실행됩니다.
+앞으로 이 프롬프트를 '표시합니다'.</value></data>
+<data name="TST_SCREEN_SHARING_INITIATED"><projects>j159</projects><value>공유가 성공적으로 시작되었습니다. PC에서 Avaya Spaces 애플리케이션을 확인하십시오.</value></data>
+<data name="TST_SCREEN_SHARING_FAILED"><projects>j159</projects><value>공유 실패</value></data>
+<data name="TST_ERRORS_IN_RECEIVING_SPACES_CALL_LOG_DATA"><projects>j159</projects><value>스페이스 통화 로그 데이터 수신 시 오류가 발생했습니다. 결과가 불완전할 수 있습니다.</value></data>
+<data name="TST_SPACES_DO_NOT_HAVE_ACCESS_TO_SPACE"><projects>j159</projects><value>죄송합니다. 이 스페이스에 액세스할 수 없습니다!</value></data>
+<data name="TST_SPACES_LOGIN_SUCCESSFUL"><projects>j159</projects><value></value></data>
+<data name="TST_CONTACTS_MIGRATION_CONFIRMATION"><projects>j159</projects><value>로컬 연락처를 마이그레이션하시겠습니까?</value></data>
+<data name="TST_CONTACTS_MIGRATION_IN_PROGRESS"><projects>j159</projects><value>마이그레이션이 진행 중입니다. 몇 분 정도 걸릴 수 있습니다.</value></data>
+<data name="TST_CONTACTS_MIGRATION_FAILED"><projects>j159</projects><value>연락처 마이그레이션에 실패했습니다. 나중에 다시 시도하십시오.</value></data>
+<data name="TST_REGULATORY_IMAGE_VIEW"><projects>j159</projects><value>위로' 또는 '아래로' 버튼을 눌러 스크롤합니다.
+나가려면 다른 버튼을 누릅니다.</value></data>
+<data name="TST_INVALID_AADS_URL"><projects>j159</projects><value>AADS URL을 저장할 수 없습니다. 잘못된 구문입니다.</value></data>
+<data name="TST_SSO_LOGIN_PROMPT"><projects>j159</projects><value>로그인'을 눌러 회사 자격 증명을 사용하는 단일 로그온 프로세스를 시작합니다.</value></data>
+<data name="TST_SSO_CONFIG_SERVER_UNAVAILABLE"><projects>j159</projects><value>현재 구성 서비스를 사용할 수 없습니다.
+'재시도'하거나 관리자에게 문의하십시오.</value></data>
+<data name="TST_SSO_AUTHORIZATION_SERVER_UNAVAILABLE"><projects>j159</projects><value>현재 인증 서비스를 사용할 수 없습니다.
+'재시도'하거나 관리자에게 문의하십시오.</value></data>
+<data name="TST_SSO_LOGIN_SUCCESS_PROMPT"><projects>j159</projects><value>성공적으로 인증되었습니다.
+
+잠시 기다려 주십시오...</value></data>
+<data name="TST_SSO_LOGIN_POLLING_TIMEDOUT"><projects>j159</projects><value>로그인 시도가 만료되었습니다. 다시 시도하려면 '재시도'를 누르십시오.</value></data>
+<data name="TST_SSO_LOGIN_DECLINED_BY_USER"><projects>j159</projects><value>사용자가 로그인 시도를 거부했습니다.</value></data>
+<data name="TST_LOGIN_FAILED_CREDENTIALS_UNAVAILABLE"><projects>j159</projects><value>로그인에 실패했습니다. 
+구성된 서비스에서 자격 증명을 찾을 수 없습니다. 관리자에게 문의하십시오.</value></data>
+<data name="TST_LOGIN_FAILED_CONFIG_SERVICE_UNAVAILABLE"><projects>j159</projects><value>로그인에 실패했습니다.
+현재 구성 서비스를 사용할 수 없습니다.
+'재시도', '로그아웃' 또는 관리자에게 문의하십시오.</value></data>
+<data name="TST_SSO_LOGIN_HELP_PROMPT"><projects>j159</projects><value>전화기가 회사 자격 증명을 사용하여 로그인하도록 구성되어 있습니다. 메시지가 표시되면
+'로그인'을 눌러 이 프로세스를 시작합니다.</value></data>
+<data name="TST_SSO_QR_HELP_PROMPT"><projects>j159</projects><value>단일 로그온 프로세스를 완료하려면 모바일 장치를 사용하여 QR 코드를 스캔하거나 브라우저에서 
+'링크'를 엽니다.</value></data>
+<data name="TST_SSO_LINK_HELP_PROMPT"><projects>j159</projects><value>단일 로그온 프로세스를 완료하려면 브라우저에서 링크를 열거나 모바일 장치를 사용하여 'QR 코드'를 스캔합니다.</value></data>
+<data name="TST_SSO_LINK_PROMPT"><projects>j159</projects><value>아래 링크로 이동하여
+사용자 코드 %ls
+%ls
+를(을) 입력합니다. 'QR 코드'를 눌러 스캔합니다.</value></data>
+
+
+<!--HELP Strings-->
+
+<data name="HELP_SPEED_DIAL"><projects>j159</projects><value>단축번호를 사용하면 다이얼 패드의 숫자를 길게 눌러 사전 정의된 번호로 전화를 걸 수 있습니다.</value></data>
+<data name="HELP_MY_PRESENCE"><projects>j159</projects><value>프레즌스 상태를 영구적으로 설정하거나 자동 프레즌스로 되돌릴 수 있습니다.</value></data>
+<data name="HELP_LOCK_PHONE"><projects>j159</projects><value>전화기 잠금</value></data>
+<data name="HELP_CALENDAR"><projects>j159</projects><value>(구성되지 않은 경우) Microsoft Exchange와 통합할 수 있습니다.</value></data>
+<data name="HELP_LOGOUT"><projects>j159</projects><value>전화기에서 로그아웃</value></data>
+<data name="HELP_CONTACT"><projects>j159</projects><value>연락처 목록은 전화기에 로컬로 저장됩니다. 시스템, Microsoft Exchange(구성된 경우)에서 연락처를 추가하거나 사용자 정의 연락처에 추가할 수 있습니다.</value></data>
+<data name="HELP_RECENT"><projects>j159</projects><value>필터링하거나 검색할 수 있는 최근 인바운드 또는 아웃바운드 통화 목록입니다.</value></data>
+<data name="HELP_PERSONIZE"><projects>j159</projects><value>전화기 화면에서 키를 이동, 추가 또는 삭제할 수 있습니다. 연락처, 기능 및 애플리케이션은 사용자 정의가 가능합니다.</value></data>
+<data name="HELP_BLUETOOTH"><projects>j159</projects><value>블루투스 도움말</value></data>
+<data name="HELP_BLUETOOTH_ADV"><projects>j159</projects><value>"장치"를 선택하여 블루투스 장치를 검색
+하고 장치를 페어링하십시오.
+블루투스 장치 및
+장치가 페어링되면
+"연결"을 클릭하여 장치를 사용합니다.
+"설정 - 오디오 - 헤드셋" 선택
+메뉴에서 유선 헤드셋을 
+블루투스로
+변경하십시오.</value></data>
+<data name="HELP_BLUETOOTH_DEV_STATE_DEFAULT"><projects>j159</projects><value>통화 시작 시
+기본 헤드셋 사용</value></data>
+<data name="HELP_BLUETOOTH_DEV_STATE_CONNECTED"><projects>j159</projects><value>페어링되고 연결됨</value></data>
+<data name="HELP_BLUETOOTH_DEV_STATE_CONNECTING"><projects>j159</projects><value>페어링되고 연결됨</value></data>
+<data name="HELP_BLUETOOTH_DEV_STATE_DISCONNECTED"><projects>j159</projects><value>페어링되고 연결 해제됨</value></data>
+<data name="HELP_BLUETOOTH_DEV_STATE_UNPAIRED"><projects>j159</projects><value>페어링 해제됨</value></data>
+<data name="HELP_GUESTLOGIN"><projects>j159</projects><value>게스트 로그인을 사용하여 전화기에 일시적으로 로그인하고 전화를 끊으면 언제든지 로그인으로 돌아갈 수 있습니다.</value></data>
+<data name="HELP_CONTACT_SEARCH"><projects>j159</projects><value>구성된 소스에 따라 검색 기능으로 로컬 디렉토리, 시스템 디렉토리, Microsoft Exchange 디렉토리, LDAP 디렉토리 또는 Avaya Spaces 디렉토리에서 연락처를 검색할 수 있습니다.
+검색 결과는 전화를 걸거나 로컬 디렉토리에 연락처를 저장하는데 사용될 수 있습니다.</value></data>
+<data name="HELP_MOBILITY_CONFIGURATION"><projects>j159</projects><value>수신 통화에 대해 알림을 받을 모바일 또는 고정 위치를 구성하십시오.</value></data>
+<data name="HELP_BROADWORKS_ANYWHERE"><projects>j159</projects><value>BroadWorks Anywhere를 구성하면 서로 다른 장치(고정 전화, 휴대폰, 소프트폰 등)에서 하나의 전화번호를 통해 전화를 걸고 받을 수 있습니다.</value></data>
+<data name="HELP_BROADWORKS_MOBILITY"><projects>j159</projects><value>BroadWorks Mobility를 구성하면 BroadWorks 기능을 사용하기 위해 모바일 장치를 사용할 수 있습니다. 모바일 및 일반 IP 전화기를 보유할 수 있으며, 모든 장치에서 통화를 처리할 수 있습니다.</value></data>
+<data name="HELP_CALL_RETRIEVE"><projects>j159</projects><value>이 사용자의 통화를 현재 위치에서 이 전화기로 끌어당깁니다. 이 사용자는 BroadWorks Mobility, BroadWorks Anywhere 또는 공유 통화 상태 화면 등 여러 상태 화면 서비스를 활성 상태로 설정해야 합니다.</value></data>
+<data name="HELP_FIXED_ALERTING_POLICY"><projects>j159</projects><value>다른 고정 위치 구성(선택 사항): SCA 장치 또는 모든 BroadWorks Anywhere 위치 또는 모든 Executive Assistant 위치에서 알림을 받아야 하는 경우 매개 변수를 활성화합니다.</value></data>
+<data name="HELP_ANYWHERE_ALERTING"><projects>j159</projects><value>수신 통화에 대해 클릭하여 다이얼 및 그룹 페이징 알림을 활성화합니다.</value></data>
+<data name="HELP_ANYWHERE_LOCATIONS"><projects>j159</projects><value>기존 위치를 구성하거나 새 위치를 추가합니다.</value></data>
+<data name="HELP_ANYWHERE_DETAILS"><projects>j159</projects><value>BroadWorks Anywhere 위치를 구성합니다.
+
+수신 통화가 BroadWorks가 아닌 자동 응답기로 오지 않게 하려면 "응답 확인 필수"를 설정합니다.
+
+응답하지 않은 통화에 대해 통화가 착신전환되지 않게 하려면 "전환 금지 프로그램"을 설정합니다.
+
+"BroadWorks 통화 제어"를 설정하면 통화가 모바일 장치가 아닌 BroadWorks에서 이루어져야 함을 나타냅니다.</value></data>
+<data name="HELP_SELECT_LOCATIONS_ALERTING"><projects>j159</projects><value>여러 위치를 구성하려면 위치를 선택합니다. 공통 위치 설정을 변경하려면 알림을 선택합니다.</value></data>
+<data name="HELP_EXECUTIVE"><projects>j159</projects><value>실행 및 도우미 기능은 중요 고객/지원 간의 상호 작용을 위한 솔루션을 제공합니다. 실행은 통화를 필터링하고 감시할 수 있습니다.</value></data>
+<data name="HELP_EXECUTIVE_ASSISTANT"><projects>j159</projects><value>실행 및 도우미 기능은 중요 고객/지원 간의 상호 작용을 위한 솔루션을 제공합니다. 지원이 할당되고 중요 고객에 대해 수신 등록한 지원으로 간주되는 경우 필터링된 통화가 수신 등록한 지원으로 호 전환되거나 공유됩니다.</value></data>
+<data name="HELP_BROADWORKS_CFA"><projects>j159</projects><value>항상 착신 전환은 모든 수신 통화를 지정한 대상으로 착신 전환합니다.</value></data>
+<data name="HELP_BROADWORKS_CFB"><projects>j159</projects><value>통화 중 착신 전환은 수신 통화가 통화 중 상태인 경우 통화를 다른 대상으로 착신 전환합니다.</value></data>
+<data name="HELP_BROADWORKS_CFNA"><projects>j159</projects><value>무응답 착신 전환은 수신 통화가 지정한 벨 울림 횟수 내에서 무응답 상태인 경우 통화를 다른 대상으로 착신 전환합니다.</value></data>
+<data name="HELP_BROADWORKS_DND"><projects>j159</projects><value>방해 금지는 수신 통화를 음성 메시지함으로 바로 전환합니다.</value></data>
+<data name="HELP_BLF_INCOMING_CALL"><projects>j159</projects><value>BLF 수신 통화에 대한 전화 동작을 정의합니다.
+시각적 - 전화기에 수신 통화 화면을 표시합니다.
+청각적 - 전화기에서 지정된 벨소리를 재생합니다. 오디오 설정에서 벨소리 개인 설정 옵션을 참조하십시오.
+시청각 - 전화기에 수신 통화 화면을 표시하고 지정된 벨소리를 재생합니다.
+기본값 - 관리자에 의해 구성된 값이 전화기 기본값으로 사용됩니다. 실제 값은 괄호 안에 표시됩니다.</value></data>
+<data name="HELP_BLF_PARKED_CALL"><projects>j159</projects><value>BLF 파크된 통화에 대한 전화 동작을 정의합니다.
+시각적 - 전화기에 수신 통화 화면을 표시합니다.
+청각적 - 전화기에서 지정된 벨소리를 재생합니다. 오디오 설정에서 벨소리 개인 설정 옵션을 참조하십시오.
+시청각 - 전화기에 수신 통화 화면을 표시하고 지정된 벨소리를 재생합니다.
+기본값 - 관리자에 의해 구성된 값이 전화기 기본값으로 사용됩니다. 실제 값은 괄호 안에 표시됩니다.</value></data>
+<data name="HELP_AUDIO_BUTTON"><projects>j159</projects><value>수신 통화에 대한 전화 동작을 정의하고 사용자는 핸드셋을 들어올리거나 헤드셋 또는 스피커 버튼을 누릅니다.
+응답 - 수신 통화에 응답합니다.
+새 통화 - 새 통화를 시작합니다.</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL"><projects>j159</projects><value>BroadWorks 동시 벨 울림 구성을 설정한 개인은 전화를 받을 때 기본 전화 외에도 벨소리를 울릴 전화 번호 또는 SIP-URI 주소를 최대 10개 나열할 수 있습니다.</value></data>
+<data name="HELP_BLF_SEARCH"><projects>j159</projects><value>검색 기준을 입력하려면 검색을 누릅니다. 검색은 대소문자를 구분합니다.</value></data>
+<data name="HELP_BROADWORKS_DND_SETTINGS"><projects>j159</projects><value>방해 금지는 전화 벨 울림 없이 수신 통화를 음성 메시지함으로 착신 전환합니다.</value></data>
+<data name="HELP_BROADWORKS_CFA_SETTINGS"><projects>j159</projects><value>항상 착신 전환은 수신 통화를 지정한 대상으로 착신 전환합니다.</value></data>
+<data name="HELP_BROADWORKS_CFNA_SETTINGS"><projects>j159</projects><value>무응답 착신 전환은 수신 통화가 지정한 벨 울림 횟수 내에서 무응답 상태인 경우 통화를 다른 대상으로 착신 전환합니다.</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL_ANSWER_CONFIRMATION_REQUIRED"><projects>j159</projects><value>응답 확인이 필요하면 활성화합니다</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL_DO_NOT_RING_WITH_ACTIVE_CALL"><projects>j159</projects><value>활성 통화 중 벨울림을 비활성화하도록 허용합니다.</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL_NUMBERS_LINE"><projects>j159</projects><value>동시 번호 보기는 개인 동시 벨 울림 기능에 대한 번호를 생성, 편집, 삭제합니다.</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL_NUMBERS"><projects>j159</projects><value>기존 번호 편집, 삭제 또는 새 번호 추가</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL_ADD_NUMBER"><projects>j159</projects><value>개인 동시 벨 울림 기능을 위한 번호 생성 및 저장</value></data>
+<data name="HELP_SIMULTANEOUS_RING_PERSONAL_EDIT_NUMBER"><projects>j159</projects><value>개인 동시 벨 울림 기능을 위한 번호 편집 및 저장</value></data>
+<data name="HELP_XSI_AUTH"><projects>j159</projects><value>XSI에 사용되는 인증 방법.
+SIP - SIP 사용자 이름, SIP 암호 및 Broadsoft 사용자 ID.
+웹 - Broadsoft 사용자 ID 및 웹 액세스 암호.</value></data>
+<data name="HELP_PROVIDES_ACCESS"><projects>j159</projects><value>웹 애플리케이션 또는 정보 페이지에 액세스</value></data>
+<data name="HELP_BROADSOFT_WEB_PORTAL_USER_ID"><projects>j159</projects><value>Broadsoft 웹 포털 사용자 ID</value></data>
+<data name="HELP_BROADSOFT_WEB_ACCESS_PASSWORD"><projects>j159</projects><value>사용자 프로필 페이지에 정의된 Broadsoft 웹 액세스 암호</value></data>
+<data name="HELP_CALL_PARK_NOTIFICATION"><projects>j159</projects><value>파크된 통화에 대한 전화 동작을 정의합니다.
+시각적 - 발신자 정보를 포함한 팝업을 표시합니다. 
+청각적 - 톤을 재생합니다.</value></data>
+<data name="HELP_CALL_PARK"><projects>j159</projects><value>통화 파크는 지정 파킹 위치(일부 내선 번호)에 통화 보류 상태로 두어 다른 내선 번호로 전화를 받을 수있는 기능입니다.</value></data>
+<data name="HELP_BROADWORKS_MOBILITY_SELECTION_VIEW_ON"><projects>j159</projects><value>각 모바일 ID에 대한 모바일 ID 알림 설정 또는 공통 프로필 ID 알림 설정 구성</value></data>
+<data name="HELP_BROADWORKS_GUEST_IN"><projects>j159</projects><value>게스트 로그인을 사용하면 BroadWorks 사용자가 이 전화를 기본 전화로 임시 로그인 할 수 있습니다. 기본 전화에는 Hoteling Guest 또는 Flexible Seating Guest 서비스가 할당되어 있어야합니다.</value></data>
+<data name="HELP_BROADWORKS_GUEST_OUT"><projects>j159</projects><value>게스트 로그아웃을 사용하면 BroadWorks 사용자가 이 전화를 호스트 전화에서 로그 아웃 할 수 있습니다.</value></data>
+<data name="HELP_BROADWORKS_CALL_CENTER"><projects>j159</projects><value>BroadWorks Call Center 기능은 상담원이 국가를 변경하고 상담원 국가의 Call Center 목록을 볼 수 있도록 합니다.</value></data>
+<data name="HELP_BROADWORKS_CC_VIEW"><projects>j159</projects><value>'선택'을 통해 상태를 설정하십시오. '상태'를 통해 콜 센터의 상태를 확인하십시오.</value></data>
+<data name="HELP_BROADWORKS_CC_DISPOSITION_CODE"><projects>j159</projects><value>BroadWorks의 처리 코드 기능은 콜 센터의 통화를 분류할 수 있도록 합니다.</value></data>
+<data name="HELP_BROADWORKS_CC_EMERGENCY_ESCALATION"><projects>j159</projects><value>BroadWorks의 긴급 통화 에스컬레이션 기능은 감독자를 해당 통화에 추가할 수 있도록 합니다.</value></data>
+<data name="HELP_BROADWORKS_CC_CUSTOMER_ORIGINATED_TRACE"><projects>j159</projects><value>BroadWorks의 고객 추적 기능은 외설적, 공격적, 위협적인 통화의 수신자가 자동 추적을 요청할 수 있도록 합니다.</value></data>
+<data name="HELP_ACD_AVAILABLE"><projects>j159</projects><value>상담원 상태를 통화 가능으로 설정</value></data>
+<data name="HELP_ACD_UNAVAILABLE"><projects>j159</projects><value>상담원 상태를 통화 불가로 설정</value></data>
+<data name="HELP_ACD_WRAP_UP"><projects>j159</projects><value>상담원 상태를 상담 완료로 설정</value></data>
+<data name="HELP_ACD_SIGN_IN"><projects>j159</projects><value>상담원 상태를 로그인으로 설정</value></data>
+<data name="HELP_ACD_SIGN_OUT"><projects>j159</projects><value>상담원 상태를 로그아웃으로 설정</value></data>
+<data name="HELP_CALL_PARK_AND_PAGE"><projects>j159</projects><value>페이징 안내 메시지의 대상을 선택하십시오. 페이징 그룹을 선택하거나 연락처를 누르거나 번호를 다이얼하십시오.</value></data>
+<data name="HELP_CONTACT_DIRECTORY_SEARCH"><projects>j159</projects><value>디렉터리 검색 기능을 사용하면 현재 디렉터리 검색 소스에서 연락처를 검색할 수 있습니다. 선택한 소스는 사용할 수 없습니다. 검색 결과를 사용하여 로컬 디렉터리에 연락처를 호출하거나 추가할 수 있습니다.</value></data>
+<data name="HELP_CALL_FORWARD_DELAY"><projects>j159</projects><value>통화가 응답하지 않은 상태로 남아 있을 때 통화가 착신 전환된 후의 신호 울림 횟수를 지정합니다.</value></data>
+<data name="HELP_ALERTING_ON_CALLS_DELAY"><projects>j159</projects><value>통화 팝업 표시와 수신 통화의 벨 소리 재생을 지연하기 위해 전화기에서 사용할 값(단위: 초)을 지정합니다. 
+이 매개 변수는 수신 통화 표시가 청각적 또는 시각적 또는 둘 다인 경우에만 적용됩니다.
+표시 지연이 0이면 지연이 없음을 의미합니다.
+기본값(관리자에 의해 구성된 값)을 사용하려면 "지우기" 소프트 키를 사용하여 입력된 값을 삭제하십시오.</value></data>
+<data name="HELP_ALERTING_ON_CALLS_INDICATION"><projects>j159</projects><value>공유 회선 수신 통화에 대한 전화기 동작을 정의합니다.
+없음 - 전화기가 수신 통화 화면을 표시하지 않고 벨소리를 재생하지 않습니다.
+청각적 - 전화기에 벨소리가 울립니다.
+시각적 - 전화기에 수신 통화 화면이 표시됩니다.
+시청각 - 전화기에 수신 통화 화면이 표시되고 벨소리가 울립니다.
+기본 - 전화기가 관리자가 구성한 설정을 기본값으로 사용합니다. 실제 설정은 괄호 안에 표시됩니다.
+전화기의 수신 통화 팝업이 비활성화되어 있는 경우, 화면 표시를 활성화해도 신호 LED 표시만 활성화됩니다.
+관리자는 이 매개 변수 변경을 비활성화할 수 있습니다.</value></data>
+<data name="HELP_CALL_PARK_AND_PAGE_TWO"><projects>j159</projects><value>페이징 안내 메시지의 대상을 선택하십시오. 페이징 그룹을 선택하십시오.</value></data>
+<data name="HELP_VISUAL_VOICEMAIL"><projects>j159</projects><value>수신함에는 음성 메일 및 통화 녹음이 있을 수 있습니다. 첫 번째 숫자는 새 음성 메일의 수이며 두 번째 숫자(표시되는 경우)는 새 통화 녹음의 수입니다. 통화 녹음이 없는 경우 새 음성 메일의 수만 표시됩니다.</value></data>
+<data name="HELP_VISUALVOICEMAIL"><projects>j159</projects><value>사용자가 음성 메일 서비스에 액세스하고 수신함의 시각적 보기를 보도록 허용합니다. 사용자는 전화기에서 음성 메일을 재생하고 읽고 삭제할 수 있습니다.</value></data>
+<data name="HELP_PROVISIONING_URL_EXAMPLE"><projects>j159</projects><value>프로비저닝 URL 예:
+https://avaya.com:443/prov</value></data>
+<data name="HELP_HTTP_CREDENTIALS_USERNAME_PASSWORD"><projects>j159</projects><value>HTTP 또는 HTTPS 프로비저닝 서버를 인증해야 하는 경우 사용자 이름 및 암호를 정의하십시오.</value></data>
+<data name="HELP_HTTP_SERVER_FIELD"><projects>j159</projects><value>HTTP 프로비저닝 서버 URL을 정의하십시오. 예: avaya.com:8080/prov. 포트가 제외된 경우 기본 포트(80)가 사용됩니다.</value></data>
+<data name="HELP_HTTPS_SERVER_FIELD"><projects>j159</projects><value>HTTPS 프로비저닝 서버 URL을 정의하십시오. 예: avaya.com:449/prov. 포트가 제외된 경우 기본 포트(443)가 사용됩니다.</value></data>
+<data name="HELP_OAUTH_AUTHENTICATION"><projects>j159</projects><value>계정을 인증하려면 웹 브라우저에 표시된 링크를 입력하고, 프롬프트가 나타나면 표시된 사용자 코드를 입력하십시오. 그런 다음 사용자 이름 및 암호를 입력하여 계정을 인증해야 합니다.</value></data>
+<data name="HELP_AGENT_GREETINGS_CONFIGURATION_MATCH_CRITERIA_FIELD_1"><projects>j159</projects><value>모든 통화: 모든 통화에 대해 인사말을 재생합니다.
+준비 모드: 상담원 상태가 통화 가능인 경우에만 인사말을 재생합니다.</value></data>
+<data name="HELP_AGENT_GREETINGS_CONFIGURATION_MATCH_CRITERIA_FIELD_2"><projects>j159</projects><value>통화와 연결된 %s에서 일치가 감지되는 방법을 제어합니다.
+인사말은 일치 문자열이 올바른 위치에서 발견된 경우에만 재생됩니다.</value></data>
+<data name="HELP_SECURE_SYSLOG"><projects>j159</projects><value>보안 연결을 사용하여 안전하게 syslog를 전송하는지 여부를 정의합니다.</value></data>
+<data name="HELP_AVAYA_SPACES_PROMPT_DIRECT_NUMBER"><projects>j159</projects><value>전화가 Avaya Spaces에 전화를 걸려고 할 때 항상 사용자에게 Avaya Spaces 직통 번호를 선택하라는 메시지를 표시할지 결정합니다.</value></data>
+<data name="HELP_AVAYA_SPACES_DIRECT_NUMBERS"><projects>j159</projects><value>Avaya Spaces에 전화를 걸 때 사용할 직통 전화번호를 선택하십시오.</value></data>
+<data name="HELP_SPACE_LOGIN_HIDE_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+앞으로 이 프롬프트를 '숨깁니다'.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACE_LOGIN_SHOW_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+앞으로 이 프롬프트를 '표시합니다'.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACE_DEVICE_PAIRING"><projects>j159</projects><value>모바일 장치로 '코드'를 스캔하거나 컴퓨터의 웹 브라우저에 '링크' 주소를 수동으로 입력하여 Avaya Spaces 로그인 페이지에 접속할 수 있습니다.</value></data>
+<data name="HELP_SPACE_LOGIN_GUEST_SHOW_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+'게스트'로 계속합니다.
+앞으로 이 프롬프트를 '표시합니다'.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACE_LOGIN_GUEST_HIDE_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+'게스트'로 계속합니다.
+앞으로 이 프롬프트를 '숨깁니다'.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACE_LOGOUT_PROMPT"><projects>j159</projects><value>Avaya Spaces에서 로그아웃하려면
+'로그아웃'을 누릅니다.</value></data>
+<data name="HELP_SEARCH_TYPE"><projects>j159</projects><value>시작 문자' 또는 '포함 문자' 중에서
+검색어 일치 방식을 정의합니다.</value></data>
+<data name="HELP_SPACES_SEARCH_TYPE"><projects>j159</projects><value>최근 스페이스만 검색하려면 '스페이스'를 선택합니다.
+Avaya Spaces의 사용자만 검색하려면 '사용자'를 선택합니다.
+최근 스페이스와 사용자를 모두 검색하려면 '모두'를 선택합니다.</value></data>
+<data name="HELP_SPACES_APPLICATION"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACE_LOGIN_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACES_MY_MEETING_ROOM"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_CHAT_NOTIFICATION"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_CALL_LOGIN_SHOW_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+즉시 '통화'합니다.
+앞으로 이 프롬프트를 '표시합니다'.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACES_CALL_LOGIN_HIDE_PROMPT"><projects>j159</projects><value>Avaya Spaces에 로그인합니다.
+즉시 '통화'합니다.
+앞으로 이 프롬프트를 '숨깁니다'.
+Avaya Spaces는 클라우드 기반 팀 협업 및 회의 애플리케이션입니다.</value></data>
+<data name="HELP_SPACES_DIRECT_SPACESCHAT_INDICATION"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_GROUP_SPACESCHAT_INDICATION"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_DIRECT_INDICATION_MODE"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_DIRECT_LED_INDICATOR"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_GROUP_INDICATION_MODE"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_GROUP_LED_INDICATOR"><projects>j159</projects><value></value></data>
+<data name="HELP_SPACES_INCOMING_CALL_INDICATION"><projects>j159</projects><value></value></data>
+<data name="HELP_DOT1X_EAP_METHODS"><projects>j159</projects><value>"신청자"가 비활성화되지 않은 경우 사용할 802.1X EAP 인증 방법을 정의합니다.</value></data>
+<data name="HELP_REGULATORY_INFO"><projects>j159</projects><value>이 장치에 대한 규정 정보를 표시합니다.
+'위로' 또는 '아래로' 버튼을 눌러 스크롤합니다.
+나가려면 다른 버튼을 누릅니다.</value></data>
+<data name="HELP_DOT1X_CREDENTIALS_USERNAME_PASSWORD"><projects>j159</projects><value>인증 방법이 MD5 또는 PEAP인 경우에는 사용자 이름과 암호를 정의하십시오.</value></data>
+<data name="HELP_DOT1X_CREDENTIALS_TLS_IDENTITY"><projects>j159</projects><value>인증 방법이 TLS인 경우 TLS ID를 정의하는 것은 선택 사항입니다.</value></data>
+<data name="HELP_AADS_URL"><projects>j159</projects><value>AADS URL을 정의합니다. 예: https://example.com:443/acs/resources/configurations</value></data>
+<data name="HELP_CALL_ON_OFFHOOK"><projects>j159</projects><value>통화 대상을 강조 표시하는 동안 사용자가 오프 후크 상태인 경우의 전화기 동작을 지정합니다.</value></data>
+<data name="HELP_TIME_ZONE_LOCATION"><projects>j159</projects><value>관리자가 전화기에 시간대 위치를 설정했습니다.</value></data>
+<data name="HELP_INVALID_TIME_ZONE_LOCATION"><projects>j159</projects><value>관리자가 전화기에 유효하지 않은 시간대 위치를 설정했습니다. 관리자에게 문의하십시오.</value></data>
+<data name="HELP_DAYLING_SAVING"><projects>j159</projects><value>일광 절약은 전화기가 현재 일광 절약 시간제를 따르는지 여부를 나타냅니다.</value></data>
+<data name="HELP_DAYLING_SAVING_OFFSET"><projects>j159</projects><value>일광 절약 오프셋은 일광 절약이 활성화되었을 때 적용되는 GMT 오프셋 입력의 변동을 나타냅니다.</value></data>
+<data name="HELP_DISPLAY_BOOTUP_STATUS"><projects>j159</projects><value>전화기 부팅 상태 메시지를 표시합니다.</value></data>
+
+
+<!--ERROR Strings-->
+
+<data name="ERR_LOGOLOAD"><projects>j159</projects><value>요청된 로고를 로드할 수 없음:</value></data>
+<data name="ERR_NOTFOUND"><projects>j159</projects><value>요청된 항목을 찾을 수 없음</value></data>
+<data name="ERR_BADRQMSG"><projects>j159</projects><value>잘못된 요청</value></data>
+<data name="ERR_FAILUREAUTH"><projects>j159</projects><value>잘못된 사용자 이름 또는 암호</value></data>
+<data name="ERR_RDMERROR"><projects>j159</projects><value>서버에 오류 발생</value></data>
+<data name="ERR_RDMINTFUNAV"><projects>j159</projects><value>서버 다운됨</value></data>
+<data name="ERR_RDBNOTSUP"><projects>j159</projects><value>요청된 작업이 지원되지 않음</value></data>
+<data name="ERR_REGFAILURE"><projects>j159</projects><value>로그인 실패. 다시 시도하십시오.</value></data>
+<data name="ERR_INTERROR"><projects>j159</projects><value>내부 오류</value></data>
+<data name="ERR_REGFAIL_FGNDMAIN"><projects>j159</projects><value>로그인 실패. 잘못된 SIP 도메인</value></data>
+<data name="ERR_REGFAIL_USERNOTFOUND"><projects>j159</projects><value>로그인 실패. 사용자를 찾을 수 없음</value></data>
+<data name="MSG_BAGLOG"><projects>j159</projects><value>로그인 오류</value></data>
+<data name="ERR_REQNACPT"><projects>j159</projects><value>불량 신호 요청(488)</value></data>
+<data name="ERR_USERUNAV"><projects>j159</projects><value>일시적으로 사용할 수 없음(480)</value></data>
+<data name="ERR_REQTIMEDOUT"><projects>j159</projects><value>요청 타임 아웃(408)</value></data>
+<data name="ERR_FORBIDDEN"><projects>j159</projects><value>요청이 허용되지 않음(403)</value></data>
+<data name="ERR_REMBUSY"><projects>j159</projects><value>원격 사용자가 통화 중(486)</value></data>
+<data name="ERR_GENERALFAIL"><projects>j159</projects><value>신호 생성 실패</value></data>
+<data name="ERR_CNTCTSEXISTS"><projects>j159</projects><value>연락처가 이미 있음</value></data>
+<data name="ERR_RDMINVDRESP"><projects>j159</projects><value>PPM 잘못된 응답</value></data>
+<data name="ERR_RDMINTF_INITFAILED"><projects>j159</projects><value>PPM 인터페이스 초기화 실패</value></data>
+<data name="ERR_RDMINVDATA_RECD"><projects>j159</projects><value>PPM 잘못된 데이터 수신</value></data>
+<data name="ERR_AGTLOGINPROGR"><projects>j159</projects><value>상담원 로그인 진행 중...</value></data>
+<data name="ERR_MAXACDAGNTS_LGEDIN"><projects>j159</projects><value>최대 ACD 상담원 로그인</value></data>
+<data name="ERR_MAXSIPAGNTS_LGEDIN"><projects>j159</projects><value>최대 SIP 상담원 로그인</value></data>
+<data name="ERR_MAXBCMSAGNTS_LGEDIN"><projects>j159</projects><value>최대 BCMS 상담원 로그인</value></data>
+<data name="ERR_INCRT_LOGININFO"><projects>j159</projects><value>잘못된 로그인 정보</value></data>
+<data name="ERR_WRGAGNT_PMSNDND"><projects>j159</projects><value>잘못된 상담원 거부됨</value></data>
+<data name="ERR_WRGSKL_PMSNDND"><projects>j159</projects><value>잘못된 스킬 권한 거부됨</value></data>
+<data name="ERR_AGNTBSY_PMSNDND"><projects>j159</projects><value>상담원 통화 중 권한 거부됨</value></data>
+<data name="ERR_AGNT_NTLGEDIN"><projects>j159</projects><value>상담원 로그인하지 않음</value></data>
+<data name="ERR_AGNTAUTAV_PMSNDND"><projects>j159</projects><value>상담원 자동 가용 권한 거부됨</value></data>
+<data name="ERR_AGNTBNOUT_PMSNDND"><projects>j159</projects><value>상담원 번아웃 권한 거부됨</value></data>
+<data name="ERR_INVLD_RSNCODE"><projects>j159</projects><value>잘못된 사유 코드</value></data>
+<data name="ERR_AGTELSEWHERE"><projects>j159</projects><value>다른 위치에서 로그인한 상담원</value></data>
+<data name="ERR_STNHASAGT"><projects>j159</projects><value>스테이션에 로그인한 상담원 있음</value></data>
+<data name="ERR_MAXADVAGTS"><projects>j159</projects><value>최대 Advocate 상담원 로그인</value></data>
+<data name="ERR_AGTOUTERR"><projects>j159</projects><value>에이전트 로그아웃 오류</value></data>
+<data name="ERR_LOCAL"><projects>j159</projects><value>로컬 연락처가 이미 있음</value></data>
+<data name="ERR_ECF_2261"><projects>j159</projects><value>CFWD 모두 활성, 작업 거부됨</value></data>
+<data name="ERR_ECF_2262"><projects>j159</projects><value>CFWD BDA 활성, 작업 거부됨</value></data>
+<data name="ERR_ECF_2268"><projects>j159</projects><value>잘못된 번호, 작업 거부됨</value></data>
+<data name="ERR_ECF_1605"><projects>j159</projects><value>번호로 착신 전환할 수 없음</value></data>
+<data name="ERR_AGNT_NO_CALL_APPR"><projects>j159</projects><value>사용할 수 있는 통화 표시 없음</value></data>
+<data name="ERR_REQUIRE_CWC_OR_SCC"><projects>j159</projects><value>CWC 또는 SCC 요청 권한 거부됨</value></data>
+<data name="ERR_SUPERVISOR_NOT_ADMINISTERED"><projects>j159</projects><value>감독자가 관리하지 않습니다.</value></data>
+<data name="ERR_SUPERVISOR_NOT_AVAILABLE"><projects>j159</projects><value>감독자가 없습니다.</value></data>
+<data name="ERR_FEATURE_REFERRAL_NOT_SUPPORTED"><projects>j159</projects><value>기능 호출 실패</value></data>
+<data name="ERR_SUPERVISOR_ASSIST_ALREADY_ACTIVE"><projects>j159</projects><value>감독자 지원이 이미 활성화된 상태입니다.</value></data>
+<data name="ERR_INVALID_STATE"><projects>j159</projects><value>잘못된 상태</value></data>
+<data name="ERR_INCRT_LOGINID"><projects>j159</projects><value>잘못된 로그인 ID</value></data>
+<data name="ERR_INCRT_PSWD"><projects>j159</projects><value>잘못된 암호</value></data>
+<data name="ERR_LOGIN_FAIL_SEEADMIN"><projects>j159</projects><value>로그인 실패- 관리자 확인</value></data>
+<data name="ERR_LOGIN_FAIL_TRYAGAIN"><projects>j159</projects><value>로그인 실패- 다시 시도하십시오</value></data>
+<data name="ERR_REG_LIMIT_REACHED"><projects>j159</projects><value>사용자가 다른 내선에 이미 로그인되어 있습니다.</value></data>
+<data name="ERR_PRESENCE_DOWN"><projects>j159</projects><value>프레즌스 서버 연결이 끊어짐</value></data>
+<data name="ERR_INVALID_EXT"><projects>j159</projects><value>잘못된 내선 입력</value></data>
+<data name="ERR_FEATURE_DENIED"><projects>j159</projects><value>기능 거부됨</value></data>
+<data name="ERR_AGENT_NOT_LOGGED_IN"><projects>j159</projects><value>상담원 로그인하지 않음</value></data>
+<data name="ERR_ALREADY_OBSERVED"><projects>j159</projects><value>이미 관찰 중</value></data>
+<data name="ERR_INVALID_LOCATION"><projects>j159</projects><value>잘못된 위치 번호</value></data>
+<data name="ERR_MISSING_INFO"><projects>j159</projects><value>정보 누락</value></data>
+<data name="ERR_LISTEN_ONLY_ACTIVE"><projects>j159</projects><value>듣기 전용 활성화</value></data>
+<data name="ERR_BECOME_UNOBSERV"><projects>j159</projects><value>연결을 관찰할 수 없음</value></data>
+<data name="ERR_SESSION_CANCELLED"><projects>j159</projects><value>세션 취소됨</value></data>
+<data name="ERR_VDN_NOT_OBSERVABLE"><projects>j159</projects><value>VDN을 관찰할 수 없음</value></data>
+<data name="ERR_INT_ERROR"><projects>j159</projects><value>내부 오류</value></data>
+<data name="ERR_COACHING_DENIED"><projects>j159</projects><value>코칭 기능 거부됨</value></data>
+<data name="ERR_COACHING_CANCELLED"><projects>j159</projects><value>코칭 기능 취소됨</value></data>
+<data name="ERR_BT_PASSKEY"><projects>j159</projects><value>암호 키 및 페어링에 대한 자세한 내용은 무선 장치 사용 설명서를 참조하십시오.</value></data>
+<data name="ERR_AGENT_NOT_ENTERED"><projects>j159</projects><value>상담원 ID 입력 안함</value></data>
+<data name="ERR_SKILL_NOT_ENTERED"><projects>j159</projects><value>스킬 입력 안함</value></data>
+<data name="ERR_TRUNK_NOT_ENTERED"><projects>j159</projects><value>트렁크 그룹 입력 안함</value></data>
+<data name="ERR_VDN_NOT_ENTERED"><projects>j159</projects><value>VDN 입력 안함</value></data>
+<data name="ERR_ASSIGN_IPV6_ADDR"><projects>j159</projects><value>IPv6 주소 할당 실패</value></data>
+<data name="ERR_INVALID_IP"><projects>j159</projects><value>잘못된 IP 주소</value></data>
+<data name="ERR_INVALID_PASS"><projects>j159</projects><value>잘못된 암호</value></data>
+<data name="ERR_TOO_MANY_USERS_FOUND"><projects>j159</projects><value>너무 많은 사용자가 검색되었습니다. 검색 범위를 좁히십시오.</value></data>
+<data name="ERR_NO_CALL_TO_RETRIEVE"><projects>j159</projects><value>검색할 통화 없음</value></data>
+<data name="ERR_INVALID_XML"><projects>j159</projects><value>잘못된 Xml</value></data>
+<data name="ERR_LOCATION_NUMBER_ALREADY_EXIST"><projects>j159</projects><value>위치 번호 있음</value></data>
+<data name="ERR_LOCATION_NUMBER_DOES_NOT_EXIST"><projects>j159</projects><value>위치 번호가 없습니다</value></data>
+<data name="ERR_INCORRECT_LENGTH_OF_PHONE_NUMBER"><projects>j159</projects><value>틀린 전화번호 자릿수입니다</value></data>
+<data name="ERR_LOCATION_NUMBER_IS_GREATER"><projects>j159</projects><value>위치 숫자가 최대 길이 초과</value></data>
+<data name="ERR_INVALID_PHONE_NUMBER"><projects>j159</projects><value>유효하지 않은 전화번호입니다</value></data>
+<data name="ERR_XSI_SERVER_ERROR"><projects>j159</projects><value>XSI 서버 오류:</value></data>
+<data name="ERR_XSI_SERVER_ERROR_2"><projects>j159</projects><value>XSI 서버 오류</value></data>
+<data name="ERR_NO_REMOTE_CALL"><projects>j159</projects><value>원격 통화 없음</value></data>
+<data name="ERR_CALL_NOT_FOUND"><projects>j159</projects><value>통화를 찾을 수 없습니다</value></data>
+<data name="ERR_CALL_PARK_AGAINST_ADDRESS_IS_NOT_VALID"><projects>j159</projects><value>유효하지 않은 번호입니다</value></data>
+<data name="ERR_CALL_PARK_AGAINST_USER_IS_THE_REMOTE_PARTY"><projects>j159</projects><value>통화 중인 번호에 파크할 수 없습니다</value></data>
+<data name="ERR_CALL_ALREADY_PARKED_AGAINST_USER"><projects>j159</projects><value>이 번호를 대상으로 이미 파크된 통화가 있습니다.</value></data>
+<data name="ERR_NO_AVAILABLE_CALL_PARK_GROUP_MEMBER"><projects>j159</projects><value>사용 가능한 통화 파크 그룹 멤버가 없습니다.</value></data>
+<data name="ERR_NETWORK_ERRORS_IN_RECEIVING_BROADWORKS_DATA"><projects>j159</projects><value>BroadWorks 디렉토리 데이터 수신 중 네트워크 에러</value></data>
+<data name="ERR_NETWORK_ERRORS_IN_BW_DATA_RESULT_MAY_BE_INCOMPLETE"><projects>j159</projects><value>BroadWorks 디렉토리 데이터 수신 중 네트워크 에러. 결과가 불완전할 수 있습니다.</value></data>
+<data name="ERR_INVALID_DOMAIN_NAME"><projects>j159</projects><value>유효하지 않은 도메인 이름</value></data>
+<data name="ERR_INVALID_SIP_URI"><projects>j159</projects><value>유효하지 않은 SIP URI</value></data>
+<data name="ERR_INVALID_SIP_URI_TWO_SYMBOLS"><projects>j159</projects><value>유효하지 않은 SIP URI. SIP URI에는 @ 기호가 두 번 들어갈 수 없습니다</value></data>
+<data name="ERR_INVALID_SIP_URI_USER_DOMAIN"><projects>j159</projects><value>유효하지 않은 SIP URI. SIP URI는 반드시 사용자@도메인 형식이어야 합니다</value></data>
+<data name="ERR_INVALID_FORMAT"><projects>j159</projects><value>유효하지 않은 형식</value></data>
+<data name="ERR_NUMBER_REQUIRED"><projects>j159</projects><value>이 서비스를 활성화하려면 전화번호가 필요합니다</value></data>
+<data name="ERR_DUPLICATE_USER"><projects>j159</projects><value>구성원 할당을 위해 지정한 중복 사용자</value></data>
+<data name="ERR_NO_MOBILE_IDENTITY"><projects>j159</projects><value>모바일 번호는 모바일 ID와는 아무런 관련이 없습니다</value></data>
+<data name="ERR_MOBILE_NUMBER_NOT_ASSIGNED"><projects>j159</projects><value>사용자에게 모바일 번호가 할당되지 않았습니다.</value></data>
+<data name="ERR_BLOCKED_BY_SIM_CALL_POLICY"><projects>j159</projects><value>최대 동시 통화 정책으로 차단</value></data>
+<data name="ERR_CALL_ALREADY_ON_LOCATION"><projects>j159</projects><value>위치에 이미 통화 할당</value></data>
+<data name="ERR_CANNOT_PARK_PUSH_TO_TALK_CALL"><projects>j159</projects><value>푸시 투 토크(PTT)를 파크할 수 없습니다</value></data>
+<data name="ERR_SERVICE_NOT_ASSIGNED"><projects>j159</projects><value>서비스 미할당</value></data>
+<data name="ERR_YOUR_NUMBER_NOT_ALLOWED"><projects>j159</projects><value>본인 번호, 내선 번호,  SIP URI 또는 본인의 신원과 관련이 있는 번호여서는 안 됩니다</value></data>
+<data name="ERR_SIMRING_LIMIT_LIST_LOCATIONS"><projects>j159</projects><value>동시 벨울림 번호 목록에 위치를 10개를 초과하여 추가할 수 없습니다</value></data>
+<data name="ERR_STATE_FOR_CALL_IS_NOT_VALID"><projects>j159</projects><value>통화 상태가 유효하지 않습니다.</value></data>
+<data name="ERR_USER_IS_NOT_MEMBER_OF_PARK_GROUP"><projects>j159</projects><value>통화 파크 그룹의 멤버가 아닙니다.</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_SERVICE_IS_NOT_ASSIGNED"><projects>j159</projects><value>직접 콜 픽업 서비스가 할당되지 않았습니다.</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_BARGEIN_SERVICE_IS_NOT_ASSIGNED"><projects>j159</projects><value>통화 참여가 가능한 직접 콜 픽업 서비스가 할당되지 않았습니다.</value></data>
+<data name="ERR_CALL_PARK_RETRIEVE_SERVICE_IS_NOT_ASSIGNED"><projects>j159</projects><value>통화 파크 검색 서비스가 할당되지 않았습니다.</value></data>
+<data name="ERR_CALL_PARK_SERVICE_IS_NOT_ASSIGNED"><projects>j159</projects><value>통화 대기 코드가 구성되지 않음</value></data>
+<data name="ERR_TRANSFER_FAILED"><projects>j159</projects><value>호 전환 실패
+통화가 활성 상태입니다.</value></data>
+<data name="ERR_AVAYA_SPACES_DIRECT_PHONE_NUMBERS"><projects>j159</projects><value>Avaya Spaces 직통 전화번호 오류</value></data>
+<data name="ERR_NETWORK_ERRORS_IN_SPACES_DATA"><projects>j159</projects><value>Avaya Spaces 데이터 수신 시 네트워크 오류가 발생했습니다. 결과가 불완전할 수 있습니다.</value></data>
+<data name="ERR_REFRESH_PERSONAL_CONTACTS"><projects>j159</projects><value>개인 연락처 새로고침 실패.</value></data>
+
+
+<!--Startup Screens-->
+
+<data name="MSG_STARTG"><projects>j159</projects><value>시작 중</value></data>
+<data name="MSG_NOETH"><projects>j159</projects><value>이더넷 없음.</value></data>
+<data name="MSG_NETBADIP"><projects>j159</projects><value>감지된 불량 IP</value></data>
+<data name="MSG_BADRTR"><projects>j159</projects><value>라우터에 이상이 있습니까?</value></data>
+<data name="MSG_NETBADSUB"><projects>j159</projects><value>감지된 불량 서브넷</value></data>
+<data name="MSG_SUBCNF"><projects>j159</projects><value>서브넷 충돌</value></data>
+<data name="MSG_ADCONF"><projects>j159</projects><value>주소 충돌</value></data>
+<data name="MSG_IPV6_ADDRCONF"><projects>j159</projects><value>IPv6 주소 충돌</value></data>
+<data name="MSG_IPV6LL_ADDRCONF"><projects>j159</projects><value>dupMAC=</value></data>
+<data name="MSG_DHCPADDRCONF"><projects>j159</projects><value>DHCP: 충돌</value></data>
+<data name="MSG_MYCERTFAILURE"><projects>j159</projects><value>SCEP 인증서 %ls 설치 실패.</value></data>
+<data name="MSG_NOSIPSRVR"><projects>j159</projects><value>빈 SIP 프록시 서버 목록</value></data>
+<data name="MSG_SHARED_CONTROL_ACTIVE"><projects>j159</projects><value>공유 제어가 활성화되었습니다.</value></data>
+<data name="MSG_SHARED_CONTROL_INACTIVE"><projects>j159</projects><value>공유 제어가 비활성화되었습니다.</value></data>
+<data name="MSG_PROG_NEW_ROUTER"><projects>j159</projects><value>새 라우터 주소 프로그래밍</value></data>
+<data name="MSG_UPDATING_SOFTWARE"><projects>j159</projects><value>소프트웨어 업데이트 중...</value></data>
+<data name="MSG_UPDATE_SUCCESSFUL"><projects>j159</projects><value>소프트웨어 업데이트 성공</value></data>
+<data name="MSG_UPDATE_FAILED"><projects>j159</projects><value>소프트웨어 업데이트 실패</value></data>
+<data name="MSG_WIFI_SERVICE_FAILED"><projects>j159</projects><value>Wi-Fi 서비스 실패</value></data>
+<data name="MSG_PRESS_NETWORKS_SWITCH_ETH"><projects>j159</projects><value>이더넷으로 전환하려면 네트워크를 누르십시오.</value></data>
+<data name="MSG_PRESS_RESTART_ATTEMPT_WIFI"><projects>j159</projects><value>재시작을 눌러 Wi-Fi에 다시 연결하십시오.</value></data>
+<data name="MSG_WIFI_NO_SSID"><projects>j159</projects><value>선택한 Wi-Fi 네트워크가 없음</value></data>
+<data name="MSG_WIFI_SELECT_NETWORK"><projects>j159</projects><value>네트워크를 선택하려면 네트워크를 누르십시오.</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATION_FAILED"><projects>j159</projects><value>인증 실패</value></data>
+<data name="MSG_WIFI_CONNECTION_CERTIFICATE_ERROR"><projects>j159</projects><value>Wi-Fi 인증서 오류</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTING"><projects>j159</projects><value>연결 중</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATING"><projects>j159</projects><value>인증 중</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTED"><projects>j159</projects><value>연결됨</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTING"><projects>j159</projects><value>연결 해제 중</value></data>
+<data name="MSG_ETHERNET_RESTORED"><projects>j159</projects><value>%ls
+이더넷 복원됨</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTED"><projects>j159</projects><value>연결이 끊어짐</value></data>
+<data name="MSG_WIFI_CONNECTION_FAILED"><projects>j159</projects><value>연결 실패</value></data>
+<data name="MSG_NOCONTROLLER_BY_MODE"><projects>j159</projects><value>빈 IPv%s SIP 프록시 서버 목록</value></data>
+<data name="MSG_PKCS12_DNLOAD_FAILURE"><projects>j159</projects><value>ID 인증서 %ls 다운로드에 실패했습니다.</value></data>
+<data name="MSG_PKCS12_REJECT_CERT"><projects>j159</projects><value>ID 인증서 %ls이(가) 거부되었습니다.</value></data>
+<data name="MSG_SEARCH_FOR_CONFIG"><projects>j159</projects><value>구성 검색 중</value></data>
+
+
+<!--Progress Screen-->
+
+<data name="MSG_RSTART"><projects>j159</projects><value>다시 시작 중...</value></data>
+
+
+<!--Feature Names-->
+
+<data name="auto-callback"><projects>j159</projects><value>자동 콜백</value></data>
+<data name="auto-callback_short"><projects>j159</projects><value>자동콜백</value></data>
+<data name="auto-callback_sbm"><projects>j159</projects><value>자동 콜백</value></data>
+<data name="busy-indicator"><projects>j159</projects><value>통화 중</value></data>
+<data name="busy-indicator_sbm"><projects>j159</projects><value>통화 중</value></data>
+<data name="busy-indicator_half"><projects>j159</projects><value>통화 중</value></data>
+<data name="call-forwarding-all"><projects>j159</projects><value>착신 전환</value></data>
+<data name="call-forwarding-all_short"><projects>j159</projects><value>착신 전환</value></data>
+<data name="call-forwarding-all_sbm"><projects>j159</projects><value>착신 전환</value></data>
+<data name="call-forwarding-busy-no-answer"><projects>j159</projects><value>착신 전환 - B/NA</value></data>
+<data name="call-forwarding-busy-no-answer_short"><projects>j159</projects><value>통화중전달</value></data>
+<data name="call-forwarding-busy-no-answer_sbm"><projects>j159</projects><value>CFBDA</value></data>
+<data name="call-park"><projects>j159</projects><value>통화 파크</value></data>
+<data name="call-park-manual"><projects>j159</projects><value>통화 파크</value></data>
+<data name="call-park-manual_half"><projects>j159</projects><value>통화 파크</value></data>
+<data name="call-park-manual_sbm"><projects>j159</projects><value>통화 파크</value></data>
+<data name="group-call-park"><projects>j159</projects><value>그룹 통화 파크</value></data>
+<data name="group-call-park_half"><projects>j159</projects><value>그룹 톻화 파크</value></data>
+<data name="group-call-park_sbm"><projects>j159</projects><value>그룹 톻화 파크</value></data>
+<data name="call-waiting"><projects>j159</projects><value>통화 대기</value></data>
+<data name="call-park_sbm"><projects>j159</projects><value>통화 파크</value></data>
+<data name="call-pickup"><projects>j159</projects><value>콜 픽업</value></data>
+<data name="call-pickup_sbm"><projects>j159</projects><value>콜 픽업</value></data>
+<data name="calling-party-block"><projects>j159</projects><value>내 번호 차단</value></data>
+<data name="calling-party-block_sbm"><projects>j159</projects><value>CPN 차단</value></data>
+<data name="calling-party-unblock"><projects>j159</projects><value>내 번호 차단 해제</value></data>
+<data name="calling-party-unblock_sbm"><projects>j159</projects><value>CPN 차단 해제</value></data>
+<data name="call-pickup-extended"><projects>j159</projects><value>확장 콜 픽업</value></data>
+<data name="call-pickup-extended_sbm"><projects>j159</projects><value>확장 콜 픽업</value></data>
+<data name="call-pickup-directed"><projects>j159</projects><value>직접 콜 픽업</value></data>
+<data name="call-pickup-directed_sbm"><projects>j159</projects><value>직접 콜 픽업</value></data>
+<data name="call-unpark"><projects>j159</projects><value>통화 언파크</value></data>
+<data name="call-unpark_short"><projects>j159</projects><value>언파크</value></data>
+<data name="call-unpark_sbm"><projects>j159</projects><value>통화 언파크</value></data>
+<data name="broadworks-call-unpark"><projects>j159</projects><value>통화 언파크</value></data>
+<data name="broadworks-call-unpark_short"><projects>j159</projects><value>언파크</value></data>
+<data name="broadworks-call-unpark_sbm"><projects>j159</projects><value>통화 언파크</value></data>
+<data name="broadworks-call-unpark_half"><projects>j159</projects><value>통화 언파크</value></data>
+<data name="extend-call"><projects>j159</projects><value>통화 확장</value></data>
+<data name="extend-call_sbm"><projects>j159</projects><value>통화 확장</value></data>
+<data name="mct"><projects>j159</projects><value>스팸 통화 추적</value></data>
+<data name="mct_short"><projects>j159</projects><value>MCT 활성</value></data>
+<data name="mct_sbm"><projects>j159</projects><value>MCT활성</value></data>
+<data name="off-pbx"><projects>j159</projects><value>EC500</value></data>
+<data name="off-pbx_sbm"><projects>j159</projects><value>EC500</value></data>
+<data name="off-pbx_aux"><projects>j159</projects><value>EC500</value></data>
+<data name="one-touch-recording"><projects>j159</projects><value>레코딩</value></data>
+<data name="priority-call"><projects>j159</projects><value>우선 순위</value></data>
+<data name="priority-call_sbm"><projects>j159</projects><value>우선 순위</value></data>
+<data name="sac"><projects>j159</projects><value>방해 금지</value></data>
+<data name="sac_short"><projects>j159</projects><value>방해 금지</value></data>
+<data name="sac_sbm"><projects>j159</projects><value>방해 금지</value></data>
+<data name="transfer-to-voicemail"><projects>j159</projects><value>음성 메일로 전송</value></data>
+<data name="transfer-to-voicemail_half"><projects>j159</projects><value>VM으로 전송</value></data>
+<data name="transfer-to-voicemail_sbm"><projects>j159</projects><value>음성 메일로 전송</value></data>
+<data name="whisper-page"><projects>j159</projects><value>속삭임 페이지</value></data>
+<data name="whisper-page_sbm"><projects>j159</projects><value>속삭임 페이지</value></data>
+<data name="exclusion"><projects>j159</projects><value>제외</value></data>
+<data name="exclusion_sbm"><projects>j159</projects><value>제외</value></data>
+<data name="auto-intercom"><projects>j159</projects><value>자동 인터콤</value></data>
+<data name="auto-intercom_sbm"><projects>j159</projects><value>AI</value></data>
+<data name="dial-intercom"><projects>j159</projects><value>다이얼 인터콤</value></data>
+<data name="dial-intercom_sbm"><projects>j159</projects><value>DI</value></data>
+<data name="enhanced-call-forwarding"><projects>j159</projects><value>향상된 착신 전환</value></data>
+<data name="enhanced-call-forwarding_short"><projects>j159</projects><value>ECF</value></data>
+<data name="enhanced-call-forwarding_sbm"><projects>j159</projects><value>ECF</value></data>
+<data name="enhanced-call-forwarding_half"><projects>j159</projects><value>ECF</value></data>
+<data name="agent"><projects>j159</projects><value>상담원 ID:</value></data>
+<data name="agent-extension"><projects>j159</projects><value>상담원 로그인 ID</value></data>
+<data name="split"><projects>j159</projects><value>스킬 번호</value></data>
+<data name="trunk-group"><projects>j159</projects><value>트렁크 그룹 번호</value></data>
+<data name="vdn_vu"><projects>j159</projects><value>VDN:</value></data>
+<data name="uui-info"><projects>j159</projects><value>UU 정보</value></data>
+<data name="agent-login"><projects>j159</projects><value>상담원 로그인</value></data>
+<data name="agent-logout"><projects>j159</projects><value>상담원 로그아웃</value></data>
+<data name="agent-login_sbm"><projects>j159</projects><value>상담원로그인</value></data>
+<data name="agent-logout_sbm"><projects>j159</projects><value>상담원 로그아웃</value></data>
+<data name="agent-login_half"><projects>j159</projects><value>상담원로그인</value></data>
+<data name="agent-logout_half"><projects>j159</projects><value>상담원 로그아웃</value></data>
+<data name="aut-msg-wt"><projects>j159</projects><value>음성 메일</value></data>
+<data name="aut-msg-wt_sbm"><projects>j159</projects><value>MWI</value></data>
+<data name="aut-msg-wt_half"><projects>j159</projects><value>MWI</value></data>
+<data name="auto-intercom_half"><projects>j159</projects><value>자동 인터콤</value></data>
+<data name="call-forwarding-all_half"><projects>j159</projects><value>착신 전환</value></data>
+<data name="call-forwarding-busy-no-answer_half"><projects>j159</projects><value>착신 전환-B/NA</value></data>
+<data name="call-park_half"><projects>j159</projects><value>통화 파크</value></data>
+<data name="call-pickup_half"><projects>j159</projects><value>콜 픽업</value></data>
+<data name="call-unpark_half"><projects>j159</projects><value>통화 언파크</value></data>
+<data name="dial-intercom_half"><projects>j159</projects><value>다이얼 인터콤</value></data>
+<data name="priority-call_half"><projects>j159</projects><value>우선 순위</value></data>
+<data name="whisper-page_half"><projects>j159</projects><value>속삭임 사용</value></data>
+<data name="call-pickup-extended_half"><projects>j159</projects><value>확장픽업</value></data>
+<data name="sac_half"><projects>j159</projects><value>방해 금지</value></data>
+<data name="auto-callback_half"><projects>j159</projects><value>자동 응답</value></data>
+<data name="calling-party-block_half"><projects>j159</projects><value>CPN 차단</value></data>
+<data name="calling-party-unblock_half"><projects>j159</projects><value>CPN 차단 해제</value></data>
+<data name="call-pickup-directed_half"><projects>j159</projects><value>직접 픽업</value></data>
+<data name="exclusion_half"><projects>j159</projects><value>제외</value></data>
+<data name="extend-call_half"><projects>j159</projects><value>통화 확장</value></data>
+<data name="mct_half"><projects>j159</projects><value>MCT 활성</value></data>
+<data name="limit-call"><projects>j159</projects><value>수신 통화 제한</value></data>
+<data name="limit-call_half"><projects>j159</projects><value>동시 수신 제한</value></data>
+<data name="limit-call_sbm"><projects>j159</projects><value>동시 수신 제한</value></data>
+<data name="sip-sobsrv"><projects>j159</projects><value>서비스 관찰</value></data>
+<data name="sip-sobsrv_sbm"><projects>j159</projects><value>서비스 관찰</value></data>
+<data name="sip-sobsrv_half"><projects>j159</projects><value>서비스 관찰</value></data>
+<data name="hunt-group-busy-position"><projects>j159</projects><value>헌트 그룹 통화 중</value></data>
+<data name="hunt-group-busy-position_sbm"><projects>j159</projects><value>통화 중</value></data>
+<data name="hunt-group-busy-position_half"><projects>j159</projects><value>통화 중</value></data>
+<data name="auto-answer"><projects>j159</projects><value>자동 응답</value></data>
+<data name="do-not-disturb"><projects>j159</projects><value>방해 금지</value></data>
+<data name="do-not-disturb_short"><projects>j159</projects><value>DND통화중</value></data>
+<data name="broadworks-anywhere"><projects>j159</projects><value>BroadWorks Anywhere</value></data>
+<data name="broadworks-anywhere_half"><projects>j159</projects><value>Anywhere</value></data>
+<data name="broadworks-anywhere_sbm"><projects>j159</projects><value>Anywhere</value></data>
+<data name="broadworks-mobility"><projects>j159</projects><value>BroadWorks Mobility</value></data>
+<data name="broadworks-mobility_half"><projects>j159</projects><value>Mobility</value></data>
+<data name="broadworks-mobility_sbm"><projects>j159</projects><value>Mobility</value></data>
+<data name="call-retrieve"><projects>j159</projects><value>통화 검색</value></data>
+<data name="call-retrieve_half"><projects>j159</projects><value>통화 검색</value></data>
+<data name="call-retrieve_sbm"><projects>j159</projects><value>통화 검색</value></data>
+<data name="executive"><projects>j159</projects><value>실행</value></data>
+<data name="executive_half"><projects>j159</projects><value>실행</value></data>
+<data name="executive_sbm"><projects>j159</projects><value>실행</value></data>
+<data name="executive-assistant"><projects>j159</projects><value>실행-도우미</value></data>
+<data name="executive-assistant_half"><projects>j159</projects><value>실행-도우미</value></data>
+<data name="executive-assistant_sbm"><projects>j159</projects><value>실행-도우미</value></data>
+<data name="call-fwd-busy"><projects>j159</projects><value>통화 중 착신 전환</value></data>
+<data name="call-fwd-busy_half"><projects>j159</projects><value>통화 중 착신 전환</value></data>
+<data name="call-fwd-busy_sbm"><projects>j159</projects><value>CFB</value></data>
+<data name="call-fwd-no-answer"><projects>j159</projects><value>NA-착신 전환</value></data>
+<data name="call-fwd-no-answer_half"><projects>j159</projects><value>CFNA</value></data>
+<data name="call-fwd-no-answer_sbm"><projects>j159</projects><value>NA-착신 전환</value></data>
+<data name="do-not-disturb_half"><projects>j159</projects><value>DND통화중</value></data>
+<data name="do-not-disturb_sbm"><projects>j159</projects><value>DND통화중</value></data>
+<data name="broadworks-call-forward-all"><projects>j159</projects><value>착신 전환</value></data>
+<data name="broadworks-call-forward-all_half"><projects>j159</projects><value>착신 전환</value></data>
+<data name="broadworks-call-forward-all_sbm"><projects>j159</projects><value>착신 전환</value></data>
+<data name="broadworks-call-forward-busy"><projects>j159</projects><value>통화 중 착신 전환</value></data>
+<data name="broadworks-call-forward-busy_half"><projects>j159</projects><value>통화 중 착신 전환</value></data>
+<data name="broadworks-call-forward-busy_sbm"><projects>j159</projects><value>CFB</value></data>
+<data name="broadworks-call-forward-no-answer"><projects>j159</projects><value>NA-착신 전환</value></data>
+<data name="broadworks-call-forward-no-answer_half"><projects>j159</projects><value>CFNA</value></data>
+<data name="broadworks-call-forward-no-answer_sbm"><projects>j159</projects><value>NA-착신 전환</value></data>
+<data name="broadworks-do-not-disturb"><projects>j159</projects><value>방해 금지</value></data>
+<data name="broadworks-do-not-disturb_half"><projects>j159</projects><value>방해 금지</value></data>
+<data name="broadworks-do-not-disturb_sbm"><projects>j159</projects><value>방해 금지</value></data>
+<data name="simultaneous-ring-personal"><projects>j159</projects><value>동시 벨울림</value></data>
+<data name="simultaneous-ring-personal_half"><projects>j159</projects><value>동시 벨울림</value></data>
+<data name="simultaneous-ring-personal_sbm"><projects>j159</projects><value>동시 벨울림</value></data>
+<data name="no-hold-conf"><projects>j159</projects><value>보류 회의 없음</value></data>
+<data name="crisis-alert"><projects>j159</projects><value>위기 알림</value></data>
+<data name="no-hold-conf_short"><projects>j159</projects><value>보류 회의 없음</value></data>
+<data name="broadworks-guest-in-out"><projects>j159</projects><value></value></data>
+<data name="broadworks-guest-in-out_sbm"><projects>j159</projects><value></value></data>
+<data name="broadworks-guest-in-out_half"><projects>j159</projects><value></value></data>
+<data name="broadworks-call-center"><projects>j159</projects><value>콜 센터</value></data>
+<data name="broadworks-call-center_sbm"><projects>j159</projects><value>콜 센터</value></data>
+<data name="broadworks-call-center_half"><projects>j159</projects><value>콜 센터</value></data>
+<data name="no-hold-conf_sbm"><projects>j159</projects><value>보류 회의 없음</value></data>
+<data name="bwcc-disposition-code"><projects>j159</projects><value>처리 코드</value></data>
+<data name="bwcc-disposition-code_sbm"><projects>j159</projects><value>처리 코드</value></data>
+<data name="bwcc-disposition-code_half"><projects>j159</projects><value>처리 코드</value></data>
+<data name="bwcc-emergency-escalation"><projects>j159</projects><value>에스컬레이션</value></data>
+<data name="bwcc-emergency-escalation_sbm"><projects>j159</projects><value>에스컬레이션</value></data>
+<data name="bwcc-emergency-escalation_half"><projects>j159</projects><value>에스컬레이션</value></data>
+<data name="bwcc-customer-originated-trace"><projects>j159</projects><value>고객 추적</value></data>
+<data name="bwcc-customer-originated-trace_sbm"><projects>j159</projects><value>통화 추적</value></data>
+<data name="bwcc-customer-originated-trace_half"><projects>j159</projects><value>통화 추적</value></data>
+<data name="bwcc-acd-available"><projects>j159</projects><value>통화 가능</value></data>
+<data name="bwcc-acd-available_sbm"><projects>j159</projects><value>통화 가능</value></data>
+<data name="bwcc-acd-available_half"><projects>j159</projects><value>통화 가능</value></data>
+<data name="bwcc-acd-unavailable"><projects>j159</projects><value>통화 불가</value></data>
+<data name="bwcc-acd-unavailable_sbm"><projects>j159</projects><value>통화 불가</value></data>
+<data name="bwcc-acd-unavailable_half"><projects>j159</projects><value>통화 불가</value></data>
+<data name="bwcc-acd-wrap-up"><projects>j159</projects><value>상담 완료</value></data>
+<data name="bwcc-acd-wrap-up_sbm"><projects>j159</projects><value>상담 완료</value></data>
+<data name="bwcc-acd-wrap-up_half"><projects>j159</projects><value>상담 완료</value></data>
+<data name="bwcc-acd-sign-in"><projects>j159</projects><value>로그인</value></data>
+<data name="bwcc-acd-sign-in_sbm"><projects>j159</projects><value>로그인</value></data>
+<data name="bwcc-acd-sign-in_half"><projects>j159</projects><value>로그인</value></data>
+<data name="bwcc-acd-sign-out"><projects>j159</projects><value>로그아웃</value></data>
+<data name="bwcc-acd-sign-out_sbm"><projects>j159</projects><value>로그아웃</value></data>
+<data name="bwcc-acd-sign-out_half"><projects>j159</projects><value>로그아웃</value></data>
+<data name="dynamic-park-and-page"><projects>j159</projects><value>동적 파크 및 페이징</value></data>
+<data name="dynamic-park-and-page_sbm"><projects>j159</projects><value>동적 파크 및 페이징</value></data>
+<data name="dynamic-park-and-page_half"><projects>j159</projects><value>동적 파크 및 페이징</value></data>
+
+
+<!--Feature: Softkey Names-->
+
+<data name="softkey-auto-callback"><projects>j159</projects><value>자동 콜백</value></data>
+<data name="softkey-call-forwarding-all"><projects>j159</projects><value>착신 전환</value></data>
+<data name="softkey-call-forwarding-busy-no-answer"><projects>j159</projects><value>통화중전달</value></data>
+<data name="softkey-extend-call"><projects>j159</projects><value>통화 끝내기</value></data>
+<data name="softkey-call-park"><projects>j159</projects><value>파크</value></data>
+<data name="softkey-call-pickup"><projects>j159</projects><value>픽업</value></data>
+<data name="softkey-calling-party-block"><projects>j159</projects><value>CPN 차단</value></data>
+<data name="softkey-calling-party-unblock"><projects>j159</projects><value>CPN 차단 해제</value></data>
+<data name="softkey-call-pickup-extended"><projects>j159</projects><value>확장 픽업</value></data>
+<data name="softkey-call-pickup-directed"><projects>j159</projects><value>직접 픽업</value></data>
+<data name="softkey-call-unpark"><projects>j159</projects><value>언파크</value></data>
+<data name="softkey-mct"><projects>j159</projects><value>MCT 활성</value></data>
+<data name="softkey-mct-cancel"><projects>j159</projects><value>MCT 취소</value></data>
+<data name="softkey-off-pbx"><projects>j159</projects><value>EC500</value></data>
+<data name="softkey-one-touch-recording"><projects>j159</projects><value>레코딩</value></data>
+<data name="softkey-priority-call"><projects>j159</projects><value>우선 순위</value></data>
+<data name="softkey-sac"><projects>j159</projects><value>전송All</value></data>
+<data name="softkey-transfer-to-voicemail"><projects>j159</projects><value>VMail로</value></data>
+<data name="softkey-whisper-page"><projects>j159</projects><value>속삭임호출</value></data>
+<data name="softkey-agent-login"><projects>j159</projects><value>로그인</value></data>
+<data name="softkey-agent-logout"><projects>j159</projects><value>로그아웃</value></data>
+<data name="softkey-ExitVu"><projects>j159</projects><value>Vu 종료</value></data>
+
+
+<!--Feature Attributes-->
+
+<data name="avaya-cm-destination"><projects>j159</projects><value>대상</value></data>
+<data name="avaya-cm-extension"><projects>j159</projects><value>내선</value></data>
+<data name="avaya-cm-pickup-number"><projects>j159</projects><value>픽업 번호</value></data>
+<data name="avaya-cm-dial-code"><projects>j159</projects><value>코드 입력</value></data>
+
+
+<!--Power Manager-->
+
+<data name="pm_Header"><projects>j159</projects><value>전원 관리</value></data>
+<data name="pm_Header_Help"><projects>j159</projects><value>전원 관리 도움말</value></data>
+<data name="pm_Header1"><projects>j159</projects><value>장치를 제거하여 전원 절약</value></data>
+<data name="pm_Header2"><projects>j159</projects><value>전원 설정 변경</value></data>
+<data name="pm_Header3"><projects>j159</projects><value>예비 전원 추가 또는 장치 제거</value></data>
+<data name="pm_Screen_A"><projects>j159</projects><value>전원이 충분하지 않습니다. 하나 이상의 장치를 제거하여 전원 요구 사항을 줄이십시오.</value></data>
+<data name="pm_Screen_B"><projects>j159</projects><value>아직도 전원이 충분하지 않습니다. 하나 이상의 장치를 제거하여 전원 요구 사항을 줄이십시오.</value></data>
+<data name="pm_Screen_C"><projects>j159</projects><value>전원이 충분하지 않습니다. 예비 전원 공급장치를 설치하거나 하나 이상의 장치를 제거하십시오.</value></data>
+<data name="pm_Screen_D"><projects>j159</projects><value>아직도 전원이 충분하지 않습니다.예비 전원 공급장치를 설치하거나 하나 이상의 장치를 제거하십시오.</value></data>
+<data name="pm_Screen_E"><projects>j159</projects><value>전원이 충분하지 않습니다. 전화를 뽑고 뒷면 전원 스위치를 변경 또는 하나 이상의 장치를 제거하십시오.</value></data>
+<data name="pm_Screen_F"><projects>j159</projects><value>아직도 전원이 충분하지 않습니다. 전화를 뽑고 뒷면의 전원 스위치를 변경 또는 일부 장치를 제거하십시오.</value></data>
+<data name="pm_Screen_G"><projects>j159</projects><value>전원 설정을 변경하기 전에 전화의 플러그를 뽑아야 합니다.현재 설정에 전원이 더 필요합니다.</value></data>
+<data name="pm_Screen_H1"><projects>j159</projects><value>총 전원 로드가 용량을 초과합니다. 하나 이상의 장치를 제거하여 필요한 전원을 줄여야 합니다.</value></data>
+<data name="pm_Screen_H2"><projects>j159</projects><value>예비 전원 공급장치를 설치하거나 장치를 제거하십시오.</value></data>
+<data name="pm_Screen_H3"><projects>j159</projects><value>전원을 늘리려면 전화를 뽑고 뒷면의 IEEE 스위치를 L에서 H로 전환하거나 장치를 제거하십시오.</value></data>
+
+
+<!--Strings that DON'T REQUIRE TRANSLATIONS-->
+
+<data name="optCurrentLanguage"><projects>j159</projects><value></value></data>
+<data name="optAdmin8021X"><projects>j159</projects><value>802.1X</value></data>
+<data name="optAdminSiteSpecificOption"><projects>j159</projects><value></value></data>
+<data name="LBL_SSON"><projects>j159</projects><value></value></data>
+<data name="optAdminGroup"><projects>j159</projects><value>그룹</value></data>
+<data name="optAdminLogging"><projects>j159</projects><value>로그</value></data>
+<data name="optAdminNetworkAddresses"><projects>j159</projects><value>IP 구성</value></data>
+<data name="optAdminEthernetIPv4"><projects>j159</projects><value>이더넷 IPv4</value></data>
+<data name="optAdminEthernetIPv6"><projects>j159</projects><value>이더넷 IPv6</value></data>
+<data name="optAdminNetworkServers"><projects>j159</projects><value>서버</value></data>
+<data name="optAdminNetworkVLAN"><projects>j159</projects><value>VLAN</value></data>
+<data name="optAdminAutoProv"><projects>j159</projects><value>자동 프로비저닝...</value></data>
+<data name="optAdminNetwork8021Q"><projects>j159</projects><value></value></data>
+<data name="optAdminPhoneReport"><projects>j159</projects><value>전화기 보고</value></data>
+<data name="optAdminSSHFingerprint"><projects>j159</projects><value>SSH 지문</value></data>
+<data name="optAdminView"><projects>j159</projects><value>보기</value></data>
+<data name="optAdminInterfaces"><projects>j159</projects><value>네트워크 인터페이스</value></data>
+<data name="optAdminWiFiIPv4"><projects>j159</projects><value>Wi-Fi IPv4</value></data>
+<data name="optAdminSIP"><projects>j159</projects><value></value></data>
+<data name="optAdminCCMS"><projects>j159</projects><value></value></data>
+<data name="optAdminSIPGlbl"><projects>j159</projects><value>SIP 전역 설정</value></data>
+<data name="optAdminSIPProxy"><projects>j159</projects><value>SIP 프록시 목록</value></data>
+<data name="optAdminDebug"><projects>j159</projects><value>디버그</value></data>
+<data name="optAdminResetValues"><projects>j159</projects><value>기본값으로 재설정</value></data>
+<data name="optAdminRestart"><projects>j159</projects><value>전화기 재시작</value></data>
+<data name="optAdminLogout"><projects>j159</projects><value>로그아웃</value></data>
+<data name="optAdminBluetoothDevices"><projects>j159</projects><value></value></data>
+<data name="optAdminWebServer"><projects>j159</projects><value>웹 서버</value></data>
+<data name="optAdminWebResetPasswd"><projects>j159</projects><value>웹 암호 재설정</value></data>
+<data name="LBL_ID"><projects>j159</projects><value></value></data>
+<data name="AS_PRIORITY"><projects>j159</projects><value>우선 순위</value></data>
+<data name="AS_IMMEDIATE"><projects>j159</projects><value>즉시</value></data>
+<data name="AS_ICOM"><projects>j159</projects><value></value></data>
+<data name="AS_FLASH"><projects>j159</projects><value>긴급</value></data>
+<data name="AS_FLASHOVERRIDE"><projects>j159</projects><value>가장 긴급</value></data>
+<data name="AS_ROUTINE"><projects>j159</projects><value>일반</value></data>
+<data name="AS_ADMIN"><projects>j159</projects><value>관리</value></data>
+<data name="MSG_FIPSRESTART"><projects>j159</projects><value>FIPS 모드 변경됨. 재시작을 눌러 전화기 다시 시작</value></data>
+<data name="MSG_PHONERESTART"><projects>j159</projects><value>네트워크를 변경하면 전화기가 재시작됩니다.</value></data>
+<data name="LBL_MBPS"><projects>j159</projects><value>Mbps</value></data>
+<data name="LBL_PLEASEWAIT"><projects>j159</projects><value>기다려주십시오</value></data>
+<data name="AS_CLEAR_SSH_LOCKOUT"><projects>j159</projects><value>SSH 잠금 해제</value></data>
+<data name="MSG_SSH_LOCKOUT_CLEAR"><projects>j159</projects><value>SSH 잠금 해제됨</value></data>
+<data name="MSG_ACTIVATE_AUTO_CONFIG"><projects>j159</projects><value>지금 자동 프로비저닝을 활성화하시겠습니까?</value></data>
+<data name="MSG_STARTING_IN_N_S"><projects>j159</projects><value>%d초 후 자동 활성화</value></data>
+<data name="LBL_ACTIVATE"><projects>j159</projects><value>활성화</value></data>
+<data name="MSG_REACTIVATION_DES"><projects>j159</projects><value>자동 프로비저닝을 다시 활성화하시겠습니까?</value></data>
+<data name="LBL_YEAR"><projects>j159</projects><value></value></data>
+<data name="LBL_SHORT_DAY"><projects>j159</projects><value></value></data>
+<data name="AS_CONF_DOWNLOAD"><projects>j159</projects><value>구성 다운로드</value></data>
+</root>

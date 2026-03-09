@@ -1,0 +1,74 @@
+############################################################
+##                                                        ##
+## AVAYA 16XX IP TELEPHONE SOFTWARE UPGRADE CONFIGURATION ##
+##	                   SIP FIRMWARE 	          ##
+##                 *** Aug 09, 2010 ***                   ##
+##                                                        ##
+## This file upgrades the following telephones            ##
+## to the indicated releases:                             ##
+##    1603SW-I - SIP Release 1.01                         ##
+##    1608     - Not Supported                            ##
+##    1616     - Not Supported                            ##
+##                                                        ##
+############################################################
+##                                                        ##
+## BACKUP APPLICATION VERSION NUMBERS                     ##
+##    16xx - Release 1.2200                               ##
+##                                                        ##
+############################################################
+##                                                        ##
+## PHONE APPLICATION VERSION NUMBERS                      ##
+##    1603SW-I - SIP Release 1.01                         ##
+##    1608     - N/A                      	          ##
+##    1616     - N/A			                  ##
+##                                                        ##
+############################################################
+#
+#
+############################################################
+##            Check backup application version            ##           
+############################################################
+
+IF $MODEL4 SEQ 1603 goto BACKUPAPP1603
+IF $PHONECC SEQ 700415540 goto BACKUPAPP1603
+IF $PHONECC SEQ 700458508 goto BACKUPAPP1603
+IF $PHONECC SEQ 700458524 goto BACKUPAPP1603
+goto END
+
+# BACKUPAPP1603
+IF $BOOTNAME SEQ hb1603ua1_2200.bin goto PHONEAPP1603
+##SET APPNAME hb1603ua1_2200.bin
+SET APPNAME hb1603ua1_2200.bin
+
+IF $BOOTNAME SEQ ha1603ua1_3200.bin goto PHONEAPP1603
+SET SKIPFWDOWNGRADE 0
+SET APPNAME hb1603ua1_2200.bin
+IF $APPNAME SEQ ha1603ua1_3200.bin goto PHONEAPP1603
+SET APPNAME hb1603ua1_2200.bin
+
+
+SET CONFIG_SERVER_PATH http://10.2.248.2/
+SET APPNAME sa1603ua1_0100.bin
+SET BACKUP_APPNAME hb1603ua1_2200.bin
+
+
+goto GETSET
+
+
+############################################################
+##            Check phone application version             ##           
+############################################################
+
+# PHONEAPP1603
+
+SET APPNAME sa1603ua1_0100.bin
+goto GETSET
+
+############################################################
+##           Get additional configuration files           ##           
+############################################################
+
+# GETSET
+GET 16xxsettings.txt
+
+# END

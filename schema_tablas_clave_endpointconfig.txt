@@ -1,0 +1,66 @@
+*************************** 1. row ***************************
+       Table: endpoint
+Create Table: CREATE TABLE `endpoint` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_manufacturer` int(10) unsigned NOT NULL,
+  `id_model` int(10) unsigned DEFAULT NULL,
+  `mac_address` char(17) DEFAULT NULL,
+  `last_known_ipv4` varchar(15) DEFAULT NULL,
+  `last_scanned` datetime DEFAULT NULL,
+  `last_modified` datetime DEFAULT NULL,
+  `last_configured` datetime DEFAULT NULL,
+  `selected` int(1) unsigned NOT NULL DEFAULT 0,
+  `authtoken_sha1` char(40) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `mac_address` (`mac_address`),
+  KEY `id_manufacturer` (`id_manufacturer`),
+  KEY `id_model` (`id_model`),
+  CONSTRAINT `endpoint_ibfk_1` FOREIGN KEY (`id_manufacturer`) REFERENCES `manufacturer` (`id`),
+  CONSTRAINT `endpoint_ibfk_2` FOREIGN KEY (`id_model`) REFERENCES `model` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+*************************** 1. row ***************************
+       Table: endpoint_account
+Create Table: CREATE TABLE `endpoint_account` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_endpoint` int(10) unsigned NOT NULL,
+  `tech` varchar(10) NOT NULL,
+  `account` varchar(50) NOT NULL,
+  `priority` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_endpoint` (`id_endpoint`),
+  CONSTRAINT `endpoint_account_ibfk_1` FOREIGN KEY (`id_endpoint`) REFERENCES `endpoint` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+*************************** 1. row ***************************
+       Table: endpoint_account_properties
+Create Table: CREATE TABLE `endpoint_account_properties` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_endpoint_account` int(10) unsigned NOT NULL,
+  `property_key` varchar(128) NOT NULL,
+  `property_value` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_endpoint_account` (`id_endpoint_account`),
+  CONSTRAINT `endpoint_account_properties_ibfk_1` FOREIGN KEY (`id_endpoint_account`) REFERENCES `endpoint_account` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+*************************** 1. row ***************************
+       Table: model
+Create Table: CREATE TABLE `model` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_manufacturer` int(10) unsigned NOT NULL,
+  `name` varchar(128) NOT NULL,
+  `description` text NOT NULL DEFAULT '',
+  `max_accounts` int(10) unsigned NOT NULL DEFAULT 1,
+  `static_ip_supported` tinyint(1) NOT NULL DEFAULT 0,
+  `dynamic_ip_supported` tinyint(1) NOT NULL DEFAULT 1,
+  `static_prov_supported` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `id_manufacturer` (`id_manufacturer`),
+  CONSTRAINT `model_ibfk_1` FOREIGN KEY (`id_manufacturer`) REFERENCES `manufacturer` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=152 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+*************************** 1. row ***************************
+       Table: manufacturer
+Create Table: CREATE TABLE `manufacturer` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL,
+  `description` text NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci

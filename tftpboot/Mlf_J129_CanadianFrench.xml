@@ -1,0 +1,1098 @@
+<?xml version="1.0"?>
+<root><data name="languageName"><projects>j129</projects><value>Canadian French</value></data>
+
+
+<!--Labels for different Languages in the CURRENT language-->
+
+<data name="LBL_ENGLISH"><projects>j129</projects><value>Anglais</value></data>
+<data name="LBL_CANADIAN_FRENCH"><projects>j129</projects><value>Français canad.</value></data>
+<data name="LBL_PARISIAN_FRENCH"><projects>j129</projects><value>Français</value></data>
+<data name="LBL_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>Esp. lat.-amér.</value></data>
+<data name="LBL_CASTILIAN_SPANISH"><projects>j129</projects><value>Espagnol</value></data>
+<data name="LBL_GERMAN"><projects>j129</projects><value>Allemand</value></data>
+<data name="LBL_ITALIAN"><projects>j129</projects><value>Italien</value></data>
+<data name="LBL_DUTCH"><projects>j129</projects><value>Néerlandais</value></data>
+<data name="LBL_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>Portugais</value></data>
+<data name="LBL_JAPANESE"><projects>j129</projects><value>Japonais</value></data>
+<data name="LBL_CHINESE"><projects>j129</projects><value>Chinois</value></data>
+<data name="LBL_KOREAN"><projects>j129</projects><value>Coréen</value></data>
+<data name="LBL_RUSSIAN"><projects>j129</projects><value>Russe</value></data>
+<data name="LBL_HEBREW"><projects>j129</projects><value>Hébreu</value></data>
+<data name="LBL_POLISH"><projects>j129</projects><value>Polonais</value></data>
+<data name="LBL_TURKISH"><projects>j129</projects><value>Turque</value></data>
+
+
+<!--Labels for different Languages in the NATIVE language-->
+
+<data name="NATIVE_IN_ENGLISH"><projects>j129</projects><value>English</value></data>
+<data name="NATIVE_IN_CANADIAN_FRENCH"><projects>j129</projects><value>Français canad.</value></data>
+<data name="NATIVE_IN_PARISIAN_FRENCH"><projects>j129</projects><value>Français</value></data>
+<data name="NATIVE_IN_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>Español LA</value></data>
+<data name="NATIVE_IN_CASTILIAN_SPANISH"><projects>j129</projects><value>Español</value></data>
+<data name="NATIVE_IN_GERMAN"><projects>j129</projects><value>Deutsch</value></data>
+<data name="NATIVE_IN_ITALIAN"><projects>j129</projects><value>Italiano</value></data>
+<data name="NATIVE_IN_DUTCH"><projects>j129</projects><value>Nederlands</value></data>
+<data name="NATIVE_IN_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>Português (BR)</value></data>
+<data name="NATIVE_IN_JAPANESE"><projects>j129</projects><value>日本語</value></data>
+<data name="NATIVE_IN_CHINESE"><projects>j129</projects><value>中文</value></data>
+<data name="NATIVE_IN_KOREAN"><projects>j129</projects><value>한국어</value></data>
+<data name="NATIVE_IN_RUSSIAN"><projects>j129</projects><value>Русский</value></data>
+<data name="NATIVE_IN_HEBREW"><projects>j129</projects><value>עברית</value></data>
+<data name="NATIVE_IN_ARABIC"><projects>j129</projects><value>العربية</value></data>
+<data name="NATIVE_IN_ENGLARGE"><projects>j129</projects><value>Englarge</value></data>
+<data name="NATIVE_IN_POLISH"><projects>j129</projects><value>Polski</value></data>
+<data name="NATIVE_IN_TURKISH"><projects>j129</projects><value>Türkçe</value></data>
+
+
+<!--Character Input Method Type-->
+
+<data name="INPUTMETHOD"><projects>j129</projects><value>3</value></data>
+
+
+<!--FONT Type-->
+
+<data name="FONT"><projects>j129</projects><value>Default</value></data>
+
+
+<!--Keyboard Layout Type-->
+
+<data name="KEYBOARD_LAYOUT"><projects>j129</projects><value>0</value></data>
+
+
+<!--SOFTKEY Labels - MAX LENGTH 8 chars-->
+
+<data name="NAME_IN_OTHER"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ENGLISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_CANADIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_PARISIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_LATIN_AMERICAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_CASTILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_GERMAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ITALIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_DUTCH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_PORTUGUESE_BRAZILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_JAPANESE"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_CHINESE_SIMPLIFIED"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_KOREAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_RUSSIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_HEBREW"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ARABIC"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_TURKISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_THAI"><projects>j129</projects><value></value></data>
+<data name="SK_ADD2CTC"><projects>j129</projects><value>+Contact</value></data>
+<data name="SK_ADD"><projects>j129</projects><value>Ajouter</value></data>
+<data name="SK_ALPHALOW"><projects>j129</projects><value>abc</value></data>
+<data name="SK_ALPHAUP"><projects>j129</projects><value>ABC</value></data>
+<data name="SK_HEX"><projects>j129</projects><value></value></data>
+<data name="SK_ANSWER"><projects>j129</projects><value>Répondre</value></data>
+<data name="SK_BACK"><projects>j129</projects><value>Retour</value></data>
+<data name="SK_BKSP"><projects>j129</projects><value>Ret.arr.</value></data>
+<data name="SK_BRIDGE"><projects>j129</projects><value>Pont tél</value></data>
+<data name="SK_BROWSER"><projects>j129</projects><value>Navigat.</value></data>
+<data name="SK_CALL"><projects>j129</projects><value>Appeler</value></data>
+<data name="SK_CANCEL"><projects>j129</projects><value>Annuler</value></data>
+<data name="SK_CHANGE"><projects>j129</projects><value>Commuter</value></data>
+<data name="SK_CLEAR"><projects>j129</projects><value>Effacer</value></data>
+<data name="SK_CLRALL"><projects>j129</projects><value>Ef. tout</value></data>
+<data name="SK_COMPL"><projects>j129</projects><value>Terminer</value></data>
+<data name="SK_CONF"><projects>j129</projects><value>Confér.</value></data>
+<data name="SK_CONTIN"><projects>j129</projects><value>Contin.</value></data>
+<data name="SK_DELETE"><projects>j129</projects><value>Suppr.</value></data>
+<data name="SK_DETAILS"><projects>j129</projects><value>Détails</value></data>
+<data name="SK_EDIT"><projects>j129</projects><value>Modif.</value></data>
+<data name="SK_EMERGNUM"><projects>j129</projects><value>Urgence</value></data>
+<data name="SK_ENTER"><projects>j129</projects><value>Entrée</value></data>
+<data name="SK_ENDCALL"><projects>j129</projects><value>Terminer</value></data>
+<data name="SK_EXIT"><projects>j129</projects><value>Quitter</value></data>
+<data name="SK_EXTEND"><projects>j129</projects><value>Étendre</value></data>
+<data name="SK_IGNORE"><projects>j129</projects><value>Ignorer</value></data>
+<data name="SK_INSERT"><projects>j129</projects><value>Insérer</value></data>
+<data name="SK_JOIN"><projects>j129</projects><value>Joindre</value></data>
+<data name="SK_LOGIN"><projects>j129</projects><value>Entrée</value></data>
+<data name="SK_LOGOUT"><projects>j129</projects><value>Sortie</value></data>
+<data name="SK_MORE"><projects>j129</projects><value>Plus</value></data>
+<data name="SK_NEW"><projects>j129</projects><value>Nouveau</value></data>
+<data name="SK_NEXT"><projects>j129</projects><value>Suivant</value></data>
+<data name="SK_NUM"><projects>j129</projects><value>123</value></data>
+<data name="SK_OK"><projects>j129</projects><value>OK</value></data>
+<data name="SK_PING"><projects>j129</projects><value>Ping</value></data>
+<data name="SK_PLAY"><projects>j129</projects><value>Lecture</value></data>
+<data name="SK_PREVI"><projects>j129</projects><value>Préc.</value></data>
+<data name="SK_REDIAL"><projects>j129</projects><value>Recomp.</value></data>
+<data name="SK_RESET"><projects>j129</projects><value>Réinit.</value></data>
+<data name="SK_RESTART"><projects>j129</projects><value>Redémar.</value></data>
+<data name="SK_RESUME"><projects>j129</projects><value>Reprendr</value></data>
+<data name="SK_RETRY"><projects>j129</projects><value>Réessay.</value></data>
+<data name="SK_SAVE"><projects>j129</projects><value>Enreg.</value></data>
+<data name="SK_SEARCH"><projects>j129</projects><value>Recherch</value></data>
+<data name="SK_SELECT"><projects>j129</projects><value>Sélect.</value></data>
+<data name="SK_NETWORKS"><projects>j129</projects><value>Réseaux</value></data>
+<data name="SK_SYMBOL"><projects>j129</projects><value>Symbole</value></data>
+<data name="SK_TEST"><projects>j129</projects><value>Test</value></data>
+<data name="SK_TTLCASE"><projects>j129</projects><value>Abc</value></data>
+<data name="SK_XFER"><projects>j129</projects><value>Transf.</value></data>
+<data name="SK_UNLOCK"><projects>j129</projects><value>Déverr.</value></data>
+<data name="SK_DISMISS"><projects>j129</projects><value>Arrêter</value></data>
+<data name="SK_RETURN"><projects>j129</projects><value>Retour</value></data>
+<data name="SK_SCLRALL"><projects>j129</projects><value>Ef. tout</value></data>
+<data name="SK_START"><projects>j129</projects><value>Démarrer</value></data>
+<data name="SK_CONNECT"><projects>j129</projects><value>Conn.</value></data>
+<data name="SK_DISCONNECT"><projects>j129</projects><value>Déconn.</value></data>
+<data name="SK_TOVMAIL"><projects>j129</projects><value>Mess. voc.</value></data>
+<data name="SK_FORGET"><projects>j129</projects><value>Oublier</value></data>
+<data name="SK_INFO"><projects>j129</projects><value>Info</value></data>
+<data name="SK_ADMIN"><projects>j129</projects><value>Admin</value></data>
+<data name="SK_RECENTS"><projects>j129</projects><value>Récents</value></data>
+<data name="SK_MERGECALLS"><projects>j129</projects><value>Fusion</value></data>
+<data name="SK_SWAP"><projects>j129</projects><value>Échange</value></data>
+<data name="SK_NEWCALL"><projects>j129</projects><value>NvAppel</value></data>
+<data name="SK_REPLACE"><projects>j129</projects><value>Remplace</value></data>
+<data name="SK_CONFIG"><projects>j129</projects><value>Config.</value></data>
+<data name="SK_NEVER"><projects>j129</projects><value>Jamais</value></data>
+<data name="SK_CONFIRM"><projects>j129</projects><value>Confirmer</value></data>
+<data name="SK_PAIR"><projects>j129</projects><value>Pairer</value></data>
+<data name="SK_HELP"><projects>j129</projects><value>Aide</value></data>
+<data name="SK_NO"><projects>j129</projects><value>Non</value></data>
+<data name="SK_DISABLE"><projects>j129</projects><value>Désact.</value></data>
+<data name="SK_ENABLE"><projects>j129</projects><value>Activer</value></data>
+<data name="SK_ACCEPT"><projects>j129</projects><value>Accepter</value></data>
+<data name="SK_UPDATE"><projects>j129</projects><value>M. à jour</value></data>
+<data name="SK_LINK"><projects>j129</projects><value>Lien</value></data>
+<data name="SK_CODE"><projects>j129</projects><value>Code</value></data>
+<data name="SK_QR_CODE"><projects>j129</projects><value>Code QR</value></data>
+
+
+<!--MIRCHI - LABELS - MAX LENGTH variable chars-->
+
+<data name="LBL_PASSWD"><projects>j129</projects><value>Mot de passe:</value></data>
+<data name="PS_XFERFAILED"><projects>j129</projects><value>Échec du transfert</value></data>
+<data name="PS_CONFFAILED"><projects>j129</projects><value>Échec de la conférence</value></data>
+<data name="AS_OPTSET"><projects>j129</projects><value>Options et réglages</value></data>
+<data name="LBL_USEDHCP"><projects>j129</projects><value>Utiliser DHCP:</value></data>
+<data name="LBL_USEDHCPV6"><projects>j129</projects><value>Util. DHCP(V6) :</value></data>
+<data name="LBL_USESLAAC"><projects>j129</projects><value>Utiliser SLAAC :</value></data>
+<data name="LBL_PHONE"><projects>j129</projects><value>Téléphone:</value></data>
+<data name="LBL_PHONEV4"><projects>j129</projects><value>Tél. (V4):</value></data>
+<data name="LBL_PHONEV6"><projects>j129</projects><value>Tél. (V6):</value></data>
+<data name="LBL_PHONEV6LL"><projects>j129</projects><value>Tél. (V6LL):</value></data>
+<data name="LBL_WEBSERVER"><projects>j129</projects><value>Serveur web...:</value></data>
+<data name="LBL_WEB_ON_HTTP"><projects>j129</projects><value>Web sur HTTP:</value></data>
+<data name="AS_AUTOGCWC"><projects>j129</projects><value>Contrôle Auto Gain</value></data>
+<data name="AS_NETWORK_INTERFACES"><projects>j129</projects><value>Interfaces réseau...</value></data>
+<data name="AS_INTERFC"><projects>j129</projects><value>Interfaces...</value></data>
+<data name="LBL_ERRLOG"><projects>j129</projects><value>Niv. journ.</value></data>
+<data name="LBL_RLOGENB"><projects>j129</projects><value>Syslog activé</value></data>
+<data name="LBL_RLOGSRVR"><projects>j129</projects><value>Serveur Syslog</value></data>
+<data name="LBL_AVENV"><projects>j129</projects><value>Environ. Avaya:</value></data>
+<data name="LBL_TPORTPORT"><projects>j129</projects><value>Port SIP:</value></data>
+<data name="LBL_UIDFIELD"><projects>j129</projects><value>Champ ID util.</value></data>
+<data name="LBL_LGCLS"><projects>j129</projects><value>Jrnl app récents</value></data>
+<data name="LBL_TMFMT"><projects>j129</projects><value>Format heure</value></data>
+<data name="AS_DOT1XP"><projects>j129</projects><value>Paramètres 802.1x...</value></data>
+<data name="SK_DEFAULT"><projects>j129</projects><value>Défaut</value></data>
+<data name="PS_VOLUMEWARNG"><projects>j129</projects><value>Augmenter le volume peut abîmer votre ouïe.</value></data>
+<data name="PS_CONF"><projects>j129</projects><value>Conférence</value></data>
+<data name="LBL_WORK"><projects>j129</projects><value>Bureau</value></data>
+<data name="LBL_WORK2"><projects>j129</projects><value>Travail2</value></data>
+<data name="LBL_MOBILE"><projects>j129</projects><value>Cellulaire</value></data>
+<data name="LBL_HOME"><projects>j129</projects><value>Domicile</value></data>
+<data name="LBL_HOME2"><projects>j129</projects><value>Domicile2</value></data>
+<data name="LBL_OTHER"><projects>j129</projects><value>Autre</value></data>
+<data name="LBL_ASSISTANT"><projects>j129</projects><value>Assistant</value></data>
+<data name="LBL_COMPANY"><projects>j129</projects><value>Entreprise</value></data>
+<data name="LBL_CAR"><projects>j129</projects><value>Voiture</value></data>
+<data name="LBL_12HOUR"><projects>j129</projects><value>12 h</value></data>
+<data name="LBL_24HOUR"><projects>j129</projects><value>24 h</value></data>
+<data name="LBL_SETTINGS"><projects>j129</projects><value>Paramètres</value></data>
+<data name="LBL_WEBHELP"><projects>j129</projects><value>Apps Web</value></data>
+<data name="LBL_DURATION"><projects>j129</projects><value>Durée</value></data>
+<data name="LBL_DETAILS"><projects>j129</projects><value>Détails</value></data>
+<data name="PT_CONFNUM"><projects>j129</projects><value>Conférence %d</value></data>
+<data name="LBL_WIFI_DEBUG"><projects>j129</projects><value>Débog. Wi-Fi:</value></data>
+<data name="LBL_NEW_CALL"><projects>j129</projects><value>Nouvel appel</value></data>
+<data name="LBL_AM"><projects>j129</projects><value>am</value></data>
+<data name="LBL_PM"><projects>j129</projects><value>pm</value></data>
+
+
+<!--TITLE LINE Strings-->
+
+<data name="PS_FEAT"><projects>j129</projects><value>Fonctions</value></data>
+<data name="LBL_WIFI_SSID"><projects>j129</projects><value>SSID:</value></data>
+<data name="LBL_WIFI_NETWORK_LIST"><projects>j129</projects><value>Rés. Wi-Fi</value></data>
+<data name="LBL_SCANNING"><projects>j129</projects><value>Détection...</value></data>
+<data name="LBL_NOWIFI"><projects>j129</projects><value>Aucun Wi-Fi détecté</value></data>
+<data name="LBL_SWITCH_WIFI"><projects>j129</projects><value>Appuyez sur Réseaux pour basculer vers le Wi-Fi.</value></data>
+<data name="LBL_ETHLINK_UP"><projects>j129</projects><value>Lien Ethernet établi</value></data>
+<data name="LBL_SWITCH_ETH"><projects>j129</projects><value>Appuyez sur Redémarrer pour basculer vers Ethernet.</value></data>
+<data name="LBL_PRESS_CANCEL_REMAIN_WIFI"><projects>j129</projects><value>App. sur Annuler pour rester sur Wi-Fi.</value></data>
+<data name="LBL_SWITCH_NET"><projects>j129</projects><value>Appuyez sur Réseaux pour choisir un autre réseau.</value></data>
+<data name="LBL_JANUARY"><projects>j129</projects><value>Janvier</value></data>
+<data name="LBL_FEBRUARY"><projects>j129</projects><value>Février</value></data>
+<data name="LBL_MARCH"><projects>j129</projects><value>Mars</value></data>
+<data name="LBL_APRIL"><projects>j129</projects><value>Avril</value></data>
+<data name="LBL_MAY"><projects>j129</projects><value>Mai</value></data>
+<data name="LBL_JUNE"><projects>j129</projects><value>Juin</value></data>
+<data name="LBL_JULY"><projects>j129</projects><value>Juillet</value></data>
+<data name="LBL_AUGUST"><projects>j129</projects><value>Août</value></data>
+<data name="LBL_SEPTEMBER"><projects>j129</projects><value>Septembre</value></data>
+<data name="LBL_OCTOBER"><projects>j129</projects><value>Octobre</value></data>
+<data name="LBL_NOVEMBER"><projects>j129</projects><value>Novembre</value></data>
+<data name="LBL_DECEMBER"><projects>j129</projects><value>Décembre</value></data>
+<data name="SK_CTCTS"><projects>j129</projects><value>Contacts</value></data>
+<data name="TT_PHNLCKD"><projects>j129</projects><value>Téléphone verrouillé</value></data>
+
+
+<!--SUBTITLE Strings-->
+
+<data name="AS_CONTRST"><projects>j129</projects><value>Contraste...</value></data>
+<data name="AS_TIMEZONE"><projects>j129</projects><value>Fuseau horaire...</value></data>
+<data name="AS_AGCSET"><projects>j129</projects><value>CAG...</value></data>
+<data name="AS_AUDIOP"><projects>j129</projects><value>Paramètres audio...</value></data>
+<data name="AS_IPADDRP"><projects>j129</projects><value>Paramètres IP...</value></data>
+<data name="AS_AUDIOSET"><projects>j129</projects><value>Paramètres audio...</value></data>
+<data name="AS_PHONESET"><projects>j129</projects><value>Paramètres téléphone...</value></data>
+<data name="AS_SYSTEM"><projects>j129</projects><value>Système...</value></data>
+<data name="AS_QOS"><projects>j129</projects><value>Qualité du service...</value></data>
+<data name="AS_RINGTYPE"><projects>j129</projects><value>Type de sonnerie...</value></data>
+<data name="AS_CALLPARK_RINGTYPE"><projects>j129</projects><value>Type sonn. parc. app.</value></data>
+<data name="AS_DISPLAYSET"><projects>j129</projects><value>Paramètres d'affichage...</value></data>
+<data name="AS_SERVICE"><projects>j129</projects><value>Service</value></data>
+<data name="AS_SPDDIAL"><projects>j129</projects><value>Composition abrégée...</value></data>
+<data name="AS_DIALOPT"><projects>j129</projects><value>Mode compos.</value></data>
+<data name="AS_PING"><projects>j129</projects><value>Ping...</value></data>
+<data name="LBL_MY_PRESENCE"><projects>j129</projects><value>Ma présence</value></data>
+<data name="LBL_AVAILABLE"><projects>j129</projects><value>Disponible</value></data>
+<data name="LBL_OFFLINE"><projects>j129</projects><value>Hors ligne</value></data>
+<data name="LBL_AWAY_TIMER"><projects>j129</projects><value>Minut. absence</value></data>
+<data name="LBL_MANUAL"><projects>j129</projects><value>Manuel</value></data>
+<data name="AS_PRIORITY_RINGTYPE"><projects>j129</projects><value>Alerte priorité</value></data>
+<data name="AS_ALT_NUM1_RINGTYPE"><projects>j129</projects><value>Autre numéro 1</value></data>
+<data name="AS_ALT_NUM2_RINGTYPE"><projects>j129</projects><value>Autre numéro 2</value></data>
+<data name="AS_REMINDER_RINGTYPE"><projects>j129</projects><value>Rappel de sonnerie</value></data>
+<data name="AS_PERSONALIZE_RINGING"><projects>j129</projects><value>Sonnerie personnalisée</value></data>
+
+
+<!--PROMPTLINE Strings-->
+
+<data name="PL_DWNLDCONFIG"><projects>j129</projects><value>Téléchargement configuration...</value></data>
+<data name="PL_LOGGINGIN"><projects>j129</projects><value>Ouverture session...</value></data>
+<data name="PL_REGISTERING"><projects>j129</projects><value>Inscription sur le serveur...</value></data>
+<data name="PL_SEARCHING"><projects>j129</projects><value>Recherche en cours...</value></data>
+<data name="PL_FEATUNAV"><projects>j129</projects><value>Fonction non disponible</value></data>
+<data name="PL_ACQUIRINGSERVICE"><projects>j129</projects><value>Obtention du service...</value></data>
+<data name="PL_LIMITED"><projects>j129</projects><value>Service téléphone limité</value></data>
+<data name="PL_SPRESSDIAL"><projects>j129</projects><value>Rechercher avec clavier</value></data>
+<data name="PL_CONF_SETUP_PROMPT"><projects>j129</projects><value>Comp/sélect contact</value></data>
+
+
+<!--LABEL Strings-->
+
+<data name="LBL_YES"><projects>j129</projects><value>Oui</value></data>
+<data name="LBL_NO"><projects>j129</projects><value>Non</value></data>
+<data name="LBL_ON"><projects>j129</projects><value>Actif</value></data>
+<data name="LBL_OFF"><projects>j129</projects><value>Inactif</value></data>
+<data name="LBL_DSABLD"><projects>j129</projects><value>Désact.</value></data>
+<data name="LBL_ENABLD"><projects>j129</projects><value>Activé</value></data>
+<data name="LBL_ACTIV"><projects>j129</projects><value>Actif</value></data>
+<data name="LBL_USERNAME"><projects>j129</projects><value>Nom d'utilisateur:</value></data>
+<data name="LBL_USERID"><projects>j129</projects><value>ID util.:</value></data>
+<data name="LBL_FIRSTNAME"><projects>j129</projects><value>Prénom:</value></data>
+<data name="LBL_LASTNAME"><projects>j129</projects><value>Nom:</value></data>
+<data name="LBL_NUMBER"><projects>j129</projects><value>Numéro %d:</value></data>
+<data name="LBL_COMPLIANT"><projects>j129</projects><value>Conforme</value></data>
+<data name="LBL_NOTCOMPLIANT"><projects>j129</projects><value>Non conforme</value></data>
+<data name="MSG_UNAV"><projects>j129</projects><value>Non disponible</value></data>
+<data name="MSG_ABOUTAV"><projects>j129</projects><value>À propos d'Avaya</value></data>
+<data name="MSG_NTWKIN"><projects>j129</projects><value>Informations réseau</value></data>
+<data name="AT_NTWKINF"><projects>j129</projects><value>Informations réseau</value></data>
+<data name="MSG_NETWORK_INTERFACES"><projects>j129</projects><value>Interfaces réseau...</value></data>
+<data name="LBL_DSPTIM"><projects>j129</projects><value>Minuteur d'app</value></data>
+<data name="LBL_VISUAL"><projects>j129</projects><value>Alerte visuelle</value></data>
+<data name="LBL_SPEAKR"><projects>j129</projects><value>Haut-parleur</value></data>
+<data name="LBL_HNDSET"><projects>j129</projects><value>Combiné</value></data>
+<data name="LBL_NONE"><projects>j129</projects><value>Aucun(e)</value></data>
+<data name="LBL_BTNCLK"><projects>j129</projects><value>Son touches</value></data>
+<data name="LBL_ERRORT"><projects>j129</projects><value>Tonalit. erreur</value></data>
+<data name="LBL_SIPDMN"><projects>j129</projects><value>Domaine:</value></data>
+<data name="LBL_PRESENCESRVR"><projects>j129</projects><value>Serveur présence:</value></data>
+<data name="LBL_SIPPRXYSRVR"><projects>j129</projects><value>Serveur proxy SIP:</value></data>
+<data name="LBL_SNTPSRVR"><projects>j129</projects><value>Serveur SNTP:</value></data>
+<data name="LBL_STUNSRVR"><projects>j129</projects><value>Serveur STUN :</value></data>
+<data name="LBL_AUTO"><projects>j129</projects><value>Auto</value></data>
+<data name="LBL_AUTO_2"><projects>j129</projects><value>Auto:</value></data>
+<data name="LBL_HTTPSRVR"><projects>j129</projects><value>Serveur HTTP:</value></data>
+<data name="LBL_HTTPSSRVR"><projects>j129</projects><value>Serveur HTTPS:</value></data>
+<data name="LBL_DNSSRVR"><projects>j129</projects><value>Serveur DNS:</value></data>
+<data name="LBL_EMERGS"><projects>j129</projects><value>Urgences</value></data>
+<data name="LBL_ALERTS"><projects>j129</projects><value>Alertes</value></data>
+<data name="LBL_CRITICL"><projects>j129</projects><value>Critique</value></data>
+<data name="LBL_ERRORS"><projects>j129</projects><value>Erreurs</value></data>
+<data name="LBL_WARNS"><projects>j129</projects><value>Avertissements</value></data>
+<data name="LBL_NOTES"><projects>j129</projects><value>Avis</value></data>
+<data name="LBL_INFO"><projects>j129</projects><value>Informations</value></data>
+<data name="LBL_DEBUG"><projects>j129</projects><value>Débogage</value></data>
+<data name="LBL_MASK"><projects>j129</projects><value>Masque:</value></data>
+<data name="LBL_VLANID"><projects>j129</projects><value>ID LAN virtuel:</value></data>
+<data name="LBL_ETHERN"><projects>j129</projects><value>Ethernet:</value></data>
+<data name="LBL_PCENET"><projects>j129</projects><value>Ethernet PC:</value></data>
+<data name="LBL_NETWORK_MODE"><projects>j129</projects><value>Mode réseau:</value></data>
+<data name="LBL_NETWORK_MODE_ETHERNET"><projects>j129</projects><value>Ethernet</value></data>
+<data name="LBL_NETWORK_MODE_WIFI"><projects>j129</projects><value>Wi-Fi</value></data>
+<data name="LBL_10HALF"><projects>j129</projects><value>Semi10Mb/s</value></data>
+<data name="LBL_10FULL"><projects>j129</projects><value>Int.10Mb/s</value></data>
+<data name="LBL_100HALF"><projects>j129</projects><value>Semi100Mb/s</value></data>
+<data name="LBL_100FULL"><projects>j129</projects><value>Int.100Mb/s</value></data>
+<data name="LBL_MSEC"><projects>j129</projects><value>ms</value></data>
+<data name="LBL_1000FLL"><projects>j129</projects><value>Intégr. 1000 Mbits/s</value></data>
+<data name="LBL_RCCODE"><projects>j129</projects><value>Codage reçu:</value></data>
+<data name="LBL_PKTLOS"><projects>j129</projects><value>Perte paquet:</value></data>
+<data name="LBL_PKTD"><projects>j129</projects><value>Délai assemblage paquets:</value></data>
+<data name="LBL_1WAYD"><projects>j129</projects><value>Délai réseau unidirect.:</value></data>
+<data name="LBL_NTWKJD"><projects>j129</projects><value>Délai gigue réseau:</value></data>
+<data name="LBL_MOSCQ"><projects>j129</projects><value>MOS-CQ</value></data>
+<data name="LBL_MOSLQ"><projects>j129</projects><value>MOS-LQ</value></data>
+<data name="LBL_RFACTOR"><projects>j129</projects><value>Facteur R</value></data>
+<data name="LBL_SIGNALLEVEL"><projects>j129</projects><value>Intensité du signal:</value></data>
+<data name="LBL_SIGNAL_STRENGTH"><projects>j129</projects><value>Force du signal:</value></data>
+<data name="LBL_SIGNAL_STRENGTH_WEAK"><projects>j129</projects><value>Faible</value></data>
+<data name="LBL_SIGNAL_STRENGTH_FAIR"><projects>j129</projects><value>Bon</value></data>
+<data name="LBL_SIGNAL_STRENGTH_STRONG"><projects>j129</projects><value>Fort</value></data>
+<data name="LBL_SIGNAL_STRENGTH_VERYSTRONG"><projects>j129</projects><value>Très fort</value></data>
+<data name="LBL_RNDTRIPDELAY"><projects>j129</projects><value>Retard de boucle</value></data>
+<data name="LBL_LOSSRATE"><projects>j129</projects><value>Taux de perte</value></data>
+<data name="LBL_802D1Q"><projects>j129</projects><value>802.1Q:</value></data>
+<data name="LBL_VLANT"><projects>j129</projects><value>Test LAN virtuel:</value></data>
+<data name="LBL_L2AUD"><projects>j129</projects><value>Audio L2:</value></data>
+<data name="LBL_L2SIG"><projects>j129</projects><value>Signalisation L2:</value></data>
+<data name="LBL_L3AUD"><projects>j129</projects><value>Audio L3:</value></data>
+<data name="LBL_L3SIG"><projects>j129</projects><value>Signalisation L3:</value></data>
+<data name="LBL_ETH_L2AUD"><projects>j129</projects><value>Audio L2 Ethernet</value></data>
+<data name="LBL_ETH_L2SIG"><projects>j129</projects><value>Signal. L2 Ethernet</value></data>
+<data name="LBL_ETH_L3AUD"><projects>j129</projects><value>Audio L3 Ethernet</value></data>
+<data name="LBL_ETH_L3SIG"><projects>j129</projects><value>Signal. L3 Ethernet</value></data>
+<data name="LBL_WIFI_L2AUD"><projects>j129</projects><value>Audio L2 Wi-Fi</value></data>
+<data name="LBL_WIFI_L2SIG"><projects>j129</projects><value>Signalisation L2 Wi-Fi</value></data>
+<data name="LBL_WIFI_L3AUD"><projects>j129</projects><value>Audio L3 Wi-Fi</value></data>
+<data name="LBL_WIFI_L3SIG"><projects>j129</projects><value>Signalisation L3 Wi-Fi</value></data>
+<data name="LBL_MODEL"><projects>j129</projects><value>Modèle:</value></data>
+<data name="LBL_PHNSN"><projects>j129</projects><value>Numéro de série:</value></data>
+<data name="LBL_MACADD"><projects>j129</projects><value>MAC:</value></data>
+<data name="LBL_FIPS_ENABLED"><projects>j129</projects><value>FIPS:</value></data>
+<data name="LBL_FIPS_OP_MODE"><projects>j129</projects><value>Mode FIPS OP:</value></data>
+<data name="LBL_FIPS_EXCEPTIONS"><projects>j129</projects><value>Exceptions FIPS:</value></data>
+<data name="LBL_GROUP"><projects>j129</projects><value>Groupe:</value></data>
+<data name="LBL_PROTOC"><projects>j129</projects><value>Protocole:</value></data>
+<data name="LBL_SOFTWAREVERSION"><projects>j129</projects><value>Version logiciel:</value></data>
+<data name="LBL_BACKUPSWVERSION"><projects>j129</projects><value>Vers. sauv. logic.:</value></data>
+<data name="LBL_PASSTH"><projects>j129</projects><value>Relais</value></data>
+<data name="LBL_SUPPLC"><projects>j129</projects><value>Demandeur</value></data>
+<data name="LBL_RESTRICTED"><projects>j129</projects><value>Restreint</value></data>
+<data name="LBL_LOGCAT"><projects>j129</projects><value>Catégories journal...</value></data>
+<data name="LBL_DEVID"><projects>j129</projects><value>ID appareil:</value></data>
+<data name="LBL_ONWTPXYLGOF"><projects>j129</projects><value>Déconnexion</value></data>
+<data name="LBL_SUPMULTIPROC"><projects>j129</projects><value>Multidiff</value></data>
+<data name="LBL_MULTIPT"><projects>j129</projects><value>Relais</value></data>
+<data name="LBL_PXYLGOF"><projects>j129</projects><value>Fin sess. proxy</value></data>
+<data name="LBL_UNASSGND"><projects>j129</projects><value>Non attribué</value></data>
+<data name="Call-Forward-Busy"><projects>j129</projects><value>Renvoi si occupé</value></data>
+<data name="Call-Forward-No-Answer"><projects>j129</projects><value>Renvoi si auc. rép.</value></data>
+<data name="LBL_REALM"><projects>j129</projects><value>Domaine:</value></data>
+<data name="LBL_NUMBERWC"><projects>j129</projects><value>Numéro:</value></data>
+<data name="LBL_NAMEWC"><projects>j129</projects><value>Nom:</value></data>
+<data name="LBL_REGPOLICY"><projects>j129</projects><value>Règl. enreg.</value></data>
+<data name="LBL_FAILBACKPOLICY"><projects>j129</projects><value>Règl. bascul.</value></data>
+<data name="LBL_PERSONALIZE_RINGING_CALL_PARK"><projects>j129</projects><value>Parc. d'appel</value></data>
+<data name="LBL_LIGHTOFF"><projects>j129</projects><value>Éteindre</value></data>
+<data name="LBL_CLASSICTONE"><projects>j129</projects><value>Sonnerie standard</value></data>
+<data name="LBL_CLNSCR"><projects>j129</projects><value>Nettoyage d'écran tactile</value></data>
+<data name="LBL_ADBLE"><projects>j129</projects><value>Sonore</value></data>
+<data name="LBL_VSUL"><projects>j129</projects><value>Visuel</value></data>
+<data name="LBL_BOTH"><projects>j129</projects><value>Les deux</value></data>
+<data name="LBL_PROCESSING"><projects>j129</projects><value>Traitement en cours</value></data>
+<data name="LBL_SHORT"><projects>j129</projects><value>Bref</value></data>
+<data name="LBL_MUTEALERT"><projects>j129</projects><value>Al. sourdine</value></data>
+<data name="LBL_DEFAULT"><projects>j129</projects><value>Défaut</value></data>
+<data name="LBL_SNOCALL"><projects>j129</projects><value>0 appel</value></data>
+<data name="LBL_RICHTONE_CHEERFUL"><projects>j129</projects><value>Joyeux</value></data>
+<data name="LBL_RICHTONE_CHIMES"><projects>j129</projects><value>Carillon</value></data>
+<data name="LBL_RICHTONE_TELEPHONE_BELL"><projects>j129</projects><value>Vieux téléphone</value></data>
+<data name="LBL_RICHTONE_XYLOPHONE"><projects>j129</projects><value>Xylophone</value></data>
+<data name="LBL_RICHTONE_DRUM_BEAT"><projects>j129</projects><value>Percussions</value></data>
+<data name="LBL_RICHTONE_SHIMMER"><projects>j129</projects><value>Céleste</value></data>
+<data name="LBL_SIP_PROXY_SERVER"><projects>j129</projects><value>Serv. mandataire SIP</value></data>
+<data name="LBL_REASON_CFI"><projects>j129</projects><value>RAI</value></data>
+<data name="LBL_REASON_CFB"><projects>j129</projects><value>RAO</value></data>
+<data name="LBL_REASON_CFNR"><projects>j129</projects><value>RASP</value></data>
+<data name="LBL_REASON_SAC"><projects>j129</projects><value>Envoyer tout</value></data>
+<data name="LBL_PROFILE"><projects>j129</projects><value>Profil %d</value></data>
+<data name="LBL_HNPROF"><projects>j129</projects><value>Profil du combiné</value></data>
+<data name="LBL_HNPROF_NORMAL"><projects>j129</projects><value>Normal</value></data>
+<data name="LBL_HNPROF_AMPLIFIED"><projects>j129</projects><value>Amplifié</value></data>
+<data name="LBL_HNPROF_HEARING_AID"><projects>j129</projects><value>Prothèse auditive</value></data>
+<data name="OPT_REGPOLICY_ALTERNATE"><projects>j129</projects><value>Alterné</value></data>
+<data name="OPT_REGPOLICY_SIMULTANEOUS"><projects>j129</projects><value>Simul.</value></data>
+<data name="OPT_FAILBACKPOLICY_ADMIN"><projects>j129</projects><value>Admin</value></data>
+<data name="OPT_FAILBACKPOLICY_AUTO"><projects>j129</projects><value>Auto</value></data>
+<data name="LBL_CURRENT_LANG"><projects>j129</projects><value>Langue...</value></data>
+<data name="LBL_CONTACTS"><projects>j129</projects><value>Contacts</value></data>
+<data name="LBL_DESTINATION"><projects>j129</projects><value>Destination:</value></data>
+<data name="LBL_EXTENSION"><projects>j129</projects><value>Poste:</value></data>
+<data name="LBL_LINKSPEED"><projects>j129</projects><value>Vit. de liaison:</value></data>
+<data name="LBL_IPADDRESS"><projects>j129</projects><value>Adresse IP:</value></data>
+<data name="LBL_SECURITY"><projects>j129</projects><value>Sécurité:</value></data>
+<data name="LBL_SECURITY_SHORTENED"><projects>j129</projects><value>Sécurité:</value></data>
+<data name="LBL_EAP_METHOD"><projects>j129</projects><value>EAP:</value></data>
+<data name="LBL_PHASE2AUTHENTICATION"><projects>j129</projects><value>Phase 2:</value></data>
+<data name="LBL_IDENTITY"><projects>j129</projects><value>Ident. :</value></data>
+<data name="LBL_ANONYMOUS_IDENTITY"><projects>j129</projects><value>Anon. :</value></data>
+<data name="LBL_UNKNOWN"><projects>j129</projects><value>Inconnu</value></data>
+<data name="LBL_PROXYSELECTIONPOLICY"><projects>j129</projects><value>Règles proxy</value></data>
+<data name="OPT_PROXYPOLICY_AUTO"><projects>j129</projects><value>Auto</value></data>
+<data name="OPT_PROXYPOLICY_MANUAL"><projects>j129</projects><value>Manuel</value></data>
+<data name="LBL_PRESENCE_SETTINGS"><projects>j129</projects><value>Paramètres Présence</value></data>
+<data name="LBL_NETWORK"><projects>j129</projects><value>Réseau</value></data>
+<data name="LBL_AWAY_TIMER_VALUE"><projects>j129</projects><value>Val. du minuteur</value></data>
+<data name="LBL_VOICEMAIL"><projects>j129</projects><value>Messagerie vocale</value></data>
+<data name="LBL_OPENSSL_VER"><projects>j129</projects><value>Vers. OpenSSL:</value></data>
+<data name="LBL_OPENSSH_VER"><projects>j129</projects><value>Vers. OpenSSH:</value></data>
+<data name="LBL_DATE_FORMAT"><projects>j129</projects><value>Format date</value></data>
+<data name="LBL_DATE_FMTOPT_DEFAULT"><projects>j129</projects><value>Défaut</value></data>
+<data name="LBL_DATE_FMTOPT_1"><projects>j129</projects><value>mm/jj</value></data>
+<data name="LBL_DATE_FMTOPT_2"><projects>j129</projects><value>jj/mm</value></data>
+<data name="LBL_DATE_FMTOPT_3"><projects>j129</projects><value>mm.jj</value></data>
+<data name="LBL_DATE_FMTOPT_4"><projects>j129</projects><value>jj.mm</value></data>
+<data name="LBL_DATE_FMTOPT_5"><projects>j129</projects><value>mm-jj</value></data>
+<data name="LBL_DATE_FMTOPT_6"><projects>j129</projects><value>jj-mm</value></data>
+<data name="LBL_DATE_FMTOPT_7"><projects>j129</projects><value>mmm jj</value></data>
+<data name="LBL_JAN_SHORT"><projects>j129</projects><value>janv.</value></data>
+<data name="LBL_FEB_SHORT"><projects>j129</projects><value>févr.</value></data>
+<data name="LBL_MAR_SHORT"><projects>j129</projects><value>mars</value></data>
+<data name="LBL_APR_SHORT"><projects>j129</projects><value>avr.</value></data>
+<data name="LBL_MAY_SHORT"><projects>j129</projects><value>mai</value></data>
+<data name="LBL_JUN_SHORT"><projects>j129</projects><value>juin</value></data>
+<data name="LBL_JUL_SHORT"><projects>j129</projects><value>juill.</value></data>
+<data name="LBL_AUG_SHORT"><projects>j129</projects><value>août</value></data>
+<data name="LBL_SEP_SHORT"><projects>j129</projects><value>sept.</value></data>
+<data name="LBL_OCT_SHORT"><projects>j129</projects><value>oct.</value></data>
+<data name="LBL_NOV_SHORT"><projects>j129</projects><value>nov.</value></data>
+<data name="LBL_DEC_SHORT"><projects>j129</projects><value>déc.</value></data>
+<data name="LBL_VERIFYING_CREDENTIALS"><projects>j129</projects><value>Vérif. Info. Identif</value></data>
+<data name="LBL_CERT_PWD"><projects>j129</projects><value>MP cert.:</value></data>
+<data name="LBL_PROXY"><projects>j129</projects><value>Proxy:</value></data>
+<data name="LBL_ADDRESS"><projects>j129</projects><value>Adr :</value></data>
+<data name="LBL_EMPTY_SIP_PROXY_LIST"><projects>j129</projects><value>Liste proxy SIP vide</value></data>
+<data name="LBL_INACTIVE"><projects>j129</projects><value>Inactif</value></data>
+<data name="LBL_ACCESS_CODE"><projects>j129</projects><value>Code accès:</value></data>
+<data name="LBL_CERTI"><projects>j129</projects><value>Certificat</value></data>
+<data name="LBL_CERTIEXPIRY"><projects>j129</projects><value>Expiration</value></data>
+<data name="LBL_MISSING"><projects>j129</projects><value>Manquant</value></data>
+<data name="LBL_EXPIRED"><projects>j129</projects><value>Expiré</value></data>
+<data name="LBL_SERIAL_PORT"><projects>j129</projects><value>Port série</value></data>
+<data name="LBL_PORT_MIRRORING"><projects>j129</projects><value>Réplic. de port</value></data>
+<data name="LBL_ADJUNCT"><projects>j129</projects><value>Ajouter</value></data>
+<data name="LBL_SENT_RECEIVED"><projects>j129</projects><value>Env: %d / Reçu: %d</value></data>
+<data name="LBL_WAIT_CONTACTING_HOST"><projects>j129</projects><value>Contact hôte en cours</value></data>
+<data name="LBL_UNABLE_TO_CONTACT_HOST"><projects>j129</projects><value>Contact hôte imposs.</value></data>
+<data name="LBL_SUCCESS_CONTACT_HOST"><projects>j129</projects><value>Ping réussi</value></data>
+<data name="LBL_NO_FINGERPRINT"><projects>j129</projects><value>Aucune empreinte</value></data>
+<data name="LBL_VERSION_NUMBER"><projects>j129</projects><value>Num. version:</value></data>
+<data name="LBL_UPGRADE_DATE"><projects>j129</projects><value>Date m à niv:</value></data>
+<data name="LBL_UPGRADE_STATUS"><projects>j129</projects><value>État m à niv:</value></data>
+<data name="LBL_REASON_CODE"><projects>j129</projects><value>Code de motif:</value></data>
+<data name="LBL_FILENAME"><projects>j129</projects><value>Nom fich.:</value></data>
+<data name="LBL_USER"><projects>j129</projects><value>Utilisat:</value></data>
+<data name="LBL_LOGIN"><projects>j129</projects><value>Entrée</value></data>
+<data name="LBL_LOGOUT"><projects>j129</projects><value>Déconnexion</value></data>
+<data name="LBL_LOCK"><projects>j129</projects><value>Verrouillage</value></data>
+<data name="LBL_ADMIN_SETTINGS"><projects>j129</projects><value>Administration</value></data>
+<data name="LBL_ABOUT_PHONE"><projects>j129</projects><value>À propos d'IP Deskphone</value></data>
+<data name="LBL_RESTORE"><projects>j129</projects><value>Restaurer</value></data>
+<data name="SK_RESTORE"><projects>j129</projects><value>Restaur</value></data>
+<data name="LBL_RECENTS"><projects>j129</projects><value>Récents</value></data>
+<data name="LBL_UPGRADE_INFO"><projects>j129</projects><value>Infos de mise à niveau...</value></data>
+<data name="LBL_SSH"><projects>j129</projects><value>SSH</value></data>
+<data name="LBL_CLI"><projects>j129</projects><value>CLI</value></data>
+<data name="LBL_SVC_CONTROL"><projects>j129</projects><value>Ctrl. svc</value></data>
+<data name="LBL_SVC_RECORD"><projects>j129</projects><value>Enreg. Svc</value></data>
+<data name="LBL_ROUTER"><projects>j129</projects><value>Passerelle:</value></data>
+<data name="LBL_ROUTERV4"><projects>j129</projects><value>Pass. (V4):</value></data>
+<data name="LBL_ROUTERV6"><projects>j129</projects><value>Pass. (V6):</value></data>
+<data name="LBL_ROUTERV6PREFIX"><projects>j129</projects><value>Préfixes...</value></data>
+<data name="LBL_MULTICAST"><projects>j129</projects><value>Multidiff</value></data>
+<data name="LBL_UNICAST"><projects>j129</projects><value>Monodiff</value></data>
+<data name="LBL_GENREPORT"><projects>j129</projects><value>Production du rapport...</value></data>
+<data name="LBL_COULD_NOT_CREATE_REPORT"><projects>j129</projects><value>Impossible de créer le rapport</value></data>
+<data name="LBL_REPORT_IS_SENT"><projects>j129</projects><value>Rapport envoyé</value></data>
+<data name="LBL_REPORT_IS_SAVED"><projects>j129</projects><value>Rapport enregistré sur le téléphone</value></data>
+<data name="OPT_AVENV_AUTO"><projects>j129</projects><value>Auto</value></data>
+<data name="OPT_AVENV_NO"><projects>j129</projects><value>Non</value></data>
+<data name="LBL_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>Aucune fonction config.</value></data>
+<data name="LBL_PHONEREPORT"><projects>j129</projects><value>Rapport téléphone</value></data>
+<data name="LBL_SUCCESSFUL"><projects>j129</projects><value>Réussie</value></data>
+<data name="LBL_FAILED"><projects>j129</projects><value>Échec</value></data>
+<data name="LBL_MY_TIME"><projects>j129</projects><value>Mon heure:</value></data>
+<data name="LBL_NO_CALLS_TO_DISPLAY"><projects>j129</projects><value>Aucun appel à afficher</value></data>
+<data name="LBL_HTTPPORT"><projects>j129</projects><value>Port HTTP :</value></data>
+<data name="LBL_HTTPDIR"><projects>j129</projects><value>Annuaire HTTP :</value></data>
+<data name="LBL_HTTPSPORT"><projects>j129</projects><value>Port HTTPS :</value></data>
+<data name="LBL_HTTPSDIR"><projects>j129</projects><value>Annuaire HTTPS :</value></data>
+<data name="LBL_KBPS"><projects>j129</projects><value>Kbit/s</value></data>
+<data name="LBL_DBM"><projects>j129</projects><value>dBm</value></data>
+<data name="LBL_AUTOANSWER"><projects>j129</projects><value>Réponse auto.</value></data>
+<data name="LBL_PHONE_TO_PC_PAIRING"><projects>j129</projects><value>Pairage Téléphone-à-PC</value></data>
+<data name="LBL_DEVICE_PAIRING"><projects>j129</projects><value>Pairage de l'appareil</value></data>
+<data name="LBL_PAIRING_STATUS"><projects>j129</projects><value>État du pairage :</value></data>
+<data name="LBL_PAIRING_IN_PROGRESS"><projects>j129</projects><value>Pairage en cours...</value></data>
+<data name="LBL_WAITING_FOR_CREDENTIALS"><projects>j129</projects><value>Att. info. identification...</value></data>
+<data name="LBL_BACKUP_RESTORE"><projects>j129</projects><value>Sauveg./restauration</value></data>
+<data name="LBL_MANUAL_RESTORE"><projects>j129</projects><value>Restauration manuelle</value></data>
+<data name="LBL_MANUAL_BACKUP"><projects>j129</projects><value>Sauvegarde manuelle</value></data>
+<data name="LBL_IP_ADDRESS_HINT"><projects>j129</projects><value>Adresse IP</value></data>
+<data name="LBL_NICKNAME"><projects>j129</projects><value>Surnom</value></data>
+<data name="LBL_ADD_NUMBER"><projects>j129</projects><value>Ajouter un numéro</value></data>
+<data name="LBL_DEFAULT_RINGTONE"><projects>j129</projects><value>Sonnerie par défaut</value></data>
+<data name="LBL_SYSTEM_RINGTONE"><projects>j129</projects><value>Système</value></data>
+<data name="LBL_ERROR"><projects>j129</projects><value>Erreur</value></data>
+<data name="LBL_NETWORK_CONFIG"><projects>j129</projects><value>Config. réseau :</value></data>
+<data name="LBL_ETHERNET_MAC"><projects>j129</projects><value>MAC Ethernet</value></data>
+<data name="LBL_WIFI_MAC"><projects>j129</projects><value>MAC Wi-Fi</value></data>
+<data name="LBL_ENTER_CODE"><projects>j129</projects><value>Entrer code</value></data>
+<data name="LBL_ENTER_ENROLLMENT_CODE"><projects>j129</projects><value>Ent. code inscrip</value></data>
+<data name="LBL_RING_REMINDER"><projects>j129</projects><value>Rappel sonnerie</value></data>
+<data name="LBL_CALL_FWD_ALWAYS"><projects>j129</projects><value>Renvoi appel</value></data>
+<data name="LBL_ANSWER"><projects>j129</projects><value>Répondre</value></data>
+<data name="LBL_CALL_PARK"><projects>j129</projects><value>Parcage appel</value></data>
+<data name="LBL_NO_CONFIGURABLE_FEATURES"><projects>j129</projects><value>Aucune fonction configurable</value></data>
+<data name="LBL_SETTINGS_NOT_ACCESSIBLE"><projects>j129</projects><value>Paramètres non accessibles</value></data>
+<data name="LBL_CALL_FWD_NO_ANSWER"><projects>j129</projects><value>Renvoi appel-AR</value></data>
+<data name="LBL_NUMBER_OF_RINGS"><projects>j129</projects><value>Nbr de sonneries</value></data>
+<data name="LBL_SIP_CONTROLLERS"><projects>j129</projects><value>Contrôleurs SIP</value></data>
+<data name="LBL_SIP_CONTROLLERS_2"><projects>j129</projects><value>Contrôleurs SIP...</value></data>
+<data name="LBL_SIP_CONTROLLER_DETAILS"><projects>j129</projects><value>Détails du contrôleur SIP</value></data>
+<data name="LBL_HOST_NAME"><projects>j129</projects><value>Nom d'hôte</value></data>
+<data name="LBL_PORT"><projects>j129</projects><value>Port</value></data>
+<data name="LBL_USER_DOMAIN"><projects>j129</projects><value>Dom utilisateur</value></data>
+<data name="LBL_STATUS"><projects>j129</projects><value>État</value></data>
+<data name="LBL_NOT_ACTIVE"><projects>j129</projects><value>Non actif</value></data>
+<data name="LBL_PRIORITY"><projects>j129</projects><value>Priorité</value></data>
+<data name="LBL_PRIMARY"><projects>j129</projects><value>Princip.</value></data>
+<data name="LBL_SECONDARY"><projects>j129</projects><value>Secondaire</value></data>
+<data name="LBL_EXPERIENCING_DELAYS"><projects>j129</projects><value>Retards constatés...</value></data>
+<data name="LBL_NOT_CONFIGURED"><projects>j129</projects><value>Non configuré</value></data>
+<data name="LBL_LINE"><projects>j129</projects><value>Ligne/port :</value></data>
+<data name="LBL_AUTHNAME"><projects>j129</projects><value>Nom authent. :</value></data>
+<data name="LBL_XSI_WEB_PASSWORD"><projects>j129</projects><value>MdP Web :</value></data>
+<data name="LBL_XSI_AUTH_METHOD"><projects>j129</projects><value>Méthode auth.</value></data>
+<data name="LBL_XSI_USER_ID"><projects>j129</projects><value>ID utilis. :</value></data>
+<data name="LBL_XSI_AUTHENTICATION"><projects>j129</projects><value>Connexion XSI</value></data>
+<data name="LBL_SIP_SERVER_DETAILS"><projects>j129</projects><value>Détails serveur SIP</value></data>
+<data name="LBL_SIP_SERVERS"><projects>j129</projects><value>Serveurs SIP</value></data>
+<data name="LBL_PROTOCOL"><projects>j129</projects><value>Protocole</value></data>
+<data name="LBL_LONG_LONG_DOUBLE"><projects>j129</projects><value>Long Long Double</value></data>
+<data name="LBL_SHORT_SHORT_LONG"><projects>j129</projects><value>Court Court Long</value></data>
+<data name="LBL_SHORT_LONG_SHORT"><projects>j129</projects><value>Court Long Court</value></data>
+<data name="LBL_AUDIO_BUTTON"><projects>j129</projects><value>Btn audio</value></data>
+<data name="LBL_SELECT_A_CALL_TO_PARK"><projects>j129</projects><value>Sélectionner appel à parquer</value></data>
+<data name="LBL_GROUP_ID"><projects>j129</projects><value>ID de groupe</value></data>
+<data name="LBL_DEPARTMENT"><projects>j129</projects><value>Service</value></data>
+<data name="LBL_EMAIL_ADDRESS"><projects>j129</projects><value>Adresse courriel</value></data>
+<data name="LBL_ZIP_CODE"><projects>j129</projects><value>Code postal</value></data>
+<data name="LBL_COUNTRY"><projects>j129</projects><value>Pays</value></data>
+<data name="LBL_ALERTING_ON_CALLS"><projects>j129</projects><value>Alertes sur les appels</value></data>
+<data name="LBL_BEACON_LED"><projects>j129</projects><value>DEL balise</value></data>
+<data name="LBL_SERVER_TYPE_J129"><projects>j129</projects><value>Type de serveur:</value></data>
+<data name="LBL_GENERIC_SIP"><projects>j129</projects><value>SIP générique</value></data>
+<data name="LBL_DEVICE_TYPE"><projects>j129</projects><value>Type d'appareil</value></data>
+<data name="LBL_UPDATE"><projects>j129</projects><value>M. à jour</value></data>
+<data name="LBL_PAGING"><projects>j129</projects><value>Téléavert.</value></data>
+<data name="LBL_PAGE_FROM"><projects>j129</projects><value>Téléav. depuis</value></data>
+<data name="LBL_PRODUCT_ID"><projects>j129</projects><value>ID produit</value></data>
+<data name="LBL_GET_UPDATES"><projects>j129</projects><value>Mises à jour</value></data>
+<data name="LBL_LAST_UPDATE"><projects>j129</projects><value>Dernière m. à j.</value></data>
+<data name="LBL_CALL_COMPLETED_ELSEWHERE"><projects>j129</projects><value>Appel terminé ailleurs</value></data>
+<data name="LBL_INVALID_PIN"><projects>j129</projects><value>PIN invalide</value></data>
+<data name="LBL_ATTEMPT_N_OF_M"><projects>j129</projects><value>Tentative %d sur %d</value></data>
+<data name="LBL_PIN"><projects>j129</projects><value>PIN:</value></data>
+<data name="LBL_PAGE_VALUE"><projects>j129</projects><value>Téléavertiss.: %s</value></data>
+<data name="LBL_CALL_FORWARD_DELAY"><projects>j129</projects><value>Délai renv.</value></data>
+<data name="LBL_USERNAME_HINT"><projects>j129</projects><value>Nom util.</value></data>
+<data name="LBL_PASSWORD_HINT"><projects>j129</projects><value>Mot de passe</value></data>
+<data name="LBL_HTTP"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTP_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_DNS"><projects>j129</projects><value></value></data>
+<data name="LBL_SNTP"><projects>j129</projects><value></value></data>
+<data name="LBL_IP_OR_FQDN_HINT"><projects>j129</projects><value>Port IP ou port FQDN</value></data>
+<data name="LBL_SECURE_SYSLOG"><projects>j129</projects><value>Serv. journal sécur.</value></data>
+<data name="LBL_AUTOMATIC_UPDATE"><projects>j129</projects><value>Mise à jour auto</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_POLICY"><projects>j129</projects><value>Politique m. à j. auto</value></data>
+<data name="LBL_NEXT_UPDATE"><projects>j129</projects><value>Prochaine m. à j.</value></data>
+<data name="LBL_LAST_UPGRADE"><projects>j129</projects><value>Dern. mise niv</value></data>
+<data name="LBL_DISABLED"><projects>j129</projects><value>Désactivé</value></data>
+<data name="LBL_WEEKLY"><projects>j129</projects><value>Hebdo.</value></data>
+<data name="LBL_DAILY"><projects>j129</projects><value>Quotid.</value></data>
+<data name="LBL_MONTHLY"><projects>j129</projects><value>Mensuel</value></data>
+<data name="LBL_UPDATE_INFO"><projects>j129</projects><value>Info sur MAJ</value></data>
+<data name="LBL_UPDATE_STATUS"><projects>j129</projects><value>État</value></data>
+<data name="LBL_UPDATE_POLICY"><projects>j129</projects><value>Polit.</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_DAYS"><projects>j129</projects><value>MÀJ - jours</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_TIME_OF_DAY"><projects>j129</projects><value>MÀJ - heure</value></data>
+<data name="LBL_PROMPT_ON_UPGRADE"><projects>j129</projects><value>Invite mise à niveau</value></data>
+<data name="LBL_USER_CODE"><projects>j129</projects><value>Code utilisateur :</value></data>
+<data name="LBL_DOT1X_AUTHENTICATION_METHODS"><projects>j129</projects><value>Méthode authentification</value></data>
+<data name="LBL_AADS_CONFIG"><projects>j129</projects><value>Configuration AADS</value></data>
+
+
+<!--POP UP BOX Strings-->
+
+<data name="MSG_DISCINPROG"><projects>j129</projects><value>Détection %s</value></data>
+<data name="MSG_SRVRLKFAILED"><projects>j129</projects><value>Liaison au serveur interrompue</value></data>
+<data name="LBL_CLRALENT"><projects>j129</projects><value>Effacer tout?</value></data>
+<data name="LBL_RUSURE"><projects>j129</projects><value>Procéder?</value></data>
+<data name="MSG_AUTHFAIL"><projects>j129</projects><value>Échec de l'authentification.</value></data>
+<data name="MSG_ALERT_J100"><projects>j129</projects><value>Alerte audio entrante</value></data>
+<data name="MSG_ABTAVAYA"><projects>j129</projects><value>Téléphone IP Avaya
+Version SIP %s
+%s
+© 2023 Avaya Inc.</value></data>
+<data name="MSG_UNREG_LOGOUT"><projects>j129</projects><value>Un autre périphérique a ouvert une session avec ce numéro de poste.</value></data>
+<data name="MSG_LOGOUT"><projects>j129</projects><value>Déconnexion...</value></data>
+<data name="MSG_DELETE_CONTACT"><projects>j129</projects><value>Supprimer ce contact?</value></data>
+<data name="MSG_CERT_WARNING"><projects>j129</projects><value>Le certificat d'identité %s expire dans %d jours.</value></data>
+<data name="MSG_CERT_EXPIRED"><projects>j129</projects><value>Le certificat d'identité %s est expiré.</value></data>
+<data name="MSG_ADMIN_MENU_LOCK"><projects>j129</projects><value>Le menu administrateur est verrouillé</value></data>
+<data name="MSG_MERGE_CALLS"><projects>j129</projects><value>Fusionner les appels?</value></data>
+<data name="MSG_TRANSF_CALL_ON_HOLD"><projects>j129</projects><value>Tranfert vers appel en attente?</value></data>
+<data name="MSG_MAKE_EMERGENCY_CALL"><projects>j129</projects><value>Appel d'urgence?</value></data>
+<data name="MSG_WAITING_FOR_8021X"><projects>j129</projects><value>Attente pour
+authentification 802.1x...</value></data>
+<data name="MSG_DELETE_SIP_PROXY"><projects>j129</projects><value>Supprimer le serveur proxy SIP?</value></data>
+<data name="MSG_WAITING_FOR_DHCP"><projects>j129</projects><value>Attente pour DHCP...</value></data>
+<data name="MSG_BOOT_ERROR"><projects>j129</projects><value>Erreur au démarrage</value></data>
+<data name="MSG_CLEAR_SPEED_DIAL"><projects>j129</projects><value>Effacer cette composition abrégée?</value></data>
+<data name="MSG_REPLACE_SPEED_DIAL"><projects>j129</projects><value>Remplacer cette composition abrégée?</value></data>
+<data name="MSG_LOGOUT_CONFIRMATION"><projects>j129</projects><value>Voulez-vous vous déconnecter?</value></data>
+<data name="MSG_RESET_VALUES_CONFIRMATION"><projects>j129</projects><value>Effacer et réinitialiser le téléphone?</value></data>
+<data name="MSG_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>Redémarrer le téléphone?</value></data>
+<data name="MSG_ACTIVE_CALL_LOGOUT_CONFIRMATION"><projects>j129</projects><value>La déconnexion mettra fin aux appels actifs.</value></data>
+<data name="MSG_CONFIG_PROV_SERVER"><projects>j129</projects><value>Configuration du serveur d'approvisionnement</value></data>
+<data name="MSG_ENTER_PROV_SERV"><projects>j129</projects><value>Saisir les détails de la configuration</value></data>
+<data name="MSG_ENTER_PROV_SERVER"><projects>j129</projects><value>Saisir les détails de la configuration</value></data>
+<data name="MSG_INVALID_INPUT"><projects>j129</projects><value>Entrée non valide</value></data>
+<data name="MSG_CONNECTION_ERROR"><projects>j129</projects><value>Erreur de connexion</value></data>
+<data name="MSG_CONNECTION_VERIFY"><projects>j129</projects><value>Vérification de la connexion...</value></data>
+<data name="MSG_PHONE_REPORT_GENERATED"><projects>j129</projects><value>Production du rapport...</value></data>
+<data name="MSG_PAIRING_FAILED"><projects>j129</projects><value>Échec du pairage au PC. Réessayer?</value></data>
+<data name="MSG_START_PAIRING"><projects>j129</projects><value>Commencer le pairage au PC?</value></data>
+<data name="MSG_PRESS_CONFIRM_IF_SAME"><projects>j129</projects><value>App. Sur Conf. si mêmes mots sur PC</value></data>
+<data name="MSG_BACKUP_SUCCESSFUL"><projects>j129</projects><value>Sauvegarde réussie</value></data>
+<data name="MSG_BACKUP_FAIL"><projects>j129</projects><value>Échec de la sauvegarde</value></data>
+<data name="MSG_RETRIEVAL_SUCCESSFUL"><projects>j129</projects><value>Récupération réussie</value></data>
+<data name="MSG_RETRIEVAL_FAIL"><projects>j129</projects><value>Échec récupération</value></data>
+<data name="MSG_BACKUP_IN_PROGRESS"><projects>j129</projects><value>Sauvegarde en cours</value></data>
+<data name="MSG_RETRIEVAL_IN_PROGRESS"><projects>j129</projects><value>Récupération en cours</value></data>
+<data name="MSG_FILE_OBTAINED_PLEASE_WAIT"><projects>j129</projects><value>Fichier reçu; veuillez patientez...</value></data>
+<data name="MSG_RECENTS_EXTENSION_RESTRICTED"><projects>j129</projects><value>Le poste de l'appelant est restreint</value></data>
+<data name="MSG_RECENTS_NO_IDLE_CALL"><projects>j129</projects><value>Aucune apparence d'appel inactive</value></data>
+<data name="MSG_ANOTHER_USER_LOGGED_IN"><projects>j129</projects><value>L'utilisateur est déjà connecté sur un autre appareil</value></data>
+<data name="MSG_WAITING_FOR_AUTHENTICATION"><projects>j129</projects><value>En attente d'authentification...</value></data>
+<data name="MSG_WBPSWD_RESET_DEFAULT_CONFIRMATION"><projects>j129</projects><value>Réinitialiser les réglages par défaut?</value></data>
+<data name="MSG_WEBPASSWD_RESET_CONFIRMATION"><projects>j129</projects><value>Réinit. réglages défaut?</value></data>
+<data name="MSG_CERTIFICATE_ERROR"><projects>j129</projects><value>Erreur de certificat</value></data>
+<data name="MSG_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>Le numéro %s existe déjà pour %s.</value></data>
+<data name="MSG_FIPS_SELFTEST_FAILED"><projects>j129</projects><value>Échec autotest FIPS</value></data>
+<data name="MSG_CUSTOMIZATION_NOT_AVAILABLE"><projects>j129</projects><value>La personnalisation n'est pas offerte pour l'instant.</value></data>
+<data name="MSG_WIFI_SERVICE_NOT_RUNNING"><projects>j129</projects><value>Service Wi-Fi non opérationnel</value></data>
+<data name="MSG_PHONE_OPERATIONS_DISABLED"><projects>j129</projects><value>Opérations tél. désactivées pour ce menu</value></data>
+<data name="MSG_XSI_CONNECTION_FAILED"><projects>j129</projects><value>Échec de la connexion XSI. Le menu se fermera.</value></data>
+<data name="MSG_NHC_CONNECTING"><projects>j129</projects><value>Connexion à %s...</value></data>
+<data name="MSG_NHC_INVALID_NUM"><projects>j129</projects><value>Numéro composé non valide</value></data>
+<data name="MSG_NHC_PARTY_UNAVAILABLE"><projects>j129</projects><value>L'appelé %s n'est pas disponible.</value></data>
+<data name="MSG_NHC_PARTY_BUSY"><projects>j129</projects><value>L'appelé %s est occupé.</value></data>
+<data name="MSG_NHC_DENIED"><projects>j129</projects><value>Conférence refusée</value></data>
+<data name="MSG_AUTO_DISCOVERY_SUCCESSFUL"><projects>j129</projects><value>Découverte automatique terminée</value></data>
+<data name="MSG_AUTO_DISCOVERY_FAILED_INVALID_CFG"><projects>j129</projects><value>Échec de la découverte automatique</value></data>
+<data name="MSG_DISCOVERY_NO_RESPONSE"><projects>j129</projects><value>Échec de la découverte automatique</value></data>
+<data name="MSG_WAITING_FOR_CONFIG"><projects>j129</projects><value>En attente de la config...</value></data>
+<data name="MSG_GET_UPDATES_CONFIRMATION"><projects>j129</projects><value>M. à jour peut requérir redém. tél.</value></data>
+<data name="MSG_PROV_SERVER_NOT_REACHED"><projects>j129</projects><value>Échec de la connexion au serveur</value></data>
+<data name="MSG_PROV_SERVER_NO_SETTINGS"><projects>j129</projects><value>Pas de configuration sur le serveur</value></data>
+<data name="MSG_UNREG_LOGOUT_LONG"><projects>j129</projects><value>Un autre périphérique a ouvert une session avec ce numéro de poste. Pour continuer en utilisant le même numéro de poste, appuyez sur "Contin.".</value></data>
+<data name="MSG_FORCED_LOGOUT_BY_MAX_USER_LOGIN"><projects>j129</projects><value>Appuyez sur "Contin." pour rétablir le service téléphonique.</value></data>
+<data name="MSG_AUTH_REQUIRED"><projects>j129</projects><value>Authentification requise</value></data>
+<data name="MSG_AUTOUPDATE_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>Nouv. microprogramme dispo. Redémarrez téléphone pour appliquer les modifs?</value></data>
+<data name="MSG_MYCERT_RENEWAL_FAILURE"><projects>j129</projects><value>Renouvellement cert. %s : échec</value></data>
+<data name="MSG_SPACES_LOGOUT_CONFIRMATION"><projects>j129</projects><value>Voulez-vous vous déconnecter d'
+Avaya Spaces?</value></data>
+<data name="MSG_SSO_CONNECTING_TO_CONFIG_SERVER"><projects>j129</projects><value>Connexion au service de configuration...</value></data>
+<data name="MSG_SSO_CONNECTING_TO_AUTHORIZATION_SERVER"><projects>j129</projects><value>Connexion au service d’autorisation...</value></data>
+<data name="MSG_SSO_SCAN_QR_CODE"><projects>j129</projects><value>Scannez le code QR pour vous connecter avec vos identifiants d'entreprise.
+Plus de détails sous Lien.</value></data>
+<data name="MSG_SINGLE_SIGN_ON"><projects>j129</projects><value>Signature unique</value></data>
+<data name="MSG_ACCEPT_SHARED_CONTROL"><projects>j129</projects><value>Accepter le contrôle partagé?</value></data>
+<data name="MSG_EXPIRES_IN"><projects>j129</projects><value>Expire dans : %ls</value></data>
+
+
+<!--TOAST Strings-->
+
+<data name="TST_NO_REDIAL_NUMBER"><projects>j129</projects><value>Aucun numéro à recomposer</value></data>
+<data name="TST_NO_MATCHING_NAME"><projects>j129</projects><value>Aucun nom correspondant</value></data>
+<data name="TST_NO_MATCH_FOUND"><projects>j129</projects><value>Aucun résultat</value></data>
+<data name="TST_CONTACT_SEARCH_FAILED"><projects>j129</projects><value>Échec de la recherche de contacts</value></data>
+<data name="TST_NO_SERVICE_AVAILABLE"><projects>j129</projects><value>Aucun service disponible</value></data>
+<data name="TST_INVALID_NAME_PASSWD"><projects>j129</projects><value>Nom ou mot de passe non valide</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD_HELP"><projects>j129</projects><value>Entrez mot de passe pour instal. du cert. %ls.</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD"><projects>j129</projects><value>Entrez le mot de passe pour l'installation du certificat.</value></data>
+<data name="TST_INVALID_PWD_ABORT_INSTALL"><projects>j129</projects><value>MdP non valide, interrup. instal. du cert.</value></data>
+<data name="TST_VERIFY_PWD"><projects>j129</projects><value>Vérification du mot de passe...</value></data>
+<data name="TST_INVALID_PWD"><projects>j129</projects><value>Mot de passe nom valide</value></data>
+<data name="TST_EMERGENCY_CALLS_ONLY"><projects>j129</projects><value>Appels d'urgence uniquement</value></data>
+<data name="TST_INVALID_ACCESS_CODE"><projects>j129</projects><value>Code d'accès non valide</value></data>
+<data name="TST_ADMIN_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>Admin. non disponible si téléphone utilisé</value></data>
+<data name="TST_NO_SIP_PROXIES_CONFIGURED"><projects>j129</projects><value>Aucun proxy SIP configuré</value></data>
+<data name="TST_FEATURE_ACT_FAILED"><projects>j129</projects><value>Échec de la fonction d'activation</value></data>
+<data name="TST_LIMITED_SERVICE_IN_EFFECT"><projects>j129</projects><value>Service limité appliqué</value></data>
+<data name="TST_PROXY_ADDRESS_INVALID"><projects>j129</projects><value>L'adresse proxy entrée n'est pas valide</value></data>
+<data name="TST_PROXY_PORT_INVALID"><projects>j129</projects><value>Le port entré n'est pas valide</value></data>
+<data name="TST_LOCK_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>Verr. non disponible si tél. en usage</value></data>
+<data name="TST_FEATURE_IS_CURRENTLY_UNAVAILABLE"><projects>j129</projects><value>Fonction actuellement non disponible</value></data>
+<data name="TST_UNABLE_MAKE_CALL"><projects>j129</projects><value>Impossible de faire un appel</value></data>
+<data name="TST_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>Aucune fonction configurée pour ce poste</value></data>
+<data name="TST_NUMBER_REMOVE_UNAVAILABLE"><projects>j129</projects><value>Un contact doit avoir au moins un numéro.</value></data>
+<data name="TST_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>Le numéro existe déjà.</value></data>
+<data name="TST_ALL_CALL_APPEARANCES_IN_USE"><projects>j129</projects><value>Toutes les lignes sont occupées</value></data>
+<data name="TST_PHONE_REBOOT_ON_EXIT"><projects>j129</projects><value>Le téléphone redémarrera
+lors de la sortie du menu Admin.</value></data>
+<data name="TST_SCREEN_SAVER_UNAVAILABLE"><projects>j129</projects><value>L'écran de veille ne peut être activé durant un appel actif.</value></data>
+<data name="TST_CHANGE_HEADSET_TO_BLUETOOTH"><projects>j129</projects><value>Modifier 'Sélection du casque' pour Bluetooth?</value></data>
+<data name="TST_CHANGE_HEADSET_TO_WIRED"><projects>j129</projects><value>La sélection de casque a été modifiée en 'Câblé'</value></data>
+<data name="TST_LOGGING_CALLS_IS_DISABLED"><projects>j129</projects><value>Journalisation des appels est désactivée</value></data>
+<data name="TST_NO_PREFIXES"><projects>j129</projects><value>Aucun préfixe n'est configuré</value></data>
+<data name="TST_NETWORK_UNAVAILABLE_FOR_ACTIVE_CALL"><projects>j129</projects><value>Non disponible pendant un appel</value></data>
+<data name="TST_NO_CONTACTS_AVAILABLE"><projects>j129</projects><value>Aucun contact disponible</value></data>
+<data name="TST_CALL_MUTED"><projects>j129</projects><value>Votre appel est en sourdine</value></data>
+<data name="TST_FEATURE_CONFIGURATION_NOT_AVAILABLE_YET"><projects>j129</projects><value>Config. de la fonction pas encore disponible</value></data>
+<data name="TST_XSI_CONNECTION_IS_NOT_AVAILABLE"><projects>j129</projects><value>La connexion XSI n'est pas disponible.</value></data>
+<data name="TST_INVALID_USER_ID"><projects>j129</projects><value>ID util. non valide</value></data>
+<data name="TST_INVALID_USER_ID_OR_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>ID util. ou MdP Web non valide</value></data>
+<data name="TST_MOBILITY_FEATURE_IS_NOT_ENABLED"><projects>j129</projects><value>Pour configurer cette fonction, contactez votre administrateur.</value></data>
+<data name="TST_ALLOWED_VALUES"><projects>j129</projects><value>Valeurs autorisées : 0, 2-20</value></data>
+<data name="TST_FAILED_TO_CREATE_XSI"><projects>j129</projects><value>Échec création canal d'évènement XSI : pas de réponse du serveur</value></data>
+<data name="TST_NETWORK_CONFIGURATION_ISSUE"><projects>j129</projects><value>Problème de configuration réseau</value></data>
+<data name="TST_PARK_FAC_NOT_ADMINISTERED"><projects>j129</projects><value>Pour cette fonction, définissez CALL_PARK_DYNAMIC_FAC, contactez votre administrateur.</value></data>
+<data name="TST_UNLOCK_IS_TEMP_BLOCKED"><projects>j129</projects><value>Déverrouillage : Blocage temporaire</value></data>
+<data name="TST_ADD_CONTACTS_MAPPING_ERROR"><projects>j129</projects><value>Impossible d'ajouter. Attribution de champ manquante. Contacter l'admin.</value></data>
+<data name="TST_SERVICE_UNAVAILABLE"><projects>j129</projects><value>Le service n'est pas disponible.</value></data>
+<data name="TST_DIALING_BLOCKED"><projects>j129</projects><value>La composition de ce numéro est bloquée. Contactez votre admin.</value></data>
+<data name="TST_USERNAME_REQUIRED"><projects>j129</projects><value>Nom d'utilisateur requis si le mot de passe est défini</value></data>
+<data name="TST_INVALID_HTTP_SYNTAX"><projects>j129</projects><value>Imposs. d'enregistrer HTTP, syntaxe invalide</value></data>
+<data name="TST_INVALID_HTTPS_SYNTAX"><projects>j129</projects><value>Imposs. d'enregistrer HTTPS, syntaxe invalide</value></data>
+<data name="TST_ZOOM_LICENSE_REQUIRED"><projects>j129</projects><value>Une licence est requise pour utiliser le téléphone avec Zoom.</value></data>
+<data name="TST_INVALID_AADS_URL"><projects>j129</projects><value>URL AADS non enregistrée, syntaxe invalide.</value></data>
+<data name="TST_SSO_LOGIN_PROMPT"><projects>j129</projects><value>Appuyez sur « Se connecter » pour lancer le processus de signature unique avec vos identifiants d’entreprise.</value></data>
+<data name="TST_SSO_CONFIG_SERVER_UNAVAILABLE"><projects>j129</projects><value>Service de configuration non disponible.
+Réessayez ou communiquez votre administrateur.</value></data>
+<data name="TST_SSO_AUTHORIZATION_SERVER_UNAVAILABLE"><projects>j129</projects><value>Service d’autorisation non disponible.
+Réessayez ou communiquez votre administrateur.</value></data>
+<data name="TST_SSO_LOGIN_SUCCESS_PROMPT"><projects>j129</projects><value>Authentification réussie.
+
+Veuillez patienter...</value></data>
+<data name="TST_SSO_LOGIN_POLLING_TIMEDOUT"><projects>j129</projects><value>Tentative de connexion expirée. Appuyez sur Réessay. pour essayer à nouveau.</value></data>
+<data name="TST_SSO_LOGIN_DECLINED_BY_USER"><projects>j129</projects><value>Tentative de connexion refusée par l’utilisateur</value></data>
+<data name="TST_LOGIN_FAILED_CREDENTIALS_UNAVAILABLE"><projects>j129</projects><value>Échec de connexion.
+Identifiants non trouvés dans le service de configuration. Veuillez contacter votre administrateur.</value></data>
+<data name="TST_LOGIN_FAILED_CONFIG_SERVICE_UNAVAILABLE"><projects>j129</projects><value>Échec de connexion.
+Service de configuration non disponible.
+Réessay., Sortie ou communiquez avec votre administrateur.</value></data>
+<data name="TST_SSO_LOGIN_HELP_PROMPT"><projects>j129</projects><value>Le téléphone est configuré pour se connecter avec vos identifiants d'entreprise. À l'invite, appuyez sur
+Entrée pour lancer le processus.</value></data>
+<data name="TST_SSO_QR_HELP_PROMPT"><projects>j129</projects><value>Pour terminer le processus de signature unique, scannez le code QR ou ouvrez le
+Lien dans votre navigateur.</value></data>
+<data name="TST_SSO_LINK_HELP_PROMPT"><projects>j129</projects><value>Pour terminer le processus de signature unique, ouvrez le lien dans votre navigateur ou scannez le code QR avec votre appareil mobile.</value></data>
+<data name="TST_SSO_LINK_PROMPT"><projects>j129</projects><value>Allez au lien ci-dessous et entrez le
+code d'utilisateur : %ls
+%ls
+Appuyez sur Code QR pour le scan.</value></data>
+
+
+<!--HELP Strings-->
+
+<data name="HELP_BROADWORKS_CFA"><projects>j129</projects><value>La fonction Renvoi 
+d'appel redirige toujours tous les appels entrants vers la destination spécifiée.</value></data>
+<data name="HELP_BROADWORKS_CFB"><projects>j129</projects><value>La fonction Renvoi 
+d'appel occupé redirige les appels vers une autre destination lorsqu'un appel entrant obtient un signal occupé.</value></data>
+<data name="HELP_BROADWORKS_CFNA"><projects>j129</projects><value>La fonction Renvoi 
+d'appel Aucune réponse redirige les appels vers une autre destination lorsqu'un appel entrant 
+n'est pas répondu au bout d'un certain nombre de sonneries.</value></data>
+<data name="HELP_BROADWORKS_DND"><projects>j129</projects><value>La fonction Ne pas déranger envoie les appels entrants directement dans la boîte vocale.</value></data>
+<data name="HELP_AUDIO_BUTTON"><projects>j129</projects><value>Définit le comportement du téléphone lors d'un appel entrant quand
+l'utilisateur décroche le combiné ou appuie sur le bouton de prise d'appel du casque ou du haut-parleur. Répondre - répond à l'appel entrant. Nouvel appel - commence un appel.</value></data>
+<data name="HELP_BROADWORKS_DND_SETTINGS"><projects>j129</projects><value>La fonction Ne pas déranger redirige les appels entrants vers la boîte vocale sans faire sonner le téléphone.</value></data>
+<data name="HELP_BROADWORKS_CFA_SETTINGS"><projects>j129</projects><value>La fonction Renvoi d'appel 
+redirige toujours les appels 
+entrants vers la 
+destination spécifiée.</value></data>
+<data name="HELP_BROADWORKS_CFNA_SETTINGS"><projects>j129</projects><value>La fonction Renvoi 
+d'appel Aucune réponse redirige les appels vers une autre destination 
+lorsqu'un appel entrant 
+n'est pas répondu au bout d'un certain nombre de sonneries.</value></data>
+<data name="HELP_XSI_AUTH"><projects>j129</projects><value>Contacter l'administrateur pour obtenir les identifiants</value></data>
+<data name="HELP_BROADSOFT_WEB_PORTAL_USER_ID"><projects>j129</projects><value>ID util. du portail Web Broadsoft</value></data>
+<data name="HELP_BROADSOFT_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>Mot de passe d'accès au Web Broadsoft défini sur la page de profil de l'utilisateur</value></data>
+<data name="HELP_CALL_PARK"><projects>j129</projects><value>Parcage d'appel permet de mettre un appel en attente dans un parcage spécifique (poste) pour que l'appel puisse être pris depuis un autre poste.</value></data>
+<data name="HELP_CALL_FORWARD_DELAY"><projects>j129</projects><value>Indique le nombre de sonneries après lequel un appel sera acheminé s'il demeure sans réponse</value></data>
+<data name="HELP_PROVISIONING_URL_EXAMPLE"><projects>j129</projects><value>Exemple d'URL d'approvisionnement :
+https://avaya.com:443/prov</value></data>
+<data name="HELP_HTTP_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>Si le serveur d'approvisionnement HTTP ou HTTPS exige une authentification, configurez le nom d'utilisateur et le mot de passe.</value></data>
+<data name="HELP_HTTP_SERVER_FIELD"><projects>j129</projects><value>Définir l'URL du serveur d'approvisionnement HTTP. Exemple : avaya.com:8080/prov. Si le port n'est pas inclus, le port par défaut (80) sera utilisé.</value></data>
+<data name="HELP_HTTPS_SERVER_FIELD"><projects>j129</projects><value>Définir l'URL du serveur d'approvisionnement HTTPS. Exemple : avaya.com:449/prov. Si le port n'est pas inclus, le port par défaut (443) sera utilisé.</value></data>
+<data name="HELP_SECURE_SYSLOG"><projects>j129</projects><value>Définit si le message syslog doit être envoyé en utilisant une connexion sécurisée ou de façon non sécurisée.</value></data>
+<data name="HELP_SPACE_LOGOUT_PROMPT"><projects>j129</projects><value>Pour vous déconnecter d'Avaya Spaces
+appuyez sur "Sortie".</value></data>
+<data name="HELP_DOT1X_EAP_METHODS"><projects>j129</projects><value>Définir la méthode d'authentification EAP 802.1X à utiliser si "Demandeur" non désactivé.</value></data>
+<data name="HELP_DOT1X_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>Si la méthode d'authentification est MD5 ou PEAP, un nom d'utilisateur et un mot de passe doivent être définis.</value></data>
+<data name="HELP_AADS_URL"><projects>j129</projects><value>Définissez l’URL AADS. Exemple : https://exemple.com:443/acs/resources/configurations</value></data>
+
+
+<!--ERROR Strings-->
+
+<data name="ERR_LOGOLOAD"><projects>j129</projects><value>Impossible de charger logo demandé</value></data>
+<data name="ERR_NOTFOUND"><projects>j129</projects><value>Objet introuvable</value></data>
+<data name="ERR_BADRQMSG"><projects>j129</projects><value>Requête incorrecte</value></data>
+<data name="ERR_FAILUREAUTH"><projects>j129</projects><value>Nom d'utilisateur ou MDP incorrect</value></data>
+<data name="ERR_RDMERROR"><projects>j129</projects><value>Erreur sur le serveur</value></data>
+<data name="ERR_RDMINTFUNAV"><projects>j129</projects><value>Le serveur est en panne</value></data>
+<data name="ERR_RDBNOTSUP"><projects>j129</projects><value>Opération non prise en charge</value></data>
+<data name="ERR_REGFAILURE"><projects>j129</projects><value>L'entrée a échoué. Réessayez.</value></data>
+<data name="ERR_INTERROR"><projects>j129</projects><value>Erreur interne</value></data>
+<data name="ERR_REGFAIL_FGNDMAIN"><projects>j129</projects><value>Échec entrée: dom. SIP non valide</value></data>
+<data name="ERR_REGFAIL_USERNOTFOUND"><projects>j129</projects><value>Échec entrée. Utilis. introuvable</value></data>
+<data name="MSG_BAGLOG"><projects>j129</projects><value>Err. ouv. session</value></data>
+<data name="ERR_REQNACPT"><projects>j129</projects><value>Requête signalis. non valide (488)</value></data>
+<data name="ERR_USERUNAV"><projects>j129</projects><value>Non disponible actuellement (480)</value></data>
+<data name="ERR_REQTIMEDOUT"><projects>j129</projects><value>Requête hors délai (408)</value></data>
+<data name="ERR_FORBIDDEN"><projects>j129</projects><value>Requête non autorisée (403)</value></data>
+<data name="ERR_REMBUSY"><projects>j129</projects><value>Utilisateur distant occupé (486)</value></data>
+<data name="ERR_GENERALFAIL"><projects>j129</projects><value>Erreur signalisation</value></data>
+<data name="ERR_CNTCTSEXISTS"><projects>j129</projects><value>Ce contact existe déjà.</value></data>
+<data name="ERR_RDMINVDRESP"><projects>j129</projects><value>Réponse PPM non valide</value></data>
+<data name="ERR_RDMINTF_INITFAILED"><projects>j129</projects><value>Erreur init. interface PPM</value></data>
+<data name="ERR_RDMINVDATA_RECD"><projects>j129</projects><value>Données PPM reçues non valides</value></data>
+<data name="ERR_LOCAL"><projects>j129</projects><value>Le contact local existe déjà.</value></data>
+<data name="ERR_INVALID_STATE"><projects>j129</projects><value>État non valide</value></data>
+<data name="ERR_REG_LIMIT_REACHED"><projects>j129</projects><value>L'utilisateur est déjà connecté sur un autre poste.</value></data>
+<data name="ERR_INT_ERROR"><projects>j129</projects><value>Erreur interne</value></data>
+<data name="ERR_ASSIGN_IPV6_ADDR"><projects>j129</projects><value>Conflit d'adresses IPv6</value></data>
+<data name="ERR_INVALID_IP"><projects>j129</projects><value>Adresse IP non valide</value></data>
+<data name="ERR_INVALID_PASS"><projects>j129</projects><value>Mot de passe non valide</value></data>
+<data name="ERR_TOO_MANY_USERS_FOUND"><projects>j129</projects><value>Trop utilisat. trouvés. Affinez la recherche</value></data>
+<data name="ERR_NO_CALL_TO_RETRIEVE"><projects>j129</projects><value>Aucun appel à récupérer.</value></data>
+<data name="ERR_LOCATION_NUMBER_ALREADY_EXIST"><projects>j129</projects><value>Num. emplacement existant</value></data>
+<data name="ERR_LOCATION_NUMBER_DOES_NOT_EXIST"><projects>j129</projects><value>Numéro d'emplacement inexistant</value></data>
+<data name="ERR_INCORRECT_LENGTH_OF_PHONE_NUMBER"><projects>j129</projects><value>Longueur du numéro de téléphone incorrecte</value></data>
+<data name="ERR_LOCATION_NUMBER_IS_GREATER"><projects>j129</projects><value>Num. emplacement plus long que la long. maximale</value></data>
+<data name="ERR_INVALID_PHONE_NUMBER"><projects>j129</projects><value>Numéro de tél. non valide</value></data>
+<data name="ERR_XSI_SERVER_ERROR"><projects>j129</projects><value>Erreur serveur XSI :</value></data>
+<data name="ERR_XSI_SERVER_ERROR_2"><projects>j129</projects><value>Erreur serveur XSI</value></data>
+<data name="ERR_NO_REMOTE_CALL"><projects>j129</projects><value>Aucun appel distant</value></data>
+<data name="ERR_CALL_NOT_FOUND"><projects>j129</projects><value>Appel introuvable</value></data>
+<data name="ERR_CALL_PARK_AGAINST_ADDRESS_IS_NOT_VALID"><projects>j129</projects><value>Numéro non valide</value></data>
+<data name="ERR_CALL_PARK_AGAINST_USER_IS_THE_REMOTE_PARTY"><projects>j129</projects><value>Impossible de parquer le numéro de l'interlocuteur</value></data>
+<data name="ERR_CALL_ALREADY_PARKED_AGAINST_USER"><projects>j129</projects><value>Un appel est déjà parqué sur ce numéro</value></data>
+<data name="ERR_NO_AVAILABLE_CALL_PARK_GROUP_MEMBER"><projects>j129</projects><value>Aucun membre de groupe de parcage d'appel dispo.</value></data>
+<data name="ERR_INVALID_DOMAIN_NAME"><projects>j129</projects><value>Nom de domaine non valide</value></data>
+<data name="ERR_INVALID_SIP_URI"><projects>j129</projects><value>URI SIP non valide</value></data>
+<data name="ERR_INVALID_SIP_URI_TWO_SYMBOLS"><projects>j129</projects><value>URI SIP non valide. L'URI SIP ne peut contenir deux symboles @.</value></data>
+<data name="ERR_INVALID_SIP_URI_USER_DOMAIN"><projects>j129</projects><value>URI SIP non valide</value></data>
+<data name="ERR_INVALID_FORMAT"><projects>j129</projects><value>Format non valide</value></data>
+<data name="ERR_NUMBER_REQUIRED"><projects>j129</projects><value>L'activation de ce service nécessite un numéro de téléphone.</value></data>
+<data name="ERR_DUPLICATE_USER"><projects>j129</projects><value>Utilis. doublon spécifié pour affectation de membre</value></data>
+<data name="ERR_NO_MOBILE_IDENTITY"><projects>j129</projects><value>Le numéro de cellulaire n'est associé à aucune identité de cellulaire.</value></data>
+<data name="ERR_MOBILE_NUMBER_NOT_ASSIGNED"><projects>j129</projects><value>Numéro de cellulaire non attribué à l'utilisateur</value></data>
+<data name="ERR_BLOCKED_BY_SIM_CALL_POLICY"><projects>j129</projects><value>Bloqué par politique de nbre max d'appels simult.</value></data>
+<data name="ERR_CALL_ALREADY_ON_LOCATION"><projects>j129</projects><value>Appel déjà assigné à l'emplacement</value></data>
+<data name="ERR_CANNOT_PARK_PUSH_TO_TALK_CALL"><projects>j129</projects><value>Échec parquage appel Presser pour Parler</value></data>
+<data name="ERR_SERVICE_NOT_ASSIGNED"><projects>j129</projects><value>Service non attribué</value></data>
+<data name="ERR_YOUR_NUMBER_NOT_ALLOWED"><projects>j129</projects><value>Assurez-vous qu'il ne s'agit pas de votre numéro, poste, URI SIP ou d'un numéro associé à votre identité.</value></data>
+<data name="ERR_SIMRING_LIMIT_LIST_LOCATIONS"><projects>j129</projects><value>Impossible d'ajouter plus de dix emplacements à la liste des numéros avec sonnerie simult.</value></data>
+<data name="ERR_STATE_FOR_CALL_IS_NOT_VALID"><projects>j129</projects><value>État d'appel non valide</value></data>
+<data name="ERR_USER_IS_NOT_MEMBER_OF_PARK_GROUP"><projects>j129</projects><value>Vous n'êtes pas membre d'un gpe de parcage d'appel</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Service d'interception dirigée non affecté</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_BARGEIN_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Service d'interception dirigée avec interruption non affecté</value></data>
+<data name="ERR_CALL_PARK_RETRIEVE_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Service de récupération d'appel parqué non affecté</value></data>
+<data name="ERR_CALL_PARK_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Le code de parcage d'appel n'est pas configuré.</value></data>
+<data name="ERR_REFRESH_PERSONAL_CONTACTS"><projects>j129</projects><value>Échec du rafraîchissement des contacts personnels.</value></data>
+
+
+<!--Startup Screens-->
+
+<data name="MSG_STARTG"><projects>j129</projects><value>Démarrage</value></data>
+<data name="MSG_NOETH"><projects>j129</projects><value>Pas d'Ethernet.</value></data>
+<data name="MSG_NETBADIP"><projects>j129</projects><value>Adresse IP incorrecte détectée</value></data>
+<data name="MSG_BADRTR"><projects>j129</projects><value>Mauvais routeur?</value></data>
+<data name="MSG_NETBADSUB"><projects>j129</projects><value>Sous-réseau incorrect détecté</value></data>
+<data name="MSG_SUBCNF"><projects>j129</projects><value>Conflit sous-réseau</value></data>
+<data name="MSG_ADCONF"><projects>j129</projects><value>Conflit d'adresse</value></data>
+<data name="MSG_IPV6_ADDRCONF"><projects>j129</projects><value>Conflit d'adresses IPv6</value></data>
+<data name="MSG_IPV6LL_ADDRCONF"><projects>j129</projects><value>doublonMAC=</value></data>
+<data name="MSG_DHCPADDRCONF"><projects>j129</projects><value>Conflit DHCP</value></data>
+<data name="MSG_MYCERTFAILURE"><projects>j129</projects><value>Échec de l’installation du certificat SCEP %ls.</value></data>
+<data name="MSG_NOSIPSRVR"><projects>j129</projects><value>Liste serv mand. SIP vide</value></data>
+<data name="MSG_SHARED_CONTROL_ACTIVE"><projects>j129</projects><value>Contrôle partagé actif</value></data>
+<data name="MSG_SHARED_CONTROL_INACTIVE"><projects>j129</projects><value>Contrôle partagé inactif</value></data>
+<data name="MSG_PROG_NEW_ROUTER"><projects>j129</projects><value>Programmer autre adresse routeur</value></data>
+<data name="MSG_UPDATING_SOFTWARE"><projects>j129</projects><value>Mise à jour logicielle...</value></data>
+<data name="MSG_UPDATE_SUCCESSFUL"><projects>j129</projects><value>Mise à jour logicielle réussie</value></data>
+<data name="MSG_UPDATE_FAILED"><projects>j129</projects><value>Échec de la mise à jour logicielle</value></data>
+<data name="MSG_WIFI_SERVICE_FAILED"><projects>j129</projects><value>Échec du service Wi-Fi</value></data>
+<data name="MSG_PRESS_NETWORKS_SWITCH_ETH"><projects>j129</projects><value>Appuyez sur Réseaux pour basculer vers Ethernet.</value></data>
+<data name="MSG_PRESS_RESTART_ATTEMPT_WIFI"><projects>j129</projects><value>Appuyez sur Redémarrer pour réessayer le Wi-Fi.</value></data>
+<data name="MSG_WIFI_NO_SSID"><projects>j129</projects><value>Aucun réseau Wi-Fi sél.</value></data>
+<data name="MSG_WIFI_SELECT_NETWORK"><projects>j129</projects><value>Appuyez sur Réseaux pour choisir un réseau.</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATION_FAILED"><projects>j129</projects><value>Échec authentification</value></data>
+<data name="MSG_WIFI_CONNECTION_CERTIFICATE_ERROR"><projects>j129</projects><value>Erreur de certif. Wi-Fi</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTING"><projects>j129</projects><value>Connexion en cours</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATING"><projects>j129</projects><value>Authentification en cours</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTED"><projects>j129</projects><value>Connecté</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTING"><projects>j129</projects><value>Déconnexion en cours</value></data>
+<data name="MSG_ETHERNET_RESTORED"><projects>j129</projects><value>%ls. Ethernet restauré.</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTED"><projects>j129</projects><value>Déconnecté</value></data>
+<data name="MSG_WIFI_CONNECTION_FAILED"><projects>j129</projects><value>Échec de la connexion</value></data>
+<data name="MSG_NOCONTROLLER_BY_MODE"><projects>j129</projects><value>Liste serveur proxy SIP IPv%s vide</value></data>
+<data name="MSG_PKCS12_DNLOAD_FAILURE"><projects>j129</projects><value>Le téléchargement du certificat d'identité %ls a échoué.</value></data>
+<data name="MSG_PKCS12_REJECT_CERT"><projects>j129</projects><value>Certificat d'identité %ls rejeté</value></data>
+<data name="MSG_SEARCH_FOR_CONFIG"><projects>j129</projects><value>Recherche de la config...</value></data>
+
+
+<!--Progress Screen-->
+
+<data name="MSG_RSTART"><projects>j129</projects><value>Redémarrage...</value></data>
+
+
+<!--Feature Names-->
+
+<data name="auto-callback"><projects>j129</projects><value>Rappel automatique</value></data>
+<data name="auto-callback_short"><projects>j129</projects><value>Rap.auto</value></data>
+<data name="call-forwarding-all"><projects>j129</projects><value>Renvoi d'appel</value></data>
+<data name="call-forwarding-all_short"><projects>j129</projects><value>Renv app</value></data>
+<data name="call-forwarding-all_sbm"><projects>j129</projects><value>Renvoi d'appel</value></data>
+<data name="call-forwarding-busy-no-answer"><projects>j129</projects><value>Renv. Occupé/Arép.</value></data>
+<data name="call-forwarding-busy-no-answer_short"><projects>j129</projects><value>Ren O/AR</value></data>
+<data name="call-park"><projects>j129</projects><value>Parcage d'appel</value></data>
+<data name="call-park-manual"><projects>j129</projects><value>Parcage d'appel</value></data>
+<data name="group-call-park"><projects>j129</projects><value>Parc appel groupe</value></data>
+<data name="call-waiting"><projects>j129</projects><value>Appel en attente</value></data>
+<data name="calling-party-block"><projects>j129</projects><value>Blocage n°</value></data>
+<data name="call-unpark"><projects>j129</projects><value>Annul parc. appel</value></data>
+<data name="call-unpark_short"><projects>j129</projects><value>Déparc</value></data>
+<data name="broadworks-call-unpark"><projects>j129</projects><value>Annul parc. appel</value></data>
+<data name="broadworks-call-unpark_short"><projects>j129</projects><value>Déparc</value></data>
+<data name="mct"><projects>j129</projects><value>Activer DAM</value></data>
+<data name="mct_short"><projects>j129</projects><value>Act DAM</value></data>
+<data name="off-pbx"><projects>j129</projects><value>EC500</value></data>
+<data name="sac"><projects>j129</projects><value>Ne pas déranger</value></data>
+<data name="sac_short"><projects>j129</projects><value>NPD</value></data>
+<data name="transfer-to-voicemail"><projects>j129</projects><value>Transf. Messag. vocale</value></data>
+<data name="call-forwarding-all_half"><projects>j129</projects><value>Renv. appel</value></data>
+<data name="auto-answer"><projects>j129</projects><value>Réponse auto.</value></data>
+<data name="do-not-disturb"><projects>j129</projects><value>Ne pas déranger</value></data>
+<data name="do-not-disturb_short"><projects>j129</projects><value>NPD–Occ.</value></data>
+<data name="call-fwd-busy"><projects>j129</projects><value>Renvoi appel - Occupé</value></data>
+<data name="call-fwd-busy_half"><projects>j129</projects><value>Renv app-Occ</value></data>
+<data name="call-fwd-busy_sbm"><projects>j129</projects><value>RAO</value></data>
+<data name="call-fwd-no-answer"><projects>j129</projects><value>Renv app-Aucun. rép</value></data>
+<data name="call-fwd-no-answer_half"><projects>j129</projects><value>RA-AR</value></data>
+<data name="call-fwd-no-answer_sbm"><projects>j129</projects><value>RA-AR</value></data>
+<data name="do-not-disturb_half"><projects>j129</projects><value>NPD–Occupé</value></data>
+<data name="do-not-disturb_sbm"><projects>j129</projects><value>NPD–Occupé</value></data>
+<data name="broadworks-call-forward-all"><projects>j129</projects><value>Renvoi appel</value></data>
+<data name="broadworks-call-forward-all_half"><projects>j129</projects><value>Renv app</value></data>
+<data name="broadworks-call-forward-all_sbm"><projects>j129</projects><value>Renv appel</value></data>
+<data name="broadworks-call-forward-busy"><projects>j129</projects><value>Renvoi appel - Occupé</value></data>
+<data name="broadworks-call-forward-busy_half"><projects>j129</projects><value>Renv app-Occ</value></data>
+<data name="broadworks-call-forward-busy_sbm"><projects>j129</projects><value>RAO</value></data>
+<data name="broadworks-call-forward-no-answer"><projects>j129</projects><value>Renv app-Aucun. rép</value></data>
+<data name="broadworks-call-forward-no-answer_half"><projects>j129</projects><value>RA-AR</value></data>
+<data name="broadworks-call-forward-no-answer_sbm"><projects>j129</projects><value>RA-AR</value></data>
+<data name="broadworks-do-not-disturb"><projects>j129</projects><value>NPD</value></data>
+<data name="broadworks-do-not-disturb_half"><projects>j129</projects><value>NPD</value></data>
+<data name="broadworks-do-not-disturb_sbm"><projects>j129</projects><value>NPD</value></data>
+<data name="no-hold-conf"><projects>j129</projects><value>Conf. sans attente</value></data>
+<data name="no-hold-conf_short"><projects>j129</projects><value>CSA</value></data>
+
+
+<!--Feature: Softkey Names-->
+
+<data name="softkey-call-park"><projects>j129</projects><value>Parcage</value></data>
+<data name="softkey-call-unpark"><projects>j129</projects><value>Déparc</value></data>
+<data name="softkey-sac"><projects>j129</projects><value>EnvTout</value></data>
+
+
+<!--Feature Attributes-->
+
+
+
+<!--Power Manager-->
+
+<data name="pm_Header"><projects>j129</projects><value>Gestion consomm.</value></data>
+<data name="pm_Header_Help"><projects>j129</projects><value>Aide-Gestion alimentation</value></data>
+<data name="pm_Header1"><projects>j129</projects><value>Retirer périph. pour réd. puiss.</value></data>
+<data name="pm_Header2"><projects>j129</projects><value>Modifier le réglage d'alimentation</value></data>
+<data name="pm_Header3"><projects>j129</projects><value>Ajout alim aux ou retirer périph</value></data>
+<data name="pm_Screen_A"><projects>j129</projects><value>Puissance insuffisante. Retirer un ou plusieurs périphériques pour réduire la puissance.</value></data>
+<data name="pm_Screen_B"><projects>j129</projects><value>Puissance encore insuff. Ret. périph. pour réduire la puiss. requise.</value></data>
+<data name="pm_Screen_C"><projects>j129</projects><value>Puissance insuffisante. Installer alimentation auxiliaire ou retirer un ou pls périphériques.</value></data>
+<data name="pm_Screen_D"><projects>j129</projects><value>Puissance encore insuff. Installer aliment. aux. ou retirer un ou des périph.</value></data>
+<data name="pm_Screen_E"><projects>j129</projects><value>Puiss. insuff. Débranch. tél. et changez interrupt. au dos ou retirez. périph.</value></data>
+<data name="pm_Screen_F"><projects>j129</projects><value>Puiss. encore insuff. Débr. tél. et chang. interrupt. au dos ou ret. périph.</value></data>
+<data name="pm_Screen_G"><projects>j129</projects><value>Vous devez débrancher le téléphone avant de changer le réglage de puissance.</value></data>
+<data name="pm_Screen_H1"><projects>j129</projects><value>Charge tot. dépasse capac. Ret. un ou des périph. pour réduire puiss. nécess.</value></data>
+<data name="pm_Screen_H2"><projects>j129</projects><value>Votre configuration exige plus de puissance. Installer alimentation aux. ou retirer périphérique(s).</value></data>
+<data name="pm_Screen_H3"><projects>j129</projects><value>Pour augmenter puiss., débrancher tél. et déplacer interrupt. IEEE au dos de L à H, ou retirer périph.</value></data>
+
+
+<!--Strings that DON'T REQUIRE TRANSLATIONS-->
+
+<data name="optAdmin8021X"><projects>j129</projects><value>802.1X...</value></data>
+<data name="optAdminSiteSpecificOption"><projects>j129</projects><value></value></data>
+<data name="LBL_SSON"><projects>j129</projects><value></value></data>
+<data name="optAdminGroup"><projects>j129</projects><value>Groupe...</value></data>
+<data name="optAdminLogging"><projects>j129</projects><value>Journal...</value></data>
+<data name="optAdminNetworkAddresses"><projects>j129</projects><value>Configuration IP...</value></data>
+<data name="optAdminEthernetIPv4"><projects>j129</projects><value></value></data>
+<data name="optAdminEthernetIPv6"><projects>j129</projects><value></value></data>
+<data name="optAdminNetworkServers"><projects>j129</projects><value>Serveurs...</value></data>
+<data name="optAdminNetworkVLAN"><projects>j129</projects><value>VLAN...</value></data>
+<data name="optAdminAutoProv"><projects>j129</projects><value>Configuration auto...</value></data>
+<data name="optAdminNetwork8021Q"><projects>j129</projects><value></value></data>
+<data name="optAdminPhoneReport"><projects>j129</projects><value>Rapport téléphone</value></data>
+<data name="optAdminSSHFingerprint"><projects>j129</projects><value>Empreinte SSH...</value></data>
+<data name="optAdminView"><projects>j129</projects><value>Afficher...</value></data>
+<data name="optAdminInterfaces"><projects>j129</projects><value>Interface réseau...</value></data>
+<data name="optAdminWiFiIPv4"><projects>j129</projects><value>Wi-Fi IPv4</value></data>
+<data name="optAdminSIP"><projects>j129</projects><value></value></data>
+<data name="optAdminSIPGlbl"><projects>j129</projects><value>Paramètres généraux SIP...</value></data>
+<data name="optAdminSIPProxy"><projects>j129</projects><value>Serveur proxy SIP...</value></data>
+<data name="optAdminDebug"><projects>j129</projects><value>Débogage...</value></data>
+<data name="optAdminResetValues"><projects>j129</projects><value>Valeurs par défaut...</value></data>
+<data name="optAdminRestart"><projects>j129</projects><value>Redémarrer...</value></data>
+<data name="optAdminLogout"><projects>j129</projects><value>Déconnexion...</value></data>
+<data name="optAdminWebServer"><projects>j129</projects><value>Serveur web...</value></data>
+<data name="optAdminWebResetPasswd"><projects>j129</projects><value>Réinit. mot de passe Web</value></data>
+<data name="LBL_ID"><projects>j129</projects><value></value></data>
+<data name="AS_PRIORITY"><projects>j129</projects><value>Priorité</value></data>
+<data name="AS_ICOM"><projects>j129</projects><value></value></data>
+<data name="MSG_FIPSRESTART"><projects>j129</projects><value>Mode FIPS changé, redémarre...</value></data>
+<data name="MSG_PHONERESTART"><projects>j129</projects><value>Provoquera un redémarrage</value></data>
+<data name="LBL_MBPS"><projects>j129</projects><value>Mbit/s</value></data>
+<data name="LBL_PLEASEWAIT"><projects>j129</projects><value>Patientez...</value></data>
+<data name="AS_CLEAR_SSH_LOCKOUT"><projects>j129</projects><value>Suppr. verr. SSH</value></data>
+<data name="MSG_SSH_LOCKOUT_CLEAR"><projects>j129</projects><value>Le verrouillage SSH a été supprimé</value></data>
+<data name="MSG_ACTIVATE_AUTO_CONFIG"><projects>j129</projects><value>Activer l'autoconfiguration?</value></data>
+<data name="MSG_STARTING_IN_N_S"><projects>j129</projects><value>Commençant dans %d secondes</value></data>
+<data name="LBL_ACTIVATE"><projects>j129</projects><value>Activer</value></data>
+<data name="MSG_REACTIVATION_DES"><projects>j129</projects><value>Activer l'autoconfiguration?</value></data>
+<data name="LBL_YEAR"><projects>j129</projects><value></value></data>
+<data name="LBL_SHORT_DAY"><projects>j129</projects><value></value></data>
+</root>

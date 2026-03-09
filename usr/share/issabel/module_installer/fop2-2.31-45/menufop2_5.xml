@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <menulist>
+	<menuitem menuid="fop2"          desc="Operator Panel"          parent="pbxconfig"    module="yes"    link=""      order="9">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+            <group id="2" name="Operator" desc="Operator"></group>
+        </permissions>
+    </menuitem>
+        <menuitem menuid="fop2app"             desc="FOP2"          parent="fop2"    module="no"    link="fop2"      order="1">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+            <group id="2" name="Operator" desc="Operator"></group>
+        </permissions>
+    </menuitem>
+        <menuitem menuid="fop2manager"          desc="FOP2 Manager"          parent="fop2"    module="no"    link="fop2/admin"      order="2">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+            <group id="2" name="Operator" desc="Operator"></group>
+        </permissions>
+    </menuitem>
+  </menulist>
+</module>

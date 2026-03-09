@@ -1,0 +1,25 @@
+ln -s /var/www/html/libs/misc.lib.php /var/www/html/modules/endpoint_configurator/libs/misc.lib.php
+
+ln -s /var/www/html/libs/paloSantoGrid.class.php /var/www/html/modules/endpoint_configurator/libs/paloSantoGrid.class.php
+
+ln -s /var/www/html/libs/paloSantoJSON.class.php /var/www/html/modules/endpoint_configurator/libs/paloSantoJSON.class.php
+
+
+ln -s /var/www/html/libs/paloSantoGrid.class.php /var/www/html/modules/endpoint_configurator/libs/paloSantoGrid.class.php
+ln -s /var/www/html/libs/paloSantoJSON.class.php /var/www/html/modules/endpoint_configurator/libs/paloSantoJSON.class.php
+ln -s /var/www/html/libs/paloSantoNetwork.class.php /var/www/html/modules/endpoint_configurator/libs/paloSantoNetwork.class.php
+ln -s /var/www/html/libs/paloSantoValidar.class.php /var/www/html/modules/endpoint_configurator/libs/paloSantoValidar.class.php
+
+
+
+
+
+
+
+
+
+
+
+ php /var/www/html/modules/endpoint_configurator/index.php
+
+/usr/bin/issabel-endpointconfig --applyconfig

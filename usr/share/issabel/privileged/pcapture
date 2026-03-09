@@ -1,0 +1,106 @@
+#!/bin/bash
+PARSED_OPTIONS=$(getopt -n "$0"  -o p:f:hi:w:t: --long "port:,ip:,help,interface:,write:,timeout:"  -- "$@")
+
+function print_usage {
+        echo "Usage:"
+        echo "$0 [OPTIONS]"
+        echo "OPTIONS:"
+        echo "-d --dahdi: Restore DAHDI files"
+        echo "-b --backup-file: Backup file to restore"
+        echo "-h --help: Show help"
+        exit 1
+}
+
+
+function parse_args {
+        #PARSED_OPTIONS=$(getopt -n "$0"  -o dhb: --long "ip:,help,interface:,write:,timeout:"  -- "$@")
+        #Bad arguments, something has gone wrong with the getopt command.
+        if [ $? -ne 0 ];
+        then
+                echo ERROR getting args
+                exit 1
+        fi
+        eval set -- "$PARSED_OPTIONS"
+
+        while true
+        do
+                case "$1" in
+                -h|--help)
+                        print_usage
+                        shift;;
+                -f|--ip)
+                        if [ -n "$2" ];
+                        then
+                                IPFILTER=$2
+			fi
+                	shift 2;;
+		-p|--port)
+                        if [ -n "$2" ];
+                        then
+                                PORT=$2
+                        fi
+                        shift 2;;
+                -i|--interface)
+                        if [ -n "$2" ];
+                        then
+                                INTERFACE=$2
+			else
+				INTERFACE=any
+                        fi
+                        shift 2;;
+		-w|--write)
+                        if [ -n "$2" ];
+                        then
+                                FILENAME=$2
+                        else
+                                echo "Empty file name"
+				exit 1
+                        fi
+                        shift 2;;
+
+		-t|--timeout)
+                        if [ -n "$2" ];
+                        then
+                                TIMEOUT=$2
+                        else
+                        	TIMEOUT=60
+			fi
+                        shift 2;;
+
+                 --)
+                        shift
+                        break;;
+                *)
+                        echo "Invalid option $1"
+			echo $@
+                        print_usage
+                        exit 1 ;;
+                esac
+        done
+}
+parse_args
+mkdir -p /var/www/html/captures
+ARGS="-s 65535"
+if [ -n "${INTERFACE}" ]; then
+        ARGS="$ARGS -i $INTERFACE"
+else 
+	ARGS="$ARGS -i any"
+fi
+if [ -n "${PORT}" ] && [ -n "${IPFILTER}" ]; then
+        ARGS="$ARGS host $IPFILTER and port $PORT"
+elif [ -n "${PORT}" ] && [ -z "$IPFILTER" ]; then
+        ARGS="$ARGS port $PORT"
+elif [ -z "${PORT}" ] && [ -n "${IPFILTER}" ]; then
+        ARGS="$ARGS host $IPFILTER and port 5060"
+fi
+if [ -z "${FILENAME}" ]; then
+        echo "Empty file name"
+	exit 1
+fi
+
+echo $@	
+timeout $TIMEOUT tcpdump $ARGS -w /tmp/$FILENAME.pcap
+mkdir /var/www/html/captures/$FILENAME/
+mv /tmp/$FILENAME.pcap /var/www/html/captures/$FILENAME/
+/usr/local/callflow/drawmycall.py -f /var/www/html/captures//$FILENAME/$FILENAME.pcap -o /var/www/html/captures/$FILENAME/index.html
+chown -R asterisk.asterisk /var/www/html/captures/

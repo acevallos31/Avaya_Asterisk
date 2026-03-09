@@ -1,0 +1,46 @@
+## Archivo de configuración 46xxsettings.txt para Avaya J129
+
+## Dirección del servidor TFTP
+SET TFTP_SERVER=10.2.248.2         ## Dirección IP del servidor TFTP (modificada a la IP de tu servidor)
+
+## Configuraciones de SIP
+SET SIP_DEFAULT_PROXY=10.2.248.2   ## Dirección del servidor SIP (Asterisk)
+SET SIP_DEFAULT_PORT=5060          ## Puerto SIP predeterminado
+
+## Configuración de registro SIP
+SET SIP_REGISTER=1                 ## Habilitar registro SIP
+SET SIP_REGISTER_ADDR=10.2.248.2   ## Dirección IP del servidor SIP (Asterisk)
+SET SIPMODE=0
+
+## Configuración de la interfaz web
+SET WEB_ENABLE=1                   ## Habilitar interfaz web del teléfono (1=habilitado, 0=deshabilitado)
+SET ENABLE_WEBSERVER 1
+SET WEB_USERNAME admin             ## Usuario para la interfaz web
+SET WEB_PASSWORD Avaya1000%          ## Contraseña para la interfaz web
+SET WEBSERVER_PORT 80        ## Puerto de la interfaz web
+SET WEB_HTTPS_ENABLE=1             ## Si prefieres HTTPS, cambia a 1
+
+## Briam
+SET WEBSERVER_SECURE_MODE 1
+SET ENABLE_AVAYA_ENVIRONMENT 0
+SET DISCOVER_AVAYA_ENVIRONMENT 0
+SET ENABLE_SIP_USER_ID 1 
+SET SIP-Transport: UDP         ## Transporte SIP, por ejemplo, UDP
+SET SIP_CONTROLLER_LIST 10.2.248.2:5060;transport=udp
+SET SIPREGPROXYPOLICY alternate
+SET SIPPROXYSRVR 10.2.248.2
+SET SYSTEM_LANGUAGE Mlf_J129_LatinAmericanSpanish.xml
+SET LANGUAGE_IN_USE Latin American Spanish
+SET LANGUAGE_FILE_IN_USE Mlf_J129_LatinAmericanSpanish.xml
+SET LANGUAGES_RESOURCE_LIST English=res://Mlf_English.xml,Latin American Spanish=lang/Mlf_J129_LatinAmericanSpanish.xml
+SET COUNTRY Mexico
+SET ENABLE_IPOFFICE 0
+
+## Otras configuraciones globales
+TFTP_FILE_NAME 46xxsettings.txt  ## Nombre del archivo de configuración TFTP
+SET_TIME_ZONE GMT-6            ## Zona horaria (ajusta según tu ubicación)
+SET_LANG es_ES                 ## Idioma de la interfaz (por ejemplo, español)
+SET CONFERENCE_FACTORY_URI ConfServer@cho-pbx01.lamundial.hn
+SET FQDN_IP_MAP cho-pbx01.lamundial.hn=10.2.248.2
+SET SNTPSRVR 10.0.1.20
+GET $MACADDR.txt

@@ -1,0 +1,3 @@
+MCIPADD=cho-pbx01.lamundial.hn,MCPORT=1719,TFTPSRVR=cho-pbx01.lamundial.hn
+
+MCIPADD=cho-pbx01.lamundial.hn,MCPORT=1719,HTTPSRVR=10.2.248.2,L2Q=1, L2QVLAN=233,VLANTEST=0

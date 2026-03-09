@@ -1,0 +1,27 @@
+## Configuración Específica de Extensión SIP 4225 para Avaya J129 C8:1F:EA:9B:43:68
+## Última actualización: 2025-Mar-13 16:08:20
+
+###################################
+## Configuración de Servidor SIP ##
+###################################
+SET SIP_CONTROLLER_LIST "10.2.248.2:5060;transport=udp"
+SET SIPPROXYSRVR 10.2.248.2
+SET SIPPROXYSRVR_IN_USE 10.2.248.2
+SET SIPDOMAIN 10.2.248.2
+SET SIPPORT 5060
+SET ENABLE_PRESENCE 1
+
+############################################
+## Configuración de la Extensión SIP 4225 ##
+############################################
+SET DISPLAY_NAME "4225"
+SET SIP_USER_ID 4225
+SET SIP_USER_ACCOUNT 4225@10.2.248.2
+SET ENABLE_SIP_USER_ID 1
+SET SCREEN_NAME_ORDER 1
+
+SET  FORCE_SIP_USERNAME "4225"
+SET  FORCE_SIP_PASSWORD "ed0a4d73de04741183b82a28a20d9bd8"
+SET  FORCE_SIP_EXTENSION "4225"
+## Cargar archivo de configuración por MAC (si se usa TFTP o HTTP para provisión)
+## Agencia La Mundial

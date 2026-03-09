@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <menulist>
+	<!--Temporalmente esto se va hace aqui para los menus de extras e IM-->
+	<menuitem menuid="extras"             desc="Extras"             parent=""           module="no" link=""          order="9"></menuitem>
+        <menuitem menuid="meet"               desc="Issabel Meet"             parent="extras"            module="yes"  link="" order="1">
+            <permissions>
+                <group id="1" name="administrator" desc="total access"></group>
+                <group id="2" name="Operator" desc="Operator"></group>
+                <group id="3" name="extension" desc="extension user"></group>
+            </permissions>
+        </menuitem>
+  </menulist>
+</module>

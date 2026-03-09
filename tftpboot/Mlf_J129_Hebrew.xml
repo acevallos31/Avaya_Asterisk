@@ -1,0 +1,1090 @@
+<?xml version="1.0"?>
+<root><data name="languageName"><projects>j129</projects><value>Hebrew</value></data>
+
+
+<!--Labels for different Languages in the CURRENT language-->
+
+<data name="LBL_ENGLISH"><projects>j129</projects><value>אנגלית</value></data>
+<data name="LBL_CANADIAN_FRENCH"><projects>j129</projects><value>צרפתית קנדית</value></data>
+<data name="LBL_PARISIAN_FRENCH"><projects>j129</projects><value>צרפתית</value></data>
+<data name="LBL_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>ספרדית (אמריק.)</value></data>
+<data name="LBL_CASTILIAN_SPANISH"><projects>j129</projects><value>ספרדית</value></data>
+<data name="LBL_GERMAN"><projects>j129</projects><value>גרמנית</value></data>
+<data name="LBL_ITALIAN"><projects>j129</projects><value>איטלקית</value></data>
+<data name="LBL_DUTCH"><projects>j129</projects><value>הולנדית</value></data>
+<data name="LBL_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>פורטוגזית</value></data>
+<data name="LBL_JAPANESE"><projects>j129</projects><value>יפנית</value></data>
+<data name="LBL_CHINESE"><projects>j129</projects><value>סינית</value></data>
+<data name="LBL_KOREAN"><projects>j129</projects><value>קוריאנית</value></data>
+<data name="LBL_RUSSIAN"><projects>j129</projects><value>רוסית</value></data>
+<data name="LBL_HEBREW"><projects>j129</projects><value>עברית</value></data>
+<data name="LBL_POLISH"><projects>j129</projects><value>פולנית</value></data>
+<data name="LBL_TURKISH"><projects>j129</projects><value>טורקית</value></data>
+
+
+<!--Labels for different Languages in the NATIVE language-->
+
+<data name="NATIVE_IN_ENGLISH"><projects>j129</projects><value>English</value></data>
+<data name="NATIVE_IN_CANADIAN_FRENCH"><projects>j129</projects><value>Français canad.</value></data>
+<data name="NATIVE_IN_PARISIAN_FRENCH"><projects>j129</projects><value>Français</value></data>
+<data name="NATIVE_IN_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>Español LA</value></data>
+<data name="NATIVE_IN_CASTILIAN_SPANISH"><projects>j129</projects><value>Español</value></data>
+<data name="NATIVE_IN_GERMAN"><projects>j129</projects><value>Deutsch</value></data>
+<data name="NATIVE_IN_ITALIAN"><projects>j129</projects><value>Italiano</value></data>
+<data name="NATIVE_IN_DUTCH"><projects>j129</projects><value>Nederlands</value></data>
+<data name="NATIVE_IN_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>Português (BR)</value></data>
+<data name="NATIVE_IN_JAPANESE"><projects>j129</projects><value>日本語</value></data>
+<data name="NATIVE_IN_CHINESE"><projects>j129</projects><value>中文</value></data>
+<data name="NATIVE_IN_KOREAN"><projects>j129</projects><value>한국어</value></data>
+<data name="NATIVE_IN_RUSSIAN"><projects>j129</projects><value>Русский</value></data>
+<data name="NATIVE_IN_HEBREW"><projects>j129</projects><value>עברית</value></data>
+<data name="NATIVE_IN_ARABIC"><projects>j129</projects><value>العربية</value></data>
+<data name="NATIVE_IN_ENGLARGE"><projects>j129</projects><value>Englarge</value></data>
+<data name="NATIVE_IN_POLISH"><projects>j129</projects><value>Polski</value></data>
+<data name="NATIVE_IN_TURKISH"><projects>j129</projects><value>Türkçe</value></data>
+
+
+<!--Character Input Method Type-->
+
+<data name="INPUTMETHOD"><projects>j129</projects><value>18</value></data>
+
+
+<!--FONT Type-->
+
+<data name="FONT"><projects>j129</projects><value>Default</value></data>
+
+
+<!--Keyboard Layout Type-->
+
+<data name="KEYBOARD_LAYOUT"><projects>j129</projects><value>0</value></data>
+
+
+<!--SOFTKEY Labels - MAX LENGTH 8 chars-->
+
+<data name="NAME_IN_OTHER"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ENGLISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_CANADIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_PARISIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_LATIN_AMERICAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_CASTILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_GERMAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ITALIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_DUTCH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_PORTUGUESE_BRAZILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_JAPANESE"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_CHINESE_SIMPLIFIED"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_KOREAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_RUSSIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_HEBREW"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ARABIC"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_TURKISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_THAI"><projects>j129</projects><value></value></data>
+<data name="SK_ADD2CTC"><projects>j129</projects><value>+א. קשר</value></data>
+<data name="SK_ADD"><projects>j129</projects><value>הוסף</value></data>
+<data name="SK_ALPHALOW"><projects>j129</projects><value>abc</value></data>
+<data name="SK_ALPHAUP"><projects>j129</projects><value>ABC</value></data>
+<data name="SK_HEX"><projects>j129</projects><value></value></data>
+<data name="SK_ANSWER"><projects>j129</projects><value>ענה</value></data>
+<data name="SK_BACK"><projects>j129</projects><value>חזור</value></data>
+<data name="SK_BKSP"><projects>j129</projects><value>מחיקה</value></data>
+<data name="SK_BRIDGE"><projects>j129</projects><value>גישור</value></data>
+<data name="SK_BROWSER"><projects>j129</projects><value>דפדפן</value></data>
+<data name="SK_CALL"><projects>j129</projects><value>שיחה</value></data>
+<data name="SK_CANCEL"><projects>j129</projects><value>ביטול</value></data>
+<data name="SK_CHANGE"><projects>j129</projects><value>החלף</value></data>
+<data name="SK_CLEAR"><projects>j129</projects><value>מחיקה</value></data>
+<data name="SK_CLRALL"><projects>j129</projects><value>מחק הכל</value></data>
+<data name="SK_COMPL"><projects>j129</projects><value>השלם</value></data>
+<data name="SK_CONF"><projects>j129</projects><value>ועידה</value></data>
+<data name="SK_CONTIN"><projects>j129</projects><value>המשך</value></data>
+<data name="SK_DELETE"><projects>j129</projects><value>מחיקה</value></data>
+<data name="SK_DETAILS"><projects>j129</projects><value>פרטים</value></data>
+<data name="SK_EDIT"><projects>j129</projects><value>עריכה</value></data>
+<data name="SK_EMERGNUM"><projects>j129</projects><value>חירום</value></data>
+<data name="SK_ENTER"><projects>j129</projects><value>בצע</value></data>
+<data name="SK_ENDCALL"><projects>j129</projects><value>סיים</value></data>
+<data name="SK_EXIT"><projects>j129</projects><value>יציאה</value></data>
+<data name="SK_EXTEND"><projects>j129</projects><value>הארך</value></data>
+<data name="SK_IGNORE"><projects>j129</projects><value>התעלם</value></data>
+<data name="SK_INSERT"><projects>j129</projects><value>הכנס</value></data>
+<data name="SK_JOIN"><projects>j129</projects><value>הצטרף</value></data>
+<data name="SK_LOGIN"><projects>j129</projects><value>כניסה</value></data>
+<data name="SK_LOGOUT"><projects>j129</projects><value>יציאה</value></data>
+<data name="SK_MORE"><projects>j129</projects><value>עוד</value></data>
+<data name="SK_NEW"><projects>j129</projects><value>חדש</value></data>
+<data name="SK_NEXT"><projects>j129</projects><value>הבא</value></data>
+<data name="SK_NUM"><projects>j129</projects><value>123</value></data>
+<data name="SK_OK"><projects>j129</projects><value>אישור</value></data>
+<data name="SK_PING"><projects>j129</projects><value>Ping</value></data>
+<data name="SK_PLAY"><projects>j129</projects><value>נגן</value></data>
+<data name="SK_PREVI"><projects>j129</projects><value>הקודם</value></data>
+<data name="SK_REDIAL"><projects>j129</projects><value>ח' חוזר</value></data>
+<data name="SK_RESET"><projects>j129</projects><value>איפוס</value></data>
+<data name="SK_RESTART"><projects>j129</projects><value>אתחל</value></data>
+<data name="SK_RESUME"><projects>j129</projects><value>המשך</value></data>
+<data name="SK_RETRY"><projects>j129</projects><value>נסה שוב</value></data>
+<data name="SK_SAVE"><projects>j129</projects><value>שמירה</value></data>
+<data name="SK_SEARCH"><projects>j129</projects><value>חיפוש</value></data>
+<data name="SK_SELECT"><projects>j129</projects><value>בחירה</value></data>
+<data name="SK_NETWORKS"><projects>j129</projects><value>רשתות</value></data>
+<data name="SK_SYMBOL"><projects>j129</projects><value>סמל</value></data>
+<data name="SK_TEST"><projects>j129</projects><value>בדיקה</value></data>
+<data name="SK_TTLCASE"><projects>j129</projects><value>Abc</value></data>
+<data name="SK_XFER"><projects>j129</projects><value>העבר</value></data>
+<data name="SK_UNLOCK"><projects>j129</projects><value>פתיחה</value></data>
+<data name="SK_DISMISS"><projects>j129</projects><value>שחרור</value></data>
+<data name="SK_RETURN"><projects>j129</projects><value>חזרה</value></data>
+<data name="SK_SCLRALL"><projects>j129</projects><value>מחק הכל</value></data>
+<data name="SK_START"><projects>j129</projects><value>התחל</value></data>
+<data name="SK_CONNECT"><projects>j129</projects><value>התחבר</value></data>
+<data name="SK_DISCONNECT"><projects>j129</projects><value>התנתק</value></data>
+<data name="SK_TOVMAIL"><projects>j129</projects><value>תא קולי</value></data>
+<data name="SK_FORGET"><projects>j129</projects><value>שכח</value></data>
+<data name="SK_INFO"><projects>j129</projects><value>מידע</value></data>
+<data name="SK_ADMIN"><projects>j129</projects><value>מ. מערכת</value></data>
+<data name="SK_RECENTS"><projects>j129</projects><value>אחרונות</value></data>
+<data name="SK_MERGECALLS"><projects>j129</projects><value>מזג</value></data>
+<data name="SK_SWAP"><projects>j129</projects><value>החלף</value></data>
+<data name="SK_NEWCALL"><projects>j129</projects><value>חדשה</value></data>
+<data name="SK_REPLACE"><projects>j129</projects><value>החלף</value></data>
+<data name="SK_CONFIG"><projects>j129</projects><value>הגדרות</value></data>
+<data name="SK_NEVER"><projects>j129</projects><value>אף פעם</value></data>
+<data name="SK_CONFIRM"><projects>j129</projects><value>אשר</value></data>
+<data name="SK_PAIR"><projects>j129</projects><value>צימוד</value></data>
+<data name="SK_HELP"><projects>j129</projects><value>עזרה</value></data>
+<data name="SK_NO"><projects>j129</projects><value>לא</value></data>
+<data name="SK_DISABLE"><projects>j129</projects><value>הפסק</value></data>
+<data name="SK_ENABLE"><projects>j129</projects><value>הפעל</value></data>
+<data name="SK_ACCEPT"><projects>j129</projects><value>קבל</value></data>
+<data name="SK_UPDATE"><projects>j129</projects><value>עדכון</value></data>
+<data name="SK_LINK"><projects>j129</projects><value>קישור</value></data>
+<data name="SK_CODE"><projects>j129</projects><value>קוד</value></data>
+<data name="SK_QR_CODE"><projects>j129</projects><value>קוד QR</value></data>
+
+
+<!--MIRCHI - LABELS - MAX LENGTH variable chars-->
+
+<data name="LBL_PASSWD"><projects>j129</projects><value>סיסמה:</value></data>
+<data name="PS_XFERFAILED"><projects>j129</projects><value>ההעברה נכשלה</value></data>
+<data name="PS_CONFFAILED"><projects>j129</projects><value>ועידה נכשלה</value></data>
+<data name="AS_OPTSET"><projects>j129</projects><value>אפשרויות והגדרות</value></data>
+<data name="LBL_USEDHCP"><projects>j129</projects><value>השתמש ב-DHCP:</value></data>
+<data name="LBL_USEDHCPV6"><projects>j129</projects><value>DHCP(V6)</value></data>
+<data name="LBL_USESLAAC"><projects>j129</projects><value>SLAAC:</value></data>
+<data name="LBL_PHONE"><projects>j129</projects><value>טלפון:</value></data>
+<data name="LBL_PHONEV4"><projects>j129</projects><value>טלפון (V4):</value></data>
+<data name="LBL_PHONEV6"><projects>j129</projects><value>טלפון (V6):</value></data>
+<data name="LBL_PHONEV6LL"><projects>j129</projects><value>טל'(V6LL):</value></data>
+<data name="LBL_WEBSERVER"><projects>j129</projects><value>שרת אינטרנט:</value></data>
+<data name="LBL_WEB_ON_HTTP"><projects>j129</projects><value>שירותי רשת על HTTP:</value></data>
+<data name="AS_AUTOGCWC"><projects>j129</projects><value>AGC - שליטה אוטומטית</value></data>
+<data name="AS_NETWORK_INTERFACES"><projects>j129</projects><value>ממשקי רשת...</value></data>
+<data name="AS_INTERFC"><projects>j129</projects><value>ממשקים...</value></data>
+<data name="LBL_ERRLOG"><projects>j129</projects><value>רמת לוג</value></data>
+<data name="LBL_RLOGENB"><projects>j129</projects><value>Syslog הופעל</value></data>
+<data name="LBL_RLOGSRVR"><projects>j129</projects><value>שרת Syslog</value></data>
+<data name="LBL_AVENV"><projects>j129</projects><value>Avaya En'‎‏:</value></data>
+<data name="LBL_TPORTPORT"><projects>j129</projects><value>יציאת SIP:</value></data>
+<data name="LBL_UIDFIELD"><projects>j129</projects><value>שדה זיהוי משתמש</value></data>
+<data name="LBL_LGCLS"><projects>j129</projects><value>תיעוד שיחות</value></data>
+<data name="LBL_TMFMT"><projects>j129</projects><value>תבנית זמן</value></data>
+<data name="AS_DOT1XP"><projects>j129</projects><value>פרמטרי 802.1x...</value></data>
+<data name="SK_DEFAULT"><projects>j129</projects><value>בר' מחדל</value></data>
+<data name="PS_VOLUMEWARNG"><projects>j129</projects><value>הגברת הווליום עלולה לפגוע בשמיעה</value></data>
+<data name="PS_CONF"><projects>j129</projects><value>ועידה</value></data>
+<data name="LBL_WORK"><projects>j129</projects><value>עבודה</value></data>
+<data name="LBL_WORK2"><projects>j129</projects><value>עבודה2</value></data>
+<data name="LBL_MOBILE"><projects>j129</projects><value>נייד</value></data>
+<data name="LBL_HOME"><projects>j129</projects><value>בית</value></data>
+<data name="LBL_HOME2"><projects>j129</projects><value>בית2</value></data>
+<data name="LBL_OTHER"><projects>j129</projects><value>אחר</value></data>
+<data name="LBL_ASSISTANT"><projects>j129</projects><value>סיוע</value></data>
+<data name="LBL_COMPANY"><projects>j129</projects><value>חברה</value></data>
+<data name="LBL_CAR"><projects>j129</projects><value>מכונית</value></data>
+<data name="LBL_12HOUR"><projects>j129</projects><value>12 ש</value></data>
+<data name="LBL_24HOUR"><projects>j129</projects><value>24 ש</value></data>
+<data name="LBL_SETTINGS"><projects>j129</projects><value>הגדרות</value></data>
+<data name="LBL_WEBHELP"><projects>j129</projects><value>יישומים</value></data>
+<data name="LBL_DURATION"><projects>j129</projects><value>משך השיחה</value></data>
+<data name="LBL_DETAILS"><projects>j129</projects><value>פרטים</value></data>
+<data name="PT_CONFNUM"><projects>j129</projects><value>ועידה %d</value></data>
+<data name="LBL_WIFI_DEBUG"><projects>j129</projects><value>Wi-Fi debug:</value></data>
+<data name="LBL_NEW_CALL"><projects>j129</projects><value>שיחה חדשה</value></data>
+<data name="LBL_AM"><projects>j129</projects><value>am</value></data>
+<data name="LBL_PM"><projects>j129</projects><value>pm</value></data>
+
+
+<!--TITLE LINE Strings-->
+
+<data name="PS_FEAT"><projects>j129</projects><value>תכונות</value></data>
+<data name="LBL_WIFI_SSID"><projects>j129</projects><value>SSID:</value></data>
+<data name="LBL_WIFI_NETWORK_LIST"><projects>j129</projects><value>רשתות Wi-Fi</value></data>
+<data name="LBL_SCANNING"><projects>j129</projects><value>סורק...</value></data>
+<data name="LBL_NOWIFI"><projects>j129</projects><value>לא זוהה Wi-Fi</value></data>
+<data name="LBL_SWITCH_WIFI"><projects>j129</projects><value>לחץ על 'רשתות' כדי לעבור ל-Wi-Fi.</value></data>
+<data name="LBL_ETHLINK_UP"><projects>j129</projects><value>קישור Ethernet מופעל.</value></data>
+<data name="LBL_SWITCH_ETH"><projects>j129</projects><value>לחץ על 'הפעל מחדש' כדי לעבור ל-Ethernet.</value></data>
+<data name="LBL_PRESS_CANCEL_REMAIN_WIFI"><projects>j129</projects><value>לחץ על 'ביטול' כדי להישאר ב-Wi-Fi.</value></data>
+<data name="LBL_SWITCH_NET"><projects>j129</projects><value>לחץ על 'רשתות' כדי לבחור רשת אחרת.</value></data>
+<data name="LBL_JANUARY"><projects>j129</projects><value>ינואר</value></data>
+<data name="LBL_FEBRUARY"><projects>j129</projects><value>פברואר</value></data>
+<data name="LBL_MARCH"><projects>j129</projects><value>מרץ</value></data>
+<data name="LBL_APRIL"><projects>j129</projects><value>אפריל</value></data>
+<data name="LBL_MAY"><projects>j129</projects><value>מאי</value></data>
+<data name="LBL_JUNE"><projects>j129</projects><value>יוני</value></data>
+<data name="LBL_JULY"><projects>j129</projects><value>יולי</value></data>
+<data name="LBL_AUGUST"><projects>j129</projects><value>אוגוסט</value></data>
+<data name="LBL_SEPTEMBER"><projects>j129</projects><value>ספטמבר</value></data>
+<data name="LBL_OCTOBER"><projects>j129</projects><value>אוקטובר</value></data>
+<data name="LBL_NOVEMBER"><projects>j129</projects><value>נובמבר</value></data>
+<data name="LBL_DECEMBER"><projects>j129</projects><value>דצמבר</value></data>
+<data name="SK_CTCTS"><projects>j129</projects><value>א. קשר</value></data>
+<data name="TT_PHNLCKD"><projects>j129</projects><value>הטלפון נעול</value></data>
+
+
+<!--SUBTITLE Strings-->
+
+<data name="AS_CONTRST"><projects>j129</projects><value>ניגודיות...</value></data>
+<data name="AS_TIMEZONE"><projects>j129</projects><value>אזור זמן...</value></data>
+<data name="AS_AGCSET"><projects>j129</projects><value>AGC...</value></data>
+<data name="AS_AUDIOP"><projects>j129</projects><value>פרמטרי שמע...</value></data>
+<data name="AS_IPADDRP"><projects>j129</projects><value>פרמטרי IP...</value></data>
+<data name="AS_AUDIOSET"><projects>j129</projects><value>הגדרות שמע...</value></data>
+<data name="AS_PHONESET"><projects>j129</projects><value>הגדרות טלפון...</value></data>
+<data name="AS_SYSTEM"><projects>j129</projects><value>מערכת...</value></data>
+<data name="AS_QOS"><projects>j129</projects><value>איכות השירות...</value></data>
+<data name="AS_RINGTYPE"><projects>j129</projects><value>סוג צלצול...</value></data>
+<data name="AS_CALLPARK_RINGTYPE"><projects>j129</projects><value>סוג צלצול לשיחה חונה</value></data>
+<data name="AS_DISPLAYSET"><projects>j129</projects><value>הגדרות תצוגה...</value></data>
+<data name="AS_SERVICE"><projects>j129</projects><value>שרות</value></data>
+<data name="AS_SPDDIAL"><projects>j129</projects><value>חיוג מהיר...</value></data>
+<data name="AS_DIALOPT"><projects>j129</projects><value>מצב חיוג</value></data>
+<data name="AS_PING"><projects>j129</projects><value>Ping...</value></data>
+<data name="LBL_MY_PRESENCE"><projects>j129</projects><value>הזמינות שלי</value></data>
+<data name="LBL_AVAILABLE"><projects>j129</projects><value>פנוי</value></data>
+<data name="LBL_OFFLINE"><projects>j129</projects><value>לא מחובר</value></data>
+<data name="LBL_AWAY_TIMER"><projects>j129</projects><value>טיימר העדרות</value></data>
+<data name="LBL_MANUAL"><projects>j129</projects><value>ידני</value></data>
+<data name="AS_PRIORITY_RINGTYPE"><projects>j129</projects><value>התראת עדיפות</value></data>
+<data name="AS_ALT_NUM1_RINGTYPE"><projects>j129</projects><value>מספר חלופי 1</value></data>
+<data name="AS_ALT_NUM2_RINGTYPE"><projects>j129</projects><value>מספר חלופי 2</value></data>
+<data name="AS_REMINDER_RINGTYPE"><projects>j129</projects><value>תזכורת צלצול</value></data>
+<data name="AS_PERSONALIZE_RINGING"><projects>j129</projects><value>התאם צלצול אישית</value></data>
+
+
+<!--PROMPTLINE Strings-->
+
+<data name="PL_DWNLDCONFIG"><projects>j129</projects><value>התצורה בהורדה ...</value></data>
+<data name="PL_LOGGINGIN"><projects>j129</projects><value>בתהליך כניסה ...</value></data>
+<data name="PL_REGISTERING"><projects>j129</projects><value>בהרשמה אצל שרת השיחות ...</value></data>
+<data name="PL_SEARCHING"><projects>j129</projects><value>מחפש...</value></data>
+<data name="PL_FEATUNAV"><projects>j129</projects><value>התכונה אינה זמינה</value></data>
+<data name="PL_ACQUIRINGSERVICE"><projects>j129</projects><value>מחפש שירות...</value></data>
+<data name="PL_LIMITED"><projects>j129</projects><value>שרות טלפוני מוגבל</value></data>
+<data name="PL_SPRESSDIAL"><projects>j129</projects><value>השתמש במקשים לחיפוש</value></data>
+<data name="PL_CONF_SETUP_PROMPT"><projects>j129</projects><value>חייג או בחר משתתף</value></data>
+
+
+<!--LABEL Strings-->
+
+<data name="LBL_YES"><projects>j129</projects><value>כן</value></data>
+<data name="LBL_NO"><projects>j129</projects><value>לא</value></data>
+<data name="LBL_ON"><projects>j129</projects><value>פעיל</value></data>
+<data name="LBL_OFF"><projects>j129</projects><value>כבוי</value></data>
+<data name="LBL_DSABLD"><projects>j129</projects><value>מופסק</value></data>
+<data name="LBL_ENABLD"><projects>j129</projects><value>מופעל</value></data>
+<data name="LBL_ACTIV"><projects>j129</projects><value>פעיל</value></data>
+<data name="LBL_USERNAME"><projects>j129</projects><value>שם משתמש:</value></data>
+<data name="LBL_USERID"><projects>j129</projects><value>זיהוי משתמש:</value></data>
+<data name="LBL_FIRSTNAME"><projects>j129</projects><value>שם פרטי:</value></data>
+<data name="LBL_LASTNAME"><projects>j129</projects><value>שם משפחה:</value></data>
+<data name="LBL_NUMBER"><projects>j129</projects><value>מספר %d:</value></data>
+<data name="LBL_COMPLIANT"><projects>j129</projects><value>תואם</value></data>
+<data name="LBL_NOTCOMPLIANT"><projects>j129</projects><value>לא תואם</value></data>
+<data name="MSG_UNAV"><projects>j129</projects><value>לא זמין</value></data>
+<data name="MSG_ABOUTAV"><projects>j129</projects><value>אודות Avaya</value></data>
+<data name="MSG_NTWKIN"><projects>j129</projects><value>מידע רשת</value></data>
+<data name="AT_NTWKINF"><projects>j129</projects><value>מידע רשת</value></data>
+<data name="MSG_NETWORK_INTERFACES"><projects>j129</projects><value>ממשקי רשת...</value></data>
+<data name="LBL_DSPTIM"><projects>j129</projects><value>שעוני שיחות</value></data>
+<data name="LBL_VISUAL"><projects>j129</projects><value>התראה חזות</value></data>
+<data name="LBL_SPEAKR"><projects>j129</projects><value>רמקול</value></data>
+<data name="LBL_HNDSET"><projects>j129</projects><value>שפופרת</value></data>
+<data name="LBL_NONE"><projects>j129</projects><value>ללא</value></data>
+<data name="LBL_BTNCLK"><projects>j129</projects><value>צלילי מקשים</value></data>
+<data name="LBL_ERRORT"><projects>j129</projects><value>צלילי שגיאה</value></data>
+<data name="LBL_SIPDMN"><projects>j129</projects><value>תחום:</value></data>
+<data name="LBL_PRESENCESRVR"><projects>j129</projects><value>שרת נוכחות:</value></data>
+<data name="LBL_SIPPRXYSRVR"><projects>j129</projects><value>שרת פרוקסי SIP:</value></data>
+<data name="LBL_SNTPSRVR"><projects>j129</projects><value>שרת SNTP:</value></data>
+<data name="LBL_STUNSRVR"><projects>j129</projects><value>שרת STUN:</value></data>
+<data name="LBL_AUTO"><projects>j129</projects><value>אוטומטי</value></data>
+<data name="LBL_AUTO_2"><projects>j129</projects><value>אוטו':</value></data>
+<data name="LBL_HTTPSRVR"><projects>j129</projects><value>שרת HTTP:</value></data>
+<data name="LBL_HTTPSSRVR"><projects>j129</projects><value>שרת HTTPS:</value></data>
+<data name="LBL_DNSSRVR"><projects>j129</projects><value>שרת DNS:</value></data>
+<data name="LBL_EMERGS"><projects>j129</projects><value>מצבי חירום</value></data>
+<data name="LBL_ALERTS"><projects>j129</projects><value>התראות</value></data>
+<data name="LBL_CRITICL"><projects>j129</projects><value>קריטי</value></data>
+<data name="LBL_ERRORS"><projects>j129</projects><value>שגיאות</value></data>
+<data name="LBL_WARNS"><projects>j129</projects><value>אזהרות</value></data>
+<data name="LBL_NOTES"><projects>j129</projects><value>הודעות</value></data>
+<data name="LBL_INFO"><projects>j129</projects><value>מידע</value></data>
+<data name="LBL_DEBUG"><projects>j129</projects><value>Debug</value></data>
+<data name="LBL_MASK"><projects>j129</projects><value>מסיכה:</value></data>
+<data name="LBL_VLANID"><projects>j129</projects><value>זיהוי VLAN:</value></data>
+<data name="LBL_ETHERN"><projects>j129</projects><value>Ethernet:</value></data>
+<data name="LBL_PCENET"><projects>j129</projects><value>PC Ethernet:</value></data>
+<data name="LBL_NETWORK_MODE"><projects>j129</projects><value>מצב רשת:</value></data>
+<data name="LBL_NETWORK_MODE_ETHERNET"><projects>j129</projects><value>Ethernet</value></data>
+<data name="LBL_NETWORK_MODE_WIFI"><projects>j129</projects><value>Wi-Fi</value></data>
+<data name="LBL_10HALF"><projects>j129</projects><value>10 מב"ש חצי</value></data>
+<data name="LBL_10FULL"><projects>j129</projects><value>10 מב"ש מלא</value></data>
+<data name="LBL_100HALF"><projects>j129</projects><value>100 מב"ש חצי</value></data>
+<data name="LBL_100FULL"><projects>j129</projects><value>100 מב"ש מלא</value></data>
+<data name="LBL_MSEC"><projects>j129</projects><value>מ"ש</value></data>
+<data name="LBL_1000FLL"><projects>j129</projects><value>1000 מב"ש מלא</value></data>
+<data name="LBL_RCCODE"><projects>j129</projects><value>קידוד שהתקבל:</value></data>
+<data name="LBL_PKTLOS"><projects>j129</projects><value>אבדן חבילה:</value></data>
+<data name="LBL_PKTD"><projects>j129</projects><value>עיכוב חבילות:</value></data>
+<data name="LBL_1WAYD"><projects>j129</projects><value>השהיית רשת חד כיוונית:</value></data>
+<data name="LBL_NTWKJD"><projects>j129</projects><value>השהיית jitter ברשת:</value></data>
+<data name="LBL_MOSCQ"><projects>j129</projects><value>MOS-CQ</value></data>
+<data name="LBL_MOSLQ"><projects>j129</projects><value>MOS-LQ</value></data>
+<data name="LBL_RFACTOR"><projects>j129</projects><value>גורם R</value></data>
+<data name="LBL_SIGNALLEVEL"><projects>j129</projects><value>רמת אות:</value></data>
+<data name="LBL_SIGNAL_STRENGTH"><projects>j129</projects><value>חוזק אות:</value></data>
+<data name="LBL_SIGNAL_STRENGTH_WEAK"><projects>j129</projects><value>חלש</value></data>
+<data name="LBL_SIGNAL_STRENGTH_FAIR"><projects>j129</projects><value>ממוצע</value></data>
+<data name="LBL_SIGNAL_STRENGTH_STRONG"><projects>j129</projects><value>חזק</value></data>
+<data name="LBL_SIGNAL_STRENGTH_VERYSTRONG"><projects>j129</projects><value>חזק מאוד</value></data>
+<data name="LBL_RNDTRIPDELAY"><projects>j129</projects><value>זמן תגובה RTT</value></data>
+<data name="LBL_LOSSRATE"><projects>j129</projects><value>קצב איבוד מנות</value></data>
+<data name="LBL_802D1Q"><projects>j129</projects><value>802.1Q:</value></data>
+<data name="LBL_VLANT"><projects>j129</projects><value>בדיקת VLAN:</value></data>
+<data name="LBL_L2AUD"><projects>j129</projects><value>אודיו L2:</value></data>
+<data name="LBL_L2SIG"><projects>j129</projects><value>איתות L2:</value></data>
+<data name="LBL_L3AUD"><projects>j129</projects><value>אודיו L3:</value></data>
+<data name="LBL_L3SIG"><projects>j129</projects><value>איתות L3:</value></data>
+<data name="LBL_ETH_L2AUD"><projects>j129</projects><value>שמע Ethernet L2</value></data>
+<data name="LBL_ETH_L2SIG"><projects>j129</projects><value>איתות Ethernet L2</value></data>
+<data name="LBL_ETH_L3AUD"><projects>j129</projects><value>שמע Ethernet L3</value></data>
+<data name="LBL_ETH_L3SIG"><projects>j129</projects><value>איתות Ethernet L3</value></data>
+<data name="LBL_WIFI_L2AUD"><projects>j129</projects><value>שמע Wi-Fi L2</value></data>
+<data name="LBL_WIFI_L2SIG"><projects>j129</projects><value>איתות Wi-Fi L2</value></data>
+<data name="LBL_WIFI_L3AUD"><projects>j129</projects><value>שמע Wi-Fi L3</value></data>
+<data name="LBL_WIFI_L3SIG"><projects>j129</projects><value>איתות Wi-Fi L3</value></data>
+<data name="LBL_MODEL"><projects>j129</projects><value>דגם:</value></data>
+<data name="LBL_PHNSN"><projects>j129</projects><value>מספר סידורי:</value></data>
+<data name="LBL_MACADD"><projects>j129</projects><value>MAC:</value></data>
+<data name="LBL_FIPS_ENABLED"><projects>j129</projects><value>FIPS:</value></data>
+<data name="LBL_FIPS_OP_MODE"><projects>j129</projects><value>מצב FIPS OP:</value></data>
+<data name="LBL_FIPS_EXCEPTIONS"><projects>j129</projects><value>חריגים ב-FIPS:</value></data>
+<data name="LBL_GROUP"><projects>j129</projects><value>קבוצה:</value></data>
+<data name="LBL_PROTOC"><projects>j129</projects><value>פרוטוקול:</value></data>
+<data name="LBL_SOFTWAREVERSION"><projects>j129</projects><value>גרסת SW:</value></data>
+<data name="LBL_BACKUPSWVERSION"><projects>j129</projects><value>גיבוי לגרסה SW:</value></data>
+<data name="LBL_PASSTH"><projects>j129</projects><value>במעבר</value></data>
+<data name="LBL_SUPPLC"><projects>j129</projects><value>מבקש</value></data>
+<data name="LBL_RESTRICTED"><projects>j129</projects><value>מוגבל</value></data>
+<data name="LBL_LOGCAT"><projects>j129</projects><value>קטגוריות תיעוד...</value></data>
+<data name="LBL_DEVID"><projects>j129</projects><value>מזהה מכשיר:</value></data>
+<data name="LBL_ONWTPXYLGOF"><projects>j129</projects><value>יציאה</value></data>
+<data name="LBL_SUPMULTIPROC"><projects>j129</projects><value>שידור מרובב</value></data>
+<data name="LBL_MULTIPT"><projects>j129</projects><value>במעבר</value></data>
+<data name="LBL_PXYLGOF"><projects>j129</projects><value>יציאה מפרוקסי</value></data>
+<data name="LBL_UNASSGND"><projects>j129</projects><value>ללא הקצאה</value></data>
+<data name="Call-Forward-Busy"><projects>j129</projects><value>העברת שיחה-תפוס</value></data>
+<data name="Call-Forward-No-Answer"><projects>j129</projects><value>העברת שיחה-אין תשובה</value></data>
+<data name="LBL_REALM"><projects>j129</projects><value>תחום:</value></data>
+<data name="LBL_NUMBERWC"><projects>j129</projects><value>מספר:</value></data>
+<data name="LBL_NAMEWC"><projects>j129</projects><value>שם:</value></data>
+<data name="LBL_REGPOLICY"><projects>j129</projects><value>מדינ' הרשמה</value></data>
+<data name="LBL_FAILBACKPOLICY"><projects>j129</projects><value>מדינ' כשל</value></data>
+<data name="LBL_PERSONALIZE_RINGING_CALL_PARK"><projects>j129</projects><value>חניית שיחה</value></data>
+<data name="LBL_LIGHTOFF"><projects>j129</projects><value>כיבוי אור</value></data>
+<data name="LBL_CLASSICTONE"><projects>j129</projects><value>צליל קלאסי</value></data>
+<data name="LBL_CLNSCR"><projects>j129</projects><value>ניקוי מסך מגע</value></data>
+<data name="LBL_ADBLE"><projects>j129</projects><value>קולית</value></data>
+<data name="LBL_VSUL"><projects>j129</projects><value>חזותית</value></data>
+<data name="LBL_BOTH"><projects>j129</projects><value>גם וגם</value></data>
+<data name="LBL_PROCESSING"><projects>j129</projects><value>מעבד</value></data>
+<data name="LBL_SHORT"><projects>j129</projects><value>קצרה</value></data>
+<data name="LBL_MUTEALERT"><projects>j129</projects><value>התראת השתקה</value></data>
+<data name="LBL_DEFAULT"><projects>j129</projects><value>ב. מחדל</value></data>
+<data name="LBL_SNOCALL"><projects>j129</projects><value>אין ש'</value></data>
+<data name="LBL_RICHTONE_CHEERFUL"><projects>j129</projects><value>שמח</value></data>
+<data name="LBL_RICHTONE_CHIMES"><projects>j129</projects><value>דנדון</value></data>
+<data name="LBL_RICHTONE_TELEPHONE_BELL"><projects>j129</projects><value>צלצול טלפון</value></data>
+<data name="LBL_RICHTONE_XYLOPHONE"><projects>j129</projects><value>קסילופון</value></data>
+<data name="LBL_RICHTONE_DRUM_BEAT"><projects>j129</projects><value>מכת תוף</value></data>
+<data name="LBL_RICHTONE_SHIMMER"><projects>j129</projects><value>נצנוץ</value></data>
+<data name="LBL_SIP_PROXY_SERVER"><projects>j129</projects><value>שרת SIP Proxy</value></data>
+<data name="LBL_REASON_CFI"><projects>j129</projects><value>CFI</value></data>
+<data name="LBL_REASON_CFB"><projects>j129</projects><value>CFB</value></data>
+<data name="LBL_REASON_CFNR"><projects>j129</projects><value>CFNR</value></data>
+<data name="LBL_REASON_SAC"><projects>j129</projects><value>שלח את כל השיחות</value></data>
+<data name="LBL_PROFILE"><projects>j129</projects><value>פרופיל %d</value></data>
+<data name="LBL_HNPROF"><projects>j129</projects><value>פרופיל שפופרת</value></data>
+<data name="LBL_HNPROF_NORMAL"><projects>j129</projects><value>רגיל</value></data>
+<data name="LBL_HNPROF_AMPLIFIED"><projects>j129</projects><value>מוגבר</value></data>
+<data name="LBL_HNPROF_HEARING_AID"><projects>j129</projects><value>מכשיר שמיעה</value></data>
+<data name="OPT_REGPOLICY_ALTERNATE"><projects>j129</projects><value>לסירוגין</value></data>
+<data name="OPT_REGPOLICY_SIMULTANEOUS"><projects>j129</projects><value>בוזמני</value></data>
+<data name="OPT_FAILBACKPOLICY_ADMIN"><projects>j129</projects><value>מ. מערכת</value></data>
+<data name="OPT_FAILBACKPOLICY_AUTO"><projects>j129</projects><value>אוטומטי</value></data>
+<data name="LBL_CURRENT_LANG"><projects>j129</projects><value>שפה...</value></data>
+<data name="LBL_CONTACTS"><projects>j129</projects><value>א. קשר</value></data>
+<data name="LBL_DESTINATION"><projects>j129</projects><value>יעד:</value></data>
+<data name="LBL_EXTENSION"><projects>j129</projects><value>שלוחה:</value></data>
+<data name="LBL_LINKSPEED"><projects>j129</projects><value>מהירות קישור:</value></data>
+<data name="LBL_IPADDRESS"><projects>j129</projects><value>כתובת IP:</value></data>
+<data name="LBL_SECURITY"><projects>j129</projects><value>אבטחה:</value></data>
+<data name="LBL_SECURITY_SHORTENED"><projects>j129</projects><value>שנ':</value></data>
+<data name="LBL_EAP_METHOD"><projects>j129</projects><value>EAP:</value></data>
+<data name="LBL_PHASE2AUTHENTICATION"><projects>j129</projects><value>אימות שלב 2:</value></data>
+<data name="LBL_IDENTITY"><projects>j129</projects><value>זהות:</value></data>
+<data name="LBL_ANONYMOUS_IDENTITY"><projects>j129</projects><value>אנונימי:</value></data>
+<data name="LBL_UNKNOWN"><projects>j129</projects><value>לא ידוע</value></data>
+<data name="LBL_PROXYSELECTIONPOLICY"><projects>j129</projects><value>מדיניות פרוקסי</value></data>
+<data name="OPT_PROXYPOLICY_AUTO"><projects>j129</projects><value>אוטומטי</value></data>
+<data name="OPT_PROXYPOLICY_MANUAL"><projects>j129</projects><value>ידני</value></data>
+<data name="LBL_PRESENCE_SETTINGS"><projects>j129</projects><value>הגדרות נוכחות...</value></data>
+<data name="LBL_NETWORK"><projects>j129</projects><value>רשת</value></data>
+<data name="LBL_AWAY_TIMER_VALUE"><projects>j129</projects><value>משך טיימר</value></data>
+<data name="LBL_VOICEMAIL"><projects>j129</projects><value>הודעה קולית</value></data>
+<data name="LBL_OPENSSL_VER"><projects>j129</projects><value>גרסת OpenSSL:</value></data>
+<data name="LBL_OPENSSH_VER"><projects>j129</projects><value>גרסת OpenSSH:</value></data>
+<data name="LBL_DATE_FORMAT"><projects>j129</projects><value>תבנית תאריך</value></data>
+<data name="LBL_DATE_FMTOPT_DEFAULT"><projects>j129</projects><value>ב. מחדל</value></data>
+<data name="LBL_DATE_FMTOPT_1"><projects>j129</projects><value>חח/יי</value></data>
+<data name="LBL_DATE_FMTOPT_2"><projects>j129</projects><value>יי/חח</value></data>
+<data name="LBL_DATE_FMTOPT_3"><projects>j129</projects><value>חח.יי</value></data>
+<data name="LBL_DATE_FMTOPT_4"><projects>j129</projects><value>יי.חח</value></data>
+<data name="LBL_DATE_FMTOPT_5"><projects>j129</projects><value>חח-יי</value></data>
+<data name="LBL_DATE_FMTOPT_6"><projects>j129</projects><value>יי-חח</value></data>
+<data name="LBL_DATE_FMTOPT_7"><projects>j129</projects><value>חחח יי</value></data>
+<data name="LBL_JAN_SHORT"><projects>j129</projects><value>ינואר</value></data>
+<data name="LBL_FEB_SHORT"><projects>j129</projects><value>פברואר</value></data>
+<data name="LBL_MAR_SHORT"><projects>j129</projects><value>מרץ</value></data>
+<data name="LBL_APR_SHORT"><projects>j129</projects><value>אפריל</value></data>
+<data name="LBL_MAY_SHORT"><projects>j129</projects><value>מאי</value></data>
+<data name="LBL_JUN_SHORT"><projects>j129</projects><value>יוני</value></data>
+<data name="LBL_JUL_SHORT"><projects>j129</projects><value>יולי</value></data>
+<data name="LBL_AUG_SHORT"><projects>j129</projects><value>אוגוסט</value></data>
+<data name="LBL_SEP_SHORT"><projects>j129</projects><value>ספטמבר</value></data>
+<data name="LBL_OCT_SHORT"><projects>j129</projects><value>אקטובר</value></data>
+<data name="LBL_NOV_SHORT"><projects>j129</projects><value>נובמבר</value></data>
+<data name="LBL_DEC_SHORT"><projects>j129</projects><value>דצמבר</value></data>
+<data name="LBL_VERIFYING_CREDENTIALS"><projects>j129</projects><value>אימות הרשאות</value></data>
+<data name="LBL_CERT_PWD"><projects>j129</projects><value>ססמת הר':</value></data>
+<data name="LBL_PROXY"><projects>j129</projects><value>Proxy:</value></data>
+<data name="LBL_ADDRESS"><projects>j129</projects><value>כתובת</value></data>
+<data name="LBL_EMPTY_SIP_PROXY_LIST"><projects>j129</projects><value>רשימת SIP פרוקסי ריקה</value></data>
+<data name="LBL_INACTIVE"><projects>j129</projects><value>לא פעיל</value></data>
+<data name="LBL_ACCESS_CODE"><projects>j129</projects><value>קוד גישה:</value></data>
+<data name="LBL_CERTI"><projects>j129</projects><value>הרשאה</value></data>
+<data name="LBL_CERTIEXPIRY"><projects>j129</projects><value>תפוגה</value></data>
+<data name="LBL_MISSING"><projects>j129</projects><value>ש' שלא נענו</value></data>
+<data name="LBL_EXPIRED"><projects>j129</projects><value>פג תוקף</value></data>
+<data name="LBL_SERIAL_PORT"><projects>j129</projects><value>יציאה טורית</value></data>
+<data name="LBL_PORT_MIRRORING"><projects>j129</projects><value>שיקוף פורט</value></data>
+<data name="LBL_ADJUNCT"><projects>j129</projects><value>התקן חצוני</value></data>
+<data name="LBL_SENT_RECEIVED"><projects>j129</projects><value>נשלח: %d / התקבל: %d</value></data>
+<data name="LBL_WAIT_CONTACTING_HOST"><projects>j129</projects><value>יוצר קשר עם השרת...</value></data>
+<data name="LBL_UNABLE_TO_CONTACT_HOST"><projects>j129</projects><value>התקשרות לשרת נכשלה</value></data>
+<data name="LBL_SUCCESS_CONTACT_HOST"><projects>j129</projects><value>Ping הצליח</value></data>
+<data name="LBL_NO_FINGERPRINT"><projects>j129</projects><value>אין טביעת אצבע</value></data>
+<data name="LBL_VERSION_NUMBER"><projects>j129</projects><value>גירסה:</value></data>
+<data name="LBL_UPGRADE_DATE"><projects>j129</projects><value>תאריך שדרוג:</value></data>
+<data name="LBL_UPGRADE_STATUS"><projects>j129</projects><value>מצב שדרוג:</value></data>
+<data name="LBL_REASON_CODE"><projects>j129</projects><value>קוד סיבה:</value></data>
+<data name="LBL_FILENAME"><projects>j129</projects><value>שם קובץ:</value></data>
+<data name="LBL_USER"><projects>j129</projects><value>משתמש:</value></data>
+<data name="LBL_LOGIN"><projects>j129</projects><value>כניסה למערכת</value></data>
+<data name="LBL_LOGOUT"><projects>j129</projects><value>יציאה</value></data>
+<data name="LBL_LOCK"><projects>j129</projects><value>נעילה</value></data>
+<data name="LBL_ADMIN_SETTINGS"><projects>j129</projects><value>מנהל מערכת</value></data>
+<data name="LBL_ABOUT_PHONE"><projects>j129</projects><value>אודות טלפון שולחני IP</value></data>
+<data name="LBL_RESTORE"><projects>j129</projects><value>שחזור</value></data>
+<data name="SK_RESTORE"><projects>j129</projects><value>שחזר</value></data>
+<data name="LBL_RECENTS"><projects>j129</projects><value>אחרונות</value></data>
+<data name="LBL_UPGRADE_INFO"><projects>j129</projects><value>פרטי שידרוג</value></data>
+<data name="LBL_SSH"><projects>j129</projects><value>SSH</value></data>
+<data name="LBL_CLI"><projects>j129</projects><value>CLI</value></data>
+<data name="LBL_SVC_CONTROL"><projects>j129</projects><value>בקרת שירות</value></data>
+<data name="LBL_SVC_RECORD"><projects>j129</projects><value>תיעוד שרות</value></data>
+<data name="LBL_ROUTER"><projects>j129</projects><value>שער:</value></data>
+<data name="LBL_ROUTERV4"><projects>j129</projects><value>שער (V4):</value></data>
+<data name="LBL_ROUTERV6"><projects>j129</projects><value>שער (V6):</value></data>
+<data name="LBL_ROUTERV6PREFIX"><projects>j129</projects><value>קידומות...</value></data>
+<data name="LBL_MULTICAST"><projects>j129</projects><value>ש' מרובב</value></data>
+<data name="LBL_UNICAST"><projects>j129</projects><value>חד-נתיב</value></data>
+<data name="LBL_GENREPORT"><projects>j129</projects><value>מפיק דו"ח...</value></data>
+<data name="LBL_COULD_NOT_CREATE_REPORT"><projects>j129</projects><value>לא ניתן להפיק דוח</value></data>
+<data name="LBL_REPORT_IS_SENT"><projects>j129</projects><value>הדוח נשלח</value></data>
+<data name="LBL_REPORT_IS_SAVED"><projects>j129</projects><value>הדוח נשמר בטלפון</value></data>
+<data name="OPT_AVENV_AUTO"><projects>j129</projects><value>אוטו'</value></data>
+<data name="OPT_AVENV_NO"><projects>j129</projects><value>לא</value></data>
+<data name="LBL_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>לא הוגדרו תכונות</value></data>
+<data name="LBL_PHONEREPORT"><projects>j129</projects><value>דוח טלפון</value></data>
+<data name="LBL_SUCCESSFUL"><projects>j129</projects><value>הצליח</value></data>
+<data name="LBL_FAILED"><projects>j129</projects><value>נכשל</value></data>
+<data name="LBL_MY_TIME"><projects>j129</projects><value>הזמן שלי:</value></data>
+<data name="LBL_NO_CALLS_TO_DISPLAY"><projects>j129</projects><value>אין שיחות להצגה</value></data>
+<data name="LBL_HTTPPORT"><projects>j129</projects><value>פורט HTTP:</value></data>
+<data name="LBL_HTTPDIR"><projects>j129</projects><value>ספרית HTTP:</value></data>
+<data name="LBL_HTTPSPORT"><projects>j129</projects><value>פורט HTTPS:</value></data>
+<data name="LBL_HTTPSDIR"><projects>j129</projects><value>ספרית HTTPS:</value></data>
+<data name="LBL_KBPS"><projects>j129</projects><value>קב"ש</value></data>
+<data name="LBL_DBM"><projects>j129</projects><value>dBm</value></data>
+<data name="LBL_AUTOANSWER"><projects>j129</projects><value>מענה אוטומטי</value></data>
+<data name="LBL_PHONE_TO_PC_PAIRING"><projects>j129</projects><value>צימוד טלפון למחשב</value></data>
+<data name="LBL_DEVICE_PAIRING"><projects>j129</projects><value>צימוד התקן</value></data>
+<data name="LBL_PAIRING_STATUS"><projects>j129</projects><value>מצב צימוד:</value></data>
+<data name="LBL_PAIRING_IN_PROGRESS"><projects>j129</projects><value>צימוד מתבצע...</value></data>
+<data name="LBL_WAITING_FOR_CREDENTIALS"><projects>j129</projects><value>ממתין לפרטי משתמש...</value></data>
+<data name="LBL_BACKUP_RESTORE"><projects>j129</projects><value>גיבוי/שחזור</value></data>
+<data name="LBL_MANUAL_RESTORE"><projects>j129</projects><value>שחזור ידני</value></data>
+<data name="LBL_MANUAL_BACKUP"><projects>j129</projects><value>גיבוי ידני</value></data>
+<data name="LBL_IP_ADDRESS_HINT"><projects>j129</projects><value>כתובת IP</value></data>
+<data name="LBL_NICKNAME"><projects>j129</projects><value>כינוי</value></data>
+<data name="LBL_ADD_NUMBER"><projects>j129</projects><value>הוסף מספר</value></data>
+<data name="LBL_DEFAULT_RINGTONE"><projects>j129</projects><value>צליל ברירת מחדל</value></data>
+<data name="LBL_SYSTEM_RINGTONE"><projects>j129</projects><value>מערכת</value></data>
+<data name="LBL_ERROR"><projects>j129</projects><value>שגיאה</value></data>
+<data name="LBL_NETWORK_CONFIG"><projects>j129</projects><value>הגדרת רשת:</value></data>
+<data name="LBL_ETHERNET_MAC"><projects>j129</projects><value>Ethernet MAC</value></data>
+<data name="LBL_WIFI_MAC"><projects>j129</projects><value>Wi-Fi MAC</value></data>
+<data name="LBL_ENTER_CODE"><projects>j129</projects><value>הזן קוד</value></data>
+<data name="LBL_ENTER_ENROLLMENT_CODE"><projects>j129</projects><value>הזן קוד רישום</value></data>
+<data name="LBL_RING_REMINDER"><projects>j129</projects><value>תזכורת צלצול</value></data>
+<data name="LBL_CALL_FWD_ALWAYS"><projects>j129</projects><value>העברת שיחה</value></data>
+<data name="LBL_ANSWER"><projects>j129</projects><value>ענה</value></data>
+<data name="LBL_CALL_PARK"><projects>j129</projects><value>חניית שיחה</value></data>
+<data name="LBL_NO_CONFIGURABLE_FEATURES"><projects>j129</projects><value>אין תכונות להגדרה</value></data>
+<data name="LBL_SETTINGS_NOT_ACCESSIBLE"><projects>j129</projects><value>אין גישה להגדרות</value></data>
+<data name="LBL_CALL_FWD_NO_ANSWER"><projects>j129</projects><value>העבר שחה ללא מענה</value></data>
+<data name="LBL_NUMBER_OF_RINGS"><projects>j129</projects><value>מס' צלצולים</value></data>
+<data name="LBL_SIP_CONTROLLERS"><projects>j129</projects><value>בקרי SIP</value></data>
+<data name="LBL_SIP_CONTROLLERS_2"><projects>j129</projects><value>בקרי SIP...</value></data>
+<data name="LBL_SIP_CONTROLLER_DETAILS"><projects>j129</projects><value>פרטי בקר SIP</value></data>
+<data name="LBL_HOST_NAME"><projects>j129</projects><value>שם השרת</value></data>
+<data name="LBL_PORT"><projects>j129</projects><value>יציאה</value></data>
+<data name="LBL_USER_DOMAIN"><projects>j129</projects><value>תחום משתמש</value></data>
+<data name="LBL_STATUS"><projects>j129</projects><value>סטטוס</value></data>
+<data name="LBL_NOT_ACTIVE"><projects>j129</projects><value>לא פעיל</value></data>
+<data name="LBL_PRIORITY"><projects>j129</projects><value>עדיפות</value></data>
+<data name="LBL_PRIMARY"><projects>j129</projects><value>ראשי</value></data>
+<data name="LBL_SECONDARY"><projects>j129</projects><value>משני</value></data>
+<data name="LBL_EXPERIENCING_DELAYS"><projects>j129</projects><value>קיימים עיכובים...</value></data>
+<data name="LBL_NOT_CONFIGURED"><projects>j129</projects><value>לא מוגדר</value></data>
+<data name="LBL_LINE"><projects>j129</projects><value>קו/יציאה:</value></data>
+<data name="LBL_AUTHNAME"><projects>j129</projects><value>שם אימות:</value></data>
+<data name="LBL_XSI_WEB_PASSWORD"><projects>j129</projects><value>סיסמת אתר</value></data>
+<data name="LBL_XSI_AUTH_METHOD"><projects>j129</projects><value>שיטת אימות</value></data>
+<data name="LBL_XSI_USER_ID"><projects>j129</projects><value>מזהה משתמש:</value></data>
+<data name="LBL_XSI_AUTHENTICATION"><projects>j129</projects><value>כניסת XSI</value></data>
+<data name="LBL_SIP_SERVER_DETAILS"><projects>j129</projects><value>פרטי שרת SIP</value></data>
+<data name="LBL_SIP_SERVERS"><projects>j129</projects><value>שרתי SIP</value></data>
+<data name="LBL_PROTOCOL"><projects>j129</projects><value>פרוטוקול</value></data>
+<data name="LBL_LONG_LONG_DOUBLE"><projects>j129</projects><value>ארוך ארוך כפול</value></data>
+<data name="LBL_SHORT_SHORT_LONG"><projects>j129</projects><value>קצר קצר ארוך</value></data>
+<data name="LBL_SHORT_LONG_SHORT"><projects>j129</projects><value>קצר ארוך קצר</value></data>
+<data name="LBL_AUDIO_BUTTON"><projects>j129</projects><value>כפתור שמע</value></data>
+<data name="LBL_SELECT_A_CALL_TO_PARK"><projects>j129</projects><value>בחר שיחה לחנייה</value></data>
+<data name="LBL_GROUP_ID"><projects>j129</projects><value>מזהה קבוצה</value></data>
+<data name="LBL_DEPARTMENT"><projects>j129</projects><value>מחלקה</value></data>
+<data name="LBL_EMAIL_ADDRESS"><projects>j129</projects><value>כתובת דוא"ל</value></data>
+<data name="LBL_ZIP_CODE"><projects>j129</projects><value>מיקוד</value></data>
+<data name="LBL_COUNTRY"><projects>j129</projects><value>מדינה</value></data>
+<data name="LBL_ALERTING_ON_CALLS"><projects>j129</projects><value>מתריע על שיחות</value></data>
+<data name="LBL_BEACON_LED"><projects>j129</projects><value>מחוון LED</value></data>
+<data name="LBL_SERVER_TYPE_J129"><projects>j129</projects><value>סוג שרת:</value></data>
+<data name="LBL_GENERIC_SIP"><projects>j129</projects><value>SIP גנרי</value></data>
+<data name="LBL_DEVICE_TYPE"><projects>j129</projects><value>סוג התקן</value></data>
+<data name="LBL_UPDATE"><projects>j129</projects><value>עדכון</value></data>
+<data name="LBL_PAGING"><projects>j129</projects><value>הודעה</value></data>
+<data name="LBL_PAGE_FROM"><projects>j129</projects><value>הודעה מ</value></data>
+<data name="LBL_PRODUCT_ID"><projects>j129</projects><value>מזהה מוצר</value></data>
+<data name="LBL_GET_UPDATES"><projects>j129</projects><value>קבל עדכונים</value></data>
+<data name="LBL_LAST_UPDATE"><projects>j129</projects><value>עדכון אחרון</value></data>
+<data name="LBL_CALL_COMPLETED_ELSEWHERE"><projects>j129</projects><value>השיחה הושלמה במקום אחר</value></data>
+<data name="LBL_INVALID_PIN"><projects>j129</projects><value>קוד לא חוקי</value></data>
+<data name="LBL_ATTEMPT_N_OF_M"><projects>j129</projects><value>ניסיון %d מתוך %d</value></data>
+<data name="LBL_PIN"><projects>j129</projects><value>קוד:</value></data>
+<data name="LBL_PAGE_VALUE"><projects>j129</projects><value>הודעה: %s</value></data>
+<data name="LBL_CALL_FORWARD_DELAY"><projects>j129</projects><value>עכב העברה</value></data>
+<data name="LBL_USERNAME_HINT"><projects>j129</projects><value>שם משתמש</value></data>
+<data name="LBL_PASSWORD_HINT"><projects>j129</projects><value>סיסמה</value></data>
+<data name="LBL_HTTP"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTP_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_DNS"><projects>j129</projects><value></value></data>
+<data name="LBL_SNTP"><projects>j129</projects><value></value></data>
+<data name="LBL_IP_OR_FQDN_HINT"><projects>j129</projects><value>יציאת :IP או יציאת :‏FQDN</value></data>
+<data name="LBL_SECURE_SYSLOG"><projects>j129</projects><value>שרת הלוגים מאובטח</value></data>
+<data name="LBL_AUTOMATIC_UPDATE"><projects>j129</projects><value>עדכון אוטומטי</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_POLICY"><projects>j129</projects><value>מדיניות עדכונים אוטומטית</value></data>
+<data name="LBL_NEXT_UPDATE"><projects>j129</projects><value>העדכון הבא</value></data>
+<data name="LBL_LAST_UPGRADE"><projects>j129</projects><value>שדרוג אחרון</value></data>
+<data name="LBL_DISABLED"><projects>j129</projects><value>כבוי</value></data>
+<data name="LBL_WEEKLY"><projects>j129</projects><value>שבועי</value></data>
+<data name="LBL_DAILY"><projects>j129</projects><value>יומי</value></data>
+<data name="LBL_MONTHLY"><projects>j129</projects><value>חודשי</value></data>
+<data name="LBL_UPDATE_INFO"><projects>j129</projects><value>פרטי עדכון</value></data>
+<data name="LBL_UPDATE_STATUS"><projects>j129</projects><value>סטטוס</value></data>
+<data name="LBL_UPDATE_POLICY"><projects>j129</projects><value>מדיניות</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_DAYS"><projects>j129</projects><value>עדכן ימים</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_TIME_OF_DAY"><projects>j129</projects><value>שעת ביצוע העדכון</value></data>
+<data name="LBL_PROMPT_ON_UPGRADE"><projects>j129</projects><value>הנחיה על שדרוג</value></data>
+<data name="LBL_USER_CODE"><projects>j129</projects><value>קוד משתמש:</value></data>
+<data name="LBL_DOT1X_AUTHENTICATION_METHODS"><projects>j129</projects><value>שיטת אימות</value></data>
+<data name="LBL_AADS_CONFIG"><projects>j129</projects><value>תצורת AADS</value></data>
+
+
+<!--POP UP BOX Strings-->
+
+<data name="MSG_DISCINPROG"><projects>j129</projects><value>גלה %s</value></data>
+<data name="MSG_SRVRLKFAILED"><projects>j129</projects><value>הקשר לשרת נותק...</value></data>
+<data name="LBL_CLRALENT"><projects>j129</projects><value>למחוק את כל הרשומות?</value></data>
+<data name="LBL_RUSURE"><projects>j129</projects><value>האם אתה בטוח?</value></data>
+<data name="MSG_AUTHFAIL"><projects>j129</projects><value>האימות נכשל.</value></data>
+<data name="MSG_ALERT_J100"><projects>j129</projects><value>התראת שמע נכנס</value></data>
+<data name="MSG_ABTAVAYA"><projects>j129</projects><value>טלפון שולחני IP
+של Avaya
+ גרסת SIP‏ %s
+%s
+Avaya Inc. 2023 ©</value></data>
+<data name="MSG_UNREG_LOGOUT"><projects>j129</projects><value>התקן אחר נכנס לשלוחה זו.</value></data>
+<data name="MSG_LOGOUT"><projects>j129</projects><value>יוצא...</value></data>
+<data name="MSG_DELETE_CONTACT"><projects>j129</projects><value>למחוק את איש הקשר?</value></data>
+<data name="MSG_CERT_WARNING"><projects>j129</projects><value>תוקף אישור הזהות %s יפוג עוד %d ימים</value></data>
+<data name="MSG_CERT_EXPIRED"><projects>j129</projects><value>תוקף אישור הזהות %s פג</value></data>
+<data name="MSG_ADMIN_MENU_LOCK"><projects>j129</projects><value>תפריט מנהל המערכת נעול</value></data>
+<data name="MSG_MERGE_CALLS"><projects>j129</projects><value>למזג שיחות?</value></data>
+<data name="MSG_TRANSF_CALL_ON_HOLD"><projects>j129</projects><value>להעביר לשיחה מוחזקת?</value></data>
+<data name="MSG_MAKE_EMERGENCY_CALL"><projects>j129</projects><value>לבצע שיחת חירום?</value></data>
+<data name="MSG_WAITING_FOR_8021X"><projects>j129</projects><value>מחכה לאימות 802.1X
+...</value></data>
+<data name="MSG_DELETE_SIP_PROXY"><projects>j129</projects><value>למחוק שרת פרוקסי SIP?</value></data>
+<data name="MSG_WAITING_FOR_DHCP"><projects>j129</projects><value>מחכה ל- DHCP...</value></data>
+<data name="MSG_BOOT_ERROR"><projects>j129</projects><value>שגיאת אתחול...</value></data>
+<data name="MSG_CLEAR_SPEED_DIAL"><projects>j129</projects><value>לנקות חיוג מהיר זה?</value></data>
+<data name="MSG_REPLACE_SPEED_DIAL"><projects>j129</projects><value>להחליף חיוג מהיר זה?</value></data>
+<data name="MSG_LOGOUT_CONFIRMATION"><projects>j129</projects><value>האם ברצונך לצאת?</value></data>
+<data name="MSG_RESET_VALUES_CONFIRMATION"><projects>j129</projects><value>לנקות ולאפס את הטלפון?</value></data>
+<data name="MSG_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>להפעיל מחדש את הטלפון?</value></data>
+<data name="MSG_ACTIVE_CALL_LOGOUT_CONFIRMATION"><projects>j129</projects><value>היציאה תפסיק שיחות פעילות</value></data>
+<data name="MSG_CONFIG_PROV_SERVER"><projects>j129</projects><value>הגדרות שרת הקצאות</value></data>
+<data name="MSG_ENTER_PROV_SERV"><projects>j129</projects><value>הזן את פרטי ההקצאה</value></data>
+<data name="MSG_ENTER_PROV_SERVER"><projects>j129</projects><value>הזן את פרטי ההקצאה</value></data>
+<data name="MSG_INVALID_INPUT"><projects>j129</projects><value>קלט לא תקין</value></data>
+<data name="MSG_CONNECTION_ERROR"><projects>j129</projects><value>שגיאת התחברות</value></data>
+<data name="MSG_CONNECTION_VERIFY"><projects>j129</projects><value>מאמת חיבור...</value></data>
+<data name="MSG_PHONE_REPORT_GENERATED"><projects>j129</projects><value>מפיק דו"ח...</value></data>
+<data name="MSG_PAIRING_FAILED"><projects>j129</projects><value>צימוד למחשב נכשל. לנסות שוב?</value></data>
+<data name="MSG_START_PAIRING"><projects>j129</projects><value>להתחיל צימוד למחשב?</value></data>
+<data name="MSG_PRESS_CONFIRM_IF_SAME"><projects>j129</projects><value>לחץ על 'אישור' אם המילים המוצגות זהות לאלו במחשב</value></data>
+<data name="MSG_BACKUP_SUCCESSFUL"><projects>j129</projects><value>הגיבוי הסתיים בהצלחה.</value></data>
+<data name="MSG_BACKUP_FAIL"><projects>j129</projects><value>הגיבוי נכשל.</value></data>
+<data name="MSG_RETRIEVAL_SUCCESSFUL"><projects>j129</projects><value>האחזור הצליח.</value></data>
+<data name="MSG_RETRIEVAL_FAIL"><projects>j129</projects><value>האחזור נכשל.</value></data>
+<data name="MSG_BACKUP_IN_PROGRESS"><projects>j129</projects><value>מבצע גיבוי</value></data>
+<data name="MSG_RETRIEVAL_IN_PROGRESS"><projects>j129</projects><value>מבצע אחזור</value></data>
+<data name="MSG_FILE_OBTAINED_PLEASE_WAIT"><projects>j129</projects><value>הקובץ נמצא, נא המתן</value></data>
+<data name="MSG_RECENTS_EXTENSION_RESTRICTED"><projects>j129</projects><value>שלוחת המתקשר מוגבלת</value></data>
+<data name="MSG_RECENTS_NO_IDLE_CALL"><projects>j129</projects><value>אין תצוגות של שיחות מושבתות</value></data>
+<data name="MSG_ANOTHER_USER_LOGGED_IN"><projects>j129</projects><value>המשתמש כבר מחובר בהתקן אחר.</value></data>
+<data name="MSG_WAITING_FOR_AUTHENTICATION"><projects>j129</projects><value>ממתין לאימות...</value></data>
+<data name="MSG_WBPSWD_RESET_DEFAULT_CONFIRMATION"><projects>j129</projects><value>לאפס לברירת המחדל?</value></data>
+<data name="MSG_WEBPASSWD_RESET_CONFIRMATION"><projects>j129</projects><value>לאפס לברירת המחדל?</value></data>
+<data name="MSG_CERTIFICATE_ERROR"><projects>j129</projects><value>הרשאה שגויה</value></data>
+<data name="MSG_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>המספר %s כבר קיים עבור %s</value></data>
+<data name="MSG_FIPS_SELFTEST_FAILED"><projects>j129</projects><value>בדיקת FIPS עצמית נכשלה</value></data>
+<data name="MSG_CUSTOMIZATION_NOT_AVAILABLE"><projects>j129</projects><value>ההתאמה האישית אינה זמינה כרגע.</value></data>
+<data name="MSG_WIFI_SERVICE_NOT_RUNNING"><projects>j129</projects><value>שירות Wi-Fi נכשל</value></data>
+<data name="MSG_PHONE_OPERATIONS_DISABLED"><projects>j129</projects><value>הטלפון לא עובד בזמן השימוש בתפריט זה</value></data>
+<data name="MSG_XSI_CONNECTION_FAILED"><projects>j129</projects><value>חיבור XSI נכשל.
+התפריט ייסגר.</value></data>
+<data name="MSG_NHC_CONNECTING"><projects>j129</projects><value>מתחבר ל-%s</value></data>
+<data name="MSG_NHC_INVALID_NUM"><projects>j129</projects><value>המספר שחויג אינו תקין</value></data>
+<data name="MSG_NHC_PARTY_UNAVAILABLE"><projects>j129</projects><value>המשתתף %s אינו זמין</value></data>
+<data name="MSG_NHC_PARTY_BUSY"><projects>j129</projects><value>המשתתף %s תפוס</value></data>
+<data name="MSG_NHC_DENIED"><projects>j129</projects><value>שיחת  הוועידה נדחתה</value></data>
+<data name="MSG_AUTO_DISCOVERY_SUCCESSFUL"><projects>j129</projects><value>הגילוי האוטומטי הושלם</value></data>
+<data name="MSG_AUTO_DISCOVERY_FAILED_INVALID_CFG"><projects>j129</projects><value>הגילוי האוטומטי נכשל</value></data>
+<data name="MSG_DISCOVERY_NO_RESPONSE"><projects>j129</projects><value>הגילוי האוטומטי נכשל</value></data>
+<data name="MSG_WAITING_FOR_CONFIG"><projects>j129</projects><value>ממתין לתצורה</value></data>
+<data name="MSG_GET_UPDATES_CONFIRMATION"><projects>j129</projects><value>עדכון עלול לגרור אתחול</value></data>
+<data name="MSG_PROV_SERVER_NOT_REACHED"><projects>j129</projects><value>החיבור לשרת נכשל</value></data>
+<data name="MSG_PROV_SERVER_NO_SETTINGS"><projects>j129</projects><value>אין הגדרות תצורה בשרת.</value></data>
+<data name="MSG_UNREG_LOGOUT_LONG"><projects>j129</projects><value>התקן אחר נכנס לשלוחה זו. להמשך השימוש בשלוחה זו הקש על 'המשך'.</value></data>
+<data name="MSG_FORCED_LOGOUT_BY_MAX_USER_LOGIN"><projects>j129</projects><value>לחץ על 'המשך' לחידוש שירות הטלפון.</value></data>
+<data name="MSG_AUTH_REQUIRED"><projects>j129</projects><value>נדרש אימות</value></data>
+<data name="MSG_AUTOUPDATE_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>יש קושחה חדשה זמינה, לאתחל את הטלפון כדי להחיל את השינויים?</value></data>
+<data name="MSG_MYCERT_RENEWAL_FAILURE"><projects>j129</projects><value>חידוש אישור %s: נכשל</value></data>
+<data name="MSG_SPACES_LOGOUT_CONFIRMATION"><projects>j129</projects><value>האם ברצונך לצאת ממערכת 
+Avaya Spaces?</value></data>
+<data name="MSG_SSO_CONNECTING_TO_CONFIG_SERVER"><projects>j129</projects><value>מתחבר לשירות קביעת התצורה...</value></data>
+<data name="MSG_SSO_CONNECTING_TO_AUTHORIZATION_SERVER"><projects>j129</projects><value>מתחבר לשירות האישור...</value></data>
+<data name="MSG_SSO_SCAN_QR_CODE"><projects>j129</projects><value>סרוק קוד QR כדי להתחבר בעזרת אישורי החברה שלך.
+לפרטים, לחץ על 'קישור'.</value></data>
+<data name="MSG_SINGLE_SIGN_ON"><projects>j129</projects><value>כניסה יחידה</value></data>
+<data name="MSG_ACCEPT_SHARED_CONTROL"><projects>j129</projects><value>לקבל שליטה משותפת?</value></data>
+<data name="MSG_EXPIRES_IN"><projects>j129</projects><value>פג תוקף בעוד :%ls</value></data>
+
+
+<!--TOAST Strings-->
+
+<data name="TST_NO_REDIAL_NUMBER"><projects>j129</projects><value>אין מספר לחיוג מחדש</value></data>
+<data name="TST_NO_MATCHING_NAME"><projects>j129</projects><value>אין שם תואם</value></data>
+<data name="TST_NO_MATCH_FOUND"><projects>j129</projects><value>לא נמצא פריט תואם</value></data>
+<data name="TST_CONTACT_SEARCH_FAILED"><projects>j129</projects><value>חיפוש אחר אנשי קשר נכשל</value></data>
+<data name="TST_NO_SERVICE_AVAILABLE"><projects>j129</projects><value>אין שירות זמין</value></data>
+<data name="TST_INVALID_NAME_PASSWD"><projects>j129</projects><value>שגיאה בשם או סיסמה</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD_HELP"><projects>j129</projects><value>הזן סיסמה להתקנת אישור %ls</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD"><projects>j129</projects><value>הזן סיסמה להתקנת הרשאה</value></data>
+<data name="TST_INVALID_PWD_ABORT_INSTALL"><projects>j129</projects><value>סיסמה שגויה, מבטל התקנת הרשאה</value></data>
+<data name="TST_VERIFY_PWD"><projects>j129</projects><value>מאמת סיסמה...</value></data>
+<data name="TST_INVALID_PWD"><projects>j129</projects><value>סיסמה שגויה</value></data>
+<data name="TST_EMERGENCY_CALLS_ONLY"><projects>j129</projects><value>שיחות חירום בלבד</value></data>
+<data name="TST_INVALID_ACCESS_CODE"><projects>j129</projects><value>קוד גישה שגוי</value></data>
+<data name="TST_ADMIN_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>מנהל המערכת אינו זמין כשהטלפון בשימוש</value></data>
+<data name="TST_NO_SIP_PROXIES_CONFIGURED"><projects>j129</projects><value>לא הוגדרו שרתי פרוקסי SIP</value></data>
+<data name="TST_FEATURE_ACT_FAILED"><projects>j129</projects><value>הפעלת התכונה נכשלה</value></data>
+<data name="TST_LIMITED_SERVICE_IN_EFFECT"><projects>j129</projects><value>הופעל שירות מוגבל</value></data>
+<data name="TST_PROXY_ADDRESS_INVALID"><projects>j129</projects><value>כתובת הפרוקסי שהוזנה שגויה</value></data>
+<data name="TST_PROXY_PORT_INVALID"><projects>j129</projects><value>היציאה שהוזנה שגויה</value></data>
+<data name="TST_LOCK_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>לא ניתן לנעול כשהטלפון בשימוש</value></data>
+<data name="TST_FEATURE_IS_CURRENTLY_UNAVAILABLE"><projects>j129</projects><value>התכונה אינה זמינה כרגע.</value></data>
+<data name="TST_UNABLE_MAKE_CALL"><projects>j129</projects><value>לא ניתן לבצע שיחה</value></data>
+<data name="TST_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>לא הוגדרו תכונות עבור שלוחה זו</value></data>
+<data name="TST_NUMBER_REMOVE_UNAVAILABLE"><projects>j129</projects><value>לאיש קשר חייב להיות לפחות מספר אחד</value></data>
+<data name="TST_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>המספר כבר קיים</value></data>
+<data name="TST_ALL_CALL_APPEARANCES_IN_USE"><projects>j129</projects><value>כל הקווים בשימוש</value></data>
+<data name="TST_PHONE_REBOOT_ON_EXIT"><projects>j129</projects><value>הטלפון יאותחל מחדש
+בעת יציאה מתפריט מנהל המערכת</value></data>
+<data name="TST_SCREEN_SAVER_UNAVAILABLE"><projects>j129</projects><value>לא ניתן להפעיל שומר מסך בזמן שיחה פעילה</value></data>
+<data name="TST_CHANGE_HEADSET_TO_BLUETOOTH"><projects>j129</projects><value>האם לשנות את 'בחירת אוזניה' ל-Bluetooth?</value></data>
+<data name="TST_CHANGE_HEADSET_TO_WIRED"><projects>j129</projects><value>בחירת האוזניה שונתה לשפופרת המחוברת.</value></data>
+<data name="TST_LOGGING_CALLS_IS_DISABLED"><projects>j129</projects><value>תיעוד שיחות מושבת</value></data>
+<data name="TST_NO_PREFIXES"><projects>j129</projects><value>לא הוגדרו קידומות</value></data>
+<data name="TST_NETWORK_UNAVAILABLE_FOR_ACTIVE_CALL"><projects>j129</projects><value>לא זמין במהלך שיחה</value></data>
+<data name="TST_NO_CONTACTS_AVAILABLE"><projects>j129</projects><value>אין אנשי קשר זמינים</value></data>
+<data name="TST_CALL_MUTED"><projects>j129</projects><value>השיחה שלך מושתקת כעת</value></data>
+<data name="TST_FEATURE_CONFIGURATION_NOT_AVAILABLE_YET"><projects>j129</projects><value>תצורת התכונה אינה זמינה עדיין</value></data>
+<data name="TST_XSI_CONNECTION_IS_NOT_AVAILABLE"><projects>j129</projects><value>חיבור XSI אינו זמין</value></data>
+<data name="TST_INVALID_USER_ID"><projects>j129</projects><value>מזהה משתמש לא חוקי</value></data>
+<data name="TST_INVALID_USER_ID_OR_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>מזהה משתמש או סיסמת אתר שגויים</value></data>
+<data name="TST_MOBILITY_FEATURE_IS_NOT_ENABLED"><projects>j129</projects><value>כדי להגדיר תכונה זו צור קשר עם מנהל המערכת שלך</value></data>
+<data name="TST_ALLOWED_VALUES"><projects>j129</projects><value>הערכים המותרים הם 0, 2-20</value></data>
+<data name="TST_FAILED_TO_CREATE_XSI"><projects>j129</projects><value>יצירת נתיב אירוע XSI נכשלה. אין מענה מהשרת.</value></data>
+<data name="TST_NETWORK_CONFIGURATION_ISSUE"><projects>j129</projects><value>בעיה בתצורת הרשת</value></data>
+<data name="TST_PARK_FAC_NOT_ADMINISTERED"><projects>j129</projects><value>מאפיין זה דורש הגדרה של CALL_PARK_DYNAMIC_FAC, צור קשר עם מנהל המערכת</value></data>
+<data name="TST_UNLOCK_IS_TEMP_BLOCKED"><projects>j129</projects><value>פתיחה חסומה באופן זמני</value></data>
+<data name="TST_ADD_CONTACTS_MAPPING_ERROR"><projects>j129</projects><value>לא ניתן להוסיף. חסר מיפוי שדה. צור קשר עם מנהל מערכת.</value></data>
+<data name="TST_SERVICE_UNAVAILABLE"><projects>j129</projects><value>השירות לא זמין כרגע.</value></data>
+<data name="TST_DIALING_BLOCKED"><projects>j129</projects><value>חיוג מספר זה חסום.
+צור קשר עם מנהל המערכת.</value></data>
+<data name="TST_USERNAME_REQUIRED"><projects>j129</projects><value>בהגדרת הסיסמה נדרש שם משתמש</value></data>
+<data name="TST_INVALID_HTTP_SYNTAX"><projects>j129</projects><value>לא ניתן לשמור את ה HTTP, תחביר לא חוקי</value></data>
+<data name="TST_INVALID_HTTPS_SYNTAX"><projects>j129</projects><value>לא ניתן לשמור את ה HTTPS, תחביר לא חוקי</value></data>
+<data name="TST_ZOOM_LICENSE_REQUIRED"><projects>j129</projects><value>דרוש רישיון כדי להשתמש בטלפון עם Zoom.</value></data>
+<data name="TST_INVALID_AADS_URL"><projects>j129</projects><value>לא ניתן לשמור URL של AADS. תחביר לא חוקי.</value></data>
+<data name="TST_SSO_LOGIN_PROMPT"><projects>j129</projects><value>לחץ על 'התחברות' כדי להתחיל בתהליך 'כניסה יחידה' תוך שימוש באישורי החברה שלך.</value></data>
+<data name="TST_SSO_CONFIG_SERVER_UNAVAILABLE"><projects>j129</projects><value>שירות קביעת התצורה אינו זמין כרגע.
+לחץ על 'נסה שוב' או צור קשר עם מנהל מערכת.</value></data>
+<data name="TST_SSO_AUTHORIZATION_SERVER_UNAVAILABLE"><projects>j129</projects><value>שירות האישור אינו זמין כרגע.
+לחץ על 'נסה שוב' או צור קשר עם מנהל מערכת.</value></data>
+<data name="TST_SSO_LOGIN_SUCCESS_PROMPT"><projects>j129</projects><value>האימות שלך בוצע בהצלחה.
+
+נא להמתין...</value></data>
+<data name="TST_SSO_LOGIN_POLLING_TIMEDOUT"><projects>j129</projects><value>פג תוקף ניסיון הכניסה למערכת. לחץ על 'ניסיון חוזר' כדי לנסות שוב.</value></data>
+<data name="TST_SSO_LOGIN_DECLINED_BY_USER"><projects>j129</projects><value>ניסיון ההתחברות נדחה על ידי משתמש.</value></data>
+<data name="TST_LOGIN_FAILED_CREDENTIALS_UNAVAILABLE"><projects>j129</projects><value>הכניסה נכשלה. לא נמצאו אישורים משירות התצורה. אנא פנה למנהל המערכת.</value></data>
+<data name="TST_LOGIN_FAILED_CONFIG_SERVICE_UNAVAILABLE"><projects>j129</projects><value>כניסה למערכת נכשלה.
+שירות קביעת תצורה אינו זמין כעת.
+ לחץ על 'נסה שוב', על 'יציאה מהמערכת' או צור קשר עם מנהל מערכת.</value></data>
+<data name="TST_SSO_LOGIN_HELP_PROMPT"><projects>j129</projects><value>תצורת הטלפון נקבעה כך שיש להתחבר תוך שימוש באישורי החברה. כשתקבל הנחיה לכך, לחץ על 
+'כניסה למערכת' כדי להפעיל את התהליך.</value></data>
+<data name="TST_SSO_QR_HELP_PROMPT"><projects>j129</projects><value>כדי להשלים את תהליך הכניסה היחידה, סרוק את קוד ה-QR באמצעות המכשיר הנייד שלך או פתח את ה'קישור' בדפדפן.</value></data>
+<data name="TST_SSO_LINK_HELP_PROMPT"><projects>j129</projects><value>כדי להשלים את תהליך הכניסה האחודה, פתח את הקישור בדפדפן. סרוק את קוד ה-QR באמצעות המכשיר הנייד שלך.</value></data>
+<data name="TST_SSO_LINK_PROMPT"><projects>j129</projects><value>נווט אל הקישור שלהלן והזן 
+קוד משתמש: %ls
+%ls
+ לחץ על 'קוד QR' לסריקה.</value></data>
+
+
+<!--HELP Strings-->
+
+<data name="HELP_BROADWORKS_CFA"><projects>j129</projects><value>העברת שיחה תפנה את כל השיחות הנכנסות ליעד שנבחר מראש.</value></data>
+<data name="HELP_BROADWORKS_CFB"><projects>j129</projects><value>העברה כשהקו תפוס מפנה שיחות נכנסות בזמן שהקו תפוס ליעד אחר.</value></data>
+<data name="HELP_BROADWORKS_CFNA"><projects>j129</projects><value>העברת שיחה- אין מענה מפנה שיחות ליעד אחר במקרה ששיחה נכנסת לא נענית לאחר מספר צלצולים קבוע.</value></data>
+<data name="HELP_BROADWORKS_DND"><projects>j129</projects><value>האפשרות לא להפריע שולחת שיחות נכנסות ישירות לתיבת ההודעות הקוליות.</value></data>
+<data name="HELP_AUDIO_BUTTON"><projects>j129</projects><value>מגדיר את התנהגות הטלפון כאשר בזמן שיחה נכנסת המשתמש מרים את השפופרת או לוחץ על כפתור האוזניה או הרמקול. 
+מענה - משיב לשיחה הנכנסת.
+שיחה חדשה - מתחיל שיחה חדשה.</value></data>
+<data name="HELP_BROADWORKS_DND_SETTINGS"><projects>j129</projects><value>האפשרות לא להפריע שולחת שיחות נכנסות ישירות לתיבת ההודעות הקוליות.</value></data>
+<data name="HELP_BROADWORKS_CFA_SETTINGS"><projects>j129</projects><value>האפשרות העברת שיחות מפנה שיחות נכנסות ליעד אחר שנקבע מראש.</value></data>
+<data name="HELP_BROADWORKS_CFNA_SETTINGS"><projects>j129</projects><value>העברת שיחות באין מענה' מפנה שיחות ליעד אחר כאשר שיחה נכנסת אינה מקבלת מענה לאחר מספר מסוים של צלצולים.</value></data>
+<data name="HELP_XSI_AUTH"><projects>j129</projects><value>צור קשר עם מנהל המערכת כדי לקבל הרשאות אתר</value></data>
+<data name="HELP_BROADSOFT_WEB_PORTAL_USER_ID"><projects>j129</projects><value>מזהה משתמש לפורטל האינטרנט של Broadsoft</value></data>
+<data name="HELP_BROADSOFT_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>סיסמת הגישה לאינטרנט של Broadsoft כפי שהוגדרה בדף פרופיל המשתמש</value></data>
+<data name="HELP_CALL_PARK"><projects>j129</projects><value>שיחה חונה היא היכולת להעביר שיחה מושהה למיקום חניה מסוים (שלוחה כלשהיא) כך שניתן יהיה לאסוף את השיחה משלוחה אחרת.</value></data>
+<data name="HELP_CALL_FORWARD_DELAY"><projects>j129</projects><value>מספר הצלצולים שאחריו השיחה מועברת אם לא נענתה</value></data>
+<data name="HELP_PROVISIONING_URL_EXAMPLE"><projects>j129</projects><value>דוגמת URL להקצאה:
+ https://avaya.com:443/prov</value></data>
+<data name="HELP_HTTP_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>אם שרת הקצאת HTTP או HTTPS דורש אימות, הגדר את שם המשתמש ואת הסיסמה.</value></data>
+<data name="HELP_HTTP_SERVER_FIELD"><projects>j129</projects><value>הגדר את כתובת אתר שרת ההקצאה של HTTP. לדוגמה: avaya.com:8080/prov. אם היציאה אינה כלולה, ייעשה שימוש ביציאת ברירת המחדל (80).</value></data>
+<data name="HELP_HTTPS_SERVER_FIELD"><projects>j129</projects><value>הגדר את כתובת אתר שרת ההקצאה של HTTPS. לדוגמה: avaya.com:449/prov. אם היציאה אינה כלולה, ייעשה שימוש ביציאת ברירת המחדל (443).</value></data>
+<data name="HELP_SECURE_SYSLOG"><projects>j129</projects><value>קובעת אם לשלוח את syslog באמצעות חיבור מאובטח או באמצעות חיבור לא מאובטח.</value></data>
+<data name="HELP_SPACE_LOGOUT_PROMPT"><projects>j129</projects><value>כדי לצאת ממערכת Avaya Spaces
+לחץ על יציאה מהמערכת.</value></data>
+<data name="HELP_DOT1X_EAP_METHODS"><projects>j129</projects><value>הגדר את שיטת אימות 802.1X EAP שתשמש כש'מבקש' אינו מושבת.</value></data>
+<data name="HELP_DOT1X_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>אם שיטת האימות היא MD5 או PEAP יש להגדיר את שם המשתמש או הסיסמא</value></data>
+<data name="HELP_AADS_URL"><projects>j129</projects><value>הגדר URL של AADS. דוגמה: https://example.com:443/acs/resources/configurations</value></data>
+
+
+<!--ERROR Strings-->
+
+<data name="ERR_LOGOLOAD"><projects>j129</projects><value>טעינת הלוגו המבוקש נכשלה:</value></data>
+<data name="ERR_NOTFOUND"><projects>j129</projects><value>הפריט המבוקש לא נמצא</value></data>
+<data name="ERR_BADRQMSG"><projects>j129</projects><value>בקשה שגויה</value></data>
+<data name="ERR_FAILUREAUTH"><projects>j129</projects><value>שם המשתמש או הסיסמה שגויים</value></data>
+<data name="ERR_RDMERROR"><projects>j129</projects><value>השרת נתקל בשגיאה</value></data>
+<data name="ERR_RDMINTFUNAV"><projects>j129</projects><value>השרת מושבת</value></data>
+<data name="ERR_RDBNOTSUP"><projects>j129</projects><value>הפעולה המבוקשת אינה נתמכת</value></data>
+<data name="ERR_REGFAILURE"><projects>j129</projects><value>הכניסה נכשלה. נסה שנית.</value></data>
+<data name="ERR_INTERROR"><projects>j129</projects><value>שגיאה פנימית</value></data>
+<data name="ERR_REGFAIL_FGNDMAIN"><projects>j129</projects><value>הכניסה נכשלה. תחום SIP לא-תקף.</value></data>
+<data name="ERR_REGFAIL_USERNOTFOUND"><projects>j129</projects><value>הכניסה נכשלה. המשתמש לא נמצא.</value></data>
+<data name="MSG_BAGLOG"><projects>j129</projects><value>כניסה שגויה</value></data>
+<data name="ERR_REQNACPT"><projects>j129</projects><value>בקשת איתות לקויה (488)</value></data>
+<data name="ERR_USERUNAV"><projects>j129</projects><value>לא זמין כרגע (480)</value></data>
+<data name="ERR_REQTIMEDOUT"><projects>j129</projects><value>הבקשה חרגה מהזמן המוקצב (408)</value></data>
+<data name="ERR_FORBIDDEN"><projects>j129</projects><value>הבקשה אינה מותרת (403)</value></data>
+<data name="ERR_REMBUSY"><projects>j129</projects><value>המשתמש המרוחק עסוק (486)</value></data>
+<data name="ERR_GENERALFAIL"><projects>j129</projects><value>כשלון איתות</value></data>
+<data name="ERR_CNTCTSEXISTS"><projects>j129</projects><value>איש הקשר כבר קיים</value></data>
+<data name="ERR_RDMINVDRESP"><projects>j129</projects><value>תשובת PPM לא-תקפה</value></data>
+<data name="ERR_RDMINTF_INITFAILED"><projects>j129</projects><value>איתחול ממשק PPM נכשל</value></data>
+<data name="ERR_RDMINVDATA_RECD"><projects>j129</projects><value>נתוני PPM לא-תקפים התקבלו</value></data>
+<data name="ERR_LOCAL"><projects>j129</projects><value>איש קשר מקומי קיים כבר</value></data>
+<data name="ERR_INVALID_STATE"><projects>j129</projects><value>מצב לא חוקי</value></data>
+<data name="ERR_REG_LIMIT_REACHED"><projects>j129</projects><value>המשתמש כבר מחובר בשלוחה אחרת.</value></data>
+<data name="ERR_INT_ERROR"><projects>j129</projects><value>שגיאה פנימית</value></data>
+<data name="ERR_ASSIGN_IPV6_ADDR"><projects>j129</projects><value>סתירה בכתובת IPv6</value></data>
+<data name="ERR_INVALID_IP"><projects>j129</projects><value>כתובת IP לא חוקית</value></data>
+<data name="ERR_INVALID_PASS"><projects>j129</projects><value>סיסמה שגויה</value></data>
+<data name="ERR_TOO_MANY_USERS_FOUND"><projects>j129</projects><value>נמצאו משתמשים רבים מדי. צמצם את החיפוש.</value></data>
+<data name="ERR_NO_CALL_TO_RETRIEVE"><projects>j129</projects><value>אין שיחה לאחזור.</value></data>
+<data name="ERR_LOCATION_NUMBER_ALREADY_EXIST"><projects>j129</projects><value>מספר המיקום כבר קיים</value></data>
+<data name="ERR_LOCATION_NUMBER_DOES_NOT_EXIST"><projects>j129</projects><value>מספר המיקום לא קיים</value></data>
+<data name="ERR_INCORRECT_LENGTH_OF_PHONE_NUMBER"><projects>j129</projects><value>אורך מספר הטלפון שגוי</value></data>
+<data name="ERR_LOCATION_NUMBER_IS_GREATER"><projects>j129</projects><value>אורך מספר המיקום עולה על האורך המירבי המותר</value></data>
+<data name="ERR_INVALID_PHONE_NUMBER"><projects>j129</projects><value>מספר טלפון לא תקין</value></data>
+<data name="ERR_XSI_SERVER_ERROR"><projects>j129</projects><value>שגיאת שרת XSI</value></data>
+<data name="ERR_XSI_SERVER_ERROR_2"><projects>j129</projects><value>שגיאת שרת XSI</value></data>
+<data name="ERR_NO_REMOTE_CALL"><projects>j129</projects><value>אין שיחה מרוחקת</value></data>
+<data name="ERR_CALL_NOT_FOUND"><projects>j129</projects><value>השיחה לא נמצאה</value></data>
+<data name="ERR_CALL_PARK_AGAINST_ADDRESS_IS_NOT_VALID"><projects>j129</projects><value>המספר אינו תקין</value></data>
+<data name="ERR_CALL_PARK_AGAINST_USER_IS_THE_REMOTE_PARTY"><projects>j129</projects><value>לא ניתן להחנות את השיחה למספר הטלפון שאתה מדבר איתו</value></data>
+<data name="ERR_CALL_ALREADY_PARKED_AGAINST_USER"><projects>j129</projects><value>שיחה חונה למספר זה כבר קיימת</value></data>
+<data name="ERR_NO_AVAILABLE_CALL_PARK_GROUP_MEMBER"><projects>j129</projects><value>אין חבר קב' זמין ב'השהיית שיחה במאגר השיחות'</value></data>
+<data name="ERR_INVALID_DOMAIN_NAME"><projects>j129</projects><value>שם תחום לא תקין</value></data>
+<data name="ERR_INVALID_SIP_URI"><projects>j129</projects><value>SIP URI לא תקין</value></data>
+<data name="ERR_INVALID_SIP_URI_TWO_SYMBOLS"><projects>j129</projects><value>SIP URI לא תקין. כתובת ה- URI מכילה שני תווי @.</value></data>
+<data name="ERR_INVALID_SIP_URI_USER_DOMAIN"><projects>j129</projects><value>SIP URI לא תקין</value></data>
+<data name="ERR_INVALID_FORMAT"><projects>j129</projects><value>פורמט לא תקין</value></data>
+<data name="ERR_NUMBER_REQUIRED"><projects>j129</projects><value>על מנת להפעיל שירות זה יש לספק מספר טלפון</value></data>
+<data name="ERR_DUPLICATE_USER"><projects>j129</projects><value>המשתמש המשויך למשימה זו כפול</value></data>
+<data name="ERR_NO_MOBILE_IDENTITY"><projects>j129</projects><value>מספר הנייד אינו משויך לאף זהות ניידת</value></data>
+<data name="ERR_MOBILE_NUMBER_NOT_ASSIGNED"><projects>j129</projects><value>מספר הנייד אינו משויך למשתמש</value></data>
+<data name="ERR_BLOCKED_BY_SIM_CALL_POLICY"><projects>j129</projects><value>נחסם בשל מכסת קווים פעילים בו-זמנית</value></data>
+<data name="ERR_CALL_ALREADY_ON_LOCATION"><projects>j129</projects><value>השיחה כבר משויכת למיקום</value></data>
+<data name="ERR_CANNOT_PARK_PUSH_TO_TALK_CALL"><projects>j129</projects><value>לא ניתן להחנות שיחת ווקי טוקי</value></data>
+<data name="ERR_SERVICE_NOT_ASSIGNED"><projects>j129</projects><value>השירות אינו משויך</value></data>
+<data name="ERR_YOUR_NUMBER_NOT_ALLOWED"><projects>j129</projects><value>נא לוודא שזהו לא מספר ,שלוחה, SIP URI או כל מספר אחר המקושר לזהות שלך</value></data>
+<data name="ERR_SIMRING_LIMIT_LIST_LOCATIONS"><projects>j129</projects><value>לא ניתן להוסיף יותר מעשרה מיקומים לרשימת מספרי צלצול בו זמני</value></data>
+<data name="ERR_STATE_FOR_CALL_IS_NOT_VALID"><projects>j129</projects><value>מצב השיחה אינו תקין</value></data>
+<data name="ERR_USER_IS_NOT_MEMBER_OF_PARK_GROUP"><projects>j129</projects><value>אינך חבר בקב' 'השהיית שיחה במאגר השיחות'</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>השירות 'איסוף שיחה מוכוונת' לא הוקצה</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_BARGEIN_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>שירות 'איסוף שיחה מוכוונת עם התפרצות' לא הוקצה</value></data>
+<data name="ERR_CALL_PARK_RETRIEVE_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>שירות 'אחזור השהיית שיחה במאגר השיחות' לא הוקצה</value></data>
+<data name="ERR_CALL_PARK_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>קוד חניית שיחה אינו מוגדר</value></data>
+<data name="ERR_REFRESH_PERSONAL_CONTACTS"><projects>j129</projects><value>רענון אנשי קשר אישיים נכשל.</value></data>
+
+
+<!--Startup Screens-->
+
+<data name="MSG_STARTG"><projects>j129</projects><value>מתחיל</value></data>
+<data name="MSG_NOETH"><projects>j129</projects><value>אין Ethernet.</value></data>
+<data name="MSG_NETBADIP"><projects>j129</projects><value>התגלה IP שגוי</value></data>
+<data name="MSG_BADRTR"><projects>j129</projects><value>נתב שגוי?</value></data>
+<data name="MSG_NETBADSUB"><projects>j129</projects><value>התגלתה תת-רשת שגויה</value></data>
+<data name="MSG_SUBCNF"><projects>j129</projects><value>סתירת תת-רשת</value></data>
+<data name="MSG_ADCONF"><projects>j129</projects><value>סתירה בין כתובות</value></data>
+<data name="MSG_IPV6_ADDRCONF"><projects>j129</projects><value>סתירה בכתובת IPv6</value></data>
+<data name="MSG_IPV6LL_ADDRCONF"><projects>j129</projects><value>dupMAC=</value></data>
+<data name="MSG_DHCPADDRCONF"><projects>j129</projects><value>סתירה: DHCP</value></data>
+<data name="MSG_MYCERTFAILURE"><projects>j129</projects><value>התקנת האישור %ls של SCEP נכשלה.</value></data>
+<data name="MSG_NOSIPSRVR"><projects>j129</projects><value>רשימת שרת מתווך SIP - ריקה</value></data>
+<data name="MSG_SHARED_CONTROL_ACTIVE"><projects>j129</projects><value>בקרה משותפת פעילה</value></data>
+<data name="MSG_SHARED_CONTROL_INACTIVE"><projects>j129</projects><value>בקרה משותפת לא פעילה</value></data>
+<data name="MSG_PROG_NEW_ROUTER"><projects>j129</projects><value>תכנת מחדש כתובת נתב</value></data>
+<data name="MSG_UPDATING_SOFTWARE"><projects>j129</projects><value>מעדכן תכנה...</value></data>
+<data name="MSG_UPDATE_SUCCESSFUL"><projects>j129</projects><value>עדכון התכנה הושלם בהצלחה</value></data>
+<data name="MSG_UPDATE_FAILED"><projects>j129</projects><value>עדכון התכנה נכשל</value></data>
+<data name="MSG_WIFI_SERVICE_FAILED"><projects>j129</projects><value>שירות Wi-Fi נכשל</value></data>
+<data name="MSG_PRESS_NETWORKS_SWITCH_ETH"><projects>j129</projects><value>לחץ על 'רשתות' כדי לעבור ל-Ethernet.</value></data>
+<data name="MSG_PRESS_RESTART_ATTEMPT_WIFI"><projects>j129</projects><value>לחץ על 'הפעל מחדש' כדי לנסות שוב את ה-Wi-Fi.</value></data>
+<data name="MSG_WIFI_NO_SSID"><projects>j129</projects><value>לא נבחרה רשת Wi-Fi</value></data>
+<data name="MSG_WIFI_SELECT_NETWORK"><projects>j129</projects><value>לחץ על 'רשתות' כדי לבחור רשת.</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATION_FAILED"><projects>j129</projects><value>אימות נכשל</value></data>
+<data name="MSG_WIFI_CONNECTION_CERTIFICATE_ERROR"><projects>j129</projects><value>שגיאה בהרשאת Wi-Fi</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTING"><projects>j129</projects><value>מתחבר</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATING"><projects>j129</projects><value>מאמת</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTED"><projects>j129</projects><value>מחובר</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTING"><projects>j129</projects><value>מתנתק</value></data>
+<data name="MSG_ETHERNET_RESTORED"><projects>j129</projects><value>%ls. Ethernet שוחזר.</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTED"><projects>j129</projects><value>מנותק</value></data>
+<data name="MSG_WIFI_CONNECTION_FAILED"><projects>j129</projects><value>החיבור נכשל</value></data>
+<data name="MSG_NOCONTROLLER_BY_MODE"><projects>j129</projects><value>רשימת שרת מתווך SIP IPv%s ריקה</value></data>
+<data name="MSG_PKCS12_DNLOAD_FAILURE"><projects>j129</projects><value>הורדת הרשאת הזהות %ls נכשלה</value></data>
+<data name="MSG_PKCS12_REJECT_CERT"><projects>j129</projects><value>הרשאת הזהות %ls נדחתה</value></data>
+<data name="MSG_SEARCH_FOR_CONFIG"><projects>j129</projects><value>מחפש תצורה</value></data>
+
+
+<!--Progress Screen-->
+
+<data name="MSG_RSTART"><projects>j129</projects><value>מאתחל...</value></data>
+
+
+<!--Feature Names-->
+
+<data name="auto-callback"><projects>j129</projects><value>החזר שיחה אוטומטי</value></data>
+<data name="auto-callback_short"><projects>j129</projects><value>ה.ש. או'</value></data>
+<data name="call-forwarding-all"><projects>j129</projects><value>העברת שיחות</value></data>
+<data name="call-forwarding-all_short"><projects>j129</projects><value>הע' ש'</value></data>
+<data name="call-forwarding-all_sbm"><projects>j129</projects><value>העברת שיחה</value></data>
+<data name="call-forwarding-busy-no-answer"><projects>j129</projects><value>לא ניתן להעביר</value></data>
+<data name="call-forwarding-busy-no-answer_short"><projects>j129</projects><value>לא ניתן</value></data>
+<data name="call-park"><projects>j129</projects><value>חניית שיחה</value></data>
+<data name="call-park-manual"><projects>j129</projects><value>חניית שיחה</value></data>
+<data name="group-call-park"><projects>j129</projects><value>חנית שיחה קבוצתית</value></data>
+<data name="call-waiting"><projects>j129</projects><value>שיחה ממתינה</value></data>
+<data name="calling-party-block"><projects>j129</projects><value>חסימת מספר המחייג</value></data>
+<data name="call-unpark"><projects>j129</projects><value>ביטול חניה</value></data>
+<data name="call-unpark_short"><projects>j129</projects><value>בטל חניה</value></data>
+<data name="broadworks-call-unpark"><projects>j129</projects><value>ביטול חניה</value></data>
+<data name="broadworks-call-unpark_short"><projects>j129</projects><value>בטל חניה</value></data>
+<data name="mct"><projects>j129</projects><value>הפעל MCT</value></data>
+<data name="mct_short"><projects>j129</projects><value>הפעל MCT</value></data>
+<data name="off-pbx"><projects>j129</projects><value>EC500</value></data>
+<data name="sac"><projects>j129</projects><value>לא להפריע</value></data>
+<data name="sac_short"><projects>j129</projects><value>לא להפריע</value></data>
+<data name="transfer-to-voicemail"><projects>j129</projects><value>העבר לתא קולי</value></data>
+<data name="call-forwarding-all_half"><projects>j129</projects><value>העברת שיחות</value></data>
+<data name="auto-answer"><projects>j129</projects><value>מענה אוטומטי</value></data>
+<data name="do-not-disturb"><projects>j129</projects><value>לא להפריע</value></data>
+<data name="do-not-disturb_short"><projects>j129</projects><value>DND תפוס</value></data>
+<data name="call-fwd-busy"><projects>j129</projects><value>העברה כשהקו תפוס</value></data>
+<data name="call-fwd-busy_half"><projects>j129</projects><value>העב' ש'-תפוס</value></data>
+<data name="call-fwd-busy_sbm"><projects>j129</projects><value>CFB</value></data>
+<data name="call-fwd-no-answer"><projects>j129</projects><value>העברת שיחה-NA</value></data>
+<data name="call-fwd-no-answer_half"><projects>j129</projects><value>CFNA</value></data>
+<data name="call-fwd-no-answer_sbm"><projects>j129</projects><value>CFNA</value></data>
+<data name="do-not-disturb_half"><projects>j129</projects><value>DND תפוס</value></data>
+<data name="do-not-disturb_sbm"><projects>j129</projects><value>DND תפוס</value></data>
+<data name="broadworks-call-forward-all"><projects>j129</projects><value>העברת שיחה</value></data>
+<data name="broadworks-call-forward-all_half"><projects>j129</projects><value>העב' שיחה</value></data>
+<data name="broadworks-call-forward-all_sbm"><projects>j129</projects><value>העב' ש'</value></data>
+<data name="broadworks-call-forward-busy"><projects>j129</projects><value>העברה כשהקו תפוס</value></data>
+<data name="broadworks-call-forward-busy_half"><projects>j129</projects><value>העב' ש'-תפוס</value></data>
+<data name="broadworks-call-forward-busy_sbm"><projects>j129</projects><value>CFB</value></data>
+<data name="broadworks-call-forward-no-answer"><projects>j129</projects><value>העברת שיחה-NA</value></data>
+<data name="broadworks-call-forward-no-answer_half"><projects>j129</projects><value>CFNA</value></data>
+<data name="broadworks-call-forward-no-answer_sbm"><projects>j129</projects><value>CFNA</value></data>
+<data name="broadworks-do-not-disturb"><projects>j129</projects><value>לא להפריע</value></data>
+<data name="broadworks-do-not-disturb_half"><projects>j129</projects><value>לא להפריע</value></data>
+<data name="broadworks-do-not-disturb_sbm"><projects>j129</projects><value>לא להפריע</value></data>
+<data name="no-hold-conf"><projects>j129</projects><value>אין ועידה מוחזקת</value></data>
+<data name="no-hold-conf_short"><projects>j129</projects><value>אומ</value></data>
+
+
+<!--Feature: Softkey Names-->
+
+<data name="softkey-call-park"><projects>j129</projects><value>חנית ש'</value></data>
+<data name="softkey-call-unpark"><projects>j129</projects><value>בטל חניה</value></data>
+<data name="softkey-sac"><projects>j129</projects><value>שלח הכל</value></data>
+
+
+<!--Feature Attributes-->
+
+
+
+<!--Power Manager-->
+
+<data name="pm_Header"><projects>j129</projects><value>ניהול צריכת חשמל</value></data>
+<data name="pm_Header_Help"><projects>j129</projects><value>ניהול אספקת זרם עזרה</value></data>
+<data name="pm_Header1"><projects>j129</projects><value>נתק התקנ(ים) כדי לצמצם צריכת חשמל</value></data>
+<data name="pm_Header2"><projects>j129</projects><value>שנה הגדרות אספקת כח</value></data>
+<data name="pm_Header3"><projects>j129</projects><value>חבר מקור כח נוסף או נתק התקנים</value></data>
+<data name="pm_Screen_A"><projects>j129</projects><value>אספקת הזרם אינה מספקת. נתק התקן אחד או יותר כדי לצמצם את צריכת הזרם.</value></data>
+<data name="pm_Screen_B"><projects>j129</projects><value>מצטערים, הזרם עדיין אינו מספיק. נתק התקן אחד או יותר כדי לצמצם את צריכת הזרם.</value></data>
+<data name="pm_Screen_C"><projects>j129</projects><value>אספקת הזרם אינה מספקת. חבר אספקת עזר או נתק התקן אחד או יותר.</value></data>
+<data name="pm_Screen_D"><projects>j129</projects><value>מצטערים, זרם החשמל עדיין אינו מספיק. חבר ספק מתח חיצוני או נתק התקן אחד או יותר.</value></data>
+<data name="pm_Screen_E"><projects>j129</projects><value>זרם החשמל אינו מספיק. נתק את הטלפון והחלף את מתג החשמל מאחור, או נתק התקן אחד או יותר.</value></data>
+<data name="pm_Screen_F"><projects>j129</projects><value>זרם החשמל עדיין אינו מספיק. נתק את הטלפון והחלף את מתג החשמל מאחור, או נתק התקן אחד או יותר.</value></data>
+<data name="pm_Screen_G"><projects>j129</projects><value>עליך להוציא את הטלפון מהשקע לפני שינוי הגדרת הזרם.</value></data>
+<data name="pm_Screen_H1"><projects>j129</projects><value>צריכת החשמל הכוללת גבוהה מדי. אנא נתק התקן אחד או יותר כדי לצמצם את הצריכה.</value></data>
+<data name="pm_Screen_H2"><projects>j129</projects><value>מצב ההתקנה הנוכחי דורש אספקת זרם גבוהה יותר. חבר אספקת עזר או נתק התקנ(ים).</value></data>
+<data name="pm_Screen_H3"><projects>j129</projects><value>להגדלת אספקת הזרם, נתק את הטלפון ושנה את מתג IEEE מאחור ממצב L למצב H. או נתק התקנ(ים).</value></data>
+
+
+<!--Strings that DON'T REQUIRE TRANSLATIONS-->
+
+<data name="optAdmin8021X"><projects>j129</projects><value>802.1X...</value></data>
+<data name="optAdminSiteSpecificOption"><projects>j129</projects><value></value></data>
+<data name="LBL_SSON"><projects>j129</projects><value></value></data>
+<data name="optAdminGroup"><projects>j129</projects><value>קבוצה...</value></data>
+<data name="optAdminLogging"><projects>j129</projects><value>תיעוד...</value></data>
+<data name="optAdminNetworkAddresses"><projects>j129</projects><value>תצורת IP...</value></data>
+<data name="optAdminEthernetIPv4"><projects>j129</projects><value></value></data>
+<data name="optAdminEthernetIPv6"><projects>j129</projects><value></value></data>
+<data name="optAdminNetworkServers"><projects>j129</projects><value>שרתים...</value></data>
+<data name="optAdminNetworkVLAN"><projects>j129</projects><value>VLAN...</value></data>
+<data name="optAdminAutoProv"><projects>j129</projects><value>הקצאה אוטומטית</value></data>
+<data name="optAdminNetwork8021Q"><projects>j129</projects><value></value></data>
+<data name="optAdminPhoneReport"><projects>j129</projects><value>דוח טלפון</value></data>
+<data name="optAdminSSHFingerprint"><projects>j129</projects><value>טביעת אצבע SSH...</value></data>
+<data name="optAdminView"><projects>j129</projects><value>הצג...</value></data>
+<data name="optAdminInterfaces"><projects>j129</projects><value>ממשק רשת...</value></data>
+<data name="optAdminWiFiIPv4"><projects>j129</projects><value>Wi-Fi IPv4</value></data>
+<data name="optAdminSIP"><projects>j129</projects><value></value></data>
+<data name="optAdminSIPGlbl"><projects>j129</projects><value>הגדרות SIP גלובליות...</value></data>
+<data name="optAdminSIPProxy"><projects>j129</projects><value>שרת פרוקסי SIP...</value></data>
+<data name="optAdminDebug"><projects>j129</projects><value>Debug...</value></data>
+<data name="optAdminResetValues"><projects>j129</projects><value>אפס לברירות המחדל...</value></data>
+<data name="optAdminRestart"><projects>j129</projects><value>הפעל מחדש את הטלפון...</value></data>
+<data name="optAdminLogout"><projects>j129</projects><value>יציאה...</value></data>
+<data name="optAdminWebServer"><projects>j129</projects><value>שרת אינטרנט...</value></data>
+<data name="optAdminWebResetPasswd"><projects>j129</projects><value>איפוס סיסמת אינטרנט...</value></data>
+<data name="LBL_ID"><projects>j129</projects><value></value></data>
+<data name="AS_PRIORITY"><projects>j129</projects><value>עדיפות</value></data>
+<data name="AS_ICOM"><projects>j129</projects><value></value></data>
+<data name="MSG_FIPSRESTART"><projects>j129</projects><value>מצב FIPS השתנה, הפעל מחדש...</value></data>
+<data name="MSG_PHONERESTART"><projects>j129</projects><value>הפעולה תגרום לאתחול</value></data>
+<data name="LBL_MBPS"><projects>j129</projects><value>מב"ש</value></data>
+<data name="LBL_PLEASEWAIT"><projects>j129</projects><value>נא המתן ...</value></data>
+<data name="AS_CLEAR_SSH_LOCKOUT"><projects>j129</projects><value>בטל נעילת SSH</value></data>
+<data name="MSG_SSH_LOCKOUT_CLEAR"><projects>j129</projects><value>נעילת SSH בוטלה</value></data>
+<data name="MSG_ACTIVATE_AUTO_CONFIG"><projects>j129</projects><value>להפעיל הגדרה אוטומטית?</value></data>
+<data name="MSG_STARTING_IN_N_S"><projects>j129</projects><value>מתחיל עוד %ds</value></data>
+<data name="LBL_ACTIVATE"><projects>j129</projects><value>הפעל</value></data>
+<data name="MSG_REACTIVATION_DES"><projects>j129</projects><value>להפעיל הגדרה אוטומטית?</value></data>
+<data name="LBL_YEAR"><projects>j129</projects><value></value></data>
+<data name="LBL_SHORT_DAY"><projects>j129</projects><value></value></data>
+</root>

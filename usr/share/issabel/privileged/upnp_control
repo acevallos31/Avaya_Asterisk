@@ -1,0 +1,146 @@
+#!/bin/bash
+
+function print_usage {
+	SCRIPT=$(basename $0)
+	echo "EXAMPLES:"
+	echo "Test UPnP: $SCRIPT --test"
+	echo "Add port fwd: $SCRIPT --add -l :localport: -e :externalport: [--tcp/--udp]"
+	echo "Del port fwd: $SCRIPT --del -e :externalport: [--tcp/--udp]"
+	echo " "
+	exit 0
+}
+
+function load_params {
+        PARSED_OPTIONS=$(getopt -n "$0"  -o htul:e: --long "help,add,del,test,udp,tcp"  -- $PARAMS)
+        parse_args
+}
+
+function parse_args {
+        if [ $? -ne 0 ];
+        then
+                echo ERROR getting args
+                exit 1
+        fi
+        eval set -- "$PARSED_OPTIONS"
+
+        while true
+        do
+                case "$1" in
+                -h|--help)
+                        print_usage
+                        shift;;
+                -u|--udp)
+			PROTO=udp
+                        shift;;
+                -t|--tcp)
+                        PROTO=tcp
+                        shift;;
+                -l)
+                        if [ -n "$2" ];
+                        then
+                                LOCALPORT=$2
+                        fi
+                        shift 2;;
+                -e)
+                        if [ -n "$2" ];
+                        then
+                                EXTERNALPORT=$2
+                        fi
+                        shift 2;;
+                --add)
+                        ACTION=add
+                        shift;;
+                --del)
+                        ACTION=del
+                        shift;;
+                --test)
+                        ACTION=test
+                        shift;;
+                 --)
+                        shift
+                        break;;
+                *)
+                        echo "Invalid option $1"
+                        echo $@
+                        print_usage
+                        exit 1 ;;
+                esac
+        done
+}
+
+function test {
+if upnpc -s &> /dev/null
+then
+	LOCALIP=$(upnpc -s | grep "Local LAN ip address" | cut -d":" -f2 | tr -d " ")
+	EXTERNALIP=$(upnpc -s | grep "ExternalIPAddress" | cut -d"=" -f2 | tr -d " ")
+	DEVICE=$(upnpc -s | grep "Found valid IGD" | cut -d":" -f3 | tr -d "/")
+	echo "Found IGD device on $DEVICE"
+	echo "External IP: $EXTERNALIP"
+	echo "Local IP:    $LOCALIP"
+else
+	echo NO UPnP device found on network
+	exit 1
+fi
+}
+
+function list {
+upnpc -m $(hostname -I) -l | grep -E '(^ [0-9]|^[0-9])'
+}
+
+function add {
+	if [ -z $PROTO ]
+	then
+		PROTO=tcp
+	fi
+	if [ $EXTERNALPORT -gt 1024 ] && [ $EXTERNALPORT -lt 65535 ] && [ $LOCALPORT -lt 65535 ]
+	then
+		if upnpc -e "Issabel" -a $(hostname -I) $LOCALPORT $EXTERNALPORT $PROTO 2>&1 | grep "invalid protocol" &> /dev/null
+                then
+                   upnpc -e "Issabel" -r $LOCALPORT $EXTERNALPORT $PROTO &> /dev/null
+                fi
+	else
+		echo " "
+		echo "------------"
+		echo "Invalid Port"
+		echo "------------"
+		echo " "
+	fi
+}
+
+function del {
+	if [ $EXTERNALPORT -gt 1024 ] && [ $EXTERNALPORT -lt 65535 ]
+	then
+		upnpc -d $EXTERNALPORT $PROTO &> /dev/null
+	else
+		echo " "
+		echo "------------"
+		echo "Invalid Port"
+		echo "------------"
+		echo " "
+	fi
+}
+
+function main {
+PARAMS="$@"
+load_params
+test
+case $ACTION in
+	add)
+		add
+	;;
+	del)
+		del
+	;;
+	test)
+		echo " "
+	;;
+	*)
+		echo "NO ACTION"
+	;;
+esac
+		
+echo list:
+list
+}
+
+main $@

@@ -1,0 +1,76 @@
+USE endpointconfig;
+
+INSERT INTO manufacturer (name, description) VALUES ('Avaya', 'Avaya IP Phones');
+
+SELECT * FROM manufacturer WHERE name = 'Avaya';
+
+
+
+
+INSERT INTO model (id_manufacturer, name, description, max_accounts, static_ip_supported, dynamic_ip_supported, static_prov_supported)
+VALUES (28, 'J129', 'Avaya J129 SIP Phone', 1, 1, 1, 1);
+
+SELECT * FROM model WHERE name = 'J129';
+
+
+
+
+Agregar Prefijos MAC
+
+
+INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description) 
+VALUES (28, 'C8:1F:EA', 'Avaya J129');
+
+INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description) 
+VALUES (28, 'C8:1F:EA', 'Avaya J129');
+
+
+SELECT * FROM mac_prefix WHERE id_manufacturer = 28;
+
+
+asignar MAC a Modelo
+
+UPDATE endpoint SET id_model = 147 WHERE mac_address LIKE 'C8:1F:EA%';
+
+SELECT * FROM endpoint WHERE id_model = 147;
+
+
+Crear Plantilla
+
+nano /var/www/html/modules/endpoint_configurator/phonesrv/tpl/Avaya_J129.tpl
+
+## Configuración de Avaya J129 ##
+##
+## Archivo generado automáticamente por Issabel Endpoint Configurator
+##
+
+[GENERAL]
+SIP_SERVER={{server_ip}}
+SIP_PORT={{server_port}}
+USERNAME={{extension}}
+PASSWORD={{password}}
+DISPLAY_NAME={{display_name}}
+
+[NETWORK]
+DHCP=1
+STATIC_IP={{static_ip}}
+SUBNET_MASK={{subnet_mask}}
+GATEWAY={{gateway}}
+DNS={{dns_server}}
+
+[PROVISIONING]
+PROVISIONING_SERVER={{provisioning_server}}
+PROVISIONING_METHOD=HTTPS
+CONFIG_FILE_NAME={{mac_address}}.cfg
+
+
+Configurar para que reconozca la plantilla
+
+UPDATE model SET description='Avaya J129 SIP Phone', static_prov_supported=1 WHERE name='J129';
+
+
+ver el displayname 
+SELECT extension, name FROM users WHERE extension = '4297';
+
+
+

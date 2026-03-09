@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <menulist>
+    <menuitem menuid="sec_2fa"           desc="Two Factor Authentication"             parent="security"            module="yes"  link="" order="1"></menuitem>
+  </menulist>
+</module>

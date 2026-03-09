@@ -1,0 +1,1089 @@
+<?xml version="1.0"?>
+<root><data name="languageName"><projects>j129</projects><value>Dutch</value></data>
+
+
+<!--Labels for different Languages in the CURRENT language-->
+
+<data name="LBL_ENGLISH"><projects>j129</projects><value>Engels</value></data>
+<data name="LBL_CANADIAN_FRENCH"><projects>j129</projects><value>Canadees Frans</value></data>
+<data name="LBL_PARISIAN_FRENCH"><projects>j129</projects><value>Frans</value></data>
+<data name="LBL_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>Spaans (Z.-Am.)</value></data>
+<data name="LBL_CASTILIAN_SPANISH"><projects>j129</projects><value>Spaans</value></data>
+<data name="LBL_GERMAN"><projects>j129</projects><value>Duits</value></data>
+<data name="LBL_ITALIAN"><projects>j129</projects><value>Italiaans</value></data>
+<data name="LBL_DUTCH"><projects>j129</projects><value>Nederlands</value></data>
+<data name="LBL_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>Portugees</value></data>
+<data name="LBL_JAPANESE"><projects>j129</projects><value>Japans</value></data>
+<data name="LBL_CHINESE"><projects>j129</projects><value>Chinees</value></data>
+<data name="LBL_KOREAN"><projects>j129</projects><value>Coreano</value></data>
+<data name="LBL_RUSSIAN"><projects>j129</projects><value>Russisch</value></data>
+<data name="LBL_HEBREW"><projects>j129</projects><value>Hebreeuws</value></data>
+<data name="LBL_POLISH"><projects>j129</projects><value>Pools</value></data>
+<data name="LBL_TURKISH"><projects>j129</projects><value>Turks</value></data>
+
+
+<!--Labels for different Languages in the NATIVE language-->
+
+<data name="NATIVE_IN_ENGLISH"><projects>j129</projects><value>English</value></data>
+<data name="NATIVE_IN_CANADIAN_FRENCH"><projects>j129</projects><value>Français canad.</value></data>
+<data name="NATIVE_IN_PARISIAN_FRENCH"><projects>j129</projects><value>Français</value></data>
+<data name="NATIVE_IN_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>Español LA</value></data>
+<data name="NATIVE_IN_CASTILIAN_SPANISH"><projects>j129</projects><value>Español</value></data>
+<data name="NATIVE_IN_GERMAN"><projects>j129</projects><value>Deutsch</value></data>
+<data name="NATIVE_IN_ITALIAN"><projects>j129</projects><value>Italiano</value></data>
+<data name="NATIVE_IN_DUTCH"><projects>j129</projects><value>Nederlands</value></data>
+<data name="NATIVE_IN_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>Português (BR)</value></data>
+<data name="NATIVE_IN_JAPANESE"><projects>j129</projects><value>日本語</value></data>
+<data name="NATIVE_IN_CHINESE"><projects>j129</projects><value>中文</value></data>
+<data name="NATIVE_IN_KOREAN"><projects>j129</projects><value>한국어</value></data>
+<data name="NATIVE_IN_RUSSIAN"><projects>j129</projects><value>Русский</value></data>
+<data name="NATIVE_IN_HEBREW"><projects>j129</projects><value>עברית</value></data>
+<data name="NATIVE_IN_ARABIC"><projects>j129</projects><value>العربية</value></data>
+<data name="NATIVE_IN_ENGLARGE"><projects>j129</projects><value>Englarge</value></data>
+<data name="NATIVE_IN_POLISH"><projects>j129</projects><value>Polski</value></data>
+<data name="NATIVE_IN_TURKISH"><projects>j129</projects><value>Türkçe</value></data>
+
+
+<!--Character Input Method Type-->
+
+<data name="INPUTMETHOD"><projects>j129</projects><value>2</value></data>
+
+
+<!--FONT Type-->
+
+<data name="FONT"><projects>j129</projects><value>Default</value></data>
+
+
+<!--Keyboard Layout Type-->
+
+<data name="KEYBOARD_LAYOUT"><projects>j129</projects><value>0</value></data>
+
+
+<!--SOFTKEY Labels - MAX LENGTH 8 chars-->
+
+<data name="NAME_IN_OTHER"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ENGLISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_CANADIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_PARISIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_LATIN_AMERICAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_CASTILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_GERMAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ITALIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_DUTCH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_PORTUGUESE_BRAZILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_JAPANESE"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_CHINESE_SIMPLIFIED"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_KOREAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_RUSSIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_HEBREW"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ARABIC"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_TURKISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_THAI"><projects>j129</projects><value></value></data>
+<data name="SK_ADD2CTC"><projects>j129</projects><value>+Contact</value></data>
+<data name="SK_ADD"><projects>j129</projects><value>Toev.</value></data>
+<data name="SK_ALPHALOW"><projects>j129</projects><value>abc</value></data>
+<data name="SK_ALPHAUP"><projects>j129</projects><value>ABC</value></data>
+<data name="SK_HEX"><projects>j129</projects><value></value></data>
+<data name="SK_ANSWER"><projects>j129</projects><value>Beantw.</value></data>
+<data name="SK_BACK"><projects>j129</projects><value>Terug</value></data>
+<data name="SK_BKSP"><projects>j129</projects><value>Bksp</value></data>
+<data name="SK_BRIDGE"><projects>j129</projects><value>Koppelen</value></data>
+<data name="SK_BROWSER"><projects>j129</projects><value>Browser</value></data>
+<data name="SK_CALL"><projects>j129</projects><value>Bellen</value></data>
+<data name="SK_CANCEL"><projects>j129</projects><value>Annul.</value></data>
+<data name="SK_CHANGE"><projects>j129</projects><value>Aan/uit</value></data>
+<data name="SK_CLEAR"><projects>j129</projects><value>Wissen</value></data>
+<data name="SK_CLRALL"><projects>j129</projects><value>Alles wis.</value></data>
+<data name="SK_COMPL"><projects>j129</projects><value>Volt.</value></data>
+<data name="SK_CONF"><projects>j129</projects><value>Verg.</value></data>
+<data name="SK_CONTIN"><projects>j129</projects><value>Doorgaan</value></data>
+<data name="SK_DELETE"><projects>j129</projects><value>Wissen</value></data>
+<data name="SK_DETAILS"><projects>j129</projects><value>Details</value></data>
+<data name="SK_EDIT"><projects>j129</projects><value>Bewerkn</value></data>
+<data name="SK_EMERGNUM"><projects>j129</projects><value>Nood</value></data>
+<data name="SK_ENTER"><projects>j129</projects><value>Enter</value></data>
+<data name="SK_ENDCALL"><projects>j129</projects><value>Beëind.</value></data>
+<data name="SK_EXIT"><projects>j129</projects><value>Afsluiten</value></data>
+<data name="SK_EXTEND"><projects>j129</projects><value>Mobiel</value></data>
+<data name="SK_IGNORE"><projects>j129</projects><value>Negeren</value></data>
+<data name="SK_INSERT"><projects>j129</projects><value>Invoegen</value></data>
+<data name="SK_JOIN"><projects>j129</projects><value>Deeln.</value></data>
+<data name="SK_LOGIN"><projects>j129</projects><value>Aanm.</value></data>
+<data name="SK_LOGOUT"><projects>j129</projects><value>Afmelden</value></data>
+<data name="SK_MORE"><projects>j129</projects><value>Meer</value></data>
+<data name="SK_NEW"><projects>j129</projects><value>Nieuw</value></data>
+<data name="SK_NEXT"><projects>j129</projects><value>Volgende</value></data>
+<data name="SK_NUM"><projects>j129</projects><value>123</value></data>
+<data name="SK_OK"><projects>j129</projects><value>OK</value></data>
+<data name="SK_PING"><projects>j129</projects><value>Pingen</value></data>
+<data name="SK_PLAY"><projects>j129</projects><value>Afspelen</value></data>
+<data name="SK_PREVI"><projects>j129</projects><value>Vorige</value></data>
+<data name="SK_REDIAL"><projects>j129</projects><value>Herhalen</value></data>
+<data name="SK_RESET"><projects>j129</projects><value>Resetten</value></data>
+<data name="SK_RESTART"><projects>j129</projects><value>Herstrt</value></data>
+<data name="SK_RESUME"><projects>j129</projects><value>Herv.</value></data>
+<data name="SK_RETRY"><projects>j129</projects><value>Opnieuw</value></data>
+<data name="SK_SAVE"><projects>j129</projects><value>Opslaan</value></data>
+<data name="SK_SEARCH"><projects>j129</projects><value>Zoeken</value></data>
+<data name="SK_SELECT"><projects>j129</projects><value>Kiezen</value></data>
+<data name="SK_NETWORKS"><projects>j129</projects><value>Netwrkn</value></data>
+<data name="SK_SYMBOL"><projects>j129</projects><value>Symbool</value></data>
+<data name="SK_TEST"><projects>j129</projects><value>Testen</value></data>
+<data name="SK_TTLCASE"><projects>j129</projects><value>Abc</value></data>
+<data name="SK_XFER"><projects>j129</projects><value>Doorv.</value></data>
+<data name="SK_UNLOCK"><projects>j129</projects><value>Ontgr.</value></data>
+<data name="SK_DISMISS"><projects>j129</projects><value>Negeren</value></data>
+<data name="SK_RETURN"><projects>j129</projects><value>Terug</value></data>
+<data name="SK_SCLRALL"><projects>j129</projects><value>Alles wis.</value></data>
+<data name="SK_START"><projects>j129</projects><value>Starten</value></data>
+<data name="SK_CONNECT"><projects>j129</projects><value>Verbindn</value></data>
+<data name="SK_DISCONNECT"><projects>j129</projects><value>Verbrekn</value></data>
+<data name="SK_TOVMAIL"><projects>j129</projects><value>Voicemail</value></data>
+<data name="SK_FORGET"><projects>j129</projects><value>Vergeten</value></data>
+<data name="SK_INFO"><projects>j129</projects><value>Info</value></data>
+<data name="SK_ADMIN"><projects>j129</projects><value>Beheer</value></data>
+<data name="SK_RECENTS"><projects>j129</projects><value>Recent</value></data>
+<data name="SK_MERGECALLS"><projects>j129</projects><value>Samenv.</value></data>
+<data name="SK_SWAP"><projects>j129</projects><value>Wisselen</value></data>
+<data name="SK_NEWCALL"><projects>j129</projects><value>NwOproep</value></data>
+<data name="SK_REPLACE"><projects>j129</projects><value>Vervang.</value></data>
+<data name="SK_CONFIG"><projects>j129</projects><value>Config</value></data>
+<data name="SK_NEVER"><projects>j129</projects><value>Nooit</value></data>
+<data name="SK_CONFIRM"><projects>j129</projects><value>Bevest.</value></data>
+<data name="SK_PAIR"><projects>j129</projects><value>Koppelen</value></data>
+<data name="SK_HELP"><projects>j129</projects><value>Help</value></data>
+<data name="SK_NO"><projects>j129</projects><value>Nee</value></data>
+<data name="SK_DISABLE"><projects>j129</projects><value>Uitsch.</value></data>
+<data name="SK_ENABLE"><projects>j129</projects><value>Inschak.</value></data>
+<data name="SK_ACCEPT"><projects>j129</projects><value>Accept.</value></data>
+<data name="SK_UPDATE"><projects>j129</projects><value>Updaten</value></data>
+<data name="SK_LINK"><projects>j129</projects><value>Koppeling</value></data>
+<data name="SK_CODE"><projects>j129</projects><value>Code</value></data>
+<data name="SK_QR_CODE"><projects>j129</projects><value>QR-code</value></data>
+
+
+<!--MIRCHI - LABELS - MAX LENGTH variable chars-->
+
+<data name="LBL_PASSWD"><projects>j129</projects><value>Wachtwoord:</value></data>
+<data name="PS_XFERFAILED"><projects>j129</projects><value>Doorverbinden mislukt</value></data>
+<data name="PS_CONFFAILED"><projects>j129</projects><value>Vergadering mislukt</value></data>
+<data name="AS_OPTSET"><projects>j129</projects><value>Opties/instellingen</value></data>
+<data name="LBL_USEDHCP"><projects>j129</projects><value>DHCP gebruiken:</value></data>
+<data name="LBL_USEDHCPV6"><projects>j129</projects><value>DHCP(V6) gebruiken:</value></data>
+<data name="LBL_USESLAAC"><projects>j129</projects><value>SLAAC gebruiken:</value></data>
+<data name="LBL_PHONE"><projects>j129</projects><value>Tel.:</value></data>
+<data name="LBL_PHONEV4"><projects>j129</projects><value>Tel. (V4):</value></data>
+<data name="LBL_PHONEV6"><projects>j129</projects><value>Tel. (V6):</value></data>
+<data name="LBL_PHONEV6LL"><projects>j129</projects><value>Tel. (V6LL):</value></data>
+<data name="LBL_WEBSERVER"><projects>j129</projects><value>Webserver:</value></data>
+<data name="LBL_WEB_ON_HTTP"><projects>j129</projects><value>Web op HTTP:</value></data>
+<data name="AS_AUTOGCWC"><projects>j129</projects><value>AGC-instellingen</value></data>
+<data name="AS_NETWORK_INTERFACES"><projects>j129</projects><value>Netwerkinterfaces...</value></data>
+<data name="AS_INTERFC"><projects>j129</projects><value>Interfaces...</value></data>
+<data name="LBL_ERRLOG"><projects>j129</projects><value>Logniveau</value></data>
+<data name="LBL_RLOGENB"><projects>j129</projects><value>Syslog ingesch.</value></data>
+<data name="LBL_RLOGSRVR"><projects>j129</projects><value>Syslog-server</value></data>
+<data name="LBL_AVENV"><projects>j129</projects><value>Avaya-omgeving:</value></data>
+<data name="LBL_TPORTPORT"><projects>j129</projects><value>SIP-poort:</value></data>
+<data name="LBL_UIDFIELD"><projects>j129</projects><value>Gebruikers-ID</value></data>
+<data name="LBL_LGCLS"><projects>j129</projects><value>Rec. opr. loggen</value></data>
+<data name="LBL_TMFMT"><projects>j129</projects><value>Tijdsnotatie</value></data>
+<data name="AS_DOT1XP"><projects>j129</projects><value>802.1x-parameters...</value></data>
+<data name="SK_DEFAULT"><projects>j129</projects><value>Standrd</value></data>
+<data name="PS_VOLUMEWARNG"><projects>j129</projects><value>Een hoog volume kan uw gehoor beschadigen</value></data>
+<data name="PS_CONF"><projects>j129</projects><value>Conf.</value></data>
+<data name="LBL_WORK"><projects>j129</projects><value>Werk</value></data>
+<data name="LBL_WORK2"><projects>j129</projects><value>Werk2</value></data>
+<data name="LBL_MOBILE"><projects>j129</projects><value>Mobiel</value></data>
+<data name="LBL_HOME"><projects>j129</projects><value>Thuis</value></data>
+<data name="LBL_HOME2"><projects>j129</projects><value>Thuis2</value></data>
+<data name="LBL_OTHER"><projects>j129</projects><value>Anders</value></data>
+<data name="LBL_ASSISTANT"><projects>j129</projects><value>Assistent</value></data>
+<data name="LBL_COMPANY"><projects>j129</projects><value>Bedrijf</value></data>
+<data name="LBL_CAR"><projects>j129</projects><value>Auto</value></data>
+<data name="LBL_12HOUR"><projects>j129</projects><value>12 uur</value></data>
+<data name="LBL_24HOUR"><projects>j129</projects><value>24 uur</value></data>
+<data name="LBL_SETTINGS"><projects>j129</projects><value>Instellingen</value></data>
+<data name="LBL_WEBHELP"><projects>j129</projects><value>Web-apps</value></data>
+<data name="LBL_DURATION"><projects>j129</projects><value>Duur</value></data>
+<data name="LBL_DETAILS"><projects>j129</projects><value>Details</value></data>
+<data name="PT_CONFNUM"><projects>j129</projects><value>Vergadering %d</value></data>
+<data name="LBL_WIFI_DEBUG"><projects>j129</projects><value>Wifi-debug:</value></data>
+<data name="LBL_NEW_CALL"><projects>j129</projects><value>Nieuwe oproep</value></data>
+<data name="LBL_AM"><projects>j129</projects><value>am</value></data>
+<data name="LBL_PM"><projects>j129</projects><value>pm</value></data>
+
+
+<!--TITLE LINE Strings-->
+
+<data name="PS_FEAT"><projects>j129</projects><value>Functies</value></data>
+<data name="LBL_WIFI_SSID"><projects>j129</projects><value>SSID:</value></data>
+<data name="LBL_WIFI_NETWORK_LIST"><projects>j129</projects><value>Wifi-netw.</value></data>
+<data name="LBL_SCANNING"><projects>j129</projects><value>Scannen...</value></data>
+<data name="LBL_NOWIFI"><projects>j129</projects><value>Geen wifi gevonden</value></data>
+<data name="LBL_SWITCH_WIFI"><projects>j129</projects><value>Druk op Netwrkn om over te schakelen op wifi.</value></data>
+<data name="LBL_ETHLINK_UP"><projects>j129</projects><value>Ethernet-link actief.</value></data>
+<data name="LBL_SWITCH_ETH"><projects>j129</projects><value>Druk op Herstrt om over te schakelen op ethernet.</value></data>
+<data name="LBL_PRESS_CANCEL_REMAIN_WIFI"><projects>j129</projects><value>Kies Annul. om op wifi te blijven.</value></data>
+<data name="LBL_SWITCH_NET"><projects>j129</projects><value>Druk op Netwrkn om een ander netwerk te kiezen.</value></data>
+<data name="LBL_JANUARY"><projects>j129</projects><value>Januari</value></data>
+<data name="LBL_FEBRUARY"><projects>j129</projects><value>Februari</value></data>
+<data name="LBL_MARCH"><projects>j129</projects><value>Maart</value></data>
+<data name="LBL_APRIL"><projects>j129</projects><value>April</value></data>
+<data name="LBL_MAY"><projects>j129</projects><value>Mei</value></data>
+<data name="LBL_JUNE"><projects>j129</projects><value>Juni</value></data>
+<data name="LBL_JULY"><projects>j129</projects><value>Juli</value></data>
+<data name="LBL_AUGUST"><projects>j129</projects><value>Augustus</value></data>
+<data name="LBL_SEPTEMBER"><projects>j129</projects><value>September</value></data>
+<data name="LBL_OCTOBER"><projects>j129</projects><value>Oktober</value></data>
+<data name="LBL_NOVEMBER"><projects>j129</projects><value>November</value></data>
+<data name="LBL_DECEMBER"><projects>j129</projects><value>December</value></data>
+<data name="SK_CTCTS"><projects>j129</projects><value>Cont.p.</value></data>
+<data name="TT_PHNLCKD"><projects>j129</projects><value>Telefoon vergrendeld</value></data>
+
+
+<!--SUBTITLE Strings-->
+
+<data name="AS_CONTRST"><projects>j129</projects><value>Contrast...</value></data>
+<data name="AS_TIMEZONE"><projects>j129</projects><value>Tijdzone...</value></data>
+<data name="AS_AGCSET"><projects>j129</projects><value>AGC...</value></data>
+<data name="AS_AUDIOP"><projects>j129</projects><value>Audioparameters...</value></data>
+<data name="AS_IPADDRP"><projects>j129</projects><value>IP-parameters...</value></data>
+<data name="AS_AUDIOSET"><projects>j129</projects><value>Audio-instellingen...</value></data>
+<data name="AS_PHONESET"><projects>j129</projects><value>Telefooninstellingen..</value></data>
+<data name="AS_SYSTEM"><projects>j129</projects><value>Systeem...</value></data>
+<data name="AS_QOS"><projects>j129</projects><value>Quality of service...</value></data>
+<data name="AS_RINGTYPE"><projects>j129</projects><value>Type beltoon...</value></data>
+<data name="AS_CALLPARK_RINGTYPE"><projects>j129</projects><value>Beltype v. parkeren...</value></data>
+<data name="AS_DISPLAYSET"><projects>j129</projects><value>Scherminstellingen...</value></data>
+<data name="AS_SERVICE"><projects>j129</projects><value>Service</value></data>
+<data name="AS_SPDDIAL"><projects>j129</projects><value>Snelkeuze...</value></data>
+<data name="AS_DIALOPT"><projects>j129</projects><value>Kiesmodus</value></data>
+<data name="AS_PING"><projects>j129</projects><value>Pingen...</value></data>
+<data name="LBL_MY_PRESENCE"><projects>j129</projects><value>Aanwezigh.</value></data>
+<data name="LBL_AVAILABLE"><projects>j129</projects><value>Beschikbaar</value></data>
+<data name="LBL_OFFLINE"><projects>j129</projects><value>Offline</value></data>
+<data name="LBL_AWAY_TIMER"><projects>j129</projects><value>Afw.timer</value></data>
+<data name="LBL_MANUAL"><projects>j129</projects><value>Handm.</value></data>
+<data name="AS_PRIORITY_RINGTYPE"><projects>j129</projects><value>Prioriteitsmelding</value></data>
+<data name="AS_ALT_NUM1_RINGTYPE"><projects>j129</projects><value>Alternatief nummer 1</value></data>
+<data name="AS_ALT_NUM2_RINGTYPE"><projects>j129</projects><value>Alternatief nummer 2</value></data>
+<data name="AS_REMINDER_RINGTYPE"><projects>j129</projects><value>Herinneringstoon</value></data>
+<data name="AS_PERSONALIZE_RINGING"><projects>j129</projects><value>Beltoon personaliseren</value></data>
+
+
+<!--PROMPTLINE Strings-->
+
+<data name="PL_DWNLDCONFIG"><projects>j129</projects><value>Configuratie downloaden...</value></data>
+<data name="PL_LOGGINGIN"><projects>j129</projects><value>Aanmelden...</value></data>
+<data name="PL_REGISTERING"><projects>j129</projects><value>Registreren bij oproepserver...</value></data>
+<data name="PL_SEARCHING"><projects>j129</projects><value>Zoeken...</value></data>
+<data name="PL_FEATUNAV"><projects>j129</projects><value>De functie is niet beschikbaar</value></data>
+<data name="PL_ACQUIRINGSERVICE"><projects>j129</projects><value>Service aanvragen...</value></data>
+<data name="PL_LIMITED"><projects>j129</projects><value>Beperkte telefoonservice</value></data>
+<data name="PL_SPRESSDIAL"><projects>j129</projects><value>Zoek via cijfertoetsen</value></data>
+<data name="PL_CONF_SETUP_PROMPT"><projects>j129</projects><value>Bel of kies nr.</value></data>
+
+
+<!--LABEL Strings-->
+
+<data name="LBL_YES"><projects>j129</projects><value>Ja</value></data>
+<data name="LBL_NO"><projects>j129</projects><value>Nee</value></data>
+<data name="LBL_ON"><projects>j129</projects><value>Aan</value></data>
+<data name="LBL_OFF"><projects>j129</projects><value>Uit</value></data>
+<data name="LBL_DSABLD"><projects>j129</projects><value>Uit</value></data>
+<data name="LBL_ENABLD"><projects>j129</projects><value>Aan</value></data>
+<data name="LBL_ACTIV"><projects>j129</projects><value>Actief</value></data>
+<data name="LBL_USERNAME"><projects>j129</projects><value>Gebruikersnaam:</value></data>
+<data name="LBL_USERID"><projects>j129</projects><value>Gebr.-ID:</value></data>
+<data name="LBL_FIRSTNAME"><projects>j129</projects><value>Voornaam:</value></data>
+<data name="LBL_LASTNAME"><projects>j129</projects><value>Achternaam:</value></data>
+<data name="LBL_NUMBER"><projects>j129</projects><value>Nummer %d:</value></data>
+<data name="LBL_COMPLIANT"><projects>j129</projects><value>Conform</value></data>
+<data name="LBL_NOTCOMPLIANT"><projects>j129</projects><value>Niet conform</value></data>
+<data name="MSG_UNAV"><projects>j129</projects><value>Niet beschikbaar</value></data>
+<data name="MSG_ABOUTAV"><projects>j129</projects><value>Over Avaya</value></data>
+<data name="MSG_NTWKIN"><projects>j129</projects><value>Netwerkinformatie</value></data>
+<data name="AT_NTWKINF"><projects>j129</projects><value>Netwerkinformatie</value></data>
+<data name="MSG_NETWORK_INTERFACES"><projects>j129</projects><value>Netwerkinterfaces...</value></data>
+<data name="LBL_DSPTIM"><projects>j129</projects><value>Oproeptimers</value></data>
+<data name="LBL_VISUAL"><projects>j129</projects><value>Indicator</value></data>
+<data name="LBL_SPEAKR"><projects>j129</projects><value>Luidspreker</value></data>
+<data name="LBL_HNDSET"><projects>j129</projects><value>Hoorn</value></data>
+<data name="LBL_NONE"><projects>j129</projects><value>Geen</value></data>
+<data name="LBL_BTNCLK"><projects>j129</projects><value>Klikgeluid toetsen</value></data>
+<data name="LBL_ERRORT"><projects>j129</projects><value>Fouttonen</value></data>
+<data name="LBL_SIPDMN"><projects>j129</projects><value>Domein:</value></data>
+<data name="LBL_PRESENCESRVR"><projects>j129</projects><value>Aanw.server:</value></data>
+<data name="LBL_SIPPRXYSRVR"><projects>j129</projects><value>SIP-proxyserver:</value></data>
+<data name="LBL_SNTPSRVR"><projects>j129</projects><value>SNTP-server:</value></data>
+<data name="LBL_STUNSRVR"><projects>j129</projects><value>STUN-server:</value></data>
+<data name="LBL_AUTO"><projects>j129</projects><value>Autom.</value></data>
+<data name="LBL_AUTO_2"><projects>j129</projects><value>Auto:</value></data>
+<data name="LBL_HTTPSRVR"><projects>j129</projects><value>HTTP-server:</value></data>
+<data name="LBL_HTTPSSRVR"><projects>j129</projects><value>HTTPS-server:</value></data>
+<data name="LBL_DNSSRVR"><projects>j129</projects><value>DNS-server:</value></data>
+<data name="LBL_EMERGS"><projects>j129</projects><value>Noodgevallen</value></data>
+<data name="LBL_ALERTS"><projects>j129</projects><value>Meldingen</value></data>
+<data name="LBL_CRITICL"><projects>j129</projects><value>Kritiek</value></data>
+<data name="LBL_ERRORS"><projects>j129</projects><value>Fouten</value></data>
+<data name="LBL_WARNS"><projects>j129</projects><value>Waarschuwingen</value></data>
+<data name="LBL_NOTES"><projects>j129</projects><value>Opmerkingen</value></data>
+<data name="LBL_INFO"><projects>j129</projects><value>Informatie</value></data>
+<data name="LBL_DEBUG"><projects>j129</projects><value>Debuggen</value></data>
+<data name="LBL_MASK"><projects>j129</projects><value>Masker:</value></data>
+<data name="LBL_VLANID"><projects>j129</projects><value>VLAN-ID:</value></data>
+<data name="LBL_ETHERN"><projects>j129</projects><value>Ethernet:</value></data>
+<data name="LBL_PCENET"><projects>j129</projects><value>PC-ethernet:</value></data>
+<data name="LBL_NETWORK_MODE"><projects>j129</projects><value>Netwerkmodus:</value></data>
+<data name="LBL_NETWORK_MODE_ETHERNET"><projects>j129</projects><value>Ethernet</value></data>
+<data name="LBL_NETWORK_MODE_WIFI"><projects>j129</projects><value>Wifi</value></data>
+<data name="LBL_10HALF"><projects>j129</projects><value>10Mbps, half</value></data>
+<data name="LBL_10FULL"><projects>j129</projects><value>10Mbps, volledig</value></data>
+<data name="LBL_100HALF"><projects>j129</projects><value>100Mbps, half</value></data>
+<data name="LBL_100FULL"><projects>j129</projects><value>100Mbps, volledig</value></data>
+<data name="LBL_MSEC"><projects>j129</projects><value>msec</value></data>
+<data name="LBL_1000FLL"><projects>j129</projects><value>1000 Mbps, volledig</value></data>
+<data name="LBL_RCCODE"><projects>j129</projects><value>Codering ontvangst:</value></data>
+<data name="LBL_PKTLOS"><projects>j129</projects><value>Pakketverlies:</value></data>
+<data name="LBL_PKTD"><projects>j129</projects><value>Pakketvertraging:</value></data>
+<data name="LBL_1WAYD"><projects>j129</projects><value>Eenz. netw. vertraging:</value></data>
+<data name="LBL_NTWKJD"><projects>j129</projects><value>Jittervertraging netw.:</value></data>
+<data name="LBL_MOSCQ"><projects>j129</projects><value>MOS-CQ</value></data>
+<data name="LBL_MOSLQ"><projects>j129</projects><value>MOS-LQ</value></data>
+<data name="LBL_RFACTOR"><projects>j129</projects><value>R-factor</value></data>
+<data name="LBL_SIGNALLEVEL"><projects>j129</projects><value>Signaalniveau:</value></data>
+<data name="LBL_SIGNAL_STRENGTH"><projects>j129</projects><value>Signaalsterkte:</value></data>
+<data name="LBL_SIGNAL_STRENGTH_WEAK"><projects>j129</projects><value>Zwak</value></data>
+<data name="LBL_SIGNAL_STRENGTH_FAIR"><projects>j129</projects><value>Redelijk</value></data>
+<data name="LBL_SIGNAL_STRENGTH_STRONG"><projects>j129</projects><value>Sterk</value></data>
+<data name="LBL_SIGNAL_STRENGTH_VERYSTRONG"><projects>j129</projects><value>Zeer sterk</value></data>
+<data name="LBL_RNDTRIPDELAY"><projects>j129</projects><value>Retourvertraging</value></data>
+<data name="LBL_LOSSRATE"><projects>j129</projects><value>Verliespercentage</value></data>
+<data name="LBL_802D1Q"><projects>j129</projects><value>802.1Q:</value></data>
+<data name="LBL_VLANT"><projects>j129</projects><value>VLAN-test:</value></data>
+<data name="LBL_L2AUD"><projects>j129</projects><value>L2-audio:</value></data>
+<data name="LBL_L2SIG"><projects>j129</projects><value>L2-signalering:</value></data>
+<data name="LBL_L3AUD"><projects>j129</projects><value>L3-audio:</value></data>
+<data name="LBL_L3SIG"><projects>j129</projects><value>L3-signalering:</value></data>
+<data name="LBL_ETH_L2AUD"><projects>j129</projects><value>Ethernet L2-audio</value></data>
+<data name="LBL_ETH_L2SIG"><projects>j129</projects><value>Ethernet L2-signal.</value></data>
+<data name="LBL_ETH_L3AUD"><projects>j129</projects><value>Ethernet L3-audio</value></data>
+<data name="LBL_ETH_L3SIG"><projects>j129</projects><value>Ethernet L3-signal.</value></data>
+<data name="LBL_WIFI_L2AUD"><projects>j129</projects><value>Wifi L2-audio</value></data>
+<data name="LBL_WIFI_L2SIG"><projects>j129</projects><value>Wifi L2-signalering</value></data>
+<data name="LBL_WIFI_L3AUD"><projects>j129</projects><value>Wifi L3-audio</value></data>
+<data name="LBL_WIFI_L3SIG"><projects>j129</projects><value>Wifi L3-signalering</value></data>
+<data name="LBL_MODEL"><projects>j129</projects><value>Model:</value></data>
+<data name="LBL_PHNSN"><projects>j129</projects><value>Serienummer:</value></data>
+<data name="LBL_MACADD"><projects>j129</projects><value>MAC:</value></data>
+<data name="LBL_FIPS_ENABLED"><projects>j129</projects><value>FIPS:</value></data>
+<data name="LBL_FIPS_OP_MODE"><projects>j129</projects><value>FIPS op-modus:</value></data>
+<data name="LBL_FIPS_EXCEPTIONS"><projects>j129</projects><value>FIPS-uitzonderingen:</value></data>
+<data name="LBL_GROUP"><projects>j129</projects><value>Groep:</value></data>
+<data name="LBL_PROTOC"><projects>j129</projects><value>Protocol:</value></data>
+<data name="LBL_SOFTWAREVERSION"><projects>j129</projects><value>Softwareversie:</value></data>
+<data name="LBL_BACKUPSWVERSION"><projects>j129</projects><value>Versie sw-back-up:</value></data>
+<data name="LBL_PASSTH"><projects>j129</projects><value>Pass-thru</value></data>
+<data name="LBL_SUPPLC"><projects>j129</projects><value>Aanvrager</value></data>
+<data name="LBL_RESTRICTED"><projects>j129</projects><value>Beperkt</value></data>
+<data name="LBL_LOGCAT"><projects>j129</projects><value>Logcategorieën...</value></data>
+<data name="LBL_DEVID"><projects>j129</projects><value>Apparaat-ID:</value></data>
+<data name="LBL_ONWTPXYLGOF"><projects>j129</projects><value>Afmelden</value></data>
+<data name="LBL_SUPMULTIPROC"><projects>j129</projects><value>Multicast</value></data>
+<data name="LBL_MULTIPT"><projects>j129</projects><value>Pass-thru</value></data>
+<data name="LBL_PXYLGOF"><projects>j129</projects><value>Proxy-afm.</value></data>
+<data name="LBL_UNASSGND"><projects>j129</projects><value>Niet toegewezen</value></data>
+<data name="Call-Forward-Busy"><projects>j129</projects><value>Doorsch.-bezet</value></data>
+<data name="Call-Forward-No-Answer"><projects>j129</projects><value>Doorsch.-geen antw.</value></data>
+<data name="LBL_REALM"><projects>j129</projects><value>Bereik:</value></data>
+<data name="LBL_NUMBERWC"><projects>j129</projects><value>Nummer:</value></data>
+<data name="LBL_NAMEWC"><projects>j129</projects><value>Naam:</value></data>
+<data name="LBL_REGPOLICY"><projects>j129</projects><value>Reg.beleid</value></data>
+<data name="LBL_FAILBACKPOLICY"><projects>j129</projects><value>Failbackbeleid</value></data>
+<data name="LBL_PERSONALIZE_RINGING_CALL_PARK"><projects>j129</projects><value>Opr. parkeren</value></data>
+<data name="LBL_LIGHTOFF"><projects>j129</projects><value>Licht uit</value></data>
+<data name="LBL_CLASSICTONE"><projects>j129</projects><value>Klassieke beltoon</value></data>
+<data name="LBL_CLNSCR"><projects>j129</projects><value>Aanraakscherm reinigen</value></data>
+<data name="LBL_ADBLE"><projects>j129</projects><value>Hoorb.</value></data>
+<data name="LBL_VSUL"><projects>j129</projects><value>Zichtb.</value></data>
+<data name="LBL_BOTH"><projects>j129</projects><value>Beide</value></data>
+<data name="LBL_PROCESSING"><projects>j129</projects><value>Bezig met verwerken</value></data>
+<data name="LBL_SHORT"><projects>j129</projects><value>Kort</value></data>
+<data name="LBL_MUTEALERT"><projects>j129</projects><value>Melding neg.</value></data>
+<data name="LBL_DEFAULT"><projects>j129</projects><value>Standrd</value></data>
+<data name="LBL_SNOCALL"><projects>j129</projects><value>Gn opr.</value></data>
+<data name="LBL_RICHTONE_CHEERFUL"><projects>j129</projects><value>Vrolijk</value></data>
+<data name="LBL_RICHTONE_CHIMES"><projects>j129</projects><value>Harmonieus</value></data>
+<data name="LBL_RICHTONE_TELEPHONE_BELL"><projects>j129</projects><value>Telefoonbel</value></data>
+<data name="LBL_RICHTONE_XYLOPHONE"><projects>j129</projects><value>Xylofoon</value></data>
+<data name="LBL_RICHTONE_DRUM_BEAT"><projects>j129</projects><value>Tromgeroffel</value></data>
+<data name="LBL_RICHTONE_SHIMMER"><projects>j129</projects><value>Shimmer</value></data>
+<data name="LBL_SIP_PROXY_SERVER"><projects>j129</projects><value>SIP-proxyserver</value></data>
+<data name="LBL_REASON_CFI"><projects>j129</projects><value>Intern doorschakelen</value></data>
+<data name="LBL_REASON_CFB"><projects>j129</projects><value>ODB</value></data>
+<data name="LBL_REASON_CFNR"><projects>j129</projects><value>Doorsch. bij GG</value></data>
+<data name="LBL_REASON_SAC"><projects>j129</projects><value>Verstr.alles</value></data>
+<data name="LBL_PROFILE"><projects>j129</projects><value>Profiel%d</value></data>
+<data name="LBL_HNPROF"><projects>j129</projects><value>Handsetprofiel</value></data>
+<data name="LBL_HNPROF_NORMAL"><projects>j129</projects><value>Normaal</value></data>
+<data name="LBL_HNPROF_AMPLIFIED"><projects>j129</projects><value>Versterkt</value></data>
+<data name="LBL_HNPROF_HEARING_AID"><projects>j129</projects><value>Gehoorapparaat</value></data>
+<data name="OPT_REGPOLICY_ALTERNATE"><projects>j129</projects><value>Afwiss.</value></data>
+<data name="OPT_REGPOLICY_SIMULTANEOUS"><projects>j129</projects><value>Simul.</value></data>
+<data name="OPT_FAILBACKPOLICY_ADMIN"><projects>j129</projects><value>Beheer</value></data>
+<data name="OPT_FAILBACKPOLICY_AUTO"><projects>j129</projects><value>Autom.</value></data>
+<data name="LBL_CURRENT_LANG"><projects>j129</projects><value>Taal...</value></data>
+<data name="LBL_CONTACTS"><projects>j129</projects><value>Contactpersonen</value></data>
+<data name="LBL_DESTINATION"><projects>j129</projects><value>Bestemming:</value></data>
+<data name="LBL_EXTENSION"><projects>j129</projects><value>Toestel:</value></data>
+<data name="LBL_LINKSPEED"><projects>j129</projects><value>Linksnelheid:</value></data>
+<data name="LBL_IPADDRESS"><projects>j129</projects><value>IP-adres:</value></data>
+<data name="LBL_SECURITY"><projects>j129</projects><value>Beveiliging:</value></data>
+<data name="LBL_SECURITY_SHORTENED"><projects>j129</projects><value>Sec:</value></data>
+<data name="LBL_EAP_METHOD"><projects>j129</projects><value>EAP:</value></data>
+<data name="LBL_PHASE2AUTHENTICATION"><projects>j129</projects><value>Fase 2:</value></data>
+<data name="LBL_IDENTITY"><projects>j129</projects><value>Identiteit:</value></data>
+<data name="LBL_ANONYMOUS_IDENTITY"><projects>j129</projects><value>Anoniem:</value></data>
+<data name="LBL_UNKNOWN"><projects>j129</projects><value>Onbekend</value></data>
+<data name="LBL_PROXYSELECTIONPOLICY"><projects>j129</projects><value>Proxybeleid</value></data>
+<data name="OPT_PROXYPOLICY_AUTO"><projects>j129</projects><value>Autom.</value></data>
+<data name="OPT_PROXYPOLICY_MANUAL"><projects>j129</projects><value>Handm.</value></data>
+<data name="LBL_PRESENCE_SETTINGS"><projects>j129</projects><value>Aanwezigheidsinst...</value></data>
+<data name="LBL_NETWORK"><projects>j129</projects><value>Netwerk</value></data>
+<data name="LBL_AWAY_TIMER_VALUE"><projects>j129</projects><value>Timerwaarde</value></data>
+<data name="LBL_VOICEMAIL"><projects>j129</projects><value>Voicemail</value></data>
+<data name="LBL_OPENSSL_VER"><projects>j129</projects><value>OpenSSL-versie:</value></data>
+<data name="LBL_OPENSSH_VER"><projects>j129</projects><value>OpenSSH-versie:</value></data>
+<data name="LBL_DATE_FORMAT"><projects>j129</projects><value>Datumnot.</value></data>
+<data name="LBL_DATE_FMTOPT_DEFAULT"><projects>j129</projects><value>Standrd</value></data>
+<data name="LBL_DATE_FMTOPT_1"><projects>j129</projects><value>mm/dd</value></data>
+<data name="LBL_DATE_FMTOPT_2"><projects>j129</projects><value>dd/mm</value></data>
+<data name="LBL_DATE_FMTOPT_3"><projects>j129</projects><value>mm.dd</value></data>
+<data name="LBL_DATE_FMTOPT_4"><projects>j129</projects><value>dd.mm</value></data>
+<data name="LBL_DATE_FMTOPT_5"><projects>j129</projects><value>mm-dd</value></data>
+<data name="LBL_DATE_FMTOPT_6"><projects>j129</projects><value>dd-mm</value></data>
+<data name="LBL_DATE_FMTOPT_7"><projects>j129</projects><value>mmm dd</value></data>
+<data name="LBL_JAN_SHORT"><projects>j129</projects><value>jan</value></data>
+<data name="LBL_FEB_SHORT"><projects>j129</projects><value>feb</value></data>
+<data name="LBL_MAR_SHORT"><projects>j129</projects><value>maa</value></data>
+<data name="LBL_APR_SHORT"><projects>j129</projects><value>apr</value></data>
+<data name="LBL_MAY_SHORT"><projects>j129</projects><value>mei</value></data>
+<data name="LBL_JUN_SHORT"><projects>j129</projects><value>jun</value></data>
+<data name="LBL_JUL_SHORT"><projects>j129</projects><value>jul</value></data>
+<data name="LBL_AUG_SHORT"><projects>j129</projects><value>aug</value></data>
+<data name="LBL_SEP_SHORT"><projects>j129</projects><value>sep</value></data>
+<data name="LBL_OCT_SHORT"><projects>j129</projects><value>okt</value></data>
+<data name="LBL_NOV_SHORT"><projects>j129</projects><value>nov</value></data>
+<data name="LBL_DEC_SHORT"><projects>j129</projects><value>dec</value></data>
+<data name="LBL_VERIFYING_CREDENTIALS"><projects>j129</projects><value>Ref. controleren</value></data>
+<data name="LBL_CERT_PWD"><projects>j129</projects><value>Cert.ww.:</value></data>
+<data name="LBL_PROXY"><projects>j129</projects><value>Proxy:</value></data>
+<data name="LBL_ADDRESS"><projects>j129</projects><value>Adr:</value></data>
+<data name="LBL_EMPTY_SIP_PROXY_LIST"><projects>j129</projects><value>SIP-proxylijst is leeg</value></data>
+<data name="LBL_INACTIVE"><projects>j129</projects><value>Inactief</value></data>
+<data name="LBL_ACCESS_CODE"><projects>j129</projects><value>Toeg.code:</value></data>
+<data name="LBL_CERTI"><projects>j129</projects><value>Certificaat</value></data>
+<data name="LBL_CERTIEXPIRY"><projects>j129</projects><value>Verloopdatum</value></data>
+<data name="LBL_MISSING"><projects>j129</projects><value>Ontbreekt</value></data>
+<data name="LBL_EXPIRED"><projects>j129</projects><value>Verlopen</value></data>
+<data name="LBL_SERIAL_PORT"><projects>j129</projects><value>Ser. poort</value></data>
+<data name="LBL_PORT_MIRRORING"><projects>j129</projects><value>Poort spiegelen</value></data>
+<data name="LBL_ADJUNCT"><projects>j129</projects><value>Adjunct</value></data>
+<data name="LBL_SENT_RECEIVED"><projects>j129</projects><value>Verz: %d / Ontv: %d</value></data>
+<data name="LBL_WAIT_CONTACTING_HOST"><projects>j129</projects><value>Contact opn. met host...</value></data>
+<data name="LBL_UNABLE_TO_CONTACT_HOST"><projects>j129</projects><value>Kan host niet bereiken</value></data>
+<data name="LBL_SUCCESS_CONTACT_HOST"><projects>j129</projects><value>Pingen voltooid</value></data>
+<data name="LBL_NO_FINGERPRINT"><projects>j129</projects><value>Geen vingerafdruk</value></data>
+<data name="LBL_VERSION_NUMBER"><projects>j129</projects><value>Versienummer:</value></data>
+<data name="LBL_UPGRADE_DATE"><projects>j129</projects><value>Upgradedatum:</value></data>
+<data name="LBL_UPGRADE_STATUS"><projects>j129</projects><value>Upgradestatus:</value></data>
+<data name="LBL_REASON_CODE"><projects>j129</projects><value>Redencode:</value></data>
+<data name="LBL_FILENAME"><projects>j129</projects><value>Bestandsnm:</value></data>
+<data name="LBL_USER"><projects>j129</projects><value>Gebr.:</value></data>
+<data name="LBL_LOGIN"><projects>j129</projects><value>Aanmelden</value></data>
+<data name="LBL_LOGOUT"><projects>j129</projects><value>Afmelden</value></data>
+<data name="LBL_LOCK"><projects>j129</projects><value>Vergrendelen</value></data>
+<data name="LBL_ADMIN_SETTINGS"><projects>j129</projects><value>Beheer</value></data>
+<data name="LBL_ABOUT_PHONE"><projects>j129</projects><value>Over de IP-telefoon</value></data>
+<data name="LBL_RESTORE"><projects>j129</projects><value>Herstellen</value></data>
+<data name="SK_RESTORE"><projects>j129</projects><value>Herst.</value></data>
+<data name="LBL_RECENTS"><projects>j129</projects><value>Recente oproepen</value></data>
+<data name="LBL_UPGRADE_INFO"><projects>j129</projects><value>Upgrade-info...</value></data>
+<data name="LBL_SSH"><projects>j129</projects><value>SSH</value></data>
+<data name="LBL_CLI"><projects>j129</projects><value>CLI</value></data>
+<data name="LBL_SVC_CONTROL"><projects>j129</projects><value>Svc.contr.</value></data>
+<data name="LBL_SVC_RECORD"><projects>j129</projects><value>Svc.rec.</value></data>
+<data name="LBL_ROUTER"><projects>j129</projects><value>Gateway:</value></data>
+<data name="LBL_ROUTERV4"><projects>j129</projects><value>Gateway(V4):</value></data>
+<data name="LBL_ROUTERV6"><projects>j129</projects><value>Gateway(V6):</value></data>
+<data name="LBL_ROUTERV6PREFIX"><projects>j129</projects><value>Voorvoegsels...</value></data>
+<data name="LBL_MULTICAST"><projects>j129</projects><value>Multicast</value></data>
+<data name="LBL_UNICAST"><projects>j129</projects><value>Unicast</value></data>
+<data name="LBL_GENREPORT"><projects>j129</projects><value>Rapport genereren...</value></data>
+<data name="LBL_COULD_NOT_CREATE_REPORT"><projects>j129</projects><value>Kan rapport niet genereren</value></data>
+<data name="LBL_REPORT_IS_SENT"><projects>j129</projects><value>Rapport verzonden</value></data>
+<data name="LBL_REPORT_IS_SAVED"><projects>j129</projects><value>Rapport opgeslagen op telefoon</value></data>
+<data name="OPT_AVENV_AUTO"><projects>j129</projects><value>Autom.</value></data>
+<data name="OPT_AVENV_NO"><projects>j129</projects><value>Nee</value></data>
+<data name="LBL_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>Geen functie geconfig.</value></data>
+<data name="LBL_PHONEREPORT"><projects>j129</projects><value>Telefoonrapport</value></data>
+<data name="LBL_SUCCESSFUL"><projects>j129</projects><value>Voltooid</value></data>
+<data name="LBL_FAILED"><projects>j129</projects><value>Mislukt</value></data>
+<data name="LBL_MY_TIME"><projects>j129</projects><value>Mijn tijd:</value></data>
+<data name="LBL_NO_CALLS_TO_DISPLAY"><projects>j129</projects><value>Geen opr. om te tonen</value></data>
+<data name="LBL_HTTPPORT"><projects>j129</projects><value>HTTP-poort:</value></data>
+<data name="LBL_HTTPDIR"><projects>j129</projects><value>HTTP-map:</value></data>
+<data name="LBL_HTTPSPORT"><projects>j129</projects><value>HTTPS-poort:</value></data>
+<data name="LBL_HTTPSDIR"><projects>j129</projects><value>HTTPS-map:</value></data>
+<data name="LBL_KBPS"><projects>j129</projects><value>Kbps</value></data>
+<data name="LBL_DBM"><projects>j129</projects><value>dBm</value></data>
+<data name="LBL_AUTOANSWER"><projects>j129</projects><value>Autom. beantw.</value></data>
+<data name="LBL_PHONE_TO_PC_PAIRING"><projects>j129</projects><value>Telefoon met pc koppelen</value></data>
+<data name="LBL_DEVICE_PAIRING"><projects>j129</projects><value>Apparaat koppelen</value></data>
+<data name="LBL_PAIRING_STATUS"><projects>j129</projects><value>Koppelingsstatus:</value></data>
+<data name="LBL_PAIRING_IN_PROGRESS"><projects>j129</projects><value>Bezig met koppelen...</value></data>
+<data name="LBL_WAITING_FOR_CREDENTIALS"><projects>j129</projects><value>Wachten op referenties...</value></data>
+<data name="LBL_BACKUP_RESTORE"><projects>j129</projects><value>Back-up/herstellen</value></data>
+<data name="LBL_MANUAL_RESTORE"><projects>j129</projects><value>Handmatig herstellen</value></data>
+<data name="LBL_MANUAL_BACKUP"><projects>j129</projects><value>Handmatige back-up</value></data>
+<data name="LBL_IP_ADDRESS_HINT"><projects>j129</projects><value>IP-adres</value></data>
+<data name="LBL_NICKNAME"><projects>j129</projects><value>Bijnaam</value></data>
+<data name="LBL_ADD_NUMBER"><projects>j129</projects><value>Nummer toevoegen</value></data>
+<data name="LBL_DEFAULT_RINGTONE"><projects>j129</projects><value>Standaard beltoon</value></data>
+<data name="LBL_SYSTEM_RINGTONE"><projects>j129</projects><value>Systeem</value></data>
+<data name="LBL_ERROR"><projects>j129</projects><value>Fout</value></data>
+<data name="LBL_NETWORK_CONFIG"><projects>j129</projects><value>Netwerkconf.:</value></data>
+<data name="LBL_ETHERNET_MAC"><projects>j129</projects><value>Ethernet-MAC</value></data>
+<data name="LBL_WIFI_MAC"><projects>j129</projects><value>Wifi-MAC</value></data>
+<data name="LBL_ENTER_CODE"><projects>j129</projects><value>Code inv.</value></data>
+<data name="LBL_ENTER_ENROLLMENT_CODE"><projects>j129</projects><value>Inschr.code</value></data>
+<data name="LBL_RING_REMINDER"><projects>j129</projects><value>Herinnering</value></data>
+<data name="LBL_CALL_FWD_ALWAYS"><projects>j129</projects><value>Doorschakelen</value></data>
+<data name="LBL_ANSWER"><projects>j129</projects><value>Beantw.</value></data>
+<data name="LBL_CALL_PARK"><projects>j129</projects><value>Oproep park.</value></data>
+<data name="LBL_NO_CONFIGURABLE_FEATURES"><projects>j129</projects><value>Geen configureerb. functies</value></data>
+<data name="LBL_SETTINGS_NOT_ACCESSIBLE"><projects>j129</projects><value>Inst. niet toegankelijk</value></data>
+<data name="LBL_CALL_FWD_NO_ANSWER"><projects>j129</projects><value>Doorschakelen-GA</value></data>
+<data name="LBL_NUMBER_OF_RINGS"><projects>j129</projects><value>Aantal beltonen</value></data>
+<data name="LBL_SIP_CONTROLLERS"><projects>j129</projects><value>SIP-controllers</value></data>
+<data name="LBL_SIP_CONTROLLERS_2"><projects>j129</projects><value>SIP-controllers...</value></data>
+<data name="LBL_SIP_CONTROLLER_DETAILS"><projects>j129</projects><value>Details SIP-controller</value></data>
+<data name="LBL_HOST_NAME"><projects>j129</projects><value>Hostnaam</value></data>
+<data name="LBL_PORT"><projects>j129</projects><value>Poort</value></data>
+<data name="LBL_USER_DOMAIN"><projects>j129</projects><value>Gebruikersdomein</value></data>
+<data name="LBL_STATUS"><projects>j129</projects><value>Status</value></data>
+<data name="LBL_NOT_ACTIVE"><projects>j129</projects><value>Niet actief</value></data>
+<data name="LBL_PRIORITY"><projects>j129</projects><value>Prioriteit</value></data>
+<data name="LBL_PRIMARY"><projects>j129</projects><value>Primair</value></data>
+<data name="LBL_SECONDARY"><projects>j129</projects><value>Secundair</value></data>
+<data name="LBL_EXPERIENCING_DELAYS"><projects>j129</projects><value>Er zijn vertragingen...</value></data>
+<data name="LBL_NOT_CONFIGURED"><projects>j129</projects><value>Niet geconfigureerd</value></data>
+<data name="LBL_LINE"><projects>j129</projects><value>Lijn/poort:</value></data>
+<data name="LBL_AUTHNAME"><projects>j129</projects><value>Verif.naam:</value></data>
+<data name="LBL_XSI_WEB_PASSWORD"><projects>j129</projects><value>Webwachtwoord</value></data>
+<data name="LBL_XSI_AUTH_METHOD"><projects>j129</projects><value>Verif.methode</value></data>
+<data name="LBL_XSI_USER_ID"><projects>j129</projects><value>Gebr.-id:</value></data>
+<data name="LBL_XSI_AUTHENTICATION"><projects>j129</projects><value>XSI-aanmelding</value></data>
+<data name="LBL_SIP_SERVER_DETAILS"><projects>j129</projects><value>Details SIP-server</value></data>
+<data name="LBL_SIP_SERVERS"><projects>j129</projects><value>SIP-servers</value></data>
+<data name="LBL_PROTOCOL"><projects>j129</projects><value>Protocol</value></data>
+<data name="LBL_LONG_LONG_DOUBLE"><projects>j129</projects><value>Lang lang dubbel</value></data>
+<data name="LBL_SHORT_SHORT_LONG"><projects>j129</projects><value>Kort kort lang</value></data>
+<data name="LBL_SHORT_LONG_SHORT"><projects>j129</projects><value>Kort lang kort</value></data>
+<data name="LBL_AUDIO_BUTTON"><projects>j129</projects><value>Audioknop</value></data>
+<data name="LBL_SELECT_A_CALL_TO_PARK"><projects>j129</projects><value>Select. opr. om te parkeren</value></data>
+<data name="LBL_GROUP_ID"><projects>j129</projects><value>Groeps-id</value></data>
+<data name="LBL_DEPARTMENT"><projects>j129</projects><value>Afdeling</value></data>
+<data name="LBL_EMAIL_ADDRESS"><projects>j129</projects><value>E-mailadres</value></data>
+<data name="LBL_ZIP_CODE"><projects>j129</projects><value>Postcode</value></data>
+<data name="LBL_COUNTRY"><projects>j129</projects><value>Plaats</value></data>
+<data name="LBL_ALERTING_ON_CALLS"><projects>j129</projects><value>Melding bij oproepen</value></data>
+<data name="LBL_BEACON_LED"><projects>j129</projects><value>Signalering</value></data>
+<data name="LBL_SERVER_TYPE_J129"><projects>j129</projects><value>Servertype:</value></data>
+<data name="LBL_GENERIC_SIP"><projects>j129</projects><value>Generieke SIP</value></data>
+<data name="LBL_DEVICE_TYPE"><projects>j129</projects><value>Apparaattype</value></data>
+<data name="LBL_UPDATE"><projects>j129</projects><value>Updaten</value></data>
+<data name="LBL_PAGING"><projects>j129</projects><value>Bericht:</value></data>
+<data name="LBL_PAGE_FROM"><projects>j129</projects><value>Bericht van</value></data>
+<data name="LBL_PRODUCT_ID"><projects>j129</projects><value>Product-id</value></data>
+<data name="LBL_GET_UPDATES"><projects>j129</projects><value>Updates</value></data>
+<data name="LBL_LAST_UPDATE"><projects>j129</projects><value>Laatste update</value></data>
+<data name="LBL_CALL_COMPLETED_ELSEWHERE"><projects>j129</projects><value>Oproep elders afgehandeld</value></data>
+<data name="LBL_INVALID_PIN"><projects>j129</projects><value>Ongeldige pin</value></data>
+<data name="LBL_ATTEMPT_N_OF_M"><projects>j129</projects><value>Poging %d van %d</value></data>
+<data name="LBL_PIN"><projects>j129</projects><value>Pin:</value></data>
+<data name="LBL_PAGE_VALUE"><projects>j129</projects><value>Bericht: %s</value></data>
+<data name="LBL_CALL_FORWARD_DELAY"><projects>j129</projects><value>DS.vertr.</value></data>
+<data name="LBL_USERNAME_HINT"><projects>j129</projects><value>Gebr.naam</value></data>
+<data name="LBL_PASSWORD_HINT"><projects>j129</projects><value>Wachtwoord</value></data>
+<data name="LBL_HTTP"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTP_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_DNS"><projects>j129</projects><value></value></data>
+<data name="LBL_SNTP"><projects>j129</projects><value></value></data>
+<data name="LBL_IP_OR_FQDN_HINT"><projects>j129</projects><value>IP-poort of FQDN-poort</value></data>
+<data name="LBL_SECURE_SYSLOG"><projects>j129</projects><value>Syslog-beveiliging</value></data>
+<data name="LBL_AUTOMATIC_UPDATE"><projects>j129</projects><value>Automatische update</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_POLICY"><projects>j129</projects><value>Beleid voor autom. updates</value></data>
+<data name="LBL_NEXT_UPDATE"><projects>j129</projects><value>Volgende update</value></data>
+<data name="LBL_LAST_UPGRADE"><projects>j129</projects><value>Laatste upgr.</value></data>
+<data name="LBL_DISABLED"><projects>j129</projects><value>Uitgesch.</value></data>
+<data name="LBL_WEEKLY"><projects>j129</projects><value>Per week</value></data>
+<data name="LBL_DAILY"><projects>j129</projects><value>Per dag</value></data>
+<data name="LBL_MONTHLY"><projects>j129</projects><value>Per mnd</value></data>
+<data name="LBL_UPDATE_INFO"><projects>j129</projects><value>Info bijwerken</value></data>
+<data name="LBL_UPDATE_STATUS"><projects>j129</projects><value>Status</value></data>
+<data name="LBL_UPDATE_POLICY"><projects>j129</projects><value>Beleid</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_DAYS"><projects>j129</projects><value>Dagen bijw.</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_TIME_OF_DAY"><projects>j129</projects><value>Tijd van dag bijwerken</value></data>
+<data name="LBL_PROMPT_ON_UPGRADE"><projects>j129</projects><value>Prompt bij upgrade</value></data>
+<data name="LBL_USER_CODE"><projects>j129</projects><value>Gebruikerscode</value></data>
+<data name="LBL_DOT1X_AUTHENTICATION_METHODS"><projects>j129</projects><value>Verificatiemethode</value></data>
+<data name="LBL_AADS_CONFIG"><projects>j129</projects><value>AADS-configuratie</value></data>
+
+
+<!--POP UP BOX Strings-->
+
+<data name="MSG_DISCINPROG"><projects>j129</projects><value>Doorzoeken %s</value></data>
+<data name="MSG_SRVRLKFAILED"><projects>j129</projects><value>Serverlink uitgevallen...</value></data>
+<data name="LBL_CLRALENT"><projects>j129</projects><value>Alle verm. wissen?</value></data>
+<data name="LBL_RUSURE"><projects>j129</projects><value>Weet u het zeker?</value></data>
+<data name="MSG_AUTHFAIL"><projects>j129</projects><value>Verificatie mislukt.</value></data>
+<data name="MSG_ALERT_J100"><projects>j129</projects><value>Inkomende geluidsmelding</value></data>
+<data name="MSG_ABTAVAYA"><projects>j129</projects><value>Avaya IP-telefoon
+SIP-versie: %s
+%s
+© 2023 Avaya Inc.</value></data>
+<data name="MSG_UNREG_LOGOUT"><projects>j129</projects><value>Er is een ander apparaat aangemeld bij dit toestel.</value></data>
+<data name="MSG_LOGOUT"><projects>j129</projects><value>Afmelden...</value></data>
+<data name="MSG_DELETE_CONTACT"><projects>j129</projects><value>Contactpersoon wissen?</value></data>
+<data name="MSG_CERT_WARNING"><projects>j129</projects><value>Identiteitscertificaat %s verloopt over %d dagen</value></data>
+<data name="MSG_CERT_EXPIRED"><projects>j129</projects><value>Identiteitscertificaat %s is verlopen</value></data>
+<data name="MSG_ADMIN_MENU_LOCK"><projects>j129</projects><value>Beheermenu is vergrendeld</value></data>
+<data name="MSG_MERGE_CALLS"><projects>j129</projects><value>Oproepen samenvoegen?</value></data>
+<data name="MSG_TRANSF_CALL_ON_HOLD"><projects>j129</projects><value>Doorverbinden naar oproep in de wachtstand?</value></data>
+<data name="MSG_MAKE_EMERGENCY_CALL"><projects>j129</projects><value>Noodoproep plaatsen?</value></data>
+<data name="MSG_WAITING_FOR_8021X"><projects>j129</projects><value>Wachten op verificatie
+van 802.1X...</value></data>
+<data name="MSG_DELETE_SIP_PROXY"><projects>j129</projects><value>SIP-proxyserver wissen?</value></data>
+<data name="MSG_WAITING_FOR_DHCP"><projects>j129</projects><value>Wachten op DHCP...</value></data>
+<data name="MSG_BOOT_ERROR"><projects>j129</projects><value>Opstartfout...</value></data>
+<data name="MSG_CLEAR_SPEED_DIAL"><projects>j129</projects><value>Deze snelkeuze wissen?</value></data>
+<data name="MSG_REPLACE_SPEED_DIAL"><projects>j129</projects><value>Deze snelkeuze vervangen?</value></data>
+<data name="MSG_LOGOUT_CONFIRMATION"><projects>j129</projects><value>Wilt u zich afmelden?</value></data>
+<data name="MSG_RESET_VALUES_CONFIRMATION"><projects>j129</projects><value>Telefoon wissen en opnieuw instellen?</value></data>
+<data name="MSG_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>De telefoon opnieuw starten?</value></data>
+<data name="MSG_ACTIVE_CALL_LOGOUT_CONFIRMATION"><projects>j129</projects><value>Wanneer u zich afmeldt, worden actieve oproepen beëindigd</value></data>
+<data name="MSG_CONFIG_PROV_SERVER"><projects>j129</projects><value>Inrichtingsserver configureren</value></data>
+<data name="MSG_ENTER_PROV_SERV"><projects>j129</projects><value>Voer inrichtingsdetails in</value></data>
+<data name="MSG_ENTER_PROV_SERVER"><projects>j129</projects><value>Voer inrichtingsdetails in</value></data>
+<data name="MSG_INVALID_INPUT"><projects>j129</projects><value>Ongeldige invoer</value></data>
+<data name="MSG_CONNECTION_ERROR"><projects>j129</projects><value>Verbindingsfout</value></data>
+<data name="MSG_CONNECTION_VERIFY"><projects>j129</projects><value>Verbinding wordt gecontroleerd...</value></data>
+<data name="MSG_PHONE_REPORT_GENERATED"><projects>j129</projects><value>Rapport genereren...</value></data>
+<data name="MSG_PAIRING_FAILED"><projects>j129</projects><value>Koppelen met pc mislukt. Nieuwe poging?</value></data>
+<data name="MSG_START_PAIRING"><projects>j129</projects><value>Koppeling met pc starten?</value></data>
+<data name="MSG_PRESS_CONFIRM_IF_SAME"><projects>j129</projects><value>Kies Bevestigen bij gelijke woorden pc</value></data>
+<data name="MSG_BACKUP_SUCCESSFUL"><projects>j129</projects><value>Back-up voltooid</value></data>
+<data name="MSG_BACKUP_FAIL"><projects>j129</projects><value>Back-up mislukt</value></data>
+<data name="MSG_RETRIEVAL_SUCCESSFUL"><projects>j129</projects><value>Ophalen geslaagd</value></data>
+<data name="MSG_RETRIEVAL_FAIL"><projects>j129</projects><value>Ophalen mislukt</value></data>
+<data name="MSG_BACKUP_IN_PROGRESS"><projects>j129</projects><value>Back-up wordt nu uitgevoerd</value></data>
+<data name="MSG_RETRIEVAL_IN_PROGRESS"><projects>j129</projects><value>Bezig met ophalen</value></data>
+<data name="MSG_FILE_OBTAINED_PLEASE_WAIT"><projects>j129</projects><value>Bestand ontvangen. Even geduld...</value></data>
+<data name="MSG_RECENTS_EXTENSION_RESTRICTED"><projects>j129</projects><value>Toestel van beller is beperkt</value></data>
+<data name="MSG_RECENTS_NO_IDLE_CALL"><projects>j129</projects><value>Geen inactieve oproepweergaven</value></data>
+<data name="MSG_ANOTHER_USER_LOGGED_IN"><projects>j129</projects><value>Gebruiker al aangemeld op ander apparaat</value></data>
+<data name="MSG_WAITING_FOR_AUTHENTICATION"><projects>j129</projects><value>Wachten op verificatie...</value></data>
+<data name="MSG_WBPSWD_RESET_DEFAULT_CONFIRMATION"><projects>j129</projects><value>Standaardwaarden herstellen?</value></data>
+<data name="MSG_WEBPASSWD_RESET_CONFIRMATION"><projects>j129</projects><value>Standaardw. herstellen?</value></data>
+<data name="MSG_CERTIFICATE_ERROR"><projects>j129</projects><value>Certificaatfout</value></data>
+<data name="MSG_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>Het nummer %s bestaat al voor %s</value></data>
+<data name="MSG_FIPS_SELFTEST_FAILED"><projects>j129</projects><value>FIPS-zelftest mislukt</value></data>
+<data name="MSG_CUSTOMIZATION_NOT_AVAILABLE"><projects>j129</projects><value>Aanpassing is momenteel niet beschikbaar.</value></data>
+<data name="MSG_WIFI_SERVICE_NOT_RUNNING"><projects>j129</projects><value>Wifi-service wordt niet uitgevoerd</value></data>
+<data name="MSG_PHONE_OPERATIONS_DISABLED"><projects>j129</projects><value>Telefoonbewerkingen uitgeschakeld in menu</value></data>
+<data name="MSG_XSI_CONNECTION_FAILED"><projects>j129</projects><value>XSI -verbinding mislukt.
+Menu wordt gesloten.</value></data>
+<data name="MSG_NHC_CONNECTING"><projects>j129</projects><value>Verbinding met %s</value></data>
+<data name="MSG_NHC_INVALID_NUM"><projects>j129</projects><value>Ongeldig nummer gekozen</value></data>
+<data name="MSG_NHC_PARTY_UNAVAILABLE"><projects>j129</projects><value>Partij %s niet beschikbaar</value></data>
+<data name="MSG_NHC_PARTY_BUSY"><projects>j129</projects><value>Gebelde partij %s is bezet</value></data>
+<data name="MSG_NHC_DENIED"><projects>j129</projects><value>Vergadering geweigerd</value></data>
+<data name="MSG_AUTO_DISCOVERY_SUCCESSFUL"><projects>j129</projects><value>Autom. detectie voltooid</value></data>
+<data name="MSG_AUTO_DISCOVERY_FAILED_INVALID_CFG"><projects>j129</projects><value>Autom. detectie mislukt</value></data>
+<data name="MSG_DISCOVERY_NO_RESPONSE"><projects>j129</projects><value>Autom. detectie mislukt</value></data>
+<data name="MSG_WAITING_FOR_CONFIG"><projects>j129</projects><value>Wacht op config.</value></data>
+<data name="MSG_GET_UPDATES_CONFIRMATION"><projects>j129</projects><value>Update vergt mogelijk herstart tel.</value></data>
+<data name="MSG_PROV_SERVER_NOT_REACHED"><projects>j129</projects><value>Verbinden met server mislukt</value></data>
+<data name="MSG_PROV_SERVER_NO_SETTINGS"><projects>j129</projects><value>Geen configuratie op server</value></data>
+<data name="MSG_UNREG_LOGOUT_LONG"><projects>j129</projects><value>Er is een ander apparaat aangemeld bij dit toestel. Druk op 'Doorgaan' om hetzelfde toestel te blijven gebruiken.</value></data>
+<data name="MSG_FORCED_LOGOUT_BY_MAX_USER_LOGIN"><projects>j129</projects><value>Druk op 'Doorgaan' om telefoonservice opnieuw tot stand te brengen.</value></data>
+<data name="MSG_AUTH_REQUIRED"><projects>j129</projects><value>Verificatie vereist</value></data>
+<data name="MSG_AUTOUPDATE_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>Nieuwe firmware beschikbaar. Herstart telefoon voor toepassen wijzigingen?</value></data>
+<data name="MSG_MYCERT_RENEWAL_FAILURE"><projects>j129</projects><value>Vernieuwen van certificaat %s: mislukt</value></data>
+<data name="MSG_SPACES_LOGOUT_CONFIRMATION"><projects>j129</projects><value>Wilt u zich afmelden bij
+Avaya Spaces?</value></data>
+<data name="MSG_SSO_CONNECTING_TO_CONFIG_SERVER"><projects>j129</projects><value>Verbinden met configuratieservice...</value></data>
+<data name="MSG_SSO_CONNECTING_TO_AUTHORIZATION_SERVER"><projects>j129</projects><value>Verbinden met autorisatieservice...</value></data>
+<data name="MSG_SSO_SCAN_QR_CODE"><projects>j129</projects><value>Scan QR-code voor aanmelding met bedrfijsreferenties.
+Druk op 'Koppeling' voor meer informatie.</value></data>
+<data name="MSG_SINGLE_SIGN_ON"><projects>j129</projects><value>Eenmalige aanmelding</value></data>
+<data name="MSG_ACCEPT_SHARED_CONTROL"><projects>j129</projects><value>Gedeelde besturing accepteren?</value></data>
+<data name="MSG_EXPIRES_IN"><projects>j129</projects><value>Vervalt over: %ls</value></data>
+
+
+<!--TOAST Strings-->
+
+<data name="TST_NO_REDIAL_NUMBER"><projects>j129</projects><value>Geen nummer om te herhalen</value></data>
+<data name="TST_NO_MATCHING_NAME"><projects>j129</projects><value>Geen overeenkomende naam</value></data>
+<data name="TST_NO_MATCH_FOUND"><projects>j129</projects><value>Geen resultaten</value></data>
+<data name="TST_CONTACT_SEARCH_FAILED"><projects>j129</projects><value>Zoeken naar contactpersonen mislukt</value></data>
+<data name="TST_NO_SERVICE_AVAILABLE"><projects>j129</projects><value>Geen service beschikbaar</value></data>
+<data name="TST_INVALID_NAME_PASSWD"><projects>j129</projects><value>Naam of wachtwoord onjuist</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD_HELP"><projects>j129</projects><value>Voer het installatiewachtwoord in voor certificaat %ls</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD"><projects>j129</projects><value>Voer het wachtwoord voor installatie van het certificaat in</value></data>
+<data name="TST_INVALID_PWD_ABORT_INSTALL"><projects>j129</projects><value>Onjuist ww. cert.install. afbreken...</value></data>
+<data name="TST_VERIFY_PWD"><projects>j129</projects><value>Wachtwoord controleren...</value></data>
+<data name="TST_INVALID_PWD"><projects>j129</projects><value>Onjuist wachtwoord</value></data>
+<data name="TST_EMERGENCY_CALLS_ONLY"><projects>j129</projects><value>Alleen noodoproepen</value></data>
+<data name="TST_INVALID_ACCESS_CODE"><projects>j129</projects><value>Onjuiste toegangscode</value></data>
+<data name="TST_ADMIN_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>Beheer niet beschikb. bij gebr. van telef.</value></data>
+<data name="TST_NO_SIP_PROXIES_CONFIGURED"><projects>j129</projects><value>Geen SIP-proxy's geconfigureerd</value></data>
+<data name="TST_FEATURE_ACT_FAILED"><projects>j129</projects><value>Inschakelen van functie mislukt</value></data>
+<data name="TST_LIMITED_SERVICE_IN_EFFECT"><projects>j129</projects><value>Beperkte service</value></data>
+<data name="TST_PROXY_ADDRESS_INVALID"><projects>j129</projects><value>Het ingevoerde proxyadres is onjuist</value></data>
+<data name="TST_PROXY_PORT_INVALID"><projects>j129</projects><value>De ingevoerde poort is onjuist</value></data>
+<data name="TST_LOCK_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>Kan niet vergendelen bij gebr. van telef.</value></data>
+<data name="TST_FEATURE_IS_CURRENTLY_UNAVAILABLE"><projects>j129</projects><value>De functie is momenteel niet beschikbaar</value></data>
+<data name="TST_UNABLE_MAKE_CALL"><projects>j129</projects><value>Kan geen oproep plaatsen</value></data>
+<data name="TST_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>Geen functies geconfigureerd voor dit toestel</value></data>
+<data name="TST_NUMBER_REMOVE_UNAVAILABLE"><projects>j129</projects><value>Contact moet minimaal één nummer hebben</value></data>
+<data name="TST_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>Het nummer bestaat al</value></data>
+<data name="TST_ALL_CALL_APPEARANCES_IN_USE"><projects>j129</projects><value>Alle lijnen in gebruik</value></data>
+<data name="TST_PHONE_REBOOT_ON_EXIT"><projects>j129</projects><value>Telefoon wordt opnieuw gestart</value></data>
+<data name="TST_SCREEN_SAVER_UNAVAILABLE"><projects>j129</projects><value>Kan schermbeveiliging niet activeren tijdens actieve oproep</value></data>
+<data name="TST_CHANGE_HEADSET_TO_BLUETOOTH"><projects>j129</projects><value>Wilt u Headsetselectie wijzigen in Bluetooth?</value></data>
+<data name="TST_CHANGE_HEADSET_TO_WIRED"><projects>j129</projects><value>Headsetselectie gewijzigd in 'Kabel'</value></data>
+<data name="TST_LOGGING_CALLS_IS_DISABLED"><projects>j129</projects><value>Oproepregistratie is uitgeschakeld</value></data>
+<data name="TST_NO_PREFIXES"><projects>j129</projects><value>Geen voorvoegsels geconfigureerd</value></data>
+<data name="TST_NETWORK_UNAVAILABLE_FOR_ACTIVE_CALL"><projects>j129</projects><value>Niet beschikbaar tijdens oproepen</value></data>
+<data name="TST_NO_CONTACTS_AVAILABLE"><projects>j129</projects><value>Geen contactpersonen</value></data>
+<data name="TST_CALL_MUTED"><projects>j129</projects><value>Uw oproep is nu gedempt</value></data>
+<data name="TST_FEATURE_CONFIGURATION_NOT_AVAILABLE_YET"><projects>j129</projects><value>Functieconfiguratie is nog niet beschikbaar</value></data>
+<data name="TST_XSI_CONNECTION_IS_NOT_AVAILABLE"><projects>j129</projects><value>XSI-verbinding niet beschikbaar</value></data>
+<data name="TST_INVALID_USER_ID"><projects>j129</projects><value>Ongeldige gebr.-id</value></data>
+<data name="TST_INVALID_USER_ID_OR_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>Gebr.-id of webwachtwoord ongeldig</value></data>
+<data name="TST_MOBILITY_FEATURE_IS_NOT_ENABLED"><projects>j129</projects><value>Neem contact op met beheerder voor configureren van deze functie</value></data>
+<data name="TST_ALLOWED_VALUES"><projects>j129</projects><value>Toegestane waarden: 0, 2-20</value></data>
+<data name="TST_FAILED_TO_CREATE_XSI"><projects>j129</projects><value>Kan geen XSI-gebeurteniskanaal maken: server reageert niet</value></data>
+<data name="TST_NETWORK_CONFIGURATION_ISSUE"><projects>j129</projects><value>Probleem met netwerkconfiguratie</value></data>
+<data name="TST_PARK_FAC_NOT_ADMINISTERED"><projects>j129</projects><value>Deze functie vereist CALL_PARK_DYNAMIC_FAC, neem contact op met de beheerder</value></data>
+<data name="TST_UNLOCK_IS_TEMP_BLOCKED"><projects>j129</projects><value>Ontgrendelen is even geblokkeerd</value></data>
+<data name="TST_ADD_CONTACTS_MAPPING_ERROR"><projects>j129</projects><value>Kan niet toevoegen. Veldtoewijzing ontbreekt. Neem contact op met de beheerder.</value></data>
+<data name="TST_SERVICE_UNAVAILABLE"><projects>j129</projects><value>Service is momenteel niet beschikbaar.</value></data>
+<data name="TST_DIALING_BLOCKED"><projects>j129</projects><value>Dit nummer is geblokkeerd. Neem contact op met uw beheerder.</value></data>
+<data name="TST_USERNAME_REQUIRED"><projects>j129</projects><value>Gebruikersnaam vereist als wachtwoord is gedefinieerd</value></data>
+<data name="TST_INVALID_HTTP_SYNTAX"><projects>j129</projects><value>Kan HTTP niet opslaan, ongeldige syntax</value></data>
+<data name="TST_INVALID_HTTPS_SYNTAX"><projects>j129</projects><value>Kan HTTPS niet opslaan, ongeldige syntax.</value></data>
+<data name="TST_ZOOM_LICENSE_REQUIRED"><projects>j129</projects><value>Er is een licentie vereist voor het gebruik van de telefoon met Zoom.</value></data>
+<data name="TST_INVALID_AADS_URL"><projects>j129</projects><value>Kan AADS-URL niet opslaan, ongeldige syntaxis.</value></data>
+<data name="TST_SSO_LOGIN_PROMPT"><projects>j129</projects><value>Druk op 'Aanmelden' om het proces voor eenmalige aanmelding met uw bedrijfsreferenties te starten.</value></data>
+<data name="TST_SSO_CONFIG_SERVER_UNAVAILABLE"><projects>j129</projects><value>Configuratieservice momenteel niet beschikbaar.
+Probeer opnieuw of neem contact op met beheerder.</value></data>
+<data name="TST_SSO_AUTHORIZATION_SERVER_UNAVAILABLE"><projects>j129</projects><value>Autorisatieservice momenteel niet beschikbaar.
+Probeer opnieuw of neem contact op met beheerder.</value></data>
+<data name="TST_SSO_LOGIN_SUCCESS_PROMPT"><projects>j129</projects><value>U bent geverifieerd.
+
+Een ogenblik geduld...</value></data>
+<data name="TST_SSO_LOGIN_POLLING_TIMEDOUT"><projects>j129</projects><value>Aanmeldingspoging verlopen. Druk op 'Opnieuw' om het nogmaals te proberen.</value></data>
+<data name="TST_SSO_LOGIN_DECLINED_BY_USER"><projects>j129</projects><value>Aanmeldingspoging afgewezen door gebruiker.</value></data>
+<data name="TST_LOGIN_FAILED_CREDENTIALS_UNAVAILABLE"><projects>j129</projects><value>Aanmelden mislukt.
+Referenties niet gevonden bij de configuratieservice. Neem contact op met de beheerder.</value></data>
+<data name="TST_LOGIN_FAILED_CONFIG_SERVICE_UNAVAILABLE"><projects>j129</projects><value>Aanmelding mislukt.
+Configuratieservice momenteel niet beschikbaar.
+Probeer opnieuw of neem contact op met beheerder.</value></data>
+<data name="TST_SSO_LOGIN_HELP_PROMPT"><projects>j129</projects><value>Telefoon geconfigureerd voor aanmelding met uw bedrijfsreferenties. Druk indien gevraagd op
+'Aanmelden' om het proces te starten.</value></data>
+<data name="TST_SSO_QR_HELP_PROMPT"><projects>j129</projects><value>Voltooi eenm. aanmelding door de QR-code te scannen met een mobiel apparaat of
+de koppeling te openen in een browser.</value></data>
+<data name="TST_SSO_LINK_HELP_PROMPT"><projects>j129</projects><value>Voltooi eenm. aanmelding door koppeling in browser te openen of door QR-code te scannen met mobiel apparaat.</value></data>
+<data name="TST_SSO_LINK_PROMPT"><projects>j129</projects><value>Ga naar onderstaande koppeling en voer
+gebruikerscode in: %ls
+%ls
+ Druk op 'QR-code' om te scannen.</value></data>
+
+
+<!--HELP Strings-->
+
+<data name="HELP_BROADWORKS_CFA"><projects>j129</projects><value>Bij altijd doorschakelen worden alle inkomende oproepen doorgestuurd naar de opgegeven bestemming.</value></data>
+<data name="HELP_BROADWORKS_CFB"><projects>j129</projects><value>Bij 'Doorschakelen bij bezet' worden inkomende oproepen doorgestuurd naar een andere bestemming als de telefoon bezet is.</value></data>
+<data name="HELP_BROADWORKS_CFNA"><projects>j129</projects><value>Bij 'Doorschakelen bij geen antwoord' worden oproepen doorgestuurd naar een andere bestemming als een inkomende oproep niet binnen een bepaald aantal keren overgaan wordt beantwoord.</value></data>
+<data name="HELP_BROADWORKS_DND"><projects>j129</projects><value>Bij 'Niet storen' worden inkomende oproepen rechtstreeks naar de voicemailbox gestuurd.</value></data>
+<data name="HELP_AUDIO_BUTTON"><projects>j129</projects><value>Bepaal het telefoongedrag voor wanneer de gebruiker de hoorn opneemt bij inkomende oproepen of op de headset- of luidsprekerknop drukt.
+Beantwoorden: de inkomende oproep beantwoorden.
+Nieuwe oproep: een nieuwe oproep starten.</value></data>
+<data name="HELP_BROADWORKS_DND_SETTINGS"><projects>j129</projects><value>Bij 'Niet storen' worden inkomende oproepen naar de voicemailbox gestuurd zonder dat de telefoon overgaat.</value></data>
+<data name="HELP_BROADWORKS_CFA_SETTINGS"><projects>j129</projects><value>Bij altijd doorschakelen worden inkomende oproepen doorgestuurd naar de opgegeven bestemming.</value></data>
+<data name="HELP_BROADWORKS_CFNA_SETTINGS"><projects>j129</projects><value>Bij 'Doorschakelen bij geen antwoord' worden oproepen doorgestuurd naar een andere bestemming als een inkomende oproep niet binnen een bepaald aantal keren overgaan wordt beantwoord.</value></data>
+<data name="HELP_XSI_AUTH"><projects>j129</projects><value>Neem contact op met de beheerder voor webreferenties</value></data>
+<data name="HELP_BROADSOFT_WEB_PORTAL_USER_ID"><projects>j129</projects><value>Gebruikers-id voor Broadsoft-webportal</value></data>
+<data name="HELP_BROADSOFT_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>Wachtwoord voor Broadsoft-web zoals gedefinieerd op de profielpagina van de gebruiker</value></data>
+<data name="HELP_CALL_PARK"><projects>j129</projects><value>Met 'Oproep parkeren' kunt u een oproep in de wacht zetten op een specifieke locatie (een toestelnummer), zodat de oproep kan worden overgenomen door een ander toestelnummer</value></data>
+<data name="HELP_CALL_FORWARD_DELAY"><projects>j129</projects><value>Geeft het aantal beltonen aan waarna een oproep wordt doorgeschakeld als deze onbeantwoord blijft</value></data>
+<data name="HELP_PROVISIONING_URL_EXAMPLE"><projects>j129</projects><value>Voorbeeld inrichtings-URL:
+https://avaya.com:443/prov</value></data>
+<data name="HELP_HTTP_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>Als de HTTP- of HTTPS-inrichtingsserver verificatie vereist, geeft u de gebruikersnaam en het wachtwoord op.</value></data>
+<data name="HELP_HTTP_SERVER_FIELD"><projects>j129</projects><value>Definieer de URL van de HTTP-inrichtingsserver. Voorbeeld: avaya.com:808-/prov. Als poort wordt weggelaten, wordt de standaardpoort (80) gebruikt.</value></data>
+<data name="HELP_HTTPS_SERVER_FIELD"><projects>j129</projects><value>Definieer de URL van de HTTPS-inrichtingsserver. Voorbeeld: avaya.com:449/prov. Als poort wordt weggelaten, wordt de standaardpoort (443) gebruikt.</value></data>
+<data name="HELP_SECURE_SYSLOG"><projects>j129</projects><value>Hiermee definieert u of syslog moet worden verzonden via een beveiligde of onbeveiligde verbinding.</value></data>
+<data name="HELP_SPACE_LOGOUT_PROMPT"><projects>j129</projects><value>Drukop 'Afmelden' om u af te melden
+bij Avaya Spaces.</value></data>
+<data name="HELP_DOT1X_EAP_METHODS"><projects>j129</projects><value>Definieer de 802.1X EAP-verificatiemethode die moet worden gebruikt als Aanvrager niet is uitgeschakeld.</value></data>
+<data name="HELP_DOT1X_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>Als de verificatiemethode MD5 of PEAP is, geeft u de gebruikersnaam en het wachtwoord op.</value></data>
+<data name="HELP_AADS_URL"><projects>j129</projects><value>Definieer de AADS-URL. Voorbeeld: https://example.com:443/acs/resources/configurations</value></data>
+
+
+<!--ERROR Strings-->
+
+<data name="ERR_LOGOLOAD"><projects>j129</projects><value>Kan opgevraagd logo niet laden:</value></data>
+<data name="ERR_NOTFOUND"><projects>j129</projects><value>Gevraagd item niet gevonden</value></data>
+<data name="ERR_BADRQMSG"><projects>j129</projects><value>Verkeerd verzoek</value></data>
+<data name="ERR_FAILUREAUTH"><projects>j129</projects><value>Gebruikersnaam of wachtwoord fout</value></data>
+<data name="ERR_RDMERROR"><projects>j129</projects><value>Fout opgetreden op de server</value></data>
+<data name="ERR_RDMINTFUNAV"><projects>j129</projects><value>Server uitgevallen</value></data>
+<data name="ERR_RDBNOTSUP"><projects>j129</projects><value>Gevraagde actie niet ondersteund</value></data>
+<data name="ERR_REGFAILURE"><projects>j129</projects><value>Aanm. mislukt. Probeer opnieuw.</value></data>
+<data name="ERR_INTERROR"><projects>j129</projects><value>Interne fout</value></data>
+<data name="ERR_REGFAIL_FGNDMAIN"><projects>j129</projects><value>Aanm. misl. Ongeldig SIP-domein</value></data>
+<data name="ERR_REGFAIL_USERNOTFOUND"><projects>j129</projects><value>Aanm. mislukt. Gebr. niet gevonden</value></data>
+<data name="MSG_BAGLOG"><projects>j129</projects><value>Aanmeldfout</value></data>
+<data name="ERR_REQNACPT"><projects>j129</projects><value>Fout signaleringsverzoek (488)</value></data>
+<data name="ERR_USERUNAV"><projects>j129</projects><value>Tijdelijk niet beschikbaar (480)</value></data>
+<data name="ERR_REQTIMEDOUT"><projects>j129</projects><value>Time-out-aanvraag (408)</value></data>
+<data name="ERR_FORBIDDEN"><projects>j129</projects><value>Verzoek niet toegestaan (403)</value></data>
+<data name="ERR_REMBUSY"><projects>j129</projects><value>Externe gebruiker bezet (486)</value></data>
+<data name="ERR_GENERALFAIL"><projects>j129</projects><value>Signaleringsstoring</value></data>
+<data name="ERR_CNTCTSEXISTS"><projects>j129</projects><value>Contactpersoon bestaat al</value></data>
+<data name="ERR_RDMINVDRESP"><projects>j129</projects><value>Ongeldige reactie van PPM</value></data>
+<data name="ERR_RDMINTF_INITFAILED"><projects>j129</projects><value>Initialisatie PPM-interf. mislukt</value></data>
+<data name="ERR_RDMINVDATA_RECD"><projects>j129</projects><value>Ongeldige PPM-gegevens ontvangen</value></data>
+<data name="ERR_LOCAL"><projects>j129</projects><value>Lokale contactpersoon bestaat al</value></data>
+<data name="ERR_INVALID_STATE"><projects>j129</projects><value>Ongeldige status</value></data>
+<data name="ERR_REG_LIMIT_REACHED"><projects>j129</projects><value>Gebruiker al aangemeld bij ander toestel.</value></data>
+<data name="ERR_INT_ERROR"><projects>j129</projects><value>Interne fout</value></data>
+<data name="ERR_ASSIGN_IPV6_ADDR"><projects>j129</projects><value>IPv6-adresconflict</value></data>
+<data name="ERR_INVALID_IP"><projects>j129</projects><value>Ongeldig IP-adres</value></data>
+<data name="ERR_INVALID_PASS"><projects>j129</projects><value>Onjuist wachtwoord</value></data>
+<data name="ERR_TOO_MANY_USERS_FOUND"><projects>j129</projects><value>Te veel gevonden. Verfijn de zoekactie.</value></data>
+<data name="ERR_NO_CALL_TO_RETRIEVE"><projects>j129</projects><value>Geen opr. om op te halen</value></data>
+<data name="ERR_LOCATION_NUMBER_ALREADY_EXIST"><projects>j129</projects><value>Locatienummer bestaat al</value></data>
+<data name="ERR_LOCATION_NUMBER_DOES_NOT_EXIST"><projects>j129</projects><value>Het locatienummer bestaat niet</value></data>
+<data name="ERR_INCORRECT_LENGTH_OF_PHONE_NUMBER"><projects>j129</projects><value>Het telefoonnummer heeft een ongeldige lengte</value></data>
+<data name="ERR_LOCATION_NUMBER_IS_GREATER"><projects>j129</projects><value>Locatienummer is langer dan maximale lengte</value></data>
+<data name="ERR_INVALID_PHONE_NUMBER"><projects>j129</projects><value>Ongeldig telefoonnummer</value></data>
+<data name="ERR_XSI_SERVER_ERROR"><projects>j129</projects><value>XSI-serverfout:</value></data>
+<data name="ERR_XSI_SERVER_ERROR_2"><projects>j129</projects><value>XSI-serverfout</value></data>
+<data name="ERR_NO_REMOTE_CALL"><projects>j129</projects><value>Geen externe oproep</value></data>
+<data name="ERR_CALL_NOT_FOUND"><projects>j129</projects><value>Oproep niet gevonden</value></data>
+<data name="ERR_CALL_PARK_AGAINST_ADDRESS_IS_NOT_VALID"><projects>j129</projects><value>Ongeldig nummer</value></data>
+<data name="ERR_CALL_PARK_AGAINST_USER_IS_THE_REMOTE_PARTY"><projects>j129</projects><value>Kan het nummer waar u mee spreekt niet parkeren</value></data>
+<data name="ERR_CALL_ALREADY_PARKED_AGAINST_USER"><projects>j129</projects><value>Er is al een oproep geparkeerd voor dit nummer</value></data>
+<data name="ERR_NO_AVAILABLE_CALL_PARK_GROUP_MEMBER"><projects>j129</projects><value>Geen lid beschikbaar van groep parkeren oproepen</value></data>
+<data name="ERR_INVALID_DOMAIN_NAME"><projects>j129</projects><value>Ongeldige domeinnaam</value></data>
+<data name="ERR_INVALID_SIP_URI"><projects>j129</projects><value>Ongeldige SIP-URI</value></data>
+<data name="ERR_INVALID_SIP_URI_TWO_SYMBOLS"><projects>j129</projects><value>Ongeldige SIP-URI. De SIP-URI mag niet twee @-tekens bevatten</value></data>
+<data name="ERR_INVALID_SIP_URI_USER_DOMAIN"><projects>j129</projects><value>Ongeldige SIP-URI</value></data>
+<data name="ERR_INVALID_FORMAT"><projects>j129</projects><value>Ongeldige indeling</value></data>
+<data name="ERR_NUMBER_REQUIRED"><projects>j129</projects><value>Een telefoonnummer is vereist om de service in te schakelen</value></data>
+<data name="ERR_DUPLICATE_USER"><projects>j129</projects><value>Dubbele gebruiker opgegeven voor toewijzing van lid</value></data>
+<data name="ERR_NO_MOBILE_IDENTITY"><projects>j129</projects><value>Het mobiele nummer is niet gekoppeld aan een mobiele identiteit</value></data>
+<data name="ERR_MOBILE_NUMBER_NOT_ASSIGNED"><projects>j129</projects><value>Mobiele nummer niet toegewezen aan de gebruiker</value></data>
+<data name="ERR_BLOCKED_BY_SIM_CALL_POLICY"><projects>j129</projects><value>Geblokkeerd, teveel gelijktijdige oproepen</value></data>
+<data name="ERR_CALL_ALREADY_ON_LOCATION"><projects>j129</projects><value>Oproep al toegewezen aan locatie</value></data>
+<data name="ERR_CANNOT_PARK_PUSH_TO_TALK_CALL"><projects>j129</projects><value>Kan Push-to-Talk-oproepen niet parkeren</value></data>
+<data name="ERR_SERVICE_NOT_ASSIGNED"><projects>j129</projects><value>Service niet toewezen</value></data>
+<data name="ERR_YOUR_NUMBER_NOT_ALLOWED"><projects>j129</projects><value>Controleer of het niet uw nummer, SIP-URI of een ander nummer is dat is gekoppeld aan uw identiteit</value></data>
+<data name="ERR_SIMRING_LIMIT_LIST_LOCATIONS"><projects>j129</projects><value>De lijst nummers voor 'Gelijktijdig overgaan' kan maximaal tien locaties bevatten</value></data>
+<data name="ERR_STATE_FOR_CALL_IS_NOT_VALID"><projects>j129</projects><value>Oproepstatus is niet geldig</value></data>
+<data name="ERR_USER_IS_NOT_MEMBER_OF_PARK_GROUP"><projects>j129</projects><value>U bent geen lid van groep voor parkeren oproepen</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Service Opr. overnemen spec. tst. niet toegewezen</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_BARGEIN_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Opr. overnemen specif. tst. met service Meeluist. niet toegewezen</value></data>
+<data name="ERR_CALL_PARK_RETRIEVE_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Service Geparkeerde oproep ophalen niet toegewezen</value></data>
+<data name="ERR_CALL_PARK_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>Gespreksparkeercode niet geconfigureerd</value></data>
+<data name="ERR_REFRESH_PERSONAL_CONTACTS"><projects>j129</projects><value>Vernieuwen persoonlijke contactpersonen mislukt.</value></data>
+
+
+<!--Startup Screens-->
+
+<data name="MSG_STARTG"><projects>j129</projects><value>Starten</value></data>
+<data name="MSG_NOETH"><projects>j129</projects><value>Geen ethernet.</value></data>
+<data name="MSG_NETBADIP"><projects>j129</projects><value>Onjuist IP gedetecteerd</value></data>
+<data name="MSG_BADRTR"><projects>j129</projects><value>Onjuiste router?</value></data>
+<data name="MSG_NETBADSUB"><projects>j129</projects><value>Onjuist subnet gedetecteerd</value></data>
+<data name="MSG_SUBCNF"><projects>j129</projects><value>Subnetconflict</value></data>
+<data name="MSG_ADCONF"><projects>j129</projects><value>Adresconflict</value></data>
+<data name="MSG_IPV6_ADDRCONF"><projects>j129</projects><value>IPv6-adresconflict</value></data>
+<data name="MSG_IPV6LL_ADDRCONF"><projects>j129</projects><value>dupMAC=</value></data>
+<data name="MSG_DHCPADDRCONF"><projects>j129</projects><value>DHCP: conflict</value></data>
+<data name="MSG_MYCERTFAILURE"><projects>j129</projects><value>Installatie van %ls SCEP-certificaat mislukt.</value></data>
+<data name="MSG_NOSIPSRVR"><projects>j129</projects><value>SIP-proxyserverlijst leeg</value></data>
+<data name="MSG_SHARED_CONTROL_ACTIVE"><projects>j129</projects><value>Gedeelde besturing actief</value></data>
+<data name="MSG_SHARED_CONTROL_INACTIVE"><projects>j129</projects><value>Gedeelde best. inactief</value></data>
+<data name="MSG_PROG_NEW_ROUTER"><projects>j129</projects><value>Programmeer nieuw routeradres</value></data>
+<data name="MSG_UPDATING_SOFTWARE"><projects>j129</projects><value>Software updaten...</value></data>
+<data name="MSG_UPDATE_SUCCESSFUL"><projects>j129</projects><value>Update voltooid</value></data>
+<data name="MSG_UPDATE_FAILED"><projects>j129</projects><value>Update mislukt</value></data>
+<data name="MSG_WIFI_SERVICE_FAILED"><projects>j129</projects><value>Wifi-service mislukt</value></data>
+<data name="MSG_PRESS_NETWORKS_SWITCH_ETH"><projects>j129</projects><value>Druk op Netwrkn voor overschakeling op ethernet.</value></data>
+<data name="MSG_PRESS_RESTART_ATTEMPT_WIFI"><projects>j129</projects><value>Druk op Herstrt om wifi opnieuw te proberen.</value></data>
+<data name="MSG_WIFI_NO_SSID"><projects>j129</projects><value>Gn wifi-netw. gekozen</value></data>
+<data name="MSG_WIFI_SELECT_NETWORK"><projects>j129</projects><value>Druk op Netwrkn om een netwerk te kiezen.</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATION_FAILED"><projects>j129</projects><value>Verificatie mislukt</value></data>
+<data name="MSG_WIFI_CONNECTION_CERTIFICATE_ERROR"><projects>j129</projects><value>Wifi-certificaatfout</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTING"><projects>j129</projects><value>Bezig met verbinden</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATING"><projects>j129</projects><value>Bezig met verificatie</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTED"><projects>j129</projects><value>Verbonden</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTING"><projects>j129</projects><value>Verbinding verbreken</value></data>
+<data name="MSG_ETHERNET_RESTORED"><projects>j129</projects><value>%ls. Ethernet hersteld</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTED"><projects>j129</projects><value>Verbinding verbroken</value></data>
+<data name="MSG_WIFI_CONNECTION_FAILED"><projects>j129</projects><value>Verbinden mislukt</value></data>
+<data name="MSG_NOCONTROLLER_BY_MODE"><projects>j129</projects><value>IPv%s SIP-proxyserverlijst leeg</value></data>
+<data name="MSG_PKCS12_DNLOAD_FAILURE"><projects>j129</projects><value>Download identiteitscertificaat %ls mislukt</value></data>
+<data name="MSG_PKCS12_REJECT_CERT"><projects>j129</projects><value>Identiteitscertificaat %ls geweigerd</value></data>
+<data name="MSG_SEARCH_FOR_CONFIG"><projects>j129</projects><value>Zoeken naar config.</value></data>
+
+
+<!--Progress Screen-->
+
+<data name="MSG_RSTART"><projects>j129</projects><value>Opnieuw starten...</value></data>
+
+
+<!--Feature Names-->
+
+<data name="auto-callback"><projects>j129</projects><value>Autom. terugbellen</value></data>
+<data name="auto-callback_short"><projects>j129</projects><value>ATrgb</value></data>
+<data name="call-forwarding-all"><projects>j129</projects><value>Doorschakelen</value></data>
+<data name="call-forwarding-all_short"><projects>j129</projects><value>Drsch.</value></data>
+<data name="call-forwarding-all_sbm"><projects>j129</projects><value>Doorschakelen</value></data>
+<data name="call-forwarding-busy-no-answer"><projects>j129</projects><value>Drsch. bezet/gn aw</value></data>
+<data name="call-forwarding-busy-no-answer_short"><projects>j129</projects><value>Bezet/ga</value></data>
+<data name="call-park"><projects>j129</projects><value>Parkeren</value></data>
+<data name="call-park-manual"><projects>j129</projects><value>Parkeren</value></data>
+<data name="group-call-park"><projects>j129</projects><value>Groepsopr parkeren</value></data>
+<data name="call-waiting"><projects>j129</projects><value>Wisselgesprek</value></data>
+<data name="calling-party-block"><projects>j129</projects><value>Nummerweergave uit</value></data>
+<data name="call-unpark"><projects>j129</projects><value>Parkeren opheffen</value></data>
+<data name="call-unpark_short"><projects>j129</projects><value>Prk oph.</value></data>
+<data name="broadworks-call-unpark"><projects>j129</projects><value>Parkeren opheffen</value></data>
+<data name="broadworks-call-unpark_short"><projects>j129</projects><value>Prk oph.</value></data>
+<data name="mct"><projects>j129</projects><value>MCT - Actief</value></data>
+<data name="mct_short"><projects>j129</projects><value>MCT act.</value></data>
+<data name="off-pbx"><projects>j129</projects><value>EC500</value></data>
+<data name="sac"><projects>j129</projects><value>Niet storen</value></data>
+<data name="sac_short"><projects>j129</projects><value>Niet storen</value></data>
+<data name="transfer-to-voicemail"><projects>j129</projects><value>Naar vm</value></data>
+<data name="call-forwarding-all_half"><projects>j129</projects><value>Doorsch.</value></data>
+<data name="auto-answer"><projects>j129</projects><value>Aut. beantw.</value></data>
+<data name="do-not-disturb"><projects>j129</projects><value>Niet storen</value></data>
+<data name="do-not-disturb_short"><projects>j129</projects><value>NS-Bezet</value></data>
+<data name="call-fwd-busy"><projects>j129</projects><value>Doorschakelen-Bezet</value></data>
+<data name="call-fwd-busy_half"><projects>j129</projects><value>Drsch.-Bezet</value></data>
+<data name="call-fwd-busy_sbm"><projects>j129</projects><value>ODB</value></data>
+<data name="call-fwd-no-answer"><projects>j129</projects><value>Doorschakelen-GA</value></data>
+<data name="call-fwd-no-answer_half"><projects>j129</projects><value>Doorsch.-GA</value></data>
+<data name="call-fwd-no-answer_sbm"><projects>j129</projects><value>Doorschakelen-GA</value></data>
+<data name="do-not-disturb_half"><projects>j129</projects><value>NS-Bezet</value></data>
+<data name="do-not-disturb_sbm"><projects>j129</projects><value>NS-Bezet</value></data>
+<data name="broadworks-call-forward-all"><projects>j129</projects><value>Doorschakelen</value></data>
+<data name="broadworks-call-forward-all_half"><projects>j129</projects><value>Doorsch.</value></data>
+<data name="broadworks-call-forward-all_sbm"><projects>j129</projects><value>Doorschakelen</value></data>
+<data name="broadworks-call-forward-busy"><projects>j129</projects><value>Doorschakelen-Bezet</value></data>
+<data name="broadworks-call-forward-busy_half"><projects>j129</projects><value>Drsch.-Bezet</value></data>
+<data name="broadworks-call-forward-busy_sbm"><projects>j129</projects><value>ODB</value></data>
+<data name="broadworks-call-forward-no-answer"><projects>j129</projects><value>Doorschakelen-GA</value></data>
+<data name="broadworks-call-forward-no-answer_half"><projects>j129</projects><value>Doorsch.-GA</value></data>
+<data name="broadworks-call-forward-no-answer_sbm"><projects>j129</projects><value>Doorschakelen-GA</value></data>
+<data name="broadworks-do-not-disturb"><projects>j129</projects><value>Niet storen</value></data>
+<data name="broadworks-do-not-disturb_half"><projects>j129</projects><value>Niet storen</value></data>
+<data name="broadworks-do-not-disturb_sbm"><projects>j129</projects><value>Niet storen</value></data>
+<data name="no-hold-conf"><projects>j129</projects><value>Verg. zonder wacht</value></data>
+<data name="no-hold-conf_short"><projects>j129</projects><value>Verg.Z.W.</value></data>
+
+
+<!--Feature: Softkey Names-->
+
+<data name="softkey-call-park"><projects>j129</projects><value>Parkeren</value></data>
+<data name="softkey-call-unpark"><projects>j129</projects><value>Prk oph.</value></data>
+<data name="softkey-sac"><projects>j129</projects><value>Verstr</value></data>
+
+
+<!--Feature Attributes-->
+
+
+
+<!--Power Manager-->
+
+<data name="pm_Header"><projects>j129</projects><value>Energiebeheer</value></data>
+<data name="pm_Header_Help"><projects>j129</projects><value>Vermogensbeheer Help</value></data>
+<data name="pm_Header1"><projects>j129</projects><value>Verwijder app. v. opv. verm.tekort</value></data>
+<data name="pm_Header2"><projects>j129</projects><value>Energie-instellingen wijzigen</value></data>
+<data name="pm_Header3"><projects>j129</projects><value>Voer vermogen op of verw. Apparaat</value></data>
+<data name="pm_Screen_A"><projects>j129</projects><value>Vermogenstekort. Verwijder een of meer apparaten om vermogenstekort op te vangen.</value></data>
+<data name="pm_Screen_B"><projects>j129</projects><value>Nog steeds vermogenstekort. Verwijder apparaten voor lager stroomverbruik.</value></data>
+<data name="pm_Screen_C"><projects>j129</projects><value>Vermogenstekort. Voer vermogen op of verwijder een of meer apparaten.</value></data>
+<data name="pm_Screen_D"><projects>j129</projects><value>Nog steeds vermogenstekort. Voer vermogen op of verwijder apparaten.</value></data>
+<data name="pm_Screen_E"><projects>j129</projects><value>Vermogenstekort. Koppel tel. los, zet schakelaar om of verwijder apparaten.</value></data>
+<data name="pm_Screen_F"><projects>j129</projects><value>Nog steeds vermogenstekort. Koppel los en zet schakelaar om of verwijder app.</value></data>
+<data name="pm_Screen_G"><projects>j129</projects><value>U moet de telefoon loskoppelen alvorens de vermogensinstelling te wijzigen.</value></data>
+<data name="pm_Screen_H1"><projects>j129</projects><value>Belasting overtreft capaciteit. Verwijder apparaten voor lager verbruik.</value></data>
+<data name="pm_Screen_H2"><projects>j129</projects><value>De huidige instellingen vereisen meer vermogen. Voer vermogen op of verwijder apparaat.</value></data>
+<data name="pm_Screen_H3"><projects>j129</projects><value>Koppel telefoon los en verzet IEEE-schakelaar van L naar H voor meer vermogen of verwijder apparaten.</value></data>
+
+
+<!--Strings that DON'T REQUIRE TRANSLATIONS-->
+
+<data name="optAdmin8021X"><projects>j129</projects><value>802.1X...</value></data>
+<data name="optAdminSiteSpecificOption"><projects>j129</projects><value></value></data>
+<data name="LBL_SSON"><projects>j129</projects><value></value></data>
+<data name="optAdminGroup"><projects>j129</projects><value>Groep...</value></data>
+<data name="optAdminLogging"><projects>j129</projects><value>Logboek...</value></data>
+<data name="optAdminNetworkAddresses"><projects>j129</projects><value>IP-configuratie...</value></data>
+<data name="optAdminEthernetIPv4"><projects>j129</projects><value></value></data>
+<data name="optAdminEthernetIPv6"><projects>j129</projects><value></value></data>
+<data name="optAdminNetworkServers"><projects>j129</projects><value>Servers...</value></data>
+<data name="optAdminNetworkVLAN"><projects>j129</projects><value>VLAN...</value></data>
+<data name="optAdminAutoProv"><projects>j129</projects><value>Autom. inrichting...</value></data>
+<data name="optAdminNetwork8021Q"><projects>j129</projects><value></value></data>
+<data name="optAdminPhoneReport"><projects>j129</projects><value>Telefoonrapport</value></data>
+<data name="optAdminSSHFingerprint"><projects>j129</projects><value>SSH-vingerafdruk...</value></data>
+<data name="optAdminView"><projects>j129</projects><value>Weergeven...</value></data>
+<data name="optAdminInterfaces"><projects>j129</projects><value>Netwerkinterface...</value></data>
+<data name="optAdminWiFiIPv4"><projects>j129</projects><value>Wifi IPv4</value></data>
+<data name="optAdminSIP"><projects>j129</projects><value></value></data>
+<data name="optAdminSIPGlbl"><projects>j129</projects><value>Alg. SIP-instellingen...</value></data>
+<data name="optAdminSIPProxy"><projects>j129</projects><value>SIP-proxyserver...</value></data>
+<data name="optAdminDebug"><projects>j129</projects><value>Debuggen...</value></data>
+<data name="optAdminResetValues"><projects>j129</projects><value>Standaardwaarden...</value></data>
+<data name="optAdminRestart"><projects>j129</projects><value>Telefoon herstarten...</value></data>
+<data name="optAdminLogout"><projects>j129</projects><value>Afmelden...</value></data>
+<data name="optAdminWebServer"><projects>j129</projects><value>Webserver...</value></data>
+<data name="optAdminWebResetPasswd"><projects>j129</projects><value>Webww herstellen...</value></data>
+<data name="LBL_ID"><projects>j129</projects><value></value></data>
+<data name="AS_PRIORITY"><projects>j129</projects><value>Prioriteit</value></data>
+<data name="AS_ICOM"><projects>j129</projects><value></value></data>
+<data name="MSG_FIPSRESTART"><projects>j129</projects><value>FIPS-modus gewijzigd. Herstart...</value></data>
+<data name="MSG_PHONERESTART"><projects>j129</projects><value>De telefoon wordt opnieuw gestart</value></data>
+<data name="LBL_MBPS"><projects>j129</projects><value>Mbps</value></data>
+<data name="LBL_PLEASEWAIT"><projects>j129</projects><value>Even geduld...</value></data>
+<data name="AS_CLEAR_SSH_LOCKOUT"><projects>j129</projects><value>SSH-vergr. wissen</value></data>
+<data name="MSG_SSH_LOCKOUT_CLEAR"><projects>j129</projects><value>SSH-vergrendeling gewist</value></data>
+<data name="MSG_ACTIVATE_AUTO_CONFIG"><projects>j129</projects><value>Autom. configuratie activeren?</value></data>
+<data name="MSG_STARTING_IN_N_S"><projects>j129</projects><value>Start over %ds</value></data>
+<data name="LBL_ACTIVATE"><projects>j129</projects><value>Activeren</value></data>
+<data name="MSG_REACTIVATION_DES"><projects>j129</projects><value>Autom. configuratie activeren?</value></data>
+<data name="LBL_YEAR"><projects>j129</projects><value></value></data>
+<data name="LBL_SHORT_DAY"><projects>j129</projects><value></value></data>
+</root>

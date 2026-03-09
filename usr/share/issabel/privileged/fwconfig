@@ -1,0 +1,756 @@
+#!/usr/bin/php
+<?php
+/*
+  vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4:
+  +----------------------------------------------------------------------+
+  | Issabel version 4.0.0                                                |
+  | http://www.issabel.org                                               |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2021 Issabel Foundation                                |
+  | Copyright (c) 2006 Palosanto Solutions S. A.                         |
+  +----------------------------------------------------------------------+
+  | The contents of this file are subject to the General Public License  |
+  | (GPL) Version 2 (the "License"); you may not use this file except in |
+  | compliance with the License. You may obtain a copy of the License at |
+  | http://www.opensource.org/licenses/gpl-license.php                   |
+  |                                                                      |
+  | Software distributed under the License is distributed on an "AS IS"  |
+  | basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See  |
+  | the License for the specific language governing rights and           |
+  | limitations under the License.                                       |
+  +----------------------------------------------------------------------+
+  | Original Code developer is PaloSanto Solutions.                      |
+  +----------------------------------------------------------------------+
+*/
+
+require_once 'Console/Getopt.php';
+
+// Parse command-line options
+$opt = Console_Getopt::getopt($argv, '', array(
+    'flush',  // Remove all firewall rules from iptables
+    'load',   // Load all firewall rules from database
+    'isactive',
+    'save_wl',
+    'isactivegeoip',
+    'listgeoblocked',
+    'listgeopass',
+    'listfail2banblocked',
+    'homecountry',
+    'block_country=',
+    'whitelist_country=',
+    'none_country=',
+    'add_wl=',
+    'remove_wl='
+));
+if (PEAR::isError($opt)) error_exit($opt->getMessage()."\n");
+//validateOptions($opt);
+foreach ($opt[0] as $option) switch ($option[0]) {
+case '--flush':
+    exit(action_flushFirewall($opt) ? 0 : 1);
+case '--load':
+    exit(action_loadFirewall($opt) ? 0 : 1);
+case '--isactive':
+    exit(action_isactive() ? 0 : 1);
+case '--isactivegeoip':
+    exit(isactivegeoip() ? 0 : 1);
+case '--listgeoblocked':
+    exit(listgeoblocked() ? 0 : 1);
+case '--listfail2banblocked':
+    exit(fail2banblocked() ? 0 : 1);
+case '--homecountry':
+    exit(homecountry() ? 0 : 1);
+case '--listgeopass':
+    exit(listgeopass() ? 0 : 1);
+case '--add_wl':
+    exit(add_whitelist($option[1]) ? 0 : 1);
+case '--remove_wl':
+    exit(remove_whitelist($option[1]) ? 0 : 1);
+case '--save_wl':
+    exit(generate_save_file() ? 0 : 1);
+case '--block_country':
+    exit(block_country($option[1]) ? 0 : 1);
+case '--whitelist_country':
+    exit(whitelist_country($option[1]) ? 0 : 1);
+case '--none_country':
+    exit(none_country($option[1]) ? 0 : 1);
+}
+error_exit("No action specified (--flush, --load, --geoip or --isactive)\n");
+
+function error_exit($sMsg, $errorcode = 1)
+{
+    fwrite(STDERR, $sMsg);
+    exit($errorcode);
+}
+
+// Flush all firewall rules and remove all chains.
+function action_flushFirewall($opt)
+{
+    file_put_contents("/etc/sysconfig/iptables",""); // Se blanque ese archivo para que no se vuelvan a cargar las reglas al reiniciar el servidor
+    $ret = NULL;
+    foreach (array(
+        '/sbin/iptables -F',
+        '/sbin/iptables -X',
+        '/sbin/iptables -Z',
+        '/sbin/iptables -t nat -F',
+        ) as $cmd) {
+        system($cmd, $ret);
+        if ($ret) return FALSE;
+    }
+    manageF2B('same');
+    return TRUE;
+}
+
+// Load all the firewall rules from the database
+function action_loadFirewall($opt)
+{
+
+    $dispGEOIP = FALSE;
+    exec("/usr/sbin/modprobe xt_geoip", $output, $return);
+    if ($return == 0) {
+        $dispGEOIP = TRUE;
+    }
+
+    $bExito = TRUE;
+    $bFirewallActivo = FALSE;
+    $issabelChains = array(
+        'INPUT'     =>   'ISSABEL_F2B',
+        'INPUT'     =>  'ISSABEL_INPUT',
+        'OUTPUT'    =>  'ISSABEL_OUTPUT',
+        'FORWARD'   =>  'ISSABEL_FORWARD',
+        'ISSABEL_INPUT'   =>   'ISSABEL_INPUT_GEOIP',
+        'ISSABEL_OUTPUT'  =>   'ISSABEL_OUTPUT_GEOIP',
+        'ISSABEL_FORWARD'  =>   'ISSABEL_FORWARD_GEOIP'
+    );
+
+    $rules = array();
+    $mycontinent = array();
+
+    try {
+
+
+        $connCountries = new PDO('sqlite:/var/www/db/countries.db');
+        $query = "SELECT continent_code AS continent,group_concat(code) AS countries FROM countries GROUP BY continent_code";
+        $sth = $connCountries->query($query);
+        $continents = $sth->fetchAll(PDO::FETCH_ASSOC);
+        foreach($continents as $idx=>$data) {
+            $mycontinent[$data['continent']]=$data['countries'];
+        }
+
+        $conn = new PDO('sqlite:/var/www/db/iptables.db');
+        // Fix missing 'filter.state' field in some Issabel installations
+        $sth = $conn->query('SELECT * FROM filter LIMIT 1');
+        $rules = $sth->fetchAll(PDO::FETCH_ASSOC);
+        if (count($rules) > 0 && !array_key_exists('state', $rules[0])) {
+            fputs(STDERR, "DEBUG: arreglando filter.state faltante...\n");
+            $conn->query('ALTER TABLE filter ADD COLUMN state varchar(50)');
+        }
+        $rules = array();
+
+        $wl = array();
+        // Whitelist check
+        $sth = $conn->query('SELECT ip_address FROM whitelist');
+        if($sth) {
+            $rules = $sth->fetchAll(PDO::FETCH_ASSOC);
+            if (count($rules) > 0) {
+                foreach($rules as $wlentry) {
+                    $wl[] = $wlentry['ip_address'];
+                }
+            }
+        }
+        $rules = array();
+
+        // Is the firewall active?
+        $sth = $conn->query('SELECT first_time FROM tmp_execute');
+        foreach ($sth->fetchAll(PDO::FETCH_COLUMN) as $first_time) {
+            $bFirewallActivo = ($first_time == 0);
+        }
+
+        if ($bFirewallActivo) {
+            // Read port-knocking configuration
+            $sPeticionPK = <<<PETICION_PK
+SELECT "INPUT" AS traffic,
+    portknock_user_current_rule.eth_in AS eth_in,
+    "" AS eth_out,
+    portknock_user_current_rule.ip_source AS ip_source,
+    "0.0.0.0/0" AS ip_destiny,
+    port.protocol AS protocol,
+    "ANY" AS sport,
+    portknock_user_auth.id_port AS dport,
+    "ACCEPT" AS target,
+    "" AS state
+FROM port, portknock_user_auth, portknock_user_current_rule
+WHERE port.id = portknock_user_auth.id_port AND portknock_user_auth.id = portknock_user_current_rule.id_portknock_auth
+PETICION_PK;
+            $sth = $conn->query($sPeticionPK);
+            $rules = array_merge($rules, $sth->fetchAll(PDO::FETCH_ASSOC));
+    
+            // Read port-knocking deny rules
+            // TODO: agregar estado RELATED antes de DROP
+            $sth = $conn->query('SELECT eth_in FROM portknock_eth');
+            foreach ($sth->fetchAll(PDO::FETCH_COLUMN) as $eth_in) {
+                $rules[] = array(
+                    'traffic'       =>  'INPUT',
+                    'eth_in'        =>  $eth_in,
+                    'eth_out'       =>  '',
+                    'ip_source'     =>  '0.0.0.0/0',
+                    'ip_destiny'    =>  '0.0.0.0/0',
+                    'protocol'      =>  'STATE',
+                    'sport'         =>  '',
+                    'dport'         =>  '',
+                    'target'        =>  'ACCEPT',
+                    'state'         =>  'Established,Related',
+                );
+                $rules[] = array(
+                    'traffic'       =>  'INPUT',
+                    'eth_in'        =>  $eth_in,
+                    'eth_out'       =>  '',
+                    'ip_source'     =>  '0.0.0.0/0',
+                    'ip_destiny'    =>  '0.0.0.0/0',
+                    'protocol'      =>  'ALL',
+                    'sport'         =>  '',
+                    'dport'         =>  '',
+                    'target'        =>  'REJECT',
+                    'state'         =>  '',
+                );
+            }
+    
+            // Read rule configuration from database
+            $sth = $conn->query(
+                'SELECT traffic, eth_in, eth_out, ip_source, ip_destiny, protocol, ' .
+                    'sport, dport, target, state, countries, continents ' .
+                'FROM  filter WHERE activated = 1 ORDER BY rule_order');
+            $rules = array_merge($rules, $sth->fetchAll(PDO::FETCH_ASSOC));
+        } 
+    } catch (PDOException $e) {            
+        $bExito = FALSE;
+        fprintf(STDERR, "ERR: failed to query firewall rules - %s\n", $e->getMessage());
+    }
+
+    // Flush all firewall rules
+
+    // Flush all firewall rules
+    if ($bExito) {
+        $ret = NULL;
+        foreach (array(
+            '/sbin/iptables -F',
+            '/sbin/iptables -X',
+            '/sbin/iptables -Z',
+            '/sbin/iptables -t nat -F',
+            ) as $cmd) {
+                system($cmd, $ret);
+                if ($ret) {
+                    $bExito = FALSE;
+                    break;
+                }
+        }
+    }
+
+    // Add ISSABEL_XXX chains to iptables configuration if not already present
+    if ($bExito && $bFirewallActivo) {
+        $output = $ret = NULL;
+
+        // create white list ipset
+        exec("/usr/sbin/ipset -exist -N issabel_whitelist hash:ip", $output, $ret);
+
+        exec('/sbin/iptables -L -n', $output, $ret);
+        if ($ret) {
+            $bExito = FALSE;    
+        } else {
+            $currentChains = array();
+            foreach ($output as $sLinea) {
+                $regs = NULL;
+                if (preg_match('/^Chain (\S+)/', $sLinea, $regs))
+                    $currentChains[] = $regs[1];
+            }
+            foreach (array_diff($issabelChains, $currentChains) as $key => $sChain) {
+                system("/sbin/iptables -N $sChain", $ret);
+                if ($ret) { $bExito = FALSE; break; }
+                system("/sbin/iptables -A $key -j $sChain", $ret);
+                if ($ret) { $bExito = FALSE; break; }
+            }
+        }
+    }
+
+    // Add rules to ISSABEL_XXX chains
+    if ($bExito && $bFirewallActivo) foreach ($rules as $rule) {
+        $commandParams = array(
+                '/sbin/iptables',
+                );
+        if ($rule['protocol'] == 'GEOIP') { 
+            $commandParams[] = '-A '.$issabelChains[$rule['traffic']].'_GEOIP';
+        } else {
+            $commandParams[] = '-A '.$issabelChains[$rule['traffic']];
+        }
+        if ($rule['ip_destiny'] != '0.0.0.0/0' && $rule['ip_destiny'] != '')
+            $commandParams[] = "-d ".escapeshellarg($rule['ip_destiny']);
+        if ($rule['ip_source'] != '0.0.0.0/0' && $rule['ip_source'] != '')
+            $commandParams[] = "-s ".escapeshellarg($rule['ip_source']);
+        switch ($rule['protocol']) {
+            case 'TCP':
+            case 'UDP':
+                $commandParams[] = "-p ".escapeshellarg($rule['protocol']);
+                if ($rule['sport'] != 'ANY' && $rule['sport'] != "" && !is_null($rule['sport'])) {
+                    $port = "";
+                    try{
+                        $result = $conn->prepare("SELECT details FROM port WHERE id=?");
+                        $r = $result->execute(array($rule['sport']));
+                        if (!$r) {
+                            fputs(STDERR, "ERROR: failed to query firewall rules\n");
+                            $bExito = false;
+                            break 2;
+                        }
+                        $arrResult = array();
+                        if ($result!=null) {
+                            while($row = $result->fetch(PDO::FETCH_OBJ)) {
+                                $arrResult[] = (array)$row;
+                            }
+                        } else {
+                            fputs(STDERR, "ERROR: failed to query firewall rules\n");
+                            $bExito = false;
+                            break 2;
+                        }
+                        if(isset($arrResult[0]["details"])) {
+                            $port = $arrResult[0]["details"];
+                        } else {
+                            fputs(STDERR, "ERROR: some port was not found in database\n");
+                            $bExito = false;
+                            break 2;
+                        }
+                    } catch (PDOException $e) {            
+                        fprintf(STDERR, "ERR: failed to query firewall rules - %s\n", $e->getMessage());
+                        $bExito = FALSE;
+                        break 2;
+                    }
+                    $commandParams[] = "--sport ".escapeshellarg($port);
+                }
+                if ($rule['dport'] != 'ANY' && $rule['dport'] != "" && !is_null($rule['dport'])) {
+                    $port = "";
+                    try{
+                        $result = $conn->prepare("SELECT details FROM port WHERE id=?");
+                        $r = $result->execute(array($rule['dport']));
+                        if (!$r) {
+                            fputs(STDERR, "ERROR: failed to query firewall rules\n");
+                            $bExito = false;
+                            break 2;
+                        }
+                        $arrResult = array();
+                        if ($result!=null) {
+                            while($row = $result->fetch(PDO::FETCH_OBJ)) {
+                                $arrResult[] = (array)$row;
+                            }
+                        } else {
+                            fputs(STDERR, "ERROR: failed to query firewall rules\n");
+                            $bExito = false;
+                            break 2;
+                        }
+                        if (isset($arrResult[0]["details"])) {
+                            $port = $arrResult[0]["details"];
+                        } else {
+                            fputs(STDERR, "ERROR: some port was not found in database\n");
+                            $bExito = false;
+                            break 2;
+                            }
+                    } catch (PDOException $e) {            
+                        fprintf(STDERR, "ERR: failed to query firewall rules - %s\n", $e->getMessage());
+                        $bExito = FALSE;
+                        break 2;
+                    }
+                        $commandParams[] = "--dport ".escapeshellarg($port);
+                }
+                break;
+            case 'ICMP':
+                $commandParams[] = '-p icmp';
+                break;
+            case 'IP':
+                $commandParams[] = '-p ip';
+                break;
+            case 'STATE':
+                $commandParams[] = "-m state --state ".escapeshellarg($rule['state']);
+                break;
+        }
+    
+        if ($rule['eth_in'] != 'ANY' && $rule['eth_in'] != '') {
+            $commandParams[] = "-i ".escapeshellarg($rule['eth_in']);
+        }
+        if ($rule['eth_out'] != 'ANY' && $rule['eth_out'] != '') {
+            $commandParams[] = "-o ".escapeshellarg($rule['eth_out']);
+        }
+        if ($rule['protocol'] == 'GEOIP' && $rule['target'] == 'ACCEPT' && ($rule['countries'] != '' || $rule['continents'] != '')) {
+    
+            // expand continent into individual countries
+            $countries=array();
+    
+            if($rule['continents']<>'') {
+                $continents = explode(",",$rule['continents']);
+                if(count($continents)>0) {
+                    foreach($continents as $code=>$ctrystring) {
+                        $countries = array_merge($countries,explode(",",$mycontinent[$ctrystring]));
+                    }
+                }
+            }
+    
+            if($rule['countries']<>'') {
+                $expcountries = explode(",",$rule['countries']);
+                if(count($expcountries)>0) {
+                    $countries = array_merge($countries,$expcountries);
+                }
+            }
+    
+            $countries = array_unique($countries);
+            $cuantos_paises = count($countries);
+    
+            if($cuantos_paises<10) {
+                $commandParams[] = "-m geoip --src-cc ".implode($countries,',')." -j ".escapeshellarg('RETURN');
+            } else {
+                // split countries in multiple commands because of limit in geoip matching
+                $subsetcommand = array();
+                $comando_hasta_ahora = implode(' ',$commandParams);
+                $paises = array_chunk($countries,10);
+                foreach($paises as $subset) {
+                    $impsubset = implode(",",$subset);
+                    $subsetcommand[] = $comando_hasta_ahora . " -m geoip --src-cc ".escapeshellarg($impsubset)." -j ".escapeshellarg('RETURN');
+                }
+            }
+
+        } else if ($rule['protocol'] == 'GEOIP' && ($rule['countries'] != '' || $rule['continents'] != '' )) {
+
+            // expand continent into individual countries
+            $countries=array();
+
+            if($rule['continents']<>'') {
+                $continents = explode(",",$rule['continents']);
+                if(count($continents)>0) {
+                    foreach($continents as $code=>$ctrystring) {
+                        $countries = array_merge($countries,explode(",",$mycontinent[$ctrystring]));
+                    }
+                }
+            }
+
+            if($rule['countries']<>'') {
+                $expcountries = explode(",",$rule['countries']);
+                if(count($expcountries)>0) {
+                    $countries = array_merge($countries,$expcountries);
+                }
+            }
+
+            $countries = array_unique($countries);
+            $cuantos_paises = count($countries);
+
+            if($cuantos_paises<10) {
+                $commandParams[] = "-m geoip --src-cc ".implode($countries,',')." -m state --state NEW -j ".escapeshellarg($rule['target']);
+            } else {
+                // split countries in multiple commands because of limit in geoip matching
+                $subsetcommand = array();
+                $comando_hasta_ahora = implode(' ',$commandParams);
+                $paises = array_chunk($countries,10);
+                foreach($paises as $subset) {
+                    $impsubset = implode(",",$subset);
+                    $subsetcommand[] = $comando_hasta_ahora . " -m geoip --src-cc ".escapeshellarg($impsubset)." -m state --state NEW -j ".escapeshellarg($rule['target']);
+                }
+            }
+
+        } else {
+            $commandParams[] = "-j ".escapeshellarg($rule['target']);
+        } 
+        $ret = NULL;
+        if (($rule['protocol'] != 'GEOIP') || ($rule['protocol'] == 'GEOIP' && $dispGEOIP)) {
+            if(isset($subsetcommand)) {
+                foreach($subsetcommand as $cmd) {
+                    system($cmd,$ret);
+                }
+                unset($subsetcommand);
+            } else {
+                system(implode(' ', $commandParams), $ret);
+            }
+        }
+    
+        if ($ret) { $bExito = FALSE; break; }
+    
+    }
+    
+    // Add White List check to INPUT
+    $cmd = "/sbin/iptables -I INPUT -m set --match-set issabel_whitelist src -j ACCEPT";
+    system($cmd, $ret);
+    if(count($wl)>0) {
+
+        $cmd = "/usr/sbin/ipset flush issabel_whitelist";
+        system($cmd, $ret);
+
+        foreach($wl as $ip) {
+            $cmd = "/usr/sbin/ipset add issabel_whitelist $ip";
+            system($cmd, $ret);
+        }
+    }
+
+    // Save configuration to /etc/sysconfig/iptables
+    if ($bExito) {
+        $output = $ret = NULL;
+        system('/sbin/iptables-save > /etc/sysconfig/iptables', $ret);
+        if ($ret) $bExito = FALSE;
+    }
+
+    // Ensure that iptables will actually be restored on reboot
+    if ($bExito) {
+        $ret = NULL;
+        system('/usr/bin/systemctl enable iptables.service', $ret);
+        if ($ret) { $bExito = FALSE; }
+    }
+
+    manageF2B('same');
+
+    return $bExito;
+}
+
+function manageF2B($opt)
+{
+    switch ($opt) {
+        case 'same':
+            exec("systemctl -q is-active fail2ban", $output, $return);
+            if ($return == 0) {
+                echo "Ok, process is running, restarting\n";
+                //exec("systemctl restart fail2ban", $output, $return);
+                //uso service ya que systemctl no devuelve error en $return
+                exec("systemctl restart fail2ban", $output, $ret);
+                if ($ret != 0) {
+                    echo "Fail2ban restart FAILED\n";
+                }
+            } else {
+                echo "Fail2ban process is not running, do nothing\n";
+            }
+            break;
+        case 'start':
+            exec("pgrep fail2ban", $output, $return);
+            if ($return == 0) {
+                echo "Process already running\n";
+            } else {
+                //exec("systemctl start fail2ban", $output, $return);
+                exec("systemctl start fail2ban", $output, $ret);
+                if ($ret != 0) {
+                    echo "Fail2ban start FAILED\n";
+                }
+            }
+            break;
+        case 'restart':
+            //exec("systemctl restart fail2ban", $output, $return);
+            exec("systemctl restart fail2ban", $output, $return);
+            if ($return != 0) {
+                echo "Fail2ban restart FAILED\n";
+            }
+            break;
+        case 'stop':
+            //exec("systemctl stop fail2ban", $output, $return);
+            exec("systemctl stop fail2ban", $output, $return);
+            if ($return != 0) {
+                echo "Fail2ban stop FAILED\n";
+            }
+            break;
+    }
+}
+
+function isactivegeoip() {
+    exec("/usr/sbin/lsmod | grep xt_geoip", $output, $return);
+    if ($return != 0) {
+        echo "xt_geoip module not installed";
+        return FALSE;
+    }
+    return TRUE;
+}
+
+function listgeopass() {
+
+    exec("iptables -nL ISSABEL_INPUT_GEOIP | grep RETURN | awk '{print $9}'", $output, $return);
+    if ($return == 0) {
+        foreach($output as $line) {
+            $final[]=$line;
+        }
+        echo implode(",",$final);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+
+function listgeoblocked() {
+    $final=array();
+    exec("iptables -nL ISSABEL_INPUT_GEOIP | grep 'DROP\|REJECT' | awk '{print $9}'", $output, $return);
+    if ($return == 0) {
+        foreach($output as $line) {
+            $final[]=$line;
+        }
+        if(count($final)>0) {
+            echo implode(",",$final);
+        }
+        return FALSE;
+    }
+    return TRUE;
+}
+
+function fail2banblocked() {
+    $blocked=array();
+    exec("iptables -vnL | grep f2b | grep Chain | awk '{ print \$2 }'", $output, $return);
+    foreach($output as $line) {
+        exec("iptables -nL $line | grep 'DROP\|REJECT' | awk '{ print \$4 }'", $output2, $return2);
+        if(count($output2)>0) {
+            foreach($output2 as $ip) {
+                $country = geoip_country_code_by_name($ip);
+                if(!isset($blocked[$country])) { $blocked[$country]=0; }
+                $blocked[$country]++;
+            }
+        }
+    }
+    echo json_encode($blocked,1);
+}
+
+function homecountry() {
+   $ch = curl_init();
+   curl_setopt($ch, CURLOPT_URL, 'http://myip.issabel.org:5060/whatismyip.php'); 
+   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+   curl_setopt($ch, CURLOPT_HEADER, 0); 
+   $publicIP = curl_exec($ch); 
+   curl_close($ch); 
+   if ($publicIP=='') {
+       echo 'ZZ';
+   } else {
+      $country = geoip_country_code_by_name($publicIP);
+      echo "$country,$publicIP";
+   }
+}
+
+function action_isactive() {
+
+    exec("/sbin/iptables -nL ISSABEL_INPUT", $output, $return);
+    if ($return != 0) {
+        echo "ISSABEL FIREWALL disabled\n";
+        return FALSE;
+    } else {
+        echo "ISSABEL FIREWALL enabled\n";
+        return TRUE;
+    }
+ 
+}
+
+function add_whitelist($ip_address) {
+   exec("ipset add issabel_whitelist $ip_address", $output, $return);
+   if($return==1) { 
+       return FALSE; 
+   } else { 
+       generate_save_file();
+       return TRUE; 
+   }
+}
+
+function remove_whitelist($ip_address) {
+   exec("ipset del issabel_whitelist $ip_address", $output, $return);
+   if($return==1) { 
+       return FALSE; 
+   } else { 
+       generate_save_file();
+       return TRUE; 
+   }
+}
+
+function generate_save_file() {
+    $content = "create issabel_whitelist hash:ip family inet hashsize 1024 maxelem 65536\n";
+    $db = new SQLite3('/var/www/db/iptables.db');
+    $res = $db->query("select ip_address from whitelist");
+    while($row = $res->fetchArray()) {
+        $content.="add issabel_whitelist ".$row['ip_address']."\n";
+    }
+    file_put_contents("/etc/sysconfig/ipset.d/issabel_whitelist.set",$content);
+    return 0;
+}
+
+function reorder_geoip($db) {
+
+    $query="SELECT rowid,rule_order FROM filter WHERE protocol='GEOIP' ORDER BY rule_order";
+    $res = $db->query($query);
+    $neworder=100000;
+    while($row = $res->fetchArray()) {
+        $neworder++;
+        $query = "UPDATE filter SET rule_order=$neworder WHERE rowid=".$row['id'];
+        $db->exec($query);
+    }
+
+    $query="SELECT rowid,rule_order FROM filter WHERE protocol='GEOIP' ORDER BY rule_order";
+    $res = $db->query($query);
+    $neworder=100000;
+    while($row = $res->fetchArray()) {
+        print_r($row);
+    }
+}
+
+function block_country($country) {
+
+    $db = new SQLite3('/var/www/db/iptables.db');
+
+    $query = "DELETE FROM filter WHERE protocol='GEOIP' AND countries='$country' AND (target='DROP' OR target='REJECT')";
+    $db->exec($query);
+
+    $query = "DELETE FROM filter WHERE protocol='GEOIP' AND countries='$country' AND target='ACCEPT'";
+    $db->exec($query);
+        
+    $query = "INSERT INTO filter (protocol,countries,target,rule_order,traffic,eth_in,eth_out,ip_source,ip_destiny,continents) VALUES ('GEOIP','$country','DROP',100000,'INPUT','ANY','','0.0.0.0/0','0.0.0.0/0','')";
+    $db->exec($query);
+
+    reorder_geoip($db);
+
+    exec("iptables -D ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -j RETURN", $output, $return);
+    exec("iptables -D ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -m state --state NEW -j DROP", $output, $return);
+    exec("iptables -I ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -m state --state NEW -j DROP", $output, $return);
+
+    if($return==1) { 
+        return FALSE; 
+    } else { 
+        return TRUE; 
+    }
+}
+
+function whitelist_country($country) {
+    $db = new SQLite3('/var/www/db/iptables.db');
+
+    $query = "DELETE FROM filter WHERE protocol='GEOIP' AND countries='$country' AND (target='DROP' OR target='REJECT')";
+    $db->exec($query);
+
+    $query = "DELETE FROM filter WHERE protocol='GEOIP' AND countries='$country' AND target='ACCEPT'";
+    $db->exec($query);
+        
+    $query = "INSERT INTO filter (protocol,countries,target,rule_order,traffic,eth_in,eth_out,ip_source,ip_destiny,continents) VALUES ('GEOIP','$country','ACCEPT',100000,'INPUT','ANY','','0.0.0.0/0','0.0.0.0/0','')";
+    $db->exec($query);
+
+    reorder_geoip($db);
+
+    exec("iptables -D ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -m state --state NEW -j DROP", $output, $return);
+    exec("iptables -D ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -j RETURN", $output, $return);
+    exec("iptables -I ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -j RETURN", $output, $return);
+
+    if($return==1) { 
+        return FALSE; 
+    } else { 
+        return TRUE; 
+    }
+}
+
+function none_country($country) {
+
+    $db = new SQLite3('/var/www/db/iptables.db');
+
+    $query = "DELETE FROM filter WHERE protocol='GEOIP' AND countries='$country' AND (target='DROP' OR target='REJECT')";
+    $db->exec($query);
+
+    $query = "DELETE FROM filter WHERE protocol='GEOIP' AND countries='$country' AND target='ACCEPT'";
+    $db->exec($query);
+
+    reorder_geoip($db);
+ 
+    exec("iptables -D ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -m state --state NEW -j DROP", $output, $return);
+    exec("iptables -D ISSABEL_INPUT_GEOIP -m geoip --src-cc $country -j RETURN", $output, $return);
+
+    if($return==1) { 
+        return FALSE; 
+    } else { 
+        return TRUE; 
+    }
+}
+
+
+?>

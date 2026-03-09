@@ -1,0 +1,142 @@
+#!/usr/bin/php
+<?php
+function check_monitor() {
+    $service = "Monitor";
+
+    exec("systemctl -q is-enabled issabel_network_agent", $output, $exitcode);
+
+    if($exitcode>0) {
+        $status="Disabled";
+        $led="led-blue";
+    } else {
+
+        $pid = chop(`pidof issabel_network_agent`);
+        if($pid=="") {
+            $status="Inactive";
+            $led="led-yellow";
+        } else {
+            $ip = gethostbyname('messaging.issabel.guru');
+            $long = dechex(ip2long($ip));
+            $finallong = strtoupper(substr($long,6,2).substr($long,4,2).substr($long,2,2).substr($long,0,2));
+
+            $status="Not connected";
+            $led="led-red";
+
+            $lineas = file("/proc/$pid/net/tcp");
+
+            foreach($lineas as $linea) {
+                if(preg_match("/$finallong/",$linea)) {
+                    $led="led-green";
+                    $status="OK";
+                }
+            }
+        }
+    }
+    echo "$service,$status,$led\n";
+}
+
+function check_rbl() {
+    $service = "RBL";
+    $unitfile = "/etc/systemd/system/packetbl.service";
+    if (file_exists($unitfile)) {
+        exec("systemctl -q is-active packetbl", $output, $exitcode);
+
+        if($exitcode == 0) {
+            $status="OK";
+            $led="led-green";
+        } else {
+            exec("systemctl -q is-active fail2ban", $output, $exitcode);
+            if($exitcode == 0) {
+                $status="Down";
+                $led="led-red";
+            } else {
+                $status="Stopped";
+                $led="led-blue";
+            }
+        }
+    } else {
+        $status="Not installed";
+        $led="led-blue";
+    }
+    echo "$service,$status,$led\n";
+}
+
+function check_dyndns() {
+    $service = "DynDNS";
+    $privfile = "/usr/share/issabel/privileged/dyndns";
+    $cronfile = "/etc/cron.d/dyndns.issabel.cron";
+    if (file_exists($privfile)) {
+        if(file_exists($cronfile)) {
+            $status="Enabled";
+            $led="led-green";
+        } else {
+            $status="Disabled";
+            $led="led-blue";
+            }
+    } else {
+        $status="Not installed";
+        $led="led-blue";
+    }
+    echo "$service,$status,$led\n";
+}
+
+function check_license() {
+    $service = "License";
+    $output=`/usr/local/bin/issabel_register_license -check | grep issabel-network`;
+    if($output<>"") {
+        if(preg_match("/Expired/i",$output)) {
+            $status="Expired";
+            $led="led-yellow";
+        } else {
+            $status="OK";
+            $led="led-green";
+        }
+    } else {
+        $status="No license found";
+        $led="led-red";
+    }
+    echo "$service,$status,$led\n";
+}
+
+function toggle_remote($file) {
+    if (!is_executable($file)) {
+         chmod($file, 0755);
+         clearstatcache();
+    } else {
+         chmod($file, 0644);
+         clearstatcache();
+    }
+}
+
+function enable_remote($file) {
+    chmod($file, 0755);
+    clearstatcache();
+}
+
+function disable_remote($file) {
+    chmod($file, 0644);
+    clearstatcache();
+}
+
+function check_remote($file) {
+    if(is_executable($file)) {
+        echo "1\n";
+    } else {
+        echo "0\n";
+    }
+}
+
+$file = "/usr/libexec/issabel/data";
+
+if ($argv[1] == "-enableremote") {
+    enable_remote($file);
+} elseif ($argv[1] == "-disableremote") {
+    disable_remote($file);
+} elseif ($argv[1] == "-checkremote") {
+    check_remote($file);
+} else {
+check_license();
+check_monitor();
+check_dyndns();
+check_rbl();
+}

@@ -1,0 +1,13 @@
+systemctl restart httpd
+systemctl restart issabelpbx
+systemctl restart asterisk
+
+
+systemctl restart httpd
+systemctl restart issabelpbx
+systemctl restart asterisk
+
+
+
+require_once '/var/www/html/libs/misc.lib.php'; // Agregar esta línea
+require_once 'vendor/BaseVendorResource.class.php';

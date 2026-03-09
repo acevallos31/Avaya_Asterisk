@@ -1,0 +1,33 @@
+## Configuración Específica de Extensión SIP default_ext para Avaya J129 B4:A9:5A:AC:F6:55
+## Última actualización: 2025-Apr-01 10:51:25
+
+###################################
+## Configuración de Servidor SIP ##
+###################################
+SET SIP_CONTROLLER_LIST "10.2.248.2:5060;transport=udp"
+SET SIPPROXYSRVR 10.2.248.2
+SET SIPPROXYSRVR_IN_USE 10.2.248.2
+SET SIPDOMAIN 10.2.248.2
+SET SIPPORT 5060
+SET ENABLE_PRESENCE 1
+
+############################################
+## Configuración de la Extensión SIP default_ext ##
+############################################
+SET DISPLAY_NAME "4298"
+SET SIP_USER_ID 4298
+SET SIP_USER_ACCOUNT 4298@10.2.248.2
+SET ENABLE_SIP_USER_ID 1
+SET SCREEN_NAME_ORDER 1
+
+SET  FORCE_SIP_USERNAME "4298"
+SET  FORCE_SIP_PASSWORD "dd591a8ac7a76af9f6ce6cfad50c53f5"
+SET  FORCE_SIP_EXTENSION "4298"
+## Cargar archivo de configuración por MAC (si se usa TFTP o HTTP para provisión)
+## Agencia La Mundial
+
+
+SET SIPSIGNAL 0
+SET CONFIG_SERVER_SECURE_MODE 0
+SET SIP_CONTROLLER_LIST 10.2.248.2:5060;transport=udp
+SET ENABLE_AVAYA_ENVIRONMENT 0

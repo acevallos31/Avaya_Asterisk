@@ -1,0 +1,49 @@
+Mute 2723825327#
+
+
+ha1603ua1_3200.bin
+
+
+
+Nuevo 1603SW-I con firmware ha1603ua1_3110A.bin
+
+Model=1603D01A
+
+Phone SN=13WZ260703J1
+PWB SN=13WZ260703J1
+PWB comcode=55.62N01.001G
+MAC address=D4:EA:0E:91:A9:7B
+
+
+
+Nuevo 1603-I con firmware ha1603ua1_343A.bin
+
+Model=1603D02A 
+
+Phone SN=13WZ39170050
+PWB SN=13WZ39170050
+PWB comcode=55.62K01.001G
+MAC address=B4:A9:5A:4C:F6:55
+
+
+1603SW-I Firmware SIP Viejo
+
+Model=1603D01A
+
+Phone SN=10WZ11551867
+PWB SN=10WZ11551867
+PWB comcode=55.62N01.001G
+MAC address=00:1B:4F:4D:F2:4F
+
+
+
+1603SW-I Firmware SIP Viejo #2
+
+Model=1603D01A
+
+Phone SN=10WZ11552726
+PWB SN=10WZ11552726
+PWB comcode=55.62N01.001G
+MAC address=00:1B:4F:4D:F5:AA
+
+

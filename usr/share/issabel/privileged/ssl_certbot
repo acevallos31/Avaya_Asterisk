@@ -1,0 +1,162 @@
+#!/usr/bin/php
+<?php
+/*
+  vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4:
+  Codificación: UTF-8
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2017 - Issabel Foundation                              |
+  +----------------------------------------------------------------------+
+  +----------------------------------------------------------------------+
+  | Autor: Nicolas Gudino  <asternic@gmail.com>                          |
+  +----------------------------------------------------------------------+
+*/
+
+if(!isset($argv[1]))
+    exit(1);
+
+switch($argv[1]){
+    case "insertservername":
+        if(isset($argv[2])) {
+            insertServerName($argv[2]);
+        }
+        break;
+    case "editservername":
+        if(isset($argv[2])) {
+            editServerName($argv[2]);
+        }
+        break;
+    case "newcertificate":
+
+        // newcertificate test@email.com my.dominio.com staging
+
+        if(isset($argv[2]) && isset($argv[3])) {
+            $params = array();
+            $params[]="-n";
+            $params[]="-i apache";
+            $params[]="-a webroot";
+            $params[]="-w /var/www/html";
+            $params[]="--agree-tos";
+
+            if(isset($argv[4])) {
+                $params[]="--test-cert";
+            }
+
+            $params[]="--email ".$argv[2];
+            $params[]="-d ".$argv[3];
+
+            $lcomandos = implode(" ",$params);
+            $comando = "/usr/bin/certbot $lcomandos";
+
+            //$fp=fopen("/tmp/certbot.log","a");
+            //fputs($fp,"$comando\n");
+            //fclose($fp);
+
+            $output = $ret = NULL;
+
+            if(!is_executable('/usr/bin/certbot')) {
+                echo "ERR: Could not find /usr/bin/certbot. Be sure to install the certbot package";
+                exit(1);
+            }
+        
+            exec($comando, $output, $ret);
+
+            if ($ret != 0) {
+                echo "ERR: failed to run /usr/bin/certbot ($comando). Output follows:\n".implode('', $output);
+                exit(1);
+            } else {
+                //exec("/sbin/service httpd restart 2>&1", $output, $ret);
+
+                writeAsteriskPEMfile(1);
+
+                echo implode("\n",$output);
+                exit(0);
+            }
+        }
+        break;
+    case "renewcertificate":
+        $comando = "/usr/bin/certbot renew";
+        $output = $ret = NULL;
+
+        exec($comando, $output, $ret);
+
+        if ($ret != 0) {
+            fputs(STDERR, "ERR: failed to run /usr/bin/certbot. Output follows:\n");
+            fputs(STDERR, implode('', $output));
+            exit(1);
+        } else {
+
+            writeAsteriskPEMfile(1);
+
+            echo implode("\n",$output);
+            exit(0);
+        }
+        break;
+    case "writevars":
+        if(isset($argv[2]) && isset($argv[3])) {
+            $email  = $argv[2];
+            $domain = $argv[3];
+            $valuesc="/etc/letsencrypt/values";
+            file_put_contents($valuesc, "");
+            //create the new vars File
+            $fp = fopen($valuesc, "w");
+            fputs($fp,"domain=${domain}\n");
+            fputs($fp,"email=${email}\n");
+            fclose($fp);
+        }
+        break;
+    case "writeasteriskcert":
+        generateAsteriskCert();
+        break;
+    default:
+        exit(1);
+        break;
+}
+
+
+function insertServerName($sHostname) {
+    // Insert new line, we must do it after <VirtualHost _default_:443>
+    $sslfile = "/etc/httpd/conf.d/ssl.conf";
+    $contenidoNuevo = array();
+    foreach (file($sslfile) as $sLinea) {
+        if (preg_match('/^<VirtualHost _default_:443/', $sLinea)) {
+            $contenidoNuevo[] = $sLinea;
+            $contenidoNuevo[] = "ServerName $sHostname\n";
+        } else {
+            $contenidoNuevo[] = $sLinea;
+        }
+    }
+    file_put_contents($sslfile, $contenidoNuevo);
+}
+
+function editServerName($sHostname) {
+    $sslfile = "/etc/httpd/conf.d/ssl.conf";
+    $contenidoNuevo = array();
+    foreach (file($sslfile) as $sLinea) {
+        if (preg_match('/^[\s]*?ServerName\s*/', $sLinea)) {
+            $contenidoNuevo[] = "ServerName $sHostname\n";
+        } else {
+            $contenidoNuevo[] = $sLinea;
+        }
+    }
+    file_put_contents($sslfile, $contenidoNuevo);
+}
+
+function generateAsteriskCert() {
+    if (!file_exists('/etc/asterisk/keys/asterisk.pem')) {
+        writeAsteriskPEMfile(0);
+    }
+}
+
+function writeAsteriskPEMfile($reload=1) {
+
+    if (!file_exists('/etc/asterisk/keys')) {
+        mkdir('/etc/asterisk/keys', 0751, true);
+    }
+
+    exec(">/etc/asterisk/keys/asterisk.pem", $output, $ret);
+    exec("for A in `grep '^SSLCert' /etc/httpd/conf.d/ssl.conf | awk '{print $2}' | sed 's/cert.pem/fullchain.pem/g'`; do cat \$A >>/etc/asterisk/keys/asterisk.pem; done", $output, $ret);
+    if($reload==1) {
+       system('/usr/sbin/amportal a r');
+    }
+
+}

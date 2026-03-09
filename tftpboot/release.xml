@@ -1,0 +1,972 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<phone-release>
+  <release-header>
+    <name>J100 SIP 4.0.9.0 Release 11</name>
+    <date>2023-08-28</date>
+    <description>
+Copyright Avaya Inc. 2002 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 All rights reserved.
+This file describes the contents of the software distribution package for the J100 SIP IP Telephones.
+
+The reason for the release of this software is:
+    - The R4.0.9.0 release 11 of J100 SIP Software for J129, J139, J159, J169, J179 or J189 Telephones.
+    - The R1.0.1.0 release 23 of software for J100 Expansion Module
+
+There is one firmware version with multiple language files in this distribution package. It is available in one format - zip. This release supports an upgrade strategy only for SIP software. This software distribution package contains all the files necessary to upgrade an Avaya J129, J139, J159, J169, J179 or J189 to SIP software.
+
+The following files are included in the package:
+J100Supgrade.txt - This file is downloaded by the Avaya IP telephones and instructs each telephone on how to upgrade itself. This file SHOULD NOT BE EDITED. System specific parameters should be entered into the 46xxsettings.txt file, which is available for separate download at support.avaya.com.
+
+To upgrade your Avaya IP Telephones:
+  - Rename your current J100Supgrade.txt file.
+  - Unzip the zip file in the outbound file directory of your HTTP server.
+  - Make any adjustments to your 46xxsettings.txt file.
+  - Reset your Avaya IP Telephones.
+  </description>
+  </release-header>
+  <files-in-release>
+    <file>
+      <name>hb1603ua1_2200.bin</name>
+      <type>boot</type>
+      <version>1.2.2</version>
+      <description>1603 R1.2.2 Boot Code</description>
+    </file>
+    <file>
+      <name>sa1603ua1_0100.bin</name>
+      <type>app</type>
+      <version>1.0.1</version>
+      <description>1603 SIP R1.0.1 Application Code</description>
+    </file>
+    <file>
+      <name>FW_S_1603_R1_5_1_0.bin</name>
+      <type>app</type>
+      <version>1.5.1.0</version>
+      <description>1603 SIP R1.5.1.0 phone application</description>
+    </file>
+    <file>
+      <name>46xxsettings.txt</name>
+      <type>config</type>
+      <version>1.5.1.0</version>
+      <description>Settings for 1603 phones</description>
+    </file>
+    <file>
+      <name>mlf_Sage_v50_spanish.txt</name>
+      <type>lang</type>
+      <version>1.2.2</version>
+      <description>16xx SIP R1.2.2 language support for Castilian Spanish</description>
+    </file>
+    <file>
+      <name>Arabic_S11_v34.rbm.lzma</name>
+      <type>font</type>
+      <version>1.1.00</version>
+      <description>16xx SIP R1.1.00 font support for Arabic</description>
+    </file>
+    <file>
+      <name>J100Supgrade.txt</name>
+      <type>config</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP 4.0.9.0 configuration file </description>
+    </file>
+    <file>
+      <name>FW_S_J129_R4_0_9_0_11.bin</name>
+      <type>app</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 phone application</description>
+    </file>
+    <file>
+      <name>Mlf_J129_BrazilianPortuguese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Brazilian Portuguese</description>
+    </file>
+    <file>
+      <name>Mlf_J129_CanadianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Canadian French</description>
+    </file>
+    <file>
+      <name>Mlf_J129_CastilianSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Castilian Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Chinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Chinese</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Dutch.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Dutch</description>
+    </file>
+    <file>
+      <name>Mlf_J129_English.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for English</description>
+    </file>
+    <file>
+      <name>Mlf_J129_German.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for German</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Hebrew.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Hebrew</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Italian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Italian</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Japanese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Japanese</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Korean.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Korean</description>
+    </file>
+    <file>
+      <name>Mlf_J129_LatinAmericanSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Latin American Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J129_ParisianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Parisian French</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Russian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Russian</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Polish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Polish</description>
+    </file>
+    <file>
+      <name>Mlf_J129_Turkish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J129 SIP R4.0.9.0 language support for Turkish</description>
+    </file>
+    <file>
+      <name>FW_S_J139_R4_0_9_0_11.bin</name>
+      <type>app</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 phone application</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Arabic.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Arabic</description>
+    </file>
+    <file>
+      <name>Mlf_J139_BrazilianPortuguese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Brazilian Portuguese</description>
+    </file>
+    <file>
+      <name>Mlf_J139CanadianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Canadian French</description>
+    </file>
+    <file>
+      <name>Mlf_J139_CastilianSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Castilian Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Chinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Chinese</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Dutch.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Dutch</description>
+    </file>
+    <file>
+      <name>Mlf_J139_English.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for English</description>
+    </file>
+    <file>
+      <name>Mlf_J139_German.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for German</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Hebrew.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Hebrew</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Italian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Italian</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Japanese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Japanese</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Korean.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Korean</description>
+    </file>
+    <file>
+      <name>Mlf_J139_LatinAmericanSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Latin American Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J139_ParisianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Parisian French</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Russian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Russian</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Polish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Polish</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Turkish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Turkish</description>
+    </file>
+    <file>
+      <name>Mlf_J139_Thai.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Thai</description>
+    </file>
+    <file>
+      <name>Mlf_J139_TraditionalChinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Traditional Chinese</description>
+    </file>
+    <file>
+      <name>FW_S_J159_R4_0_9_0_11.bin</name>
+      <type>app</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 phone application</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Arabic.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Arabic</description>
+    </file>
+    <file>
+      <name>Mlf_J159_BrazilianPortuguese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Brazilian Portuguese</description>
+    </file>
+    <file>
+      <name>Mlf_J159CanadianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Canadian French</description>
+    </file>
+    <file>
+      <name>Mlf_J159_CastilianSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Castilian Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Chinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Chinese</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Dutch.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Dutch</description>
+    </file>
+    <file>
+      <name>Mlf_J159_English.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for English</description>
+    </file>
+    <file>
+      <name>Mlf_J159_German.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for German</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Hebrew.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Hebrew</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Italian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Italian</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Japanese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Japanese</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Korean.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Korean</description>
+    </file>
+    <file>
+      <name>Mlf_J159_LatinAmericanSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Latin American Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J159_ParisianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Parisian French</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Polish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Polish</description>
+    </file>    
+    <file>
+      <name>Mlf_J159_Russian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Russian</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Thai.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J139 SIP R4.0.9.0 language support for Thai</description>
+    </file>
+    <file>
+      <name>Mlf_J159_Turkish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Turkish</description>
+    </file>   
+    <file>
+      <name>Mlf_J159_TraditionalChinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J159 SIP R4.0.9.0 language support for Traditional Chinese</description>
+    </file>    
+    <file>
+      <name>FW_S_J169_R4_0_9_0_11.bin</name>
+      <type>app</type>
+      <version>4.0.9.0</version>
+      <description>J169 SIP R4.0.9.0 phone application</description>
+    </file>
+    <file>
+      <name>FW_S_J179_R4_0_9_0_11.bin</name>
+      <type>app</type>
+      <version>4.0.9.0</version>
+      <description>J179 SIP R4.0.9.0 phone application</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Arabic.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Arabic</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_BrazilianPortuguese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Brazilian Portuguese</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_CanadianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Canadian French</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_CastilianSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Castilian Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Chinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Chinese</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Dutch.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Dutch</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_English.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for English</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_German.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for German</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Hebrew.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Hebrew</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Italian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Italian</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Japanese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Japanese</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Korean.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Korean</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_LatinAmericanSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Latin American Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_ParisianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Parisian French</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Russian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Russian</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Polish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Polish</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Turkish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Turkish</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_Thai.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Thai</description>
+    </file>
+    <file>
+      <name>Mlf_J169_J179_TraditionalChinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J169 J179 SIP R4.0.9.0 language support for Traditional Chinese</description>
+    </file>
+    <file>
+      <name>FW_S_J189_R4_0_9_0_11.bin</name>
+      <type>app</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 phone application</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Arabic.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Arabic</description>
+    </file>
+    <file>
+      <name>Mlf_J189_BrazilianPortuguese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Brazilian Portuguese</description>
+    </file>
+    <file>
+      <name>Mlf_J189_CanadianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Canadian French</description>
+    </file>
+    <file>
+      <name>Mlf_J189_CastilianSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Castilian Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Chinese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Chinese</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Dutch.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Dutch</description>
+    </file>
+    <file>
+      <name>Mlf_J189_English.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for English</description>
+    </file>
+    <file>
+      <name>Mlf_J189_German.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for German</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Hebrew.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Hebrew</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Italian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Italian</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Japanese.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Japanese</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Korean.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Korean</description>
+    </file>
+    <file>
+      <name>Mlf_J189_LatinAmericanSpanish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Latin American Spanish</description>
+    </file>
+    <file>
+      <name>Mlf_J189_ParisianFrench.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Parisian French</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Russian.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Russian</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Polish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Polish</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Turkish.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Turkish</description>
+    </file>
+    <file>
+      <name>Mlf_J189_Thai.xml</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>J189 SIP R4.0.9.0 language support for Thai</description>
+    </file>
+    <file>
+      <name>KoreanRT1.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT2.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT3.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT4.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT5.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT6.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT7.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>KoreanRT8.xml</name>
+      <type>ring</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Korean Ring Tone</description>
+    </file>
+    <file>
+      <name>av_prca_pem_2033.txt</name>
+      <type>cert</type>
+      <version>4.0.9.0</version>
+      <description>J100 SIP R4.0.9.0 Certificate</description>
+    </file>
+    <file>
+      <name>Avaya Global Software License Terms 062020.pdf</name>
+      <type>license</type>
+      <version>4.0.9.0</version>
+      <description>Avaya Global Software License Terms</description>
+    </file>
+    <file>
+      <name>AvayaLanguageTool_SIP.xlsm</name>
+      <type>lang</type>
+      <version>4.0.9.0</version>
+      <description>Avaya Language Tool</description>
+    </file>
+    <file>
+      <name>FW_JEM24_R1_0_1_0_23.bin</name>
+      <type>app</type>
+      <version>1.0.1.0</version>
+      <description>J100 Expansion Module R1.0.1.0 application</description>
+    </file>	
+  </files-in-release>
+  <phones>
+    <phone><phone>
+          <phone>
+      <model>1603</model>
+      <files>
+        <file-name>hb1603ua1_2200.bin</file-name>
+        <file-name>sa1603ua1_0100.bin</file-name>
+        <file-name>mlf_Sage_v50_korean.txt</file-name>
+        <file-name>KSC_S11_v34.rbm.lzma</file-name>
+        <file-name>mlf_Sage_v50_chinese.txt</file-name>
+        <file-name>GB_S11_v34.rbm.lzma</file-name>
+        <file-name>mlf_Sage_v50_trad_chinese.txt</file-name>
+        <file-name>Big5_S11_v34.rbm.lzma</file-name>
+        <file-name>mlf_Sage_v50_hebrew.txt</file-name>
+        <file-name>Hebrew_S11_v34.rbm.lzma</file-name>
+        <file-name>mlf_Sage_v50_arabic.txt</file-name>
+        <file-name>Arabic_S11_v34.rbm.lzma</file-name>
+        <file-name>mlf_Sage_v50_dutch.txt</file-name>
+        <file-name>mlf_Sage_v50_french_can.txt</file-name>
+        <file-name>mlf_Sage_v50_french_paris.txt</file-name>
+        <file-name>mlf_Sage_v50_german.txt</file-name>
+        <file-name>mlf_Sage_v50_italian.txt</file-name>
+        <file-name>mlf_Sage_v50_japaneseKat.txt</file-name>
+        <file-name>mlf_Sage_v50_portuguese.txt</file-name>
+        <file-name>mlf_Sage_v50_russian.txt</file-name>
+        <file-name>mlf_Sage_v50_spanish.txt</file-name>
+        <file-name>mlf_Sage_v50_spanish_latin.txt</file-name>
+      </files>
+    </phone>
+      <model>J129</model>
+      <files>
+        <file-name>J100Supgrade.txt</file-name>
+        <file-name>FW_S_J129_R4_0_9_0_11.bin</file-name>
+        <file-name>Mlf_J129_BrazilianPortuguese.xml</file-name>
+        <file-name>Mlf_J129_CanadianFrench.xml</file-name>
+        <file-name>Mlf_J129_CastilianSpanish.xml</file-name>
+        <file-name>Mlf_J129_Chinese.xml</file-name>
+        <file-name>Mlf_J129_Dutch.xml</file-name>
+        <file-name>Mlf_J129_English.xml</file-name>
+        <file-name>Mlf_J129_German.xml</file-name>
+        <file-name>Mlf_J129_Hebrew.xml</file-name>
+        <file-name>Mlf_J129_Italian.xml</file-name>
+        <file-name>Mlf_J129_Japanese.xml</file-name>
+        <file-name>Mlf_J129_Korean.xml</file-name>
+        <file-name>Mlf_J129_LatinAmericanSpanish.xml</file-name>
+        <file-name>Mlf_J129_ParisianFrench.xml</file-name>
+        <file-name>Mlf_J129_Russian.xml</file-name>
+        <file-name>Mlf_J129_Polish.xml</file-name>
+        <file-name>Mlf_J129_Turkish.xml</file-name>
+        <file-name>KoreanRT1.xml</file-name>
+        <file-name>KoreanRT2.xml</file-name>
+        <file-name>KoreanRT3.xml</file-name>
+        <file-name>KoreanRT4.xml</file-name>
+        <file-name>KoreanRT5.xml</file-name>
+        <file-name>KoreanRT6.xml</file-name>
+        <file-name>KoreanRT7.xml</file-name>
+        <file-name>KoreanRT8.xml</file-name>
+        <file-name>av_prca_pem_2033.txt</file-name>
+        <file-name>Avaya Global Software License Terms 062020.pdf</file-name>
+        <file-name>AvayaLanguageTool_SIP.xlsm</file-name>
+      </files>
+    </phone>
+    <phone>
+      <model>J139</model>
+      <files>
+        <file-name>J100Supgrade.txt</file-name>
+        <file-name>FW_S_J139_R4_0_9_0_11.bin</file-name>
+        <file-name>Mlf_J139_Arabic.xml</file-name>
+        <file-name>Mlf_J139_BrazilianPortuguese.xml</file-name>
+        <file-name>Mlf_J139_CanadianFrench.xml</file-name>
+        <file-name>Mlf_J139_CastilianSpanish.xml</file-name>
+        <file-name>Mlf_J139_Chinese.xml</file-name>
+        <file-name>Mlf_J139_Dutch.xml</file-name>
+        <file-name>Mlf_J139_English.xml</file-name>
+        <file-name>Mlf_J139_German.xml</file-name>
+        <file-name>Mlf_J139_Hebrew.xml</file-name>
+        <file-name>Mlf_J139_Italian.xml</file-name>
+        <file-name>Mlf_J139_Japanese.xml</file-name>
+        <file-name>Mlf_J139_Korean.xml</file-name>
+        <file-name>Mlf_J139_LatinAmericanSpanish.xml</file-name>
+        <file-name>Mlf_J139_ParisianFrench.xml</file-name>
+        <file-name>Mlf_J139_Russian.xml</file-name>
+        <file-name>Mlf_J139_Polish.xml</file-name>
+        <file-name>Mlf_J139_Turkish.xml</file-name>
+        <file-name>Mlf_J139_Thai.xml</file-name>
+        <file-name>Mlf_J139_TraditionalChinese.xml</file-name>
+        <file-name>KoreanRT1.xml</file-name>
+        <file-name>KoreanRT2.xml</file-name>
+        <file-name>KoreanRT3.xml</file-name>
+        <file-name>KoreanRT4.xml</file-name>
+        <file-name>KoreanRT5.xml</file-name>
+        <file-name>KoreanRT6.xml</file-name>
+        <file-name>KoreanRT7.xml</file-name>
+        <file-name>KoreanRT8.xml</file-name>
+        <file-name>av_prca_pem_2033.txt</file-name>
+        <file-name>Avaya Global Software License Terms 062020.pdf</file-name>
+        <file-name>AvayaLanguageTool_SIP.xlsm</file-name>
+      </files>
+    </phone>
+    <phone>
+      <model>J159</model>
+      <files>
+        <file-name>J100Supgrade.txt</file-name>
+        <file-name>FW_S_J159_R4_0_9_0_11.bin</file-name>
+        <file-name>Mlf_J159_Arabic.xml</file-name>
+        <file-name>Mlf_J159_BrazilianPortuguese.xml</file-name>
+        <file-name>Mlf_J159_CanadianFrench.xml</file-name>
+        <file-name>Mlf_J159_CastilianSpanish.xml</file-name>
+        <file-name>Mlf_J159_Chinese.xml</file-name>
+        <file-name>Mlf_J159_Dutch.xml</file-name>
+        <file-name>Mlf_J159_English.xml</file-name>
+        <file-name>Mlf_J159_German.xml</file-name>
+        <file-name>Mlf_J159_Hebrew.xml</file-name>
+        <file-name>Mlf_J159_Italian.xml</file-name>
+        <file-name>Mlf_J159_Japanese.xml</file-name>
+        <file-name>Mlf_J159_Korean.xml</file-name>
+        <file-name>Mlf_J159_LatinAmericanSpanish.xml</file-name>
+        <file-name>Mlf_J159_ParisianFrench.xml</file-name>
+        <file-name>Mlf_J159_Russian.xml</file-name>
+        <file-name>Mlf_J159_Polish.xml</file-name>
+        <file-name>Mlf_J159_Turkish.xml</file-name>
+        <file-name>Mlf_J159_TraditionalChinese.xml</file-name>
+        <file-name>KoreanRT1.xml</file-name>
+        <file-name>KoreanRT2.xml</file-name>
+        <file-name>KoreanRT3.xml</file-name>
+        <file-name>KoreanRT4.xml</file-name>
+        <file-name>KoreanRT5.xml</file-name>
+        <file-name>KoreanRT6.xml</file-name>
+        <file-name>KoreanRT7.xml</file-name>
+        <file-name>KoreanRT8.xml</file-name>
+        <file-name>av_prca_pem_2033.txt</file-name>
+        <file-name>Avaya Global Software License Terms 062020.pdf</file-name>
+        <file-name>AvayaLanguageTool_SIP.xlsm</file-name>
+      </files>
+    </phone>
+    <phone>
+      <model>J169</model>
+      <files>
+        <file-name>J100Supgrade.txt</file-name>
+        <file-name>FW_S_J169_R4_0_9_0_11.bin</file-name>
+        <file-name>FW_JEM24_R1_0_1_0_23.bin</file-name>
+        <file-name>Mlf_J169_J179_Arabic.xml</file-name>
+        <file-name>Mlf_J169_J179_BrazilianPortuguese.xml</file-name>
+        <file-name>Mlf_J169_J179_CanadianFrench.xml</file-name>
+        <file-name>Mlf_J169_J179_CastilianSpanish.xml</file-name>
+        <file-name>Mlf_J169_J179_Chinese.xml</file-name>
+        <file-name>Mlf_J169_J179_Dutch.xml</file-name>
+        <file-name>Mlf_J169_J179_English.xml</file-name>
+        <file-name>Mlf_J169_J179_German.xml</file-name>
+        <file-name>Mlf_J169_J179_Hebrew.xml</file-name>
+        <file-name>Mlf_J169_J179_Italian.xml</file-name>
+        <file-name>Mlf_J169_J179_Japanese.xml</file-name>
+        <file-name>Mlf_J169_J179_Korean.xml</file-name>
+        <file-name>Mlf_J169_J179_LatinAmericanSpanish.xml</file-name>
+        <file-name>Mlf_J169_J179_ParisianFrench.xml</file-name>
+        <file-name>Mlf_J169_J179_Russian.xml</file-name>
+        <file-name>Mlf_J169_J179_Polish.xml</file-name>
+        <file-name>Mlf_J169_J179_Turkish.xml</file-name>
+        <file-name>Mlf_J169_J179_Thai.xml</file-name>
+        <file-name>Mlf_J169_J179_TraditionalChinese.xml</file-name>
+        <file-name>KoreanRT1.xml</file-name>
+        <file-name>KoreanRT2.xml</file-name>
+        <file-name>KoreanRT3.xml</file-name>
+        <file-name>KoreanRT4.xml</file-name>
+        <file-name>KoreanRT5.xml</file-name>
+        <file-name>KoreanRT6.xml</file-name>
+        <file-name>KoreanRT7.xml</file-name>
+        <file-name>KoreanRT8.xml</file-name>
+        <file-name>av_prca_pem_2033.txt</file-name>
+        <file-name>Avaya Global Software License Terms 062020.pdf</file-name>
+        <file-name>AvayaLanguageTool_SIP.xlsm</file-name>
+      </files>
+    </phone>
+    <phone>
+      <model>J179</model>
+      <files>
+        <file-name>J100Supgrade.txt</file-name>
+        <file-name>FW_S_J179_R4_0_9_0_11.bin</file-name>
+        <file-name>FW_JEM24_R1_0_1_0_23.bin</file-name>
+        <file-name>Mlf_J169_J179_Arabic.xml</file-name>
+        <file-name>Mlf_J169_J179_BrazilianPortuguese.xml</file-name>
+        <file-name>Mlf_J169_J179_CanadianFrench.xml</file-name>
+        <file-name>Mlf_J169_J179_CastilianSpanish.xml</file-name>
+        <file-name>Mlf_J169_J179_Chinese.xml</file-name>
+        <file-name>Mlf_J169_J179_Dutch.xml</file-name>
+        <file-name>Mlf_J169_J179_English.xml</file-name>
+        <file-name>Mlf_J169_J179_German.xml</file-name>
+        <file-name>Mlf_J169_J179_Hebrew.xml</file-name>
+        <file-name>Mlf_J169_J179_Italian.xml</file-name>
+        <file-name>Mlf_J169_J179_Japanese.xml</file-name>
+        <file-name>Mlf_J169_J179_Korean.xml</file-name>
+        <file-name>Mlf_J169_J179_LatinAmericanSpanish.xml</file-name>
+        <file-name>Mlf_J169_J179_ParisianFrench.xml</file-name>
+        <file-name>Mlf_J169_J179_Russian.xml</file-name>
+        <file-name>Mlf_J169_J179_Polish.xml</file-name>
+        <file-name>Mlf_J169_J179_Turkish.xml</file-name>
+        <file-name>Mlf_J169_J179_Thai.xml</file-name>
+        <file-name>Mlf_J169_J179_TraditionalChinese.xml</file-name>
+        <file-name>KoreanRT1.xml</file-name>
+        <file-name>KoreanRT2.xml</file-name>
+        <file-name>KoreanRT3.xml</file-name>
+        <file-name>KoreanRT4.xml</file-name>
+        <file-name>KoreanRT5.xml</file-name>
+        <file-name>KoreanRT6.xml</file-name>
+        <file-name>KoreanRT7.xml</file-name>
+        <file-name>KoreanRT8.xml</file-name>
+        <file-name>av_prca_pem_2033.txt</file-name>
+        <file-name>Avaya Global Software License Terms 062020.pdf</file-name>
+        <file-name>AvayaLanguageTool_SIP.xlsm</file-name>
+      </files>
+    </phone><phone>
+      <model>J189</model>
+      <files>
+        <file-name>J100Supgrade.txt</file-name>
+        <file-name>FW_S_J189_R4_0_9_0_11.bin</file-name>
+        <file-name>FW_JEM24_R1_0_1_0_23.bin</file-name>
+        <file-name>Mlf_J189_Arabic.xml</file-name>
+        <file-name>Mlf_J189_BrazilianPortuguese.xml</file-name>
+        <file-name>Mlf_J189_CanadianFrench.xml</file-name>
+        <file-name>Mlf_J189_CastilianSpanish.xml</file-name>
+        <file-name>Mlf_J189_Chinese.xml</file-name>
+        <file-name>Mlf_J189_Dutch.xml</file-name>
+        <file-name>Mlf_J189_English.xml</file-name>
+        <file-name>Mlf_J189_German.xml</file-name>
+        <file-name>Mlf_J189_Hebrew.xml</file-name>
+        <file-name>Mlf_J189_Italian.xml</file-name>
+        <file-name>Mlf_J189_Japanese.xml</file-name>
+        <file-name>Mlf_J189_Korean.xml</file-name>
+        <file-name>Mlf_J189_LatinAmericanSpanish.xml</file-name>
+        <file-name>Mlf_J189_ParisianFrench.xml</file-name>
+        <file-name>Mlf_J189_Russian.xml</file-name>
+        <file-name>Mlf_J189_Polish.xml</file-name>
+        <file-name>Mlf_J189_Turkish.xml</file-name>
+        <file-name>Mlf_J189_Thai.xml</file-name>
+        <file-name>KoreanRT1.xml</file-name>
+        <file-name>KoreanRT2.xml</file-name>
+        <file-name>KoreanRT3.xml</file-name>
+        <file-name>KoreanRT4.xml</file-name>
+        <file-name>KoreanRT5.xml</file-name>
+        <file-name>KoreanRT6.xml</file-name>
+        <file-name>KoreanRT7.xml</file-name>
+        <file-name>KoreanRT8.xml</file-name>
+        <file-name>av_prca_pem_2033.txt</file-name>
+        <file-name>Avaya Global Software License Terms 062020.pdf</file-name>
+        <file-name>AvayaLanguageTool_SIP.xlsm</file-name>
+      </files>
+    </phone>
+  </phones>
+</phone-release>

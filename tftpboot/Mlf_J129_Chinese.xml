@@ -1,0 +1,1088 @@
+<?xml version="1.0"?>
+<root><data name="languageName"><projects>j129</projects><value>Chinese</value></data>
+
+
+<!--Labels for different Languages in the CURRENT language-->
+
+<data name="LBL_ENGLISH"><projects>j129</projects><value>英语</value></data>
+<data name="LBL_CANADIAN_FRENCH"><projects>j129</projects><value>加拿大法语</value></data>
+<data name="LBL_PARISIAN_FRENCH"><projects>j129</projects><value>巴黎法语</value></data>
+<data name="LBL_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>拉美西班牙语</value></data>
+<data name="LBL_CASTILIAN_SPANISH"><projects>j129</projects><value>西班牙语</value></data>
+<data name="LBL_GERMAN"><projects>j129</projects><value>德语</value></data>
+<data name="LBL_ITALIAN"><projects>j129</projects><value>意大利语</value></data>
+<data name="LBL_DUTCH"><projects>j129</projects><value>荷兰语</value></data>
+<data name="LBL_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>巴西葡萄牙语</value></data>
+<data name="LBL_JAPANESE"><projects>j129</projects><value>日语</value></data>
+<data name="LBL_CHINESE"><projects>j129</projects><value>中文</value></data>
+<data name="LBL_KOREAN"><projects>j129</projects><value>韩语</value></data>
+<data name="LBL_RUSSIAN"><projects>j129</projects><value>俄语</value></data>
+<data name="LBL_HEBREW"><projects>j129</projects><value>希伯来语</value></data>
+<data name="LBL_POLISH"><projects>j129</projects><value>波兰语</value></data>
+<data name="LBL_TURKISH"><projects>j129</projects><value>土耳其语</value></data>
+
+
+<!--Labels for different Languages in the NATIVE language-->
+
+<data name="NATIVE_IN_ENGLISH"><projects>j129</projects><value>English</value></data>
+<data name="NATIVE_IN_CANADIAN_FRENCH"><projects>j129</projects><value>Français canad.</value></data>
+<data name="NATIVE_IN_PARISIAN_FRENCH"><projects>j129</projects><value>Français</value></data>
+<data name="NATIVE_IN_LATIN_AMERICAN_SPANISH"><projects>j129</projects><value>Español LA</value></data>
+<data name="NATIVE_IN_CASTILIAN_SPANISH"><projects>j129</projects><value>Español</value></data>
+<data name="NATIVE_IN_GERMAN"><projects>j129</projects><value>Deutsch</value></data>
+<data name="NATIVE_IN_ITALIAN"><projects>j129</projects><value>Italiano</value></data>
+<data name="NATIVE_IN_DUTCH"><projects>j129</projects><value>Nederlands</value></data>
+<data name="NATIVE_IN_BRAZILIAN_PORTUGUESE"><projects>j129</projects><value>Português (BR)</value></data>
+<data name="NATIVE_IN_JAPANESE"><projects>j129</projects><value>日本語</value></data>
+<data name="NATIVE_IN_CHINESE"><projects>j129</projects><value>中文</value></data>
+<data name="NATIVE_IN_KOREAN"><projects>j129</projects><value>한국어</value></data>
+<data name="NATIVE_IN_RUSSIAN"><projects>j129</projects><value>Русский</value></data>
+<data name="NATIVE_IN_HEBREW"><projects>j129</projects><value>עברית</value></data>
+<data name="NATIVE_IN_ARABIC"><projects>j129</projects><value>العربية</value></data>
+<data name="NATIVE_IN_ENGLARGE"><projects>j129</projects><value>Englarge</value></data>
+<data name="NATIVE_IN_POLISH"><projects>j129</projects><value>Polski</value></data>
+<data name="NATIVE_IN_TURKISH"><projects>j129</projects><value>Türkçe</value></data>
+
+
+<!--Character Input Method Type-->
+
+<data name="INPUTMETHOD"><projects>j129</projects><value>0</value></data>
+
+
+<!--FONT Type-->
+
+<data name="FONT"><projects>j129</projects><value>Default</value></data>
+
+
+<!--Keyboard Layout Type-->
+
+<data name="KEYBOARD_LAYOUT"><projects>j129</projects><value>0</value></data>
+
+
+<!--SOFTKEY Labels - MAX LENGTH 8 chars-->
+
+<data name="NAME_IN_OTHER"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ENGLISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_CANADIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_FRENCH_PARISIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_LATIN_AMERICAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_SPANISH_CASTILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_GERMAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ITALIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_DUTCH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_PORTUGUESE_BRAZILIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_JAPANESE"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_CHINESE_SIMPLIFIED"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_KOREAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_RUSSIAN"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_HEBREW"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_ARABIC"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_TURKISH"><projects>j129</projects><value></value></data>
+<data name="NAME_IN_THAI"><projects>j129</projects><value></value></data>
+<data name="SK_ADD2CTC"><projects>j129</projects><value>添加</value></data>
+<data name="SK_ADD"><projects>j129</projects><value>添加</value></data>
+<data name="SK_ALPHALOW"><projects>j129</projects><value>abc</value></data>
+<data name="SK_ALPHAUP"><projects>j129</projects><value>ABC</value></data>
+<data name="SK_HEX"><projects>j129</projects><value></value></data>
+<data name="SK_ANSWER"><projects>j129</projects><value>应答</value></data>
+<data name="SK_BACK"><projects>j129</projects><value>后退</value></data>
+<data name="SK_BKSP"><projects>j129</projects><value>退格键</value></data>
+<data name="SK_BRIDGE"><projects>j129</projects><value>桥接</value></data>
+<data name="SK_BROWSER"><projects>j129</projects><value>浏览器</value></data>
+<data name="SK_CALL"><projects>j129</projects><value>呼叫</value></data>
+<data name="SK_CANCEL"><projects>j129</projects><value>取消</value></data>
+<data name="SK_CHANGE"><projects>j129</projects><value>切换</value></data>
+<data name="SK_CLEAR"><projects>j129</projects><value>清除</value></data>
+<data name="SK_CLRALL"><projects>j129</projects><value>全清除</value></data>
+<data name="SK_COMPL"><projects>j129</projects><value>完成</value></data>
+<data name="SK_CONF"><projects>j129</projects><value>会议</value></data>
+<data name="SK_CONTIN"><projects>j129</projects><value>继续</value></data>
+<data name="SK_DELETE"><projects>j129</projects><value>删除</value></data>
+<data name="SK_DETAILS"><projects>j129</projects><value>详情</value></data>
+<data name="SK_EDIT"><projects>j129</projects><value>编辑</value></data>
+<data name="SK_EMERGNUM"><projects>j129</projects><value>紧急</value></data>
+<data name="SK_ENTER"><projects>j129</projects><value>输入</value></data>
+<data name="SK_ENDCALL"><projects>j129</projects><value>结束呼叫</value></data>
+<data name="SK_EXIT"><projects>j129</projects><value>退出</value></data>
+<data name="SK_EXTEND"><projects>j129</projects><value>延伸</value></data>
+<data name="SK_IGNORE"><projects>j129</projects><value>忽略</value></data>
+<data name="SK_INSERT"><projects>j129</projects><value>插入</value></data>
+<data name="SK_JOIN"><projects>j129</projects><value>加入</value></data>
+<data name="SK_LOGIN"><projects>j129</projects><value>登录</value></data>
+<data name="SK_LOGOUT"><projects>j129</projects><value>注销</value></data>
+<data name="SK_MORE"><projects>j129</projects><value>更多</value></data>
+<data name="SK_NEW"><projects>j129</projects><value>新建</value></data>
+<data name="SK_NEXT"><projects>j129</projects><value>下页</value></data>
+<data name="SK_NUM"><projects>j129</projects><value>123</value></data>
+<data name="SK_OK"><projects>j129</projects><value>确定</value></data>
+<data name="SK_PING"><projects>j129</projects><value>Ping</value></data>
+<data name="SK_PLAY"><projects>j129</projects><value>播放</value></data>
+<data name="SK_PREVI"><projects>j129</projects><value>上页</value></data>
+<data name="SK_REDIAL"><projects>j129</projects><value>重拨</value></data>
+<data name="SK_RESET"><projects>j129</projects><value>重置</value></data>
+<data name="SK_RESTART"><projects>j129</projects><value>重启</value></data>
+<data name="SK_RESUME"><projects>j129</projects><value>恢复</value></data>
+<data name="SK_RETRY"><projects>j129</projects><value>重试</value></data>
+<data name="SK_SAVE"><projects>j129</projects><value>保存</value></data>
+<data name="SK_SEARCH"><projects>j129</projects><value>搜索</value></data>
+<data name="SK_SELECT"><projects>j129</projects><value>选择</value></data>
+<data name="SK_NETWORKS"><projects>j129</projects><value>网络</value></data>
+<data name="SK_SYMBOL"><projects>j129</projects><value>符号</value></data>
+<data name="SK_TEST"><projects>j129</projects><value>测试</value></data>
+<data name="SK_TTLCASE"><projects>j129</projects><value>Abc</value></data>
+<data name="SK_XFER"><projects>j129</projects><value>转接</value></data>
+<data name="SK_UNLOCK"><projects>j129</projects><value>解锁</value></data>
+<data name="SK_DISMISS"><projects>j129</projects><value>消除</value></data>
+<data name="SK_RETURN"><projects>j129</projects><value>返回</value></data>
+<data name="SK_SCLRALL"><projects>j129</projects><value>全清除</value></data>
+<data name="SK_START"><projects>j129</projects><value>开始</value></data>
+<data name="SK_CONNECT"><projects>j129</projects><value>连接</value></data>
+<data name="SK_DISCONNECT"><projects>j129</projects><value>断开</value></data>
+<data name="SK_TOVMAIL"><projects>j129</projects><value>语音信箱</value></data>
+<data name="SK_FORGET"><projects>j129</projects><value>忘记</value></data>
+<data name="SK_INFO"><projects>j129</projects><value>信息</value></data>
+<data name="SK_ADMIN"><projects>j129</projects><value>管理</value></data>
+<data name="SK_RECENTS"><projects>j129</projects><value>近期呼叫</value></data>
+<data name="SK_MERGECALLS"><projects>j129</projects><value>合并</value></data>
+<data name="SK_SWAP"><projects>j129</projects><value>交换</value></data>
+<data name="SK_NEWCALL"><projects>j129</projects><value>新呼叫</value></data>
+<data name="SK_REPLACE"><projects>j129</projects><value>替换</value></data>
+<data name="SK_CONFIG"><projects>j129</projects><value>配置</value></data>
+<data name="SK_NEVER"><projects>j129</projects><value>从不</value></data>
+<data name="SK_CONFIRM"><projects>j129</projects><value>确认</value></data>
+<data name="SK_PAIR"><projects>j129</projects><value>配对</value></data>
+<data name="SK_HELP"><projects>j129</projects><value>帮助</value></data>
+<data name="SK_NO"><projects>j129</projects><value>否</value></data>
+<data name="SK_DISABLE"><projects>j129</projects><value>禁用</value></data>
+<data name="SK_ENABLE"><projects>j129</projects><value>启用</value></data>
+<data name="SK_ACCEPT"><projects>j129</projects><value>接受</value></data>
+<data name="SK_UPDATE"><projects>j129</projects><value>更新</value></data>
+<data name="SK_LINK"><projects>j129</projects><value>链接</value></data>
+<data name="SK_CODE"><projects>j129</projects><value>代码</value></data>
+<data name="SK_QR_CODE"><projects>j129</projects><value>二维码</value></data>
+
+
+<!--MIRCHI - LABELS - MAX LENGTH variable chars-->
+
+<data name="LBL_PASSWD"><projects>j129</projects><value>密码：</value></data>
+<data name="PS_XFERFAILED"><projects>j129</projects><value>转接失败</value></data>
+<data name="PS_CONFFAILED"><projects>j129</projects><value>会议失败</value></data>
+<data name="AS_OPTSET"><projects>j129</projects><value>选项与设置</value></data>
+<data name="LBL_USEDHCP"><projects>j129</projects><value>使用 DHCP:</value></data>
+<data name="LBL_USEDHCPV6"><projects>j129</projects><value>使用 DHCP(V6)：</value></data>
+<data name="LBL_USESLAAC"><projects>j129</projects><value>使用 SLAAC：</value></data>
+<data name="LBL_PHONE"><projects>j129</projects><value>电话：</value></data>
+<data name="LBL_PHONEV4"><projects>j129</projects><value>电话 (V4)：</value></data>
+<data name="LBL_PHONEV6"><projects>j129</projects><value>电话 (V6)：</value></data>
+<data name="LBL_PHONEV6LL"><projects>j129</projects><value>电话 (V6LL)：</value></data>
+<data name="LBL_WEBSERVER"><projects>j129</projects><value>Web 服务器：</value></data>
+<data name="LBL_WEB_ON_HTTP"><projects>j129</projects><value>HTTP 上的 Web：</value></data>
+<data name="AS_AUTOGCWC"><projects>j129</projects><value>自动增益控制</value></data>
+<data name="AS_NETWORK_INTERFACES"><projects>j129</projects><value>网络接口...</value></data>
+<data name="AS_INTERFC"><projects>j129</projects><value>接口...</value></data>
+<data name="LBL_ERRLOG"><projects>j129</projects><value>日志级别</value></data>
+<data name="LBL_RLOGENB"><projects>j129</projects><value>系统日志已启用</value></data>
+<data name="LBL_RLOGSRVR"><projects>j129</projects><value>系统日志服务器</value></data>
+<data name="LBL_AVENV"><projects>j129</projects><value>Avaya 环境：</value></data>
+<data name="LBL_TPORTPORT"><projects>j129</projects><value>SIP 端口：</value></data>
+<data name="LBL_UIDFIELD"><projects>j129</projects><value>用户 ID</value></data>
+<data name="LBL_LGCLS"><projects>j129</projects><value>记录近期呼叫</value></data>
+<data name="LBL_TMFMT"><projects>j129</projects><value>时间格式</value></data>
+<data name="AS_DOT1XP"><projects>j129</projects><value>802.1x 参数...</value></data>
+<data name="SK_DEFAULT"><projects>j129</projects><value>默认</value></data>
+<data name="PS_VOLUMEWARNG"><projects>j129</projects><value>提高音量可能影响您的听力</value></data>
+<data name="PS_CONF"><projects>j129</projects><value>会议</value></data>
+<data name="LBL_WORK"><projects>j129</projects><value>工作</value></data>
+<data name="LBL_WORK2"><projects>j129</projects><value>工作2</value></data>
+<data name="LBL_MOBILE"><projects>j129</projects><value>手机</value></data>
+<data name="LBL_HOME"><projects>j129</projects><value>住宅</value></data>
+<data name="LBL_HOME2"><projects>j129</projects><value>住宅2</value></data>
+<data name="LBL_OTHER"><projects>j129</projects><value>其他</value></data>
+<data name="LBL_ASSISTANT"><projects>j129</projects><value>助理</value></data>
+<data name="LBL_COMPANY"><projects>j129</projects><value>公司</value></data>
+<data name="LBL_CAR"><projects>j129</projects><value>汽车</value></data>
+<data name="LBL_12HOUR"><projects>j129</projects><value>12 小时制</value></data>
+<data name="LBL_24HOUR"><projects>j129</projects><value>24 小时制</value></data>
+<data name="LBL_SETTINGS"><projects>j129</projects><value>设置</value></data>
+<data name="LBL_WEBHELP"><projects>j129</projects><value>网络应用程序</value></data>
+<data name="LBL_DURATION"><projects>j129</projects><value>持续时间</value></data>
+<data name="LBL_DETAILS"><projects>j129</projects><value>详情</value></data>
+<data name="PT_CONFNUM"><projects>j129</projects><value>会议 %d</value></data>
+<data name="LBL_WIFI_DEBUG"><projects>j129</projects><value>Wi-Fi 调试：</value></data>
+<data name="LBL_NEW_CALL"><projects>j129</projects><value>新建呼叫</value></data>
+<data name="LBL_AM"><projects>j129</projects><value>am</value></data>
+<data name="LBL_PM"><projects>j129</projects><value>pm</value></data>
+
+
+<!--TITLE LINE Strings-->
+
+<data name="PS_FEAT"><projects>j129</projects><value>功能</value></data>
+<data name="LBL_WIFI_SSID"><projects>j129</projects><value>SSID:</value></data>
+<data name="LBL_WIFI_NETWORK_LIST"><projects>j129</projects><value>Wi-Fi 网络</value></data>
+<data name="LBL_SCANNING"><projects>j129</projects><value>正在扫描...</value></data>
+<data name="LBL_NOWIFI"><projects>j129</projects><value>未检测到 Wi-Fi</value></data>
+<data name="LBL_SWITCH_WIFI"><projects>j129</projects><value>按“网络”切换至 Wi-Fi。</value></data>
+<data name="LBL_ETHLINK_UP"><projects>j129</projects><value>以太网连接正常。</value></data>
+<data name="LBL_SWITCH_ETH"><projects>j129</projects><value>按“重新启动”切换至以太网。</value></data>
+<data name="LBL_PRESS_CANCEL_REMAIN_WIFI"><projects>j129</projects><value>按“取消”保持 Wi-Fi 连接。</value></data>
+<data name="LBL_SWITCH_NET"><projects>j129</projects><value>按“网络”选择其他网络。</value></data>
+<data name="LBL_JANUARY"><projects>j129</projects><value>1 月</value></data>
+<data name="LBL_FEBRUARY"><projects>j129</projects><value>2 月</value></data>
+<data name="LBL_MARCH"><projects>j129</projects><value>3 月</value></data>
+<data name="LBL_APRIL"><projects>j129</projects><value>4 月</value></data>
+<data name="LBL_MAY"><projects>j129</projects><value>5 月</value></data>
+<data name="LBL_JUNE"><projects>j129</projects><value>6 月</value></data>
+<data name="LBL_JULY"><projects>j129</projects><value>7 月</value></data>
+<data name="LBL_AUGUST"><projects>j129</projects><value>8 月</value></data>
+<data name="LBL_SEPTEMBER"><projects>j129</projects><value>9 月</value></data>
+<data name="LBL_OCTOBER"><projects>j129</projects><value>10 月</value></data>
+<data name="LBL_NOVEMBER"><projects>j129</projects><value>11 月</value></data>
+<data name="LBL_DECEMBER"><projects>j129</projects><value>12 月</value></data>
+<data name="SK_CTCTS"><projects>j129</projects><value>联系人</value></data>
+<data name="TT_PHNLCKD"><projects>j129</projects><value>话机已锁定</value></data>
+
+
+<!--SUBTITLE Strings-->
+
+<data name="AS_CONTRST"><projects>j129</projects><value>对比度...</value></data>
+<data name="AS_TIMEZONE"><projects>j129</projects><value>时区...</value></data>
+<data name="AS_AGCSET"><projects>j129</projects><value>自动增益控制...</value></data>
+<data name="AS_AUDIOP"><projects>j129</projects><value>音频参数...</value></data>
+<data name="AS_IPADDRP"><projects>j129</projects><value>IP 参数...</value></data>
+<data name="AS_AUDIOSET"><projects>j129</projects><value>音频设置...</value></data>
+<data name="AS_PHONESET"><projects>j129</projects><value>电话设置...</value></data>
+<data name="AS_SYSTEM"><projects>j129</projects><value>系统...</value></data>
+<data name="AS_QOS"><projects>j129</projects><value>服务质量...</value></data>
+<data name="AS_RINGTYPE"><projects>j129</projects><value>振铃类型...</value></data>
+<data name="AS_CALLPARK_RINGTYPE"><projects>j129</projects><value>驻留振铃类型...</value></data>
+<data name="AS_DISPLAYSET"><projects>j129</projects><value>显示设置...</value></data>
+<data name="AS_SERVICE"><projects>j129</projects><value>服务</value></data>
+<data name="AS_SPDDIAL"><projects>j129</projects><value>快速拨号...</value></data>
+<data name="AS_DIALOPT"><projects>j129</projects><value>拨号模式</value></data>
+<data name="AS_PING"><projects>j129</projects><value>Ping...</value></data>
+<data name="LBL_MY_PRESENCE"><projects>j129</projects><value>我的在线状态</value></data>
+<data name="LBL_AVAILABLE"><projects>j129</projects><value>空闲</value></data>
+<data name="LBL_OFFLINE"><projects>j129</projects><value>离线</value></data>
+<data name="LBL_AWAY_TIMER"><projects>j129</projects><value>离开计时器</value></data>
+<data name="LBL_MANUAL"><projects>j129</projects><value>手动</value></data>
+<data name="AS_PRIORITY_RINGTYPE"><projects>j129</projects><value>优先提示</value></data>
+<data name="AS_ALT_NUM1_RINGTYPE"><projects>j129</projects><value>备用号码 1</value></data>
+<data name="AS_ALT_NUM2_RINGTYPE"><projects>j129</projects><value>备用号码 2</value></data>
+<data name="AS_REMINDER_RINGTYPE"><projects>j129</projects><value>振铃提醒器</value></data>
+<data name="AS_PERSONALIZE_RINGING"><projects>j129</projects><value>个性化振铃</value></data>
+
+
+<!--PROMPTLINE Strings-->
+
+<data name="PL_DWNLDCONFIG"><projects>j129</projects><value>正在下载配置...</value></data>
+<data name="PL_LOGGINGIN"><projects>j129</projects><value>正在登录...</value></data>
+<data name="PL_REGISTERING"><projects>j129</projects><value>正在呼叫服务器上注册...</value></data>
+<data name="PL_SEARCHING"><projects>j129</projects><value>正在搜索...</value></data>
+<data name="PL_FEATUNAV"><projects>j129</projects><value>功能不可用</value></data>
+<data name="PL_ACQUIRINGSERVICE"><projects>j129</projects><value>正在获取服务...</value></data>
+<data name="PL_LIMITED"><projects>j129</projects><value>电话服务受限</value></data>
+<data name="PL_SPRESSDIAL"><projects>j129</projects><value>按拨号盘按键以搜索名称</value></data>
+<data name="PL_CONF_SETUP_PROMPT"><projects>j129</projects><value>拨号或选择参与方</value></data>
+
+
+<!--LABEL Strings-->
+
+<data name="LBL_YES"><projects>j129</projects><value>是</value></data>
+<data name="LBL_NO"><projects>j129</projects><value>否</value></data>
+<data name="LBL_ON"><projects>j129</projects><value>开</value></data>
+<data name="LBL_OFF"><projects>j129</projects><value>关</value></data>
+<data name="LBL_DSABLD"><projects>j129</projects><value>已禁用</value></data>
+<data name="LBL_ENABLD"><projects>j129</projects><value>已启用</value></data>
+<data name="LBL_ACTIV"><projects>j129</projects><value>激活</value></data>
+<data name="LBL_USERNAME"><projects>j129</projects><value>用户名：</value></data>
+<data name="LBL_USERID"><projects>j129</projects><value>用户 ID:</value></data>
+<data name="LBL_FIRSTNAME"><projects>j129</projects><value>名字：</value></data>
+<data name="LBL_LASTNAME"><projects>j129</projects><value>姓氏：</value></data>
+<data name="LBL_NUMBER"><projects>j129</projects><value>号码 %d:</value></data>
+<data name="LBL_COMPLIANT"><projects>j129</projects><value>符合规定</value></data>
+<data name="LBL_NOTCOMPLIANT"><projects>j129</projects><value>不符合规定</value></data>
+<data name="MSG_UNAV"><projects>j129</projects><value>不可用</value></data>
+<data name="MSG_ABOUTAV"><projects>j129</projects><value>关于 Avaya</value></data>
+<data name="MSG_NTWKIN"><projects>j129</projects><value>网络信息</value></data>
+<data name="AT_NTWKINF"><projects>j129</projects><value>网络信息</value></data>
+<data name="MSG_NETWORK_INTERFACES"><projects>j129</projects><value>网络接口...</value></data>
+<data name="LBL_DSPTIM"><projects>j129</projects><value>呼叫计时器</value></data>
+<data name="LBL_VISUAL"><projects>j129</projects><value>可视提示</value></data>
+<data name="LBL_SPEAKR"><projects>j129</projects><value>扬声器</value></data>
+<data name="LBL_HNDSET"><projects>j129</projects><value>话筒</value></data>
+<data name="LBL_NONE"><projects>j129</projects><value>无</value></data>
+<data name="LBL_BTNCLK"><projects>j129</projects><value>按键音</value></data>
+<data name="LBL_ERRORT"><projects>j129</projects><value>错误提示音</value></data>
+<data name="LBL_SIPDMN"><projects>j129</projects><value>域名：</value></data>
+<data name="LBL_PRESENCESRVR"><projects>j129</projects><value>状态服务器：</value></data>
+<data name="LBL_SIPPRXYSRVR"><projects>j129</projects><value>SIP 代服器：</value></data>
+<data name="LBL_SNTPSRVR"><projects>j129</projects><value>SNTP 服务器：</value></data>
+<data name="LBL_STUNSRVR"><projects>j129</projects><value>STUN 服务器：</value></data>
+<data name="LBL_AUTO"><projects>j129</projects><value>自动</value></data>
+<data name="LBL_AUTO_2"><projects>j129</projects><value>自动：</value></data>
+<data name="LBL_HTTPSRVR"><projects>j129</projects><value>HTTP 服务器：</value></data>
+<data name="LBL_HTTPSSRVR"><projects>j129</projects><value>HTTPS 服务器：</value></data>
+<data name="LBL_DNSSRVR"><projects>j129</projects><value>DNS 服务器：</value></data>
+<data name="LBL_EMERGS"><projects>j129</projects><value>紧急情况</value></data>
+<data name="LBL_ALERTS"><projects>j129</projects><value>提示</value></data>
+<data name="LBL_CRITICL"><projects>j129</projects><value>关键</value></data>
+<data name="LBL_ERRORS"><projects>j129</projects><value>错误</value></data>
+<data name="LBL_WARNS"><projects>j129</projects><value>警告</value></data>
+<data name="LBL_NOTES"><projects>j129</projects><value>通知</value></data>
+<data name="LBL_INFO"><projects>j129</projects><value>信息</value></data>
+<data name="LBL_DEBUG"><projects>j129</projects><value>调试</value></data>
+<data name="LBL_MASK"><projects>j129</projects><value>掩码:</value></data>
+<data name="LBL_VLANID"><projects>j129</projects><value>VLAN ID:</value></data>
+<data name="LBL_ETHERN"><projects>j129</projects><value>以太网:</value></data>
+<data name="LBL_PCENET"><projects>j129</projects><value>PC 以太网:</value></data>
+<data name="LBL_NETWORK_MODE"><projects>j129</projects><value>网络模式：</value></data>
+<data name="LBL_NETWORK_MODE_ETHERNET"><projects>j129</projects><value>以太网</value></data>
+<data name="LBL_NETWORK_MODE_WIFI"><projects>j129</projects><value>Wi-Fi</value></data>
+<data name="LBL_10HALF"><projects>j129</projects><value>10Mbps 半</value></data>
+<data name="LBL_10FULL"><projects>j129</projects><value>10Mbps 全</value></data>
+<data name="LBL_100HALF"><projects>j129</projects><value>100Mbps 半</value></data>
+<data name="LBL_100FULL"><projects>j129</projects><value>100Mbps 全</value></data>
+<data name="LBL_MSEC"><projects>j129</projects><value>毫秒</value></data>
+<data name="LBL_1000FLL"><projects>j129</projects><value>1000Mbps 全</value></data>
+<data name="LBL_RCCODE"><projects>j129</projects><value>接收编码:</value></data>
+<data name="LBL_PKTLOS"><projects>j129</projects><value>数据包丢失:</value></data>
+<data name="LBL_PKTD"><projects>j129</projects><value>封包化延迟:</value></data>
+<data name="LBL_1WAYD"><projects>j129</projects><value>单向网络延迟:</value></data>
+<data name="LBL_NTWKJD"><projects>j129</projects><value>网络抖动延迟:</value></data>
+<data name="LBL_MOSCQ"><projects>j129</projects><value>MOS-CQ</value></data>
+<data name="LBL_MOSLQ"><projects>j129</projects><value>MOS-LQ</value></data>
+<data name="LBL_RFACTOR"><projects>j129</projects><value>R 系数</value></data>
+<data name="LBL_SIGNALLEVEL"><projects>j129</projects><value>信号级别：</value></data>
+<data name="LBL_SIGNAL_STRENGTH"><projects>j129</projects><value>信号强度：</value></data>
+<data name="LBL_SIGNAL_STRENGTH_WEAK"><projects>j129</projects><value>弱</value></data>
+<data name="LBL_SIGNAL_STRENGTH_FAIR"><projects>j129</projects><value>一般</value></data>
+<data name="LBL_SIGNAL_STRENGTH_STRONG"><projects>j129</projects><value>强</value></data>
+<data name="LBL_SIGNAL_STRENGTH_VERYSTRONG"><projects>j129</projects><value>非常强</value></data>
+<data name="LBL_RNDTRIPDELAY"><projects>j129</projects><value>往返延迟</value></data>
+<data name="LBL_LOSSRATE"><projects>j129</projects><value>丢失率</value></data>
+<data name="LBL_802D1Q"><projects>j129</projects><value>802.1Q:</value></data>
+<data name="LBL_VLANT"><projects>j129</projects><value>VLAN 测试：</value></data>
+<data name="LBL_L2AUD"><projects>j129</projects><value>L2 音频：</value></data>
+<data name="LBL_L2SIG"><projects>j129</projects><value>L2 信令：</value></data>
+<data name="LBL_L3AUD"><projects>j129</projects><value>L3 音频：</value></data>
+<data name="LBL_L3SIG"><projects>j129</projects><value>L3 信令：</value></data>
+<data name="LBL_ETH_L2AUD"><projects>j129</projects><value>以太网 L2 音频</value></data>
+<data name="LBL_ETH_L2SIG"><projects>j129</projects><value>以太网 L2 信令</value></data>
+<data name="LBL_ETH_L3AUD"><projects>j129</projects><value>以太网 L3 音频</value></data>
+<data name="LBL_ETH_L3SIG"><projects>j129</projects><value>以太网 L3 信令</value></data>
+<data name="LBL_WIFI_L2AUD"><projects>j129</projects><value>Wi-Fi L2 音频</value></data>
+<data name="LBL_WIFI_L2SIG"><projects>j129</projects><value>Wi-Fi L2 信令</value></data>
+<data name="LBL_WIFI_L3AUD"><projects>j129</projects><value>Wi-Fi L3 音频</value></data>
+<data name="LBL_WIFI_L3SIG"><projects>j129</projects><value>Wi-Fi L3 信令</value></data>
+<data name="LBL_MODEL"><projects>j129</projects><value>型号：</value></data>
+<data name="LBL_PHNSN"><projects>j129</projects><value>序列号：</value></data>
+<data name="LBL_MACADD"><projects>j129</projects><value>MAC：</value></data>
+<data name="LBL_FIPS_ENABLED"><projects>j129</projects><value>FIPS:</value></data>
+<data name="LBL_FIPS_OP_MODE"><projects>j129</projects><value>FIPS 操作模式：</value></data>
+<data name="LBL_FIPS_EXCEPTIONS"><projects>j129</projects><value>FIPS 例外：</value></data>
+<data name="LBL_GROUP"><projects>j129</projects><value>组：</value></data>
+<data name="LBL_PROTOC"><projects>j129</projects><value>协议：</value></data>
+<data name="LBL_SOFTWAREVERSION"><projects>j129</projects><value>SW 版本：</value></data>
+<data name="LBL_BACKUPSWVERSION"><projects>j129</projects><value>备份 SW 版本：</value></data>
+<data name="LBL_PASSTH"><projects>j129</projects><value>直通</value></data>
+<data name="LBL_SUPPLC"><projects>j129</projects><value>申请者</value></data>
+<data name="LBL_RESTRICTED"><projects>j129</projects><value>受限</value></data>
+<data name="LBL_LOGCAT"><projects>j129</projects><value>日志类别...</value></data>
+<data name="LBL_DEVID"><projects>j129</projects><value>设备 ID:</value></data>
+<data name="LBL_ONWTPXYLGOF"><projects>j129</projects><value>注销</value></data>
+<data name="LBL_SUPMULTIPROC"><projects>j129</projects><value>多播</value></data>
+<data name="LBL_MULTIPT"><projects>j129</projects><value>直通</value></data>
+<data name="LBL_PXYLGOF"><projects>j129</projects><value>代理注销</value></data>
+<data name="LBL_UNASSGND"><projects>j129</projects><value>未指定</value></data>
+<data name="Call-Forward-Busy"><projects>j129</projects><value>呼叫转接-占线</value></data>
+<data name="Call-Forward-No-Answer"><projects>j129</projects><value>呼叫转接-无应答</value></data>
+<data name="LBL_REALM"><projects>j129</projects><value>区域:</value></data>
+<data name="LBL_NUMBERWC"><projects>j129</projects><value>号码:</value></data>
+<data name="LBL_NAMEWC"><projects>j129</projects><value>名称:</value></data>
+<data name="LBL_REGPOLICY"><projects>j129</projects><value>注册策略</value></data>
+<data name="LBL_FAILBACKPOLICY"><projects>j129</projects><value>故障恢复策略</value></data>
+<data name="LBL_PERSONALIZE_RINGING_CALL_PARK"><projects>j129</projects><value>呼叫驻留</value></data>
+<data name="LBL_LIGHTOFF"><projects>j129</projects><value>背光关闭</value></data>
+<data name="LBL_CLASSICTONE"><projects>j129</projects><value>经典铃音</value></data>
+<data name="LBL_CLNSCR"><projects>j129</projects><value>触摸屏幕清洁</value></data>
+<data name="LBL_ADBLE"><projects>j129</projects><value>可听</value></data>
+<data name="LBL_VSUL"><projects>j129</projects><value>可视</value></data>
+<data name="LBL_BOTH"><projects>j129</projects><value>兼用</value></data>
+<data name="LBL_PROCESSING"><projects>j129</projects><value>正在处理</value></data>
+<data name="LBL_SHORT"><projects>j129</projects><value>短</value></data>
+<data name="LBL_MUTEALERT"><projects>j129</projects><value>静音提示</value></data>
+<data name="LBL_DEFAULT"><projects>j129</projects><value>默认</value></data>
+<data name="LBL_SNOCALL"><projects>j129</projects><value>无呼叫</value></data>
+<data name="LBL_RICHTONE_CHEERFUL"><projects>j129</projects><value>欢快</value></data>
+<data name="LBL_RICHTONE_CHIMES"><projects>j129</projects><value>风铃</value></data>
+<data name="LBL_RICHTONE_TELEPHONE_BELL"><projects>j129</projects><value>电话铃声</value></data>
+<data name="LBL_RICHTONE_XYLOPHONE"><projects>j129</projects><value>木琴</value></data>
+<data name="LBL_RICHTONE_DRUM_BEAT"><projects>j129</projects><value>鼓点</value></data>
+<data name="LBL_RICHTONE_SHIMMER"><projects>j129</projects><value>微光</value></data>
+<data name="LBL_SIP_PROXY_SERVER"><projects>j129</projects><value>SIP 代服器</value></data>
+<data name="LBL_REASON_CFI"><projects>j129</projects><value>内部呼叫转接</value></data>
+<data name="LBL_REASON_CFB"><projects>j129</projects><value>CFB</value></data>
+<data name="LBL_REASON_CFNR"><projects>j129</projects><value>呼叫转接未答</value></data>
+<data name="LBL_REASON_SAC"><projects>j129</projects><value>呼叫全发</value></data>
+<data name="LBL_PROFILE"><projects>j129</projects><value>配置文件 %d</value></data>
+<data name="LBL_HNPROF"><projects>j129</projects><value>话筒模式</value></data>
+<data name="LBL_HNPROF_NORMAL"><projects>j129</projects><value>正常</value></data>
+<data name="LBL_HNPROF_AMPLIFIED"><projects>j129</projects><value>放大</value></data>
+<data name="LBL_HNPROF_HEARING_AID"><projects>j129</projects><value>助听器</value></data>
+<data name="OPT_REGPOLICY_ALTERNATE"><projects>j129</projects><value>替代</value></data>
+<data name="OPT_REGPOLICY_SIMULTANEOUS"><projects>j129</projects><value>同时</value></data>
+<data name="OPT_FAILBACKPOLICY_ADMIN"><projects>j129</projects><value>管理</value></data>
+<data name="OPT_FAILBACKPOLICY_AUTO"><projects>j129</projects><value>自动</value></data>
+<data name="LBL_CURRENT_LANG"><projects>j129</projects><value>语言...</value></data>
+<data name="LBL_CONTACTS"><projects>j129</projects><value>联系人</value></data>
+<data name="LBL_DESTINATION"><projects>j129</projects><value>目标：</value></data>
+<data name="LBL_EXTENSION"><projects>j129</projects><value>分机：</value></data>
+<data name="LBL_LINKSPEED"><projects>j129</projects><value>链接速度：</value></data>
+<data name="LBL_IPADDRESS"><projects>j129</projects><value>IP 地址：</value></data>
+<data name="LBL_SECURITY"><projects>j129</projects><value>安全：</value></data>
+<data name="LBL_SECURITY_SHORTENED"><projects>j129</projects><value>安全：</value></data>
+<data name="LBL_EAP_METHOD"><projects>j129</projects><value>EAP：</value></data>
+<data name="LBL_PHASE2AUTHENTICATION"><projects>j129</projects><value>阶段 2：</value></data>
+<data name="LBL_IDENTITY"><projects>j129</projects><value>身份：</value></data>
+<data name="LBL_ANONYMOUS_IDENTITY"><projects>j129</projects><value>匿名：</value></data>
+<data name="LBL_UNKNOWN"><projects>j129</projects><value>未知的</value></data>
+<data name="LBL_PROXYSELECTIONPOLICY"><projects>j129</projects><value>代理策略</value></data>
+<data name="OPT_PROXYPOLICY_AUTO"><projects>j129</projects><value>自动</value></data>
+<data name="OPT_PROXYPOLICY_MANUAL"><projects>j129</projects><value>手动</value></data>
+<data name="LBL_PRESENCE_SETTINGS"><projects>j129</projects><value>联机状态设置...</value></data>
+<data name="LBL_NETWORK"><projects>j129</projects><value>网络</value></data>
+<data name="LBL_AWAY_TIMER_VALUE"><projects>j129</projects><value>计时器值</value></data>
+<data name="LBL_VOICEMAIL"><projects>j129</projects><value>语音信箱</value></data>
+<data name="LBL_OPENSSL_VER"><projects>j129</projects><value>OpenSSL 版本：</value></data>
+<data name="LBL_OPENSSH_VER"><projects>j129</projects><value>OpenSSH 版本：</value></data>
+<data name="LBL_DATE_FORMAT"><projects>j129</projects><value>日期格式</value></data>
+<data name="LBL_DATE_FMTOPT_DEFAULT"><projects>j129</projects><value>默认</value></data>
+<data name="LBL_DATE_FMTOPT_1"><projects>j129</projects><value>月份/日期</value></data>
+<data name="LBL_DATE_FMTOPT_2"><projects>j129</projects><value>日期/月份</value></data>
+<data name="LBL_DATE_FMTOPT_3"><projects>j129</projects><value>月份.日期</value></data>
+<data name="LBL_DATE_FMTOPT_4"><projects>j129</projects><value>日期.月份</value></data>
+<data name="LBL_DATE_FMTOPT_5"><projects>j129</projects><value>月份-日期</value></data>
+<data name="LBL_DATE_FMTOPT_6"><projects>j129</projects><value>日期-月份</value></data>
+<data name="LBL_DATE_FMTOPT_7"><projects>j129</projects><value>月份 日期</value></data>
+<data name="LBL_JAN_SHORT"><projects>j129</projects><value>1 月</value></data>
+<data name="LBL_FEB_SHORT"><projects>j129</projects><value>2 月</value></data>
+<data name="LBL_MAR_SHORT"><projects>j129</projects><value>3 月</value></data>
+<data name="LBL_APR_SHORT"><projects>j129</projects><value>4 月</value></data>
+<data name="LBL_MAY_SHORT"><projects>j129</projects><value>5 月</value></data>
+<data name="LBL_JUN_SHORT"><projects>j129</projects><value>6 月</value></data>
+<data name="LBL_JUL_SHORT"><projects>j129</projects><value>7 月</value></data>
+<data name="LBL_AUG_SHORT"><projects>j129</projects><value>8 月</value></data>
+<data name="LBL_SEP_SHORT"><projects>j129</projects><value>9 月</value></data>
+<data name="LBL_OCT_SHORT"><projects>j129</projects><value>10 月</value></data>
+<data name="LBL_NOV_SHORT"><projects>j129</projects><value>11 月</value></data>
+<data name="LBL_DEC_SHORT"><projects>j129</projects><value>12 月</value></data>
+<data name="LBL_VERIFYING_CREDENTIALS"><projects>j129</projects><value>验证凭证</value></data>
+<data name="LBL_CERT_PWD"><projects>j129</projects><value>证书密码：</value></data>
+<data name="LBL_PROXY"><projects>j129</projects><value>代理：</value></data>
+<data name="LBL_ADDRESS"><projects>j129</projects><value>地址:</value></data>
+<data name="LBL_EMPTY_SIP_PROXY_LIST"><projects>j129</projects><value>SIP 代理列表为空</value></data>
+<data name="LBL_INACTIVE"><projects>j129</projects><value>停用</value></data>
+<data name="LBL_ACCESS_CODE"><projects>j129</projects><value>访问代码：</value></data>
+<data name="LBL_CERTI"><projects>j129</projects><value>证书</value></data>
+<data name="LBL_CERTIEXPIRY"><projects>j129</projects><value>到期日期</value></data>
+<data name="LBL_MISSING"><projects>j129</projects><value>未接</value></data>
+<data name="LBL_EXPIRED"><projects>j129</projects><value>已过期</value></data>
+<data name="LBL_SERIAL_PORT"><projects>j129</projects><value>串行端口</value></data>
+<data name="LBL_PORT_MIRRORING"><projects>j129</projects><value>端口镜像</value></data>
+<data name="LBL_ADJUNCT"><projects>j129</projects><value>附件</value></data>
+<data name="LBL_SENT_RECEIVED"><projects>j129</projects><value>已发送：%d/已接收：%d</value></data>
+<data name="LBL_WAIT_CONTACTING_HOST"><projects>j129</projects><value>正在联系主机...</value></data>
+<data name="LBL_UNABLE_TO_CONTACT_HOST"><projects>j129</projects><value>无法联系主机</value></data>
+<data name="LBL_SUCCESS_CONTACT_HOST"><projects>j129</projects><value>Ping 成功</value></data>
+<data name="LBL_NO_FINGERPRINT"><projects>j129</projects><value>无指纹</value></data>
+<data name="LBL_VERSION_NUMBER"><projects>j129</projects><value>版本号：</value></data>
+<data name="LBL_UPGRADE_DATE"><projects>j129</projects><value>升级日期：</value></data>
+<data name="LBL_UPGRADE_STATUS"><projects>j129</projects><value>升级状态：</value></data>
+<data name="LBL_REASON_CODE"><projects>j129</projects><value>原因代码：</value></data>
+<data name="LBL_FILENAME"><projects>j129</projects><value>文件名：</value></data>
+<data name="LBL_USER"><projects>j129</projects><value>用户：</value></data>
+<data name="LBL_LOGIN"><projects>j129</projects><value>登录</value></data>
+<data name="LBL_LOGOUT"><projects>j129</projects><value>注销</value></data>
+<data name="LBL_LOCK"><projects>j129</projects><value>锁定</value></data>
+<data name="LBL_ADMIN_SETTINGS"><projects>j129</projects><value>管理</value></data>
+<data name="LBL_ABOUT_PHONE"><projects>j129</projects><value>关于 IP Deskphone</value></data>
+<data name="LBL_RESTORE"><projects>j129</projects><value>还原</value></data>
+<data name="SK_RESTORE"><projects>j129</projects><value>还原</value></data>
+<data name="LBL_RECENTS"><projects>j129</projects><value>近期呼叫</value></data>
+<data name="LBL_UPGRADE_INFO"><projects>j129</projects><value>升级信息...</value></data>
+<data name="LBL_SSH"><projects>j129</projects><value>SSH</value></data>
+<data name="LBL_CLI"><projects>j129</projects><value>CLI</value></data>
+<data name="LBL_SVC_CONTROL"><projects>j129</projects><value>服务控制</value></data>
+<data name="LBL_SVC_RECORD"><projects>j129</projects><value>服务记录</value></data>
+<data name="LBL_ROUTER"><projects>j129</projects><value>网关：</value></data>
+<data name="LBL_ROUTERV4"><projects>j129</projects><value>网关 (V4)：</value></data>
+<data name="LBL_ROUTERV6"><projects>j129</projects><value>网关 (V6)：</value></data>
+<data name="LBL_ROUTERV6PREFIX"><projects>j129</projects><value>前缀...</value></data>
+<data name="LBL_MULTICAST"><projects>j129</projects><value>多播</value></data>
+<data name="LBL_UNICAST"><projects>j129</projects><value>单播</value></data>
+<data name="LBL_GENREPORT"><projects>j129</projects><value>产生报告...</value></data>
+<data name="LBL_COULD_NOT_CREATE_REPORT"><projects>j129</projects><value>无法生成报告</value></data>
+<data name="LBL_REPORT_IS_SENT"><projects>j129</projects><value>报告已发送</value></data>
+<data name="LBL_REPORT_IS_SAVED"><projects>j129</projects><value>报告已保存到电话</value></data>
+<data name="OPT_AVENV_AUTO"><projects>j129</projects><value>自动</value></data>
+<data name="OPT_AVENV_NO"><projects>j129</projects><value>否</value></data>
+<data name="LBL_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>未配置功能</value></data>
+<data name="LBL_PHONEREPORT"><projects>j129</projects><value>电话报告</value></data>
+<data name="LBL_SUCCESSFUL"><projects>j129</projects><value>成功</value></data>
+<data name="LBL_FAILED"><projects>j129</projects><value>失败</value></data>
+<data name="LBL_MY_TIME"><projects>j129</projects><value>我的时间：</value></data>
+<data name="LBL_NO_CALLS_TO_DISPLAY"><projects>j129</projects><value>无可显示呼叫</value></data>
+<data name="LBL_HTTPPORT"><projects>j129</projects><value>HTTP 端口：</value></data>
+<data name="LBL_HTTPDIR"><projects>j129</projects><value>HTTP 目录：</value></data>
+<data name="LBL_HTTPSPORT"><projects>j129</projects><value>HTTPS 端口：</value></data>
+<data name="LBL_HTTPSDIR"><projects>j129</projects><value>HTTPS 目录：</value></data>
+<data name="LBL_KBPS"><projects>j129</projects><value>Kbps</value></data>
+<data name="LBL_DBM"><projects>j129</projects><value>dBm</value></data>
+<data name="LBL_AUTOANSWER"><projects>j129</projects><value>自动应答</value></data>
+<data name="LBL_PHONE_TO_PC_PAIRING"><projects>j129</projects><value>电话至 PC 配对</value></data>
+<data name="LBL_DEVICE_PAIRING"><projects>j129</projects><value>设备配对</value></data>
+<data name="LBL_PAIRING_STATUS"><projects>j129</projects><value>配对状态：</value></data>
+<data name="LBL_PAIRING_IN_PROGRESS"><projects>j129</projects><value>正在配对...</value></data>
+<data name="LBL_WAITING_FOR_CREDENTIALS"><projects>j129</projects><value>正在等待凭证...</value></data>
+<data name="LBL_BACKUP_RESTORE"><projects>j129</projects><value>备份/还原</value></data>
+<data name="LBL_MANUAL_RESTORE"><projects>j129</projects><value>手动还原</value></data>
+<data name="LBL_MANUAL_BACKUP"><projects>j129</projects><value>手动备份</value></data>
+<data name="LBL_IP_ADDRESS_HINT"><projects>j129</projects><value>IP 地址</value></data>
+<data name="LBL_NICKNAME"><projects>j129</projects><value>昵称</value></data>
+<data name="LBL_ADD_NUMBER"><projects>j129</projects><value>添加号码</value></data>
+<data name="LBL_DEFAULT_RINGTONE"><projects>j129</projects><value>默认铃声</value></data>
+<data name="LBL_SYSTEM_RINGTONE"><projects>j129</projects><value>系统</value></data>
+<data name="LBL_ERROR"><projects>j129</projects><value>错误</value></data>
+<data name="LBL_NETWORK_CONFIG"><projects>j129</projects><value>网络配置：</value></data>
+<data name="LBL_ETHERNET_MAC"><projects>j129</projects><value>以太网 MAC</value></data>
+<data name="LBL_WIFI_MAC"><projects>j129</projects><value>Wi-Fi MAC</value></data>
+<data name="LBL_ENTER_CODE"><projects>j129</projects><value>输入代码</value></data>
+<data name="LBL_ENTER_ENROLLMENT_CODE"><projects>j129</projects><value>输入注册码</value></data>
+<data name="LBL_RING_REMINDER"><projects>j129</projects><value>振铃提醒器</value></data>
+<data name="LBL_CALL_FWD_ALWAYS"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="LBL_ANSWER"><projects>j129</projects><value>应答</value></data>
+<data name="LBL_CALL_PARK"><projects>j129</projects><value>呼叫驻留</value></data>
+<data name="LBL_NO_CONFIGURABLE_FEATURES"><projects>j129</projects><value>无可配置的功能</value></data>
+<data name="LBL_SETTINGS_NOT_ACCESSIBLE"><projects>j129</projects><value>设置无法访问</value></data>
+<data name="LBL_CALL_FWD_NO_ANSWER"><projects>j129</projects><value>呼叫转接-无应答</value></data>
+<data name="LBL_NUMBER_OF_RINGS"><projects>j129</projects><value>振铃数</value></data>
+<data name="LBL_SIP_CONTROLLERS"><projects>j129</projects><value>SIP 控制器</value></data>
+<data name="LBL_SIP_CONTROLLERS_2"><projects>j129</projects><value>SIP 控制器...</value></data>
+<data name="LBL_SIP_CONTROLLER_DETAILS"><projects>j129</projects><value>SIP 控制器详情</value></data>
+<data name="LBL_HOST_NAME"><projects>j129</projects><value>主机名</value></data>
+<data name="LBL_PORT"><projects>j129</projects><value>端口</value></data>
+<data name="LBL_USER_DOMAIN"><projects>j129</projects><value>用户域</value></data>
+<data name="LBL_STATUS"><projects>j129</projects><value>状态</value></data>
+<data name="LBL_NOT_ACTIVE"><projects>j129</projects><value>未激活</value></data>
+<data name="LBL_PRIORITY"><projects>j129</projects><value>优先</value></data>
+<data name="LBL_PRIMARY"><projects>j129</projects><value>主号码</value></data>
+<data name="LBL_SECONDARY"><projects>j129</projects><value>辅助</value></data>
+<data name="LBL_EXPERIENCING_DELAYS"><projects>j129</projects><value>遇到了延迟...</value></data>
+<data name="LBL_NOT_CONFIGURED"><projects>j129</projects><value>未配置</value></data>
+<data name="LBL_LINE"><projects>j129</projects><value>线路/端口：</value></data>
+<data name="LBL_AUTHNAME"><projects>j129</projects><value>验证名称：</value></data>
+<data name="LBL_XSI_WEB_PASSWORD"><projects>j129</projects><value>Web 密码：</value></data>
+<data name="LBL_XSI_AUTH_METHOD"><projects>j129</projects><value>验证方法</value></data>
+<data name="LBL_XSI_USER_ID"><projects>j129</projects><value>用户 ID：</value></data>
+<data name="LBL_XSI_AUTHENTICATION"><projects>j129</projects><value>XSI 登录</value></data>
+<data name="LBL_SIP_SERVER_DETAILS"><projects>j129</projects><value>SIP 服务器详情</value></data>
+<data name="LBL_SIP_SERVERS"><projects>j129</projects><value>SIP 服务器</value></data>
+<data name="LBL_PROTOCOL"><projects>j129</projects><value>协议</value></data>
+<data name="LBL_LONG_LONG_DOUBLE"><projects>j129</projects><value>长 长 双</value></data>
+<data name="LBL_SHORT_SHORT_LONG"><projects>j129</projects><value>短 短 长</value></data>
+<data name="LBL_SHORT_LONG_SHORT"><projects>j129</projects><value>短 长 短</value></data>
+<data name="LBL_AUDIO_BUTTON"><projects>j129</projects><value>音频按钮</value></data>
+<data name="LBL_SELECT_A_CALL_TO_PARK"><projects>j129</projects><value>选择要驻留的呼叫</value></data>
+<data name="LBL_GROUP_ID"><projects>j129</projects><value>组 ID</value></data>
+<data name="LBL_DEPARTMENT"><projects>j129</projects><value>部门</value></data>
+<data name="LBL_EMAIL_ADDRESS"><projects>j129</projects><value>电子邮件地址</value></data>
+<data name="LBL_ZIP_CODE"><projects>j129</projects><value>邮编</value></data>
+<data name="LBL_COUNTRY"><projects>j129</projects><value>国家/地区</value></data>
+<data name="LBL_ALERTING_ON_CALLS"><projects>j129</projects><value>呼叫提醒</value></data>
+<data name="LBL_BEACON_LED"><projects>j129</projects><value>信号 LED</value></data>
+<data name="LBL_SERVER_TYPE_J129"><projects>j129</projects><value>服务器类型：</value></data>
+<data name="LBL_GENERIC_SIP"><projects>j129</projects><value>常规 SIP</value></data>
+<data name="LBL_DEVICE_TYPE"><projects>j129</projects><value>设备类型</value></data>
+<data name="LBL_UPDATE"><projects>j129</projects><value>更新</value></data>
+<data name="LBL_PAGING"><projects>j129</projects><value>寻呼</value></data>
+<data name="LBL_PAGE_FROM"><projects>j129</projects><value>寻呼来自</value></data>
+<data name="LBL_PRODUCT_ID"><projects>j129</projects><value>产品 ID</value></data>
+<data name="LBL_GET_UPDATES"><projects>j129</projects><value>获取更新</value></data>
+<data name="LBL_LAST_UPDATE"><projects>j129</projects><value>最近更新</value></data>
+<data name="LBL_CALL_COMPLETED_ELSEWHERE"><projects>j129</projects><value>呼叫已由其他座席完成</value></data>
+<data name="LBL_INVALID_PIN"><projects>j129</projects><value>无效 PIN 码</value></data>
+<data name="LBL_ATTEMPT_N_OF_M"><projects>j129</projects><value>已尝试： %d / %d 次</value></data>
+<data name="LBL_PIN"><projects>j129</projects><value>PIN：</value></data>
+<data name="LBL_PAGE_VALUE"><projects>j129</projects><value>寻呼：%s</value></data>
+<data name="LBL_CALL_FORWARD_DELAY"><projects>j129</projects><value>转接延迟</value></data>
+<data name="LBL_USERNAME_HINT"><projects>j129</projects><value>用户名</value></data>
+<data name="LBL_PASSWORD_HINT"><projects>j129</projects><value>密码</value></data>
+<data name="LBL_HTTP"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTP_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS"><projects>j129</projects><value></value></data>
+<data name="LBL_HTTPS_HINT"><projects>j129</projects><value></value></data>
+<data name="LBL_DNS"><projects>j129</projects><value></value></data>
+<data name="LBL_SNTP"><projects>j129</projects><value></value></data>
+<data name="LBL_IP_OR_FQDN_HINT"><projects>j129</projects><value>IP: 端口或 FQDN: 端口</value></data>
+<data name="LBL_SECURE_SYSLOG"><projects>j129</projects><value>日志服务器安全</value></data>
+<data name="LBL_AUTOMATIC_UPDATE"><projects>j129</projects><value>自动更新</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_POLICY"><projects>j129</projects><value>自动更新策略</value></data>
+<data name="LBL_NEXT_UPDATE"><projects>j129</projects><value>下次更新</value></data>
+<data name="LBL_LAST_UPGRADE"><projects>j129</projects><value>上次升级</value></data>
+<data name="LBL_DISABLED"><projects>j129</projects><value>已禁用</value></data>
+<data name="LBL_WEEKLY"><projects>j129</projects><value>每周</value></data>
+<data name="LBL_DAILY"><projects>j129</projects><value>每天</value></data>
+<data name="LBL_MONTHLY"><projects>j129</projects><value>每月</value></data>
+<data name="LBL_UPDATE_INFO"><projects>j129</projects><value>更新信息</value></data>
+<data name="LBL_UPDATE_STATUS"><projects>j129</projects><value>状态</value></data>
+<data name="LBL_UPDATE_POLICY"><projects>j129</projects><value>政策</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_DAYS"><projects>j129</projects><value>更新天数</value></data>
+<data name="LBL_AUTOMATIC_UPDATE_TIME_OF_DAY"><projects>j129</projects><value>更新时间</value></data>
+<data name="LBL_PROMPT_ON_UPGRADE"><projects>j129</projects><value>升级时提示</value></data>
+<data name="LBL_USER_CODE"><projects>j129</projects><value>用户代码:</value></data>
+<data name="LBL_DOT1X_AUTHENTICATION_METHODS"><projects>j129</projects><value>验证方法</value></data>
+<data name="LBL_AADS_CONFIG"><projects>j129</projects><value>AADS 配置</value></data>
+
+
+<!--POP UP BOX Strings-->
+
+<data name="MSG_DISCINPROG"><projects>j129</projects><value>发现 %s</value></data>
+<data name="MSG_SRVRLKFAILED"><projects>j129</projects><value>服务器连接故障...</value></data>
+<data name="LBL_CLRALENT"><projects>j129</projects><value>清除所有条目？</value></data>
+<data name="LBL_RUSURE"><projects>j129</projects><value>确定吗？</value></data>
+<data name="MSG_AUTHFAIL"><projects>j129</projects><value>验证失败。</value></data>
+<data name="MSG_ALERT_J100"><projects>j129</projects><value>拨入音频提示</value></data>
+<data name="MSG_ABTAVAYA"><projects>j129</projects><value>Avaya IP 电话
+SIP 版本 %s
+%s
+© 2023 Avaya Inc.</value></data>
+<data name="MSG_UNREG_LOGOUT"><projects>j129</projects><value>其他设备已登录此分机。</value></data>
+<data name="MSG_LOGOUT"><projects>j129</projects><value>正在注销...</value></data>
+<data name="MSG_DELETE_CONTACT"><projects>j129</projects><value>删除此联系人？</value></data>
+<data name="MSG_CERT_WARNING"><projects>j129</projects><value>身份标识证书 %s 将在 %d 天后到期</value></data>
+<data name="MSG_CERT_EXPIRED"><projects>j129</projects><value>身份标识证书 %s 已到期</value></data>
+<data name="MSG_ADMIN_MENU_LOCK"><projects>j129</projects><value>管理菜单已锁定</value></data>
+<data name="MSG_MERGE_CALLS"><projects>j129</projects><value>合并呼叫？</value></data>
+<data name="MSG_TRANSF_CALL_ON_HOLD"><projects>j129</projects><value>转介处于保持状态的呼叫？</value></data>
+<data name="MSG_MAKE_EMERGENCY_CALL"><projects>j129</projects><value>拨打紧急呼叫？</value></data>
+<data name="MSG_WAITING_FOR_8021X"><projects>j129</projects><value>正在等待 802.1x 验证...</value></data>
+<data name="MSG_DELETE_SIP_PROXY"><projects>j129</projects><value>删除 SIP 代理服务器？</value></data>
+<data name="MSG_WAITING_FOR_DHCP"><projects>j129</projects><value>正在等待 DHCP...</value></data>
+<data name="MSG_BOOT_ERROR"><projects>j129</projects><value>启动错误...</value></data>
+<data name="MSG_CLEAR_SPEED_DIAL"><projects>j129</projects><value>清除此快速拨号？</value></data>
+<data name="MSG_REPLACE_SPEED_DIAL"><projects>j129</projects><value>替换此快速拨号？</value></data>
+<data name="MSG_LOGOUT_CONFIRMATION"><projects>j129</projects><value>确定注销吗?</value></data>
+<data name="MSG_RESET_VALUES_CONFIRMATION"><projects>j129</projects><value>清除并重置电话？</value></data>
+<data name="MSG_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>重新启动电话？</value></data>
+<data name="MSG_ACTIVE_CALL_LOGOUT_CONFIRMATION"><projects>j129</projects><value>注销将结束进行中的通话</value></data>
+<data name="MSG_CONFIG_PROV_SERVER"><projects>j129</projects><value>服务器配置</value></data>
+<data name="MSG_ENTER_PROV_SERV"><projects>j129</projects><value>输入预配置详细信息</value></data>
+<data name="MSG_ENTER_PROV_SERVER"><projects>j129</projects><value>输入预配置详细信息</value></data>
+<data name="MSG_INVALID_INPUT"><projects>j129</projects><value>无效输入</value></data>
+<data name="MSG_CONNECTION_ERROR"><projects>j129</projects><value>连接错误</value></data>
+<data name="MSG_CONNECTION_VERIFY"><projects>j129</projects><value>正在验证连接...</value></data>
+<data name="MSG_PHONE_REPORT_GENERATED"><projects>j129</projects><value>正在生成报告...</value></data>
+<data name="MSG_PAIRING_FAILED"><projects>j129</projects><value>与 PC 配对失败。重试？</value></data>
+<data name="MSG_START_PAIRING"><projects>j129</projects><value>开始与 PC 配对?</value></data>
+<data name="MSG_PRESS_CONFIRM_IF_SAME"><projects>j129</projects><value>如果字词与 PC 上相同，请按“确认”</value></data>
+<data name="MSG_BACKUP_SUCCESSFUL"><projects>j129</projects><value>备份成功</value></data>
+<data name="MSG_BACKUP_FAIL"><projects>j129</projects><value>备份失败</value></data>
+<data name="MSG_RETRIEVAL_SUCCESSFUL"><projects>j129</projects><value>检索成功</value></data>
+<data name="MSG_RETRIEVAL_FAIL"><projects>j129</projects><value>检索失败</value></data>
+<data name="MSG_BACKUP_IN_PROGRESS"><projects>j129</projects><value>正在备份</value></data>
+<data name="MSG_RETRIEVAL_IN_PROGRESS"><projects>j129</projects><value>正在检索</value></data>
+<data name="MSG_FILE_OBTAINED_PLEASE_WAIT"><projects>j129</projects><value>已获得文件；请稍候...</value></data>
+<data name="MSG_RECENTS_EXTENSION_RESTRICTED"><projects>j129</projects><value>主叫方分机受限</value></data>
+<data name="MSG_RECENTS_NO_IDLE_CALL"><projects>j129</projects><value>无空闲呼叫状态</value></data>
+<data name="MSG_ANOTHER_USER_LOGGED_IN"><projects>j129</projects><value>用户已在其他设备上登录</value></data>
+<data name="MSG_WAITING_FOR_AUTHENTICATION"><projects>j129</projects><value>正在等待验证...</value></data>
+<data name="MSG_WBPSWD_RESET_DEFAULT_CONFIRMATION"><projects>j129</projects><value>重置为默认值？</value></data>
+<data name="MSG_WEBPASSWD_RESET_CONFIRMATION"><projects>j129</projects><value>重置为默认值？</value></data>
+<data name="MSG_CERTIFICATE_ERROR"><projects>j129</projects><value>证书错误</value></data>
+<data name="MSG_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>%s 的号码 %s 已存在</value></data>
+<data name="MSG_FIPS_SELFTEST_FAILED"><projects>j129</projects><value>FIPS 自检失败</value></data>
+<data name="MSG_CUSTOMIZATION_NOT_AVAILABLE"><projects>j129</projects><value>目前无法进行自定义。</value></data>
+<data name="MSG_WIFI_SERVICE_NOT_RUNNING"><projects>j129</projects><value>Wi-Fi 服务未运行</value></data>
+<data name="MSG_PHONE_OPERATIONS_DISABLED"><projects>j129</projects><value>已停用此菜单上的电话操作</value></data>
+<data name="MSG_XSI_CONNECTION_FAILED"><projects>j129</projects><value>XSI 连接失败。菜单即将关闭。</value></data>
+<data name="MSG_NHC_CONNECTING"><projects>j129</projects><value>正在连接到 %s</value></data>
+<data name="MSG_NHC_INVALID_NUM"><projects>j129</projects><value>拨打的号码无效</value></data>
+<data name="MSG_NHC_PARTY_UNAVAILABLE"><projects>j129</projects><value>参与方 %s 不可用</value></data>
+<data name="MSG_NHC_PARTY_BUSY"><projects>j129</projects><value>被叫方 %s 忙碌</value></data>
+<data name="MSG_NHC_DENIED"><projects>j129</projects><value>会议被拒绝</value></data>
+<data name="MSG_AUTO_DISCOVERY_SUCCESSFUL"><projects>j129</projects><value>自动发现完成</value></data>
+<data name="MSG_AUTO_DISCOVERY_FAILED_INVALID_CFG"><projects>j129</projects><value>自动发现失败</value></data>
+<data name="MSG_DISCOVERY_NO_RESPONSE"><projects>j129</projects><value>自动发现失败</value></data>
+<data name="MSG_WAITING_FOR_CONFIG"><projects>j129</projects><value>正在等待配置</value></data>
+<data name="MSG_GET_UPDATES_CONFIRMATION"><projects>j129</projects><value>更新可能需要重启电话</value></data>
+<data name="MSG_PROV_SERVER_NOT_REACHED"><projects>j129</projects><value>服务器连接失败</value></data>
+<data name="MSG_PROV_SERVER_NO_SETTINGS"><projects>j129</projects><value>服务器无配置</value></data>
+<data name="MSG_UNREG_LOGOUT_LONG"><projects>j129</projects><value>其他设备已登录此分机。要继续使用同一分机，请按“继续”。</value></data>
+<data name="MSG_FORCED_LOGOUT_BY_MAX_USER_LOGIN"><projects>j129</projects><value>按“继续”以重新建立电话服务。</value></data>
+<data name="MSG_AUTH_REQUIRED"><projects>j129</projects><value>需要验证</value></data>
+<data name="MSG_AUTOUPDATE_RESTART_PHONE_CONFIRMATION"><projects>j129</projects><value>新固件可用，是否重新启动电话以应用更改？</value></data>
+<data name="MSG_MYCERT_RENEWAL_FAILURE"><projects>j129</projects><value>证书 %s 续订：失败</value></data>
+<data name="MSG_SPACES_LOGOUT_CONFIRMATION"><projects>j129</projects><value>是否要注销
+Avaya Spaces？</value></data>
+<data name="MSG_SSO_CONNECTING_TO_CONFIG_SERVER"><projects>j129</projects><value>正在连接到配置服务...</value></data>
+<data name="MSG_SSO_CONNECTING_TO_AUTHORIZATION_SERVER"><projects>j129</projects><value>正在连接到授权服务...</value></data>
+<data name="MSG_SSO_SCAN_QR_CODE"><projects>j129</projects><value>扫描二维码以使用您的公司凭证登录。
+按“链接”了解详情。</value></data>
+<data name="MSG_SINGLE_SIGN_ON"><projects>j129</projects><value>单点登录</value></data>
+<data name="MSG_ACCEPT_SHARED_CONTROL"><projects>j129</projects><value>接受共享控制？</value></data>
+<data name="MSG_EXPIRES_IN"><projects>j129</projects><value>以下时间后到期: %ls</value></data>
+
+
+<!--TOAST Strings-->
+
+<data name="TST_NO_REDIAL_NUMBER"><projects>j129</projects><value>无可重拨的号码</value></data>
+<data name="TST_NO_MATCHING_NAME"><projects>j129</projects><value>无匹配名称</value></data>
+<data name="TST_NO_MATCH_FOUND"><projects>j129</projects><value>未找到匹配项目</value></data>
+<data name="TST_CONTACT_SEARCH_FAILED"><projects>j129</projects><value>联系人搜索失败</value></data>
+<data name="TST_NO_SERVICE_AVAILABLE"><projects>j129</projects><value>无可用服务</value></data>
+<data name="TST_INVALID_NAME_PASSWD"><projects>j129</projects><value>名称或密码无效</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD_HELP"><projects>j129</projects><value>输入证书 %ls 安装密码</value></data>
+<data name="TST_INPUT_CERT_INSTALL_PWD"><projects>j129</projects><value>输入证书安装密码</value></data>
+<data name="TST_INVALID_PWD_ABORT_INSTALL"><projects>j129</projects><value>密码无效，正在中止证书安装</value></data>
+<data name="TST_VERIFY_PWD"><projects>j129</projects><value>正在验证密码...</value></data>
+<data name="TST_INVALID_PWD"><projects>j129</projects><value>密码无效</value></data>
+<data name="TST_EMERGENCY_CALLS_ONLY"><projects>j129</projects><value>只能进行紧急呼叫</value></data>
+<data name="TST_INVALID_ACCESS_CODE"><projects>j129</projects><value>访问代码无效</value></data>
+<data name="TST_ADMIN_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>电话使用时管理不可用</value></data>
+<data name="TST_NO_SIP_PROXIES_CONFIGURED"><projects>j129</projects><value>未配置 SIP 代理</value></data>
+<data name="TST_FEATURE_ACT_FAILED"><projects>j129</projects><value>功能激活失败</value></data>
+<data name="TST_LIMITED_SERVICE_IN_EFFECT"><projects>j129</projects><value>有限的服务有效</value></data>
+<data name="TST_PROXY_ADDRESS_INVALID"><projects>j129</projects><value>输入的代理地址无效</value></data>
+<data name="TST_PROXY_PORT_INVALID"><projects>j129</projects><value>输入的端口无效</value></data>
+<data name="TST_LOCK_UNAVAIL_PHONE_IN_USE"><projects>j129</projects><value>电话使用时锁定不可用</value></data>
+<data name="TST_FEATURE_IS_CURRENTLY_UNAVAILABLE"><projects>j129</projects><value>该功能目前不可用</value></data>
+<data name="TST_UNABLE_MAKE_CALL"><projects>j129</projects><value>无法呼叫</value></data>
+<data name="TST_NO_FEATURES_CONFIGURED"><projects>j129</projects><value>未针对此分机配置任何功能</value></data>
+<data name="TST_NUMBER_REMOVE_UNAVAILABLE"><projects>j129</projects><value>联系人必须至少有一个号码</value></data>
+<data name="TST_NUMBER_ALREADY_EXISTS"><projects>j129</projects><value>号码已存在</value></data>
+<data name="TST_ALL_CALL_APPEARANCES_IN_USE"><projects>j129</projects><value>所有线路均已被使用</value></data>
+<data name="TST_PHONE_REBOOT_ON_EXIT"><projects>j129</projects><value>退出“管理”菜单后
+电话将重新启动</value></data>
+<data name="TST_SCREEN_SAVER_UNAVAILABLE"><projects>j129</projects><value>通话正在进行时无法激活屏保程序</value></data>
+<data name="TST_CHANGE_HEADSET_TO_BLUETOOTH"><projects>j129</projects><value>将“耳机选择”更改为蓝牙？</value></data>
+<data name="TST_CHANGE_HEADSET_TO_WIRED"><projects>j129</projects><value>耳机选择已更改为“有线”</value></data>
+<data name="TST_LOGGING_CALLS_IS_DISABLED"><projects>j129</projects><value>电话历史记录已禁用</value></data>
+<data name="TST_NO_PREFIXES"><projects>j129</projects><value>未配置前缀</value></data>
+<data name="TST_NETWORK_UNAVAILABLE_FOR_ACTIVE_CALL"><projects>j129</projects><value>呼叫过程中不可用</value></data>
+<data name="TST_NO_CONTACTS_AVAILABLE"><projects>j129</projects><value>无可用联系人</value></data>
+<data name="TST_CALL_MUTED"><projects>j129</projects><value>您的呼叫现已静音</value></data>
+<data name="TST_FEATURE_CONFIGURATION_NOT_AVAILABLE_YET"><projects>j129</projects><value>功能配置尚不可用</value></data>
+<data name="TST_XSI_CONNECTION_IS_NOT_AVAILABLE"><projects>j129</projects><value>XSI 连接不可用</value></data>
+<data name="TST_INVALID_USER_ID"><projects>j129</projects><value>用户 ID 无效</value></data>
+<data name="TST_INVALID_USER_ID_OR_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>用户 ID 或 Web 密码无效</value></data>
+<data name="TST_MOBILITY_FEATURE_IS_NOT_ENABLED"><projects>j129</projects><value>要配置此功能，请联系您的管理员</value></data>
+<data name="TST_ALLOWED_VALUES"><projects>j129</projects><value>允许值为 0、2-20</value></data>
+<data name="TST_FAILED_TO_CREATE_XSI"><projects>j129</projects><value>创建 XSI 事件通道失败：服务器无响应</value></data>
+<data name="TST_NETWORK_CONFIGURATION_ISSUE"><projects>j129</projects><value>网络配置问题</value></data>
+<data name="TST_PARK_FAC_NOT_ADMINISTERED"><projects>j129</projects><value>该功能需要先定义 CALL_PARK_DYNAMIC_FAC，请联系您的管理员。</value></data>
+<data name="TST_UNLOCK_IS_TEMP_BLOCKED"><projects>j129</projects><value>解锁暂时已阻止</value></data>
+<data name="TST_ADD_CONTACTS_MAPPING_ERROR"><projects>j129</projects><value>无法添加。缺少字段映射。请联系管理员。</value></data>
+<data name="TST_SERVICE_UNAVAILABLE"><projects>j129</projects><value>服务当前不可用。</value></data>
+<data name="TST_DIALING_BLOCKED"><projects>j129</projects><value>禁止拨打此号码。请联系您的管理员。</value></data>
+<data name="TST_USERNAME_REQUIRED"><projects>j129</projects><value>如果已定义密码，则必须提供用户名</value></data>
+<data name="TST_INVALID_HTTP_SYNTAX"><projects>j129</projects><value>无法保存 HTTP，语法无效</value></data>
+<data name="TST_INVALID_HTTPS_SYNTAX"><projects>j129</projects><value>无法保存 HTTPS，语法无效</value></data>
+<data name="TST_ZOOM_LICENSE_REQUIRED"><projects>j129</projects><value>使用带缩放功能的电话需要许可证。</value></data>
+<data name="TST_INVALID_AADS_URL"><projects>j129</projects><value>无法保存 AADS URL，语法无效。</value></data>
+<data name="TST_SSO_LOGIN_PROMPT"><projects>j129</projects><value>按“登录”以使用您的公司凭证开始单点登录流程。</value></data>
+<data name="TST_SSO_CONFIG_SERVER_UNAVAILABLE"><projects>j129</projects><value>配置服务当前不可用。
+请“重试”或联系您的管理员。</value></data>
+<data name="TST_SSO_AUTHORIZATION_SERVER_UNAVAILABLE"><projects>j129</projects><value>授权服务当前不可用。
+请“重试”或联系您的管理员。</value></data>
+<data name="TST_SSO_LOGIN_SUCCESS_PROMPT"><projects>j129</projects><value>您已成功验证。
+
+请稍候...</value></data>
+<data name="TST_SSO_LOGIN_POLLING_TIMEDOUT"><projects>j129</projects><value>登录尝试已过期。请按“重试”以重试。</value></data>
+<data name="TST_SSO_LOGIN_DECLINED_BY_USER"><projects>j129</projects><value>用户已拒绝登录尝试。</value></data>
+<data name="TST_LOGIN_FAILED_CREDENTIALS_UNAVAILABLE"><projects>j129</projects><value>登录失败。
+从配置服务上找不到凭证。请联系您的管理员。</value></data>
+<data name="TST_LOGIN_FAILED_CONFIG_SERVICE_UNAVAILABLE"><projects>j129</projects><value>登录失败。
+配置服务当前不可用。
+请“重试”、“注销”或联系您的管理员。</value></data>
+<data name="TST_SSO_LOGIN_HELP_PROMPT"><projects>j129</projects><value>您的电话已配置为使用您的公司凭证登录。出现提示时，按
+“登录”以开始此流程。</value></data>
+<data name="TST_SSO_QR_HELP_PROMPT"><projects>j129</projects><value>要完成单点登录流程，请使用移动设备扫描二维码或在浏览器中打开
+“链接”。</value></data>
+<data name="TST_SSO_LINK_HELP_PROMPT"><projects>j129</projects><value>要完成单点登录流程，请在浏览器中打开链接，或使用移动设备扫描二维码。</value></data>
+<data name="TST_SSO_LINK_PROMPT"><projects>j129</projects><value>浏览到下面的链接，输入
+用户代码: %ls
+%ls
+按“二维码”进行扫描。</value></data>
+
+
+<!--HELP Strings-->
+
+<data name="HELP_BROADWORKS_CFA"><projects>j129</projects><value>设置“始终转接呼叫”后，所有拨入呼叫会重定向至指定位置。</value></data>
+<data name="HELP_BROADWORKS_CFB"><projects>j129</projects><value>设置“占线时转接呼叫”后，如果拨入呼叫遇到占线，呼叫会重定向至其他目的地。</value></data>
+<data name="HELP_BROADWORKS_CFNA"><projects>j129</projects><value>设置“无应答时转接呼叫”后，如果拨入呼叫在特定振铃次数后未应答，呼叫会重定向至其他目的地。</value></data>
+<data name="HELP_BROADWORKS_DND"><projects>j129</projects><value>设置“请勿打扰”后，系统会将拨入呼叫直接发送至语言收件箱。</value></data>
+<data name="HELP_AUDIO_BUTTON"><projects>j129</projects><value>定义拨入呼叫的电话行为以及用户拿起耳机或按下耳机或扬声器按钮后的电话行为。
+应答 - 应答拨入呼叫。
+新呼叫 - 发起新呼叫。</value></data>
+<data name="HELP_BROADWORKS_DND_SETTINGS"><projects>j129</projects><value>设置“请勿打扰”后，系统会将拨入呼叫重定向至语音收件箱，并且电话不会振铃。</value></data>
+<data name="HELP_BROADWORKS_CFA_SETTINGS"><projects>j129</projects><value>设置“始终转接呼叫”后，所有拨入呼叫会重定向至指定位置。</value></data>
+<data name="HELP_BROADWORKS_CFNA_SETTINGS"><projects>j129</projects><value>设置“无应答时转接呼叫”后，如果拨入呼叫在特定振铃次数后未应答，呼叫会重定向至其他目的地。</value></data>
+<data name="HELP_XSI_AUTH"><projects>j129</projects><value>联系管理员以获取 Web 凭证</value></data>
+<data name="HELP_BROADSOFT_WEB_PORTAL_USER_ID"><projects>j129</projects><value>Broadsoft 网络端口用户 ID</value></data>
+<data name="HELP_BROADSOFT_WEB_ACCESS_PASSWORD"><projects>j129</projects><value>Broadsoft 网络访问密码与用户配置页中定义的相同</value></data>
+<data name="HELP_CALL_PARK"><projects>j129</projects><value>呼叫驻留是指将一个呼叫驻留在一个特定的位置（某分机），随后其他分机可提取该呼叫。</value></data>
+<data name="HELP_CALL_FORWARD_DELAY"><projects>j129</projects><value>指定未应答呼叫被转接之前的振铃数</value></data>
+<data name="HELP_PROVISIONING_URL_EXAMPLE"><projects>j129</projects><value>预配置 URL 示例:
+https://avaya.com:443/prov</value></data>
+<data name="HELP_HTTP_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>如果 HTTP 或 HTTPS 预配置服务器要求验证，请定义“用户名”和“密码”。</value></data>
+<data name="HELP_HTTP_SERVER_FIELD"><projects>j129</projects><value>定义 HTTP 预配置服务器 URL。示例: avaya.com:8080/prov。如果端口已排除，则将使用默认端口(80)。</value></data>
+<data name="HELP_HTTPS_SERVER_FIELD"><projects>j129</projects><value>定义 HTTPS 预配置服务器 URL。示例: avaya.com:449/prov。如果端口已排除，则将使用默认端口(443)。</value></data>
+<data name="HELP_SECURE_SYSLOG"><projects>j129</projects><value>定义是否应使用安全连接发送系统日志，或者是否应该以非安全方式发送系统日志。</value></data>
+<data name="HELP_SPACE_LOGOUT_PROMPT"><projects>j129</projects><value>要注销 Avaya Spaces，
+请按“注销”。</value></data>
+<data name="HELP_DOT1X_EAP_METHODS"><projects>j129</projects><value>定义在未禁用“请求方”时使用的 802.1X EAP 身份验证方法。</value></data>
+<data name="HELP_DOT1X_CREDENTIALS_USERNAME_PASSWORD"><projects>j129</projects><value>如果验证方法是 MD5 或 PEAP，就必须定义用户名和密码。</value></data>
+<data name="HELP_AADS_URL"><projects>j129</projects><value>定义 AADS URL。示例: https://example.com:443/acs/resources/configurations</value></data>
+
+
+<!--ERROR Strings-->
+
+<data name="ERR_LOGOLOAD"><projects>j129</projects><value>无法载入请求的徽标：</value></data>
+<data name="ERR_NOTFOUND"><projects>j129</projects><value>未找到请求的项目</value></data>
+<data name="ERR_BADRQMSG"><projects>j129</projects><value>错误请求</value></data>
+<data name="ERR_FAILUREAUTH"><projects>j129</projects><value>用户名或密码不正确</value></data>
+<data name="ERR_RDMERROR"><projects>j129</projects><value>服务器遇到错误</value></data>
+<data name="ERR_RDMINTFUNAV"><projects>j129</projects><value>服务器发生故障</value></data>
+<data name="ERR_RDBNOTSUP"><projects>j129</projects><value>请求的操作不受支持</value></data>
+<data name="ERR_REGFAILURE"><projects>j129</projects><value>登录失败。请再试一次。</value></data>
+<data name="ERR_INTERROR"><projects>j129</projects><value>内部错误</value></data>
+<data name="ERR_REGFAIL_FGNDMAIN"><projects>j129</projects><value>登录失败。SIP 域无效。</value></data>
+<data name="ERR_REGFAIL_USERNOTFOUND"><projects>j129</projects><value>登录失败。找不到用户。</value></data>
+<data name="MSG_BAGLOG"><projects>j129</projects><value>登录错误</value></data>
+<data name="ERR_REQNACPT"><projects>j129</projects><value>信令请求错误 (488)</value></data>
+<data name="ERR_USERUNAV"><projects>j129</projects><value>暂时不可用 (480)</value></data>
+<data name="ERR_REQTIMEDOUT"><projects>j129</projects><value>请求超时 (408)</value></data>
+<data name="ERR_FORBIDDEN"><projects>j129</projects><value>请求不被允许 (403)</value></data>
+<data name="ERR_REMBUSY"><projects>j129</projects><value>远程用户忙 (486)</value></data>
+<data name="ERR_GENERALFAIL"><projects>j129</projects><value>信令失败</value></data>
+<data name="ERR_CNTCTSEXISTS"><projects>j129</projects><value>联系人已存在</value></data>
+<data name="ERR_RDMINVDRESP"><projects>j129</projects><value>PPM 响应无效</value></data>
+<data name="ERR_RDMINTF_INITFAILED"><projects>j129</projects><value>PPM 接口初始化失败</value></data>
+<data name="ERR_RDMINVDATA_RECD"><projects>j129</projects><value>PPM 收到的数据无效</value></data>
+<data name="ERR_LOCAL"><projects>j129</projects><value>本地联系人已存在</value></data>
+<data name="ERR_INVALID_STATE"><projects>j129</projects><value>无效状态</value></data>
+<data name="ERR_REG_LIMIT_REACHED"><projects>j129</projects><value>用户已登录另一个分机。</value></data>
+<data name="ERR_INT_ERROR"><projects>j129</projects><value>内部错误</value></data>
+<data name="ERR_ASSIGN_IPV6_ADDR"><projects>j129</projects><value>IPv6 地址冲突</value></data>
+<data name="ERR_INVALID_IP"><projects>j129</projects><value>IP 地址无效</value></data>
+<data name="ERR_INVALID_PASS"><projects>j129</projects><value>密码无效</value></data>
+<data name="ERR_TOO_MANY_USERS_FOUND"><projects>j129</projects><value>找到的用户太多。请缩小搜索范围。</value></data>
+<data name="ERR_NO_CALL_TO_RETRIEVE"><projects>j129</projects><value>没有要恢复的呼叫。</value></data>
+<data name="ERR_LOCATION_NUMBER_ALREADY_EXIST"><projects>j129</projects><value>位置号码已存在</value></data>
+<data name="ERR_LOCATION_NUMBER_DOES_NOT_EXIST"><projects>j129</projects><value>位置号码不存在</value></data>
+<data name="ERR_INCORRECT_LENGTH_OF_PHONE_NUMBER"><projects>j129</projects><value>电话号码长度不正确</value></data>
+<data name="ERR_LOCATION_NUMBER_IS_GREATER"><projects>j129</projects><value>位置号码长度大于最大长度</value></data>
+<data name="ERR_INVALID_PHONE_NUMBER"><projects>j129</projects><value>电话号码无效</value></data>
+<data name="ERR_XSI_SERVER_ERROR"><projects>j129</projects><value>XSI 服务器错误：</value></data>
+<data name="ERR_XSI_SERVER_ERROR_2"><projects>j129</projects><value>XSI 服务器错误</value></data>
+<data name="ERR_NO_REMOTE_CALL"><projects>j129</projects><value>无远程呼叫</value></data>
+<data name="ERR_CALL_NOT_FOUND"><projects>j129</projects><value>找不到呼叫</value></data>
+<data name="ERR_CALL_PARK_AGAINST_ADDRESS_IS_NOT_VALID"><projects>j129</projects><value>号码不可用</value></data>
+<data name="ERR_CALL_PARK_AGAINST_USER_IS_THE_REMOTE_PARTY"><projects>j129</projects><value>无法驻留您正在通话的号码</value></data>
+<data name="ERR_CALL_ALREADY_PARKED_AGAINST_USER"><projects>j129</projects><value>此号码已有驻留呼叫</value></data>
+<data name="ERR_NO_AVAILABLE_CALL_PARK_GROUP_MEMBER"><projects>j129</projects><value>无空闲的呼叫驻留组成员</value></data>
+<data name="ERR_INVALID_DOMAIN_NAME"><projects>j129</projects><value>无效域名</value></data>
+<data name="ERR_INVALID_SIP_URI"><projects>j129</projects><value>无效 SIP URI</value></data>
+<data name="ERR_INVALID_SIP_URI_TWO_SYMBOLS"><projects>j129</projects><value>无效 SIP URI。 SIP URI 不可包含两个  @ 符号</value></data>
+<data name="ERR_INVALID_SIP_URI_USER_DOMAIN"><projects>j129</projects><value>无效 SIP URI</value></data>
+<data name="ERR_INVALID_FORMAT"><projects>j129</projects><value>无效格式</value></data>
+<data name="ERR_NUMBER_REQUIRED"><projects>j129</projects><value>需要电话号码以启用此服务</value></data>
+<data name="ERR_DUPLICATE_USER"><projects>j129</projects><value>复制指定用户以分配成员</value></data>
+<data name="ERR_NO_MOBILE_IDENTITY"><projects>j129</projects><value>该手机号码未与任何手机关联</value></data>
+<data name="ERR_MOBILE_NUMBER_NOT_ASSIGNED"><projects>j129</projects><value>该手机号码未分配给用户</value></data>
+<data name="ERR_BLOCKED_BY_SIM_CALL_POLICY"><projects>j129</projects><value>被最多同时呼叫数限制</value></data>
+<data name="ERR_CALL_ALREADY_ON_LOCATION"><projects>j129</projects><value>呼叫已分配到位置</value></data>
+<data name="ERR_CANNOT_PARK_PUSH_TO_TALK_CALL"><projects>j129</projects><value>无法驻留一键通话呼叫</value></data>
+<data name="ERR_SERVICE_NOT_ASSIGNED"><projects>j129</projects><value>服务未分配</value></data>
+<data name="ERR_YOUR_NUMBER_NOT_ALLOWED"><projects>j129</projects><value>确保不是您的号码、分机、SIP URI 或任何与您的身份关联的号码</value></data>
+<data name="ERR_SIMRING_LIMIT_LIST_LOCATIONS"><projects>j129</projects><value>无法添加多于十个的位置至同时呼叫号码列表</value></data>
+<data name="ERR_STATE_FOR_CALL_IS_NOT_VALID"><projects>j129</projects><value>呼叫状态无效</value></data>
+<data name="ERR_USER_IS_NOT_MEMBER_OF_PARK_GROUP"><projects>j129</projects><value>您并非呼叫驻留组的成员</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>未指定定向呼叫代答服务</value></data>
+<data name="ERR_DIRECTED_CALL_PICKUP_BARGEIN_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>未指定具有强插功能的定向呼叫代答服务</value></data>
+<data name="ERR_CALL_PARK_RETRIEVE_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>未指定呼叫驻留检索服务</value></data>
+<data name="ERR_CALL_PARK_SERVICE_IS_NOT_ASSIGNED"><projects>j129</projects><value>未配置呼叫驻留代码</value></data>
+<data name="ERR_REFRESH_PERSONAL_CONTACTS"><projects>j129</projects><value>无法刷新个人联系人。</value></data>
+
+
+<!--Startup Screens-->
+
+<data name="MSG_STARTG"><projects>j129</projects><value>正在启动</value></data>
+<data name="MSG_NOETH"><projects>j129</projects><value>无以太网.</value></data>
+<data name="MSG_NETBADIP"><projects>j129</projects><value>检测到错误 IP</value></data>
+<data name="MSG_BADRTR"><projects>j129</projects><value>错误路由器？</value></data>
+<data name="MSG_NETBADSUB"><projects>j129</projects><value>检测到错误子网</value></data>
+<data name="MSG_SUBCNF"><projects>j129</projects><value>子网冲突</value></data>
+<data name="MSG_ADCONF"><projects>j129</projects><value>地址冲突</value></data>
+<data name="MSG_IPV6_ADDRCONF"><projects>j129</projects><value>IPv6 地址冲突</value></data>
+<data name="MSG_IPV6LL_ADDRCONF"><projects>j129</projects><value>dupMAC=</value></data>
+<data name="MSG_DHCPADDRCONF"><projects>j129</projects><value>DHCP：冲突</value></data>
+<data name="MSG_MYCERTFAILURE"><projects>j129</projects><value>SCEP 证书 %ls 安装失败。</value></data>
+<data name="MSG_NOSIPSRVR"><projects>j129</projects><value>SIP 代理服务器列表为空</value></data>
+<data name="MSG_SHARED_CONTROL_ACTIVE"><projects>j129</projects><value>共享控件已激活</value></data>
+<data name="MSG_SHARED_CONTROL_INACTIVE"><projects>j129</projects><value>共享控件未激活</value></data>
+<data name="MSG_PROG_NEW_ROUTER"><projects>j129</projects><value>编程新路由器地址</value></data>
+<data name="MSG_UPDATING_SOFTWARE"><projects>j129</projects><value>正在更新软件...</value></data>
+<data name="MSG_UPDATE_SUCCESSFUL"><projects>j129</projects><value>软件更新成功</value></data>
+<data name="MSG_UPDATE_FAILED"><projects>j129</projects><value>软件更新失败</value></data>
+<data name="MSG_WIFI_SERVICE_FAILED"><projects>j129</projects><value>Wi-Fi 服务连接失败。</value></data>
+<data name="MSG_PRESS_NETWORKS_SWITCH_ETH"><projects>j129</projects><value>按“网络”切换至以太网。</value></data>
+<data name="MSG_PRESS_RESTART_ATTEMPT_WIFI"><projects>j129</projects><value>按“重新启动”再次尝试 Wi-Fi。</value></data>
+<data name="MSG_WIFI_NO_SSID"><projects>j129</projects><value>未选择 Wi-Fi 网络</value></data>
+<data name="MSG_WIFI_SELECT_NETWORK"><projects>j129</projects><value>按“网络”选择网络。</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATION_FAILED"><projects>j129</projects><value>验证失败</value></data>
+<data name="MSG_WIFI_CONNECTION_CERTIFICATE_ERROR"><projects>j129</projects><value>Wi-Fi 证书错误</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTING"><projects>j129</projects><value>正在连接</value></data>
+<data name="MSG_WIFI_CONNECTION_AUTHENTICATING"><projects>j129</projects><value>正在验证</value></data>
+<data name="MSG_WIFI_CONNECTION_CONNECTED"><projects>j129</projects><value>已连接</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTING"><projects>j129</projects><value>正在断开连接</value></data>
+<data name="MSG_ETHERNET_RESTORED"><projects>j129</projects><value>%ls。以太网已还原。</value></data>
+<data name="MSG_WIFI_CONNECTION_DISCONNECTED"><projects>j129</projects><value>已断开连接</value></data>
+<data name="MSG_WIFI_CONNECTION_FAILED"><projects>j129</projects><value>连接失败</value></data>
+<data name="MSG_NOCONTROLLER_BY_MODE"><projects>j129</projects><value>IPv%s SIP 代理服务器列表为空</value></data>
+<data name="MSG_PKCS12_DNLOAD_FAILURE"><projects>j129</projects><value>无法下载身份标识证书 %ls</value></data>
+<data name="MSG_PKCS12_REJECT_CERT"><projects>j129</projects><value>身份标识证书%ls被拒绝</value></data>
+<data name="MSG_SEARCH_FOR_CONFIG"><projects>j129</projects><value>正在搜索配置</value></data>
+
+
+<!--Progress Screen-->
+
+<data name="MSG_RSTART"><projects>j129</projects><value>正在重新启动...</value></data>
+
+
+<!--Feature Names-->
+
+<data name="auto-callback"><projects>j129</projects><value>自动回拨</value></data>
+<data name="auto-callback_short"><projects>j129</projects><value>自动回拨</value></data>
+<data name="call-forwarding-all"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="call-forwarding-all_short"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="call-forwarding-all_sbm"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="call-forwarding-busy-no-answer"><projects>j129</projects><value>占线/无应答时转接呼叫</value></data>
+<data name="call-forwarding-busy-no-answer_short"><projects>j129</projects><value>占线/无应答时转接呼叫</value></data>
+<data name="call-park"><projects>j129</projects><value>呼叫驻留</value></data>
+<data name="call-park-manual"><projects>j129</projects><value>呼叫驻留</value></data>
+<data name="group-call-park"><projects>j129</projects><value>组呼叫驻留</value></data>
+<data name="call-waiting"><projects>j129</projects><value>呼叫等待</value></data>
+<data name="calling-party-block"><projects>j129</projects><value>隐藏号码</value></data>
+<data name="call-unpark"><projects>j129</projects><value>呼叫提取</value></data>
+<data name="call-unpark_short"><projects>j129</projects><value>提取</value></data>
+<data name="broadworks-call-unpark"><projects>j129</projects><value>呼叫提取</value></data>
+<data name="broadworks-call-unpark_short"><projects>j129</projects><value>提取</value></data>
+<data name="mct"><projects>j129</projects><value>恶意呼叫跟踪激活</value></data>
+<data name="mct_short"><projects>j129</projects><value>恶意呼叫跟踪激活</value></data>
+<data name="off-pbx"><projects>j129</projects><value>EC500</value></data>
+<data name="sac"><projects>j129</projects><value>请勿打扰</value></data>
+<data name="sac_short"><projects>j129</projects><value>请勿打扰</value></data>
+<data name="transfer-to-voicemail"><projects>j129</projects><value>转接至留言</value></data>
+<data name="call-forwarding-all_half"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="auto-answer"><projects>j129</projects><value>自动应答</value></data>
+<data name="do-not-disturb"><projects>j129</projects><value>请勿打扰</value></data>
+<data name="do-not-disturb_short"><projects>j129</projects><value>DND-占线</value></data>
+<data name="call-fwd-busy"><projects>j129</projects><value>呼叫转接-占线</value></data>
+<data name="call-fwd-busy_half"><projects>j129</projects><value>呼叫转接-占线</value></data>
+<data name="call-fwd-busy_sbm"><projects>j129</projects><value>CFB</value></data>
+<data name="call-fwd-no-answer"><projects>j129</projects><value>呼叫转接-无应答</value></data>
+<data name="call-fwd-no-answer_half"><projects>j129</projects><value>CFNA</value></data>
+<data name="call-fwd-no-answer_sbm"><projects>j129</projects><value>CFNA</value></data>
+<data name="do-not-disturb_half"><projects>j129</projects><value>DND-占线</value></data>
+<data name="do-not-disturb_sbm"><projects>j129</projects><value>DND-占线</value></data>
+<data name="broadworks-call-forward-all"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="broadworks-call-forward-all_half"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="broadworks-call-forward-all_sbm"><projects>j129</projects><value>呼叫转接</value></data>
+<data name="broadworks-call-forward-busy"><projects>j129</projects><value>呼叫转接-占线</value></data>
+<data name="broadworks-call-forward-busy_half"><projects>j129</projects><value>呼叫转接-占线</value></data>
+<data name="broadworks-call-forward-busy_sbm"><projects>j129</projects><value>CFB</value></data>
+<data name="broadworks-call-forward-no-answer"><projects>j129</projects><value>呼叫转接-无应答</value></data>
+<data name="broadworks-call-forward-no-answer_half"><projects>j129</projects><value>CFNA</value></data>
+<data name="broadworks-call-forward-no-answer_sbm"><projects>j129</projects><value>CFNA</value></data>
+<data name="broadworks-do-not-disturb"><projects>j129</projects><value>请勿打扰</value></data>
+<data name="broadworks-do-not-disturb_half"><projects>j129</projects><value>请勿打扰</value></data>
+<data name="broadworks-do-not-disturb_sbm"><projects>j129</projects><value>请勿打扰</value></data>
+<data name="no-hold-conf"><projects>j129</projects><value>不保持会议</value></data>
+<data name="no-hold-conf_short"><projects>j129</projects><value>不保持会议</value></data>
+
+
+<!--Feature: Softkey Names-->
+
+<data name="softkey-call-park"><projects>j129</projects><value>驻留</value></data>
+<data name="softkey-call-unpark"><projects>j129</projects><value>提取</value></data>
+<data name="softkey-sac"><projects>j129</projects><value>呼叫全发</value></data>
+
+
+<!--Feature Attributes-->
+
+
+
+<!--Power Manager-->
+
+<data name="pm_Header"><projects>j129</projects><value>电源管理</value></data>
+<data name="pm_Header_Help"><projects>j129</projects><value>电源管理帮助</value></data>
+<data name="pm_Header1"><projects>j129</projects><value>移除设备以减少电力需求</value></data>
+<data name="pm_Header2"><projects>j129</projects><value>更改电源设置</value></data>
+<data name="pm_Header3"><projects>j129</projects><value>添加辅助电源或移除设备</value></data>
+<data name="pm_Screen_A"><projects>j129</projects><value>电力不足。请移除一台或多台设备以减少电力需求。</value></data>
+<data name="pm_Screen_B"><projects>j129</projects><value>对不起，电力仍然不足。请移除一台或多台设备以减少电力需求。</value></data>
+<data name="pm_Screen_C"><projects>j129</projects><value>电力不足。请安装辅助电源或移除一台或多台设备。</value></data>
+<data name="pm_Screen_D"><projects>j129</projects><value>对不起，电力仍然不足。请安装辅助电源或移除一台或多台设备。</value></data>
+<data name="pm_Screen_E"><projects>j129</projects><value>电力不足。请断开话机并更改话机背面的电源开关位，或者移除一台或多台设备。</value></data>
+<data name="pm_Screen_F"><projects>j129</projects><value>电力仍然不足。请断开话机并更改话机背面的电源开关位，或者移除一台或多台设备。</value></data>
+<data name="pm_Screen_G"><projects>j129</projects><value>在更改电源设置之前，您需要断开话机。</value></data>
+<data name="pm_Screen_H1"><projects>j129</projects><value>总电源负荷超出容量。您需要移除一台或多台设备以减少电力需求。</value></data>
+<data name="pm_Screen_H2"><projects>j129</projects><value>您当前的设置需要更多的电力。请安装辅助电源或移除设备。</value></data>
+<data name="pm_Screen_H3"><projects>j129</projects><value>为增加电力，请断开话机，并将话机背面的 IEEE 开关从 L 位拨到 H 位。或者移除设备。</value></data>
+
+
+<!--Strings that DON'T REQUIRE TRANSLATIONS-->
+
+<data name="optAdmin8021X"><projects>j129</projects><value>802.1X...</value></data>
+<data name="optAdminSiteSpecificOption"><projects>j129</projects><value></value></data>
+<data name="LBL_SSON"><projects>j129</projects><value></value></data>
+<data name="optAdminGroup"><projects>j129</projects><value>组...</value></data>
+<data name="optAdminLogging"><projects>j129</projects><value>日志...</value></data>
+<data name="optAdminNetworkAddresses"><projects>j129</projects><value>IP 配置...</value></data>
+<data name="optAdminEthernetIPv4"><projects>j129</projects><value></value></data>
+<data name="optAdminEthernetIPv6"><projects>j129</projects><value></value></data>
+<data name="optAdminNetworkServers"><projects>j129</projects><value>服务器...</value></data>
+<data name="optAdminNetworkVLAN"><projects>j129</projects><value>VLAN...</value></data>
+<data name="optAdminAutoProv"><projects>j129</projects><value>自动配置...</value></data>
+<data name="optAdminNetwork8021Q"><projects>j129</projects><value></value></data>
+<data name="optAdminPhoneReport"><projects>j129</projects><value>电话报告</value></data>
+<data name="optAdminSSHFingerprint"><projects>j129</projects><value>SSH 指纹...</value></data>
+<data name="optAdminView"><projects>j129</projects><value>查看...</value></data>
+<data name="optAdminInterfaces"><projects>j129</projects><value>网络接口...</value></data>
+<data name="optAdminWiFiIPv4"><projects>j129</projects><value>Wi-Fi IPv4</value></data>
+<data name="optAdminSIP"><projects>j129</projects><value></value></data>
+<data name="optAdminSIPGlbl"><projects>j129</projects><value>SIP 全局设置...</value></data>
+<data name="optAdminSIPProxy"><projects>j129</projects><value>SIP 代服器...</value></data>
+<data name="optAdminDebug"><projects>j129</projects><value>调试...</value></data>
+<data name="optAdminResetValues"><projects>j129</projects><value>重置为默认值...</value></data>
+<data name="optAdminRestart"><projects>j129</projects><value>重新启动电话...</value></data>
+<data name="optAdminLogout"><projects>j129</projects><value>注销...</value></data>
+<data name="optAdminWebServer"><projects>j129</projects><value>Web 服务器...</value></data>
+<data name="optAdminWebResetPasswd"><projects>j129</projects><value>重置 Web 密码...</value></data>
+<data name="LBL_ID"><projects>j129</projects><value></value></data>
+<data name="AS_PRIORITY"><projects>j129</projects><value>优先</value></data>
+<data name="AS_ICOM"><projects>j129</projects><value></value></data>
+<data name="MSG_FIPSRESTART"><projects>j129</projects><value>FIPS 模式已更改，重新启动...</value></data>
+<data name="MSG_PHONERESTART"><projects>j129</projects><value>将会导致重启</value></data>
+<data name="LBL_MBPS"><projects>j129</projects><value>Mbps</value></data>
+<data name="LBL_PLEASEWAIT"><projects>j129</projects><value>请稍候...</value></data>
+<data name="AS_CLEAR_SSH_LOCKOUT"><projects>j129</projects><value>清除 SSH 锁定</value></data>
+<data name="MSG_SSH_LOCKOUT_CLEAR"><projects>j129</projects><value>已清除 SSH 锁定</value></data>
+<data name="MSG_ACTIVATE_AUTO_CONFIG"><projects>j129</projects><value>激活自动配置？</value></data>
+<data name="MSG_STARTING_IN_N_S"><projects>j129</projects><value>在 %d 秒后开始</value></data>
+<data name="LBL_ACTIVATE"><projects>j129</projects><value>激活</value></data>
+<data name="MSG_REACTIVATION_DES"><projects>j129</projects><value>激活自动配置？</value></data>
+<data name="LBL_YEAR"><projects>j129</projects><value></value></data>
+<data name="LBL_SHORT_DAY"><projects>j129</projects><value></value></data>
+</root>

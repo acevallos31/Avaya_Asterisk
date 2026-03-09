@@ -1,0 +1,109 @@
+#!/usr/bin/php
+<?php
+/*
+  vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4:
+  Codificación: UTF-8
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2017 - Issabel Foundation                              |
+  +----------------------------------------------------------------------+
+  +----------------------------------------------------------------------+
+  | Autor: Nicolas Gudino  <asternic@gmail.com>                          |
+  +----------------------------------------------------------------------+
+*/
+
+if(!isset($argv[1])) {
+    exit(1);
+}
+
+switch($argv[1]){
+    case "check":
+        checklicense();
+    case "info":
+        infolicense();
+    case "register":
+        registerlicense($argv[2]);
+    case "get":
+        get();
+    default:
+        exit(1);
+    break;
+}
+
+function infolicense() {
+
+    exec("/usr/local/bin/issabel_register_license -info",$result,$status);
+    if($status == 0) {
+        $dale=0;
+        $addons='';
+        foreach($result as $value) {
+            if($dale==0 && preg_match("/invalid/i",$value)) { echo "fin"; exit(1);  }
+            if($dale==1) { if($value=='') { $dale=0;  } else { if(substr($value,0,5)<>'Addon') {$addons.=$value."\n"; } } }
+            if(preg_match("/^$/",$value)) {
+                $dale=1;
+            
+            } 
+        
+        }
+        print($addons);
+        exit(0);
+    
+    }
+    else {
+        exit(1);
+    
+    }
+
+}
+
+function get() {
+    exec("/usr/local/bin/issabel_register_license -gets",$result,$status);
+    if($status == 0) {
+        foreach($result as $value) {
+            echo "$value";
+        }
+    }
+    exit(0);
+}
+
+function checklicense() {
+
+    exec("/usr/local/bin/issabel_register_license -check",$result,$status);
+    if($status == 0) {
+        $dale=0;
+        $addons='';
+        foreach($result as $value) {
+            if($dale==0 && preg_match("/invalid/i",$value)) { echo "fin"; exit(1);  }
+            if($dale==1) { if($value=='') { $dale=0;  } else { if(substr($value,0,5)<>'Addon') {$addons.=$value."\n"; } } }
+            if(preg_match("/^$/",$value)) {
+                $dale=1;
+            
+            } 
+        
+        }
+        print($addons);
+        exit(0);
+    
+    }
+    else {
+        exit(1);
+    
+    }
+
+}
+
+function registerlicense($serial) {
+
+    exec("/usr/local/bin/issabel_register_license -serial ".escapeshellarg($serial),$result,$status);
+    print(implode("\n",$result));
+    if($status == 0){
+    exit(0);
+    
+    }
+    else {
+    exit(1);
+    
+    }
+
+}
+
+

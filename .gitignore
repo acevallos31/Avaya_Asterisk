@@ -1,0 +1,19 @@
+# Ignore heavy firmware/binaries from tftpboot
+/tftpboot/*.bin
+/tftpboot/*.tar
+/tftpboot/*.lzma
+/tftpboot/*.hex
+/tftpboot/*.pcm
+/tftpboot/*.xlsm
+/tftpboot/*.sbn
+/tftpboot/*.sb2
+/tftpboot/*.loads
+
+# Ignore runtime or cache artifacts
+**/__pycache__/
+*.pyc
+
+# Optional local exports/backups with sensitive data
+*data_*_clave.sql
+*schema_endpoint_asterisk.sql
+*reporte_endpoint_avaya.txt

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <menulist>
+    <menuitem menuid="security"        desc="Security"       parent=""             module="no"  link="" order="12"></menuitem>
+    <menuitem menuid="sec_firewall"    desc="Firewall"       parent="security"     module="no"  link="" order="1">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_rules"       desc="Firewall Rules" parent="sec_firewall" module="yes" link="" order="1">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_ports"       desc="Define Ports"   parent="sec_firewall" module="yes" link="" order="2">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_portknock_if" desc="Port Knocking Interfaces" parent="sec_firewall" module="yes" link="" order="10">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_portknock_users" desc="Port Knocking Users" parent="sec_firewall" module="yes" link="" order="11">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_whitelist"       desc="White List"   parent="sec_firewall" module="yes" link="" order="12">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_geoip_key"     desc="GeoIP KEY"     parent="sec_firewall" module="yes" link="" order="29">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_geoip_map"     desc="GeoIP Map"     parent="sec_firewall" module="yes" link="" order="30">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="fail2ban"         desc="Fail2Ban"         parent="security"             module="no"   link="" order="2">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_fb_admin"     desc="Admin"             parent="fail2ban"            module="yes"  link="" order="1">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_fb_banned"     desc="Banned IPs"       parent="fail2ban"            module="yes"  link="" order="2">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_accessaudit" desc="Audit"   parent="security"     module="yes" link="" order="3">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_weak_keys"   desc="Weak Keys"      parent="security"     module="yes" link="" order="4">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_advanced_settings"   desc="Advanced Settings"      parent="security"     module="yes" link="" order="5">
+        <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+    <menuitem menuid="sec_letsencrypt" desc="HTTPS Certificate (Let's Encrypt)" parent="security" module="yes"  link="" order="6">
+       <permissions>
+            <group id="1" name="administrator" desc="total access"></group>
+        </permissions>
+    </menuitem>
+  </menulist>
+</module>
