@@ -1,0 +1,10 @@
+Tables_in_endpointconfig
+configlog
+endpoint
+endpoint_account
+endpoint_account_properties
+endpoint_properties
+mac_prefix
+manufacturer
+model
+model_properties

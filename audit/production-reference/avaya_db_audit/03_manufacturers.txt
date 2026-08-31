@@ -1,0 +1,29 @@
+id	name	description
+1	Aastra	Aastra
+2	Atcom	IP Phone
+3	Atlinks	Atlinks
+4	AudioCodes	AudioCodes
+5	Cisco	Cisco
+6	Damall	Damall Technology Co
+7	Elastix	PaloSanto Solution
+8	Escene	Escene Communication
+9	Fanvil	Fanvil Technology Co.
+10	Grandstream	Grandstream
+11	LG-ERICSSON	LG-ERICSSON
+12	Linksys	Linksys/Sipura
+13	Pingtel	Generic
+14	Polycom	Polycom
+15	Siemens	Siemens
+16	Snom	Snom360
+17	Thomson	Generic
+18	Uniden	Generic
+19	VOPTech	VOPTech
+20	Xorcom	Xorcom
+21	Yealink	Yealink
+22	Zultys	Zultys Technologies
+23	Digium	Digium DPMA Phones
+24	RCA	RCA IP Phones
+25	Hanlong	Hanlong Technology
+26	CiscoSPA	CiscoSPA
+27	INCOM	INCOM
+28	Avaya	Avaya IP Phones

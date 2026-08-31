@@ -1,0 +1,6 @@
+id	id_manufacturer	mac_prefix	description
+115	28	C8:1F:EA	Avaya J129
+124	28	B4:A9:5A	Avaya 1603-I BLK
+125	28	2C:F4:C5	Avaya 1603-I BLK
+126	28	C8:1F:EA	Avaya 1603SW-I
+127	28	00:1B:4F	Avaya 1603SW-I BLK

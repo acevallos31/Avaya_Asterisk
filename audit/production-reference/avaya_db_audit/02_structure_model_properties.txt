@@ -1,0 +1,11 @@
+*************************** 1. row ***************************
+       Table: model_properties
+Create Table: CREATE TABLE `model_properties` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_model` int(10) unsigned NOT NULL,
+  `property_key` varchar(128) NOT NULL,
+  `property_value` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_model` (`id_model`),
+  CONSTRAINT `model_properties_ibfk_1` FOREIGN KEY (`id_model`) REFERENCES `model` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=547 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci

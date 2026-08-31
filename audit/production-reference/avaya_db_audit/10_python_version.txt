@@ -1,0 +1,1 @@
+/root/avaya_db_audit.sh: line 128: python: command not found

@@ -1,0 +1,15 @@
+*************************** 1. row ***************************
+       Table: model
+Create Table: CREATE TABLE `model` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_manufacturer` int(10) unsigned NOT NULL,
+  `name` varchar(128) NOT NULL,
+  `description` text NOT NULL DEFAULT '',
+  `max_accounts` int(10) unsigned NOT NULL DEFAULT 1,
+  `static_ip_supported` tinyint(1) NOT NULL DEFAULT 0,
+  `dynamic_ip_supported` tinyint(1) NOT NULL DEFAULT 1,
+  `static_prov_supported` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `id_manufacturer` (`id_manufacturer`),
+  CONSTRAINT `model_ibfk_1` FOREIGN KEY (`id_manufacturer`) REFERENCES `manufacturer` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=152 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci

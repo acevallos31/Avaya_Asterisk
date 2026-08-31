@@ -1,0 +1,12 @@
+*************************** 1. row ***************************
+       Table: devices
+Create Table: CREATE TABLE `devices` (
+  `id` varchar(20) NOT NULL,
+  `tech` varchar(10) NOT NULL,
+  `dial` varchar(50) NOT NULL,
+  `devicetype` varchar(5) NOT NULL,
+  `user` varchar(50) DEFAULT NULL,
+  `description` varchar(50) DEFAULT NULL,
+  `emergency_cid` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -1,0 +1,27 @@
+## Configuración Específica de Extensión SIP 4297 para Avaya J129 C8:1F:EA:C3:D5:8C
+## Última actualización: 2025-Mar-13 17:01:58
+
+###################################
+## Configuración de Servidor SIP ##
+###################################
+SET SIP_CONTROLLER_LIST "10.2.248.2:5060;transport=udp"
+SET SIPPROXYSRVR 10.2.248.2
+SET SIPPROXYSRVR_IN_USE 10.2.248.2
+SET SIPDOMAIN 10.2.248.2
+SET SIPPORT 5060
+SET ENABLE_PRESENCE 1
+
+############################################
+## Configuración de la Extensión SIP 4297 ##
+############################################
+SET DISPLAY_NAME "4297"
+SET SIP_USER_ID 4297
+SET SIP_USER_ACCOUNT 4297@10.2.248.2
+SET ENABLE_SIP_USER_ID 1
+SET SCREEN_NAME_ORDER 1
+
+SET  FORCE_SIP_USERNAME "4297"
+SET  FORCE_SIP_PASSWORD "XXXXXXXX"
+SET  FORCE_SIP_EXTENSION "4297"
+## Cargar archivo de configuración por MAC (si se usa TFTP o HTTP para provisión)
+## Agencia La Mundial

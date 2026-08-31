@@ -1,0 +1,11 @@
+*************************** 1. row ***************************
+       Table: mac_prefix
+Create Table: CREATE TABLE `mac_prefix` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_manufacturer` int(10) unsigned NOT NULL,
+  `mac_prefix` char(8) NOT NULL,
+  `description` text NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `id_manufacturer` (`id_manufacturer`),
+  CONSTRAINT `mac_prefix_ibfk_1` FOREIGN KEY (`id_manufacturer`) REFERENCES `manufacturer` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci

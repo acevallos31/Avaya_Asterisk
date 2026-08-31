@@ -1,0 +1,9 @@
+*************************** 1. row ***************************
+       Table: sip
+Create Table: CREATE TABLE `sip` (
+  `id` varchar(20) NOT NULL,
+  `keyword` varchar(30) NOT NULL,
+  `data` varchar(255) NOT NULL,
+  `flags` int(11) NOT NULL,
+  PRIMARY KEY (`id`,`keyword`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

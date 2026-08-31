@@ -1,0 +1,15 @@
+/var/www/html/modules/endpoint_configurator/themes/default/css/endpointconfig.css
+/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl
+/var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php
+/var/www/html/modules/endpoint_configurator/libs/EndpointFile_Nested.class.php
+/var/www/html/modules/endpoint_configurator/libs/paloEndpointConfigStatus.class.php
+/var/www/html/modules/endpoint_configurator/libs/EndpointFile_Xml.class.php
+/var/www/html/modules/endpoint_configurator/libs/EndpointFile_Legacy.class.php
+/var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php
+/var/www/html/modules/endpoint_configurator/phonesrv/vendor/Avaya.class.php
+/var/www/html/modules/endpoint_configurator/phonesrv/tpl/Avaya_1603.tpl
+/var/www/html/modules/endpoint_configurator/phonesrv/tpl/Avaya_global_SIP.tpl
+/var/www/html/modules/endpoint_configurator/phonesrv/tpl/Avaya_J129.tpl
+/var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php
+/var/www/html/modules/endpoint_configurator/images/pbx_endpoint_configurator.png
+/var/www/html/modules/endpoint_configurator/images/endpointconfig_header_row_bg.png

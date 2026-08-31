@@ -1,0 +1,4 @@
+id	id_manufacturer	name	description	max_accounts	static_ip_supported	dynamic_ip_supported	static_prov_supported
+147	28	J129	Avaya J129 SIP Phone	2	1	1	1
+148	28	1603-I	Avaya 1603-I IP Phone	1	0	1	0
+149	28	1603SW-I	Avaya 1603SW-I IP Phone	1	0	1	0

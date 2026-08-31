@@ -1,0 +1,12 @@
+*************************** 1. row ***************************
+       Table: endpoint_account
+Create Table: CREATE TABLE `endpoint_account` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_endpoint` int(10) unsigned NOT NULL,
+  `tech` varchar(10) NOT NULL,
+  `account` varchar(50) NOT NULL,
+  `priority` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_endpoint` (`id_endpoint`),
+  CONSTRAINT `endpoint_account_ibfk_1` FOREIGN KEY (`id_endpoint`) REFERENCES `endpoint` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci

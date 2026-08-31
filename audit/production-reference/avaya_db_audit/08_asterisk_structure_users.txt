@@ -1,0 +1,21 @@
+*************************** 1. row ***************************
+       Table: users
+Create Table: CREATE TABLE `users` (
+  `extension` varchar(20) NOT NULL,
+  `password` varchar(20) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `voicemail` varchar(50) DEFAULT NULL,
+  `ringtimer` int(11) DEFAULT NULL,
+  `noanswer` varchar(100) DEFAULT NULL,
+  `recording` varchar(50) DEFAULT NULL,
+  `outboundcid` varchar(50) DEFAULT NULL,
+  `sipname` varchar(50) DEFAULT NULL,
+  `mohclass` varchar(80) DEFAULT NULL,
+  `noanswer_cid` varchar(20) DEFAULT NULL,
+  `busy_cid` varchar(20) DEFAULT NULL,
+  `chanunavail_cid` varchar(20) DEFAULT NULL,
+  `noanswer_dest` varchar(255) DEFAULT NULL,
+  `busy_dest` varchar(255) DEFAULT NULL,
+  `chanunavail_dest` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`extension`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -1,0 +1,5 @@
+/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+/usr/share/issabel/endpoint-classes/class/issabel/vendor/__pycache__/Avaya.cpython-36.pyc
+/usr/share/issabel/endpoint-classes/tpl/Avaya_1603.tpl
+/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
+/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl

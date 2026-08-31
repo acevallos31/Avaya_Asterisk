@@ -1,0 +1,1 @@
+Asterisk 18.19.0 built by root @ rocky8 on a x86_64 running Linux on 2023-09-27 19:30:28 UTC
