@@ -126,14 +126,63 @@ Consolidar el contexto técnico compartido del proyecto, establecer reglas para 
 
 ---
 
+## 2026-08-31 12:55 -06:00 — OpenAI-GPT-5.6-Sol
+
+**Objetivo:**
+Crear el contrato golden del Avaya J129 antes de tocar la lógica funcional.
+
+**Rama:** `Audit`
+
+**Base revisada:**
+- `Audit` en `5cbb82c7a28f4f348563bc9be419a40792a4f400`.
+- Comportamiento histórico de `Avaya.py` y templates presentes en la rama.
+
+**Archivos leídos:**
+- `tests/audit/support.py`
+- `tests/audit/test_architecture.py`
+- `usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py`
+- `usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl`
+- `usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl`
+
+**Archivos modificados:**
+- `tests/audit/test_j129_golden.py`
+- `docs/agent-log.md`
+
+**Decisiones:**
+- Separar pruebas de caracterización de producción de contratos objetivo.
+- Las pruebas de caracterización protegen `GET $MACADDR.txt`, `FORCE_SIP_USERNAME`, `FORCE_SIP_PASSWORD`, `FORCE_SIP_EXTENSION` y normalización de MAC.
+- Los contratos objetivo exigen que `Avaya_J129.tpl` consuma objetos `Extension` de Issabel mediante `sip`, genere sintaxis Avaya `SET`, y que las credenciales individuales no permanezcan en el template global.
+- El vendor objetivo deberá utilizar `_prepareVarList()` y `_writeTemplate()`.
+- El fixture golden utiliza exclusivamente datos ficticios: MAC `C8:1F:EA:AA:BB:CC`, PBX `192.0.2.10`, teléfono `192.0.2.100`, extensión `4200` y secret `TEST-SIP-SECRET-NOT-REAL`.
+
+**Pruebas/evidencia:**
+- `PRODUCTION-REFERENCE` — los contratos de caracterización están basados en comportamiento presente en la implementación histórica funcional.
+- `NOT-TESTED` — no se ejecutó la suite desde un runner en esta sesión.
+- `NOT-TESTED` — varios contratos objetivo están diseñados para fallar antes del refactor; esto es intencional y debe quedar visible hasta implementar la arquitectura objetivo.
+
+**Riesgos / no comprobado:**
+- Todavía no se ha comprobado byte por byte el archivo generado contra un J129 físico en laboratorio.
+- Aún debemos verificar con el firmware real si comillas y parámetros adicionales del archivo MAC deben conservarse exactamente.
+- No se ha modificado `Avaya.py`, templates ni core en este paso.
+
+**Siguiente paso recomendado:**
+- Configurar el self-hosted runner read-only de la PBX de laboratorio.
+- Ejecutar la suite y registrar qué contratos pasan y cuáles fallan actualmente.
+- Después iniciar el refactor con el core stock y el vendor Avaya aislado.
+
+**Commit(s):**
+- `43a291bfb98f97ad37b779f2438ca9d257ee7f18 test(j129): add golden provisioning contracts`
+
+---
+
 ## Handoff actual
 
 El próximo agente debe:
 
 1. leer `AGENTS.md`;
-2. leer esta entrada;
-3. revisar `tests/audit/`;
-4. revisar el diff `main` vs upstream solamente en los componentes relevantes al J129;
-5. no modificar todavía producción;
-6. crear primero el golden contract del archivo J129 por MAC;
+2. leer esta bitácora;
+3. ejecutar `tests/audit/` y no interpretar los contratos objetivo rojos como una regresión accidental;
+4. mantener el alcance limitado a J129;
+5. no modificar producción;
+6. configurar primero el runner de laboratorio en modo read-only;
 7. registrar aquí cualquier nueva conclusión o cambio.
