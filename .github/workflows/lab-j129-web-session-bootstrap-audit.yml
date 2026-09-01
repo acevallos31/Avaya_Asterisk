@@ -1,0 +1,26 @@
+name: Issabel Lab J129 Web Session Bootstrap Audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit-session-bootstrap:
+    name: Auditar bootstrap de sesion web del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Ejecutar auditoria read-only del bootstrap de sesion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_web_session_bootstrap_audit.py
