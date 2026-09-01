@@ -3,30 +3,31 @@ import unittest
 from tests.audit.support import RepositoryTextSource
 
 
-AVAYA = "usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py"
-J129_TEMPLATE = "usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl"
-GLOBAL_TEMPLATE = "usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl"
+DEPLOY_ROOT = "deploy/j129"
+AVAYA = DEPLOY_ROOT + "/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py"
+J129_TEMPLATE = DEPLOY_ROOT + "/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl"
+GLOBAL_TEMPLATE = DEPLOY_ROOT + "/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl"
 REFERENCE_AVAYA = (
     "audit/production-reference/avaya_files_audit/files/usr/share/issabel/"
     "endpoint-classes/class/issabel/vendor/Avaya.py"
 )
+REFERENCE_GLOBAL = (
+    "audit/production-reference/avaya_files_audit/files/usr/share/issabel/"
+    "endpoint-classes/tpl/Avaya_global_SIP.tpl"
+)
 
 
 class J129ProductionReferenceTests(unittest.TestCase):
-    """Protege el comportamiento J129 observado en la implementación histórica.
-
-    La referencia de producción es inmutable para estas pruebas: el código objetivo
-    puede refactorizarse sin borrar la evidencia de cómo se aprovisionaban los J129.
-    """
+    """Protege el comportamiento J129 observado en la implementación histórica."""
 
     @classmethod
     def setUpClass(cls):
         repo = RepositoryTextSource()
         cls.reference_vendor = repo.read(REFERENCE_AVAYA)
-        cls.global_template = repo.read(GLOBAL_TEMPLATE)
+        cls.reference_global = repo.read(REFERENCE_GLOBAL)
 
     def test_reference_uses_mac_specific_settings_file(self):
-        self.assertIn("GET $MACADDR.txt", self.global_template)
+        self.assertIn("GET $MACADDR.txt", self.reference_global)
 
     def test_reference_contains_j129_forced_sip_credentials(self):
         for parameter in (
@@ -42,7 +43,7 @@ class J129ProductionReferenceTests(unittest.TestCase):
 
 
 class J129TargetGoldenContractTests(unittest.TestCase):
-    """Contrato objetivo para el refactor J129 nativo de Issabel."""
+    """Contrato objetivo para el overlay J129 nativo de Issabel."""
 
     @classmethod
     def setUpClass(cls):
