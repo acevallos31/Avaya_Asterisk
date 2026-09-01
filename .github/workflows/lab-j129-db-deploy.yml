@@ -30,6 +30,14 @@ jobs:
           echo "Runner: $(id -un)@$(hostname)"
           test "$(id -un)" = "github-runner"
 
+      - name: Sincronizar helper privilegiado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+
       - name: Verificar helper instalado
         shell: bash
         run: |
