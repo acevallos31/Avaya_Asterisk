@@ -1,0 +1,89 @@
+name: Issabel Lab J129 Apply Config
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply-config:
+    name: Aplicar configuracion real de Endpoint Configurator en LAB
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Verificar core Issabel antes del Apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' \
+            '2aca894449425f4666a851e6810eb8a51309544d18f3f6fbc563c697cbfe6e32' \
+            '/usr/bin/issabel-endpointconfig' | sha256sum -c -
+          printf '%s  %s\n' \
+            'bf6aefdcca992c02a1981e2b7b4f1829bc87fb01e0efea1ba7b87130ed487814' \
+            '/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py' | sha256sum -c -
+          printf '%s  %s\n' \
+            '2c726d57557aa6fcfcb7a737ec945bd9f6b1dda431c8504c5fc2c57cbb09de3c' \
+            '/usr/share/issabel/endpoint-classes/class/issabel/Extension.py' | sha256sum -c -
+
+      - name: Capturar estado previo de provisioning
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== PRE-APPLY ==='
+          if [ -f /tftpboot/46xxsettings.txt ]; then
+            stat -c '46xxsettings bytes=%s mtime=%y owner=%U group=%G mode=%a' /tftpboot/46xxsettings.txt
+            sha256sum /tftpboot/46xxsettings.txt
+          else
+            echo '46xxsettings AUSENTE'
+          fi
+          if [ -f /tftpboot/c81fea9b650d.txt ]; then
+            echo 'mac-file=presente'
+          else
+            echo 'mac-file=ausente'
+          fi
+
+      - name: Ejecutar Apply real de Endpoint Configurator
+        shell: bash
+        run: |
+          set -euo pipefail
+          progress="$(mktemp /tmp/j129-apply-progress.XXXXXX)"
+          trap 'rm -f "$progress"' EXIT
+          echo 'Ejecutando /usr/bin/issabel-endpointconfig --applyconfig'
+          /usr/bin/issabel-endpointconfig --applyconfig --progressfile "$progress"
+          echo 'APPLY-CONFIG-COMMAND-PASS'
+          echo '=== PROGRESS (sin secretos) ==='
+          sed -E 's/(secret|password|passwd|pwd)[^[:space:]]*/\1=[REDACTED]/Ig' "$progress" | tail -n 120 || true
+
+      - name: Validar resultado J129
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tftpboot/46xxsettings.txt
+          echo '=== POST-APPLY ==='
+          stat -c '46xxsettings bytes=%s mtime=%y owner=%U group=%G mode=%a' /tftpboot/46xxsettings.txt
+          sha256sum /tftpboot/46xxsettings.txt
+
+          count="$(grep -Ec '^[[:space:]]*SET[[:space:]]+ENABLE_OOD_RESET_NOTIFY[[:space:]]+1([[:space:]]|$)' /tftpboot/46xxsettings.txt || true)"
+          echo "ENABLE_OOD_RESET_NOTIFY_1-count=$count"
+          test "$count" = "1"
+
+          if [ -f /tftpboot/c81fea9b650d.txt ]; then
+            echo 'mac-file=presente'
+          else
+            echo 'mac-file=ausente'
+          fi
+
+          echo 'J129-APPLY-CONFIG-PASS'
