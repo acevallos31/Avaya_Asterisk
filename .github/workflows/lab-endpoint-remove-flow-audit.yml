@@ -1,0 +1,53 @@
+name: Issabel Lab Endpoint Remove Flow Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar flujo estándar de eliminación de endpoints
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Inspeccionar paquete Endpoint Configurator en solo lectura
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== PAQUETE ==='
+          rpm -q issabel-endpointconfig2 || true
+
+          echo '=== ARCHIVOS CANDIDATOS ==='
+          rpm -ql issabel-endpointconfig2 2>/dev/null | grep -Ei 'endpoint|config|index|ajax|class|php|py' | head -n 200 || true
+
+          echo '=== MENSAJE DE CONFIRMACION / REMOVE TRACKING ==='
+          grep -RniE --exclude='*.min.js' --exclude='*.map' \
+            'remove tracking|remove configuration|configuration files|selected endpoints|no accounts will be removed' \
+            /var/www/html/modules/endpoint_configurator /usr/share/issabel 2>/dev/null | head -n 120 || true
+
+          echo '=== HANDLERS DE BORRADO ==='
+          grep -RniE --exclude='*.min.js' --exclude='*.map' \
+            'eraseConfig|removeConfig|deleteConfig|unconfigure|removeEndpoint|deleteEndpoint|remove.*endpoint|delete.*endpoint' \
+            /var/www/html/modules/endpoint_configurator /usr/share/issabel/endpoint-classes /usr/bin/issabel-endpointconfig 2>/dev/null | head -n 200 || true
+
+          echo '=== BASEENDPOINT METODOS RELEVANTES ==='
+          grep -nE 'def .*([Ee]rase|[Rr]emove|[Dd]elete|[Uu]nconfig|[Cc]onfig)|_setConfigured|_writeTemplate' \
+            /usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py 2>/dev/null || true
+
+          echo 'ENDPOINT-REMOVE-FLOW-AUDIT-PASS'
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'ENDPOINT-REMOVE-FLOW-WORKFLOW-PASS'
