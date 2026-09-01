@@ -1,0 +1,28 @@
+name: Issabel Lab J129 Current Settings Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-current-settings:
+    name: Auditar settings activos del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Ejecutar auditoria read-only de settings activos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_current_settings_audit.py
