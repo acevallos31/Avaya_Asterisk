@@ -1,0 +1,14 @@
+name: Issabel Lab J129 Core Apply Flow Audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  visibility-only:
+    name: Workflow disponible en Actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instruccion
+        run: |
+          echo 'Ejecutar este workflow seleccionando la rama Audit.'
+          echo 'La rama Audit contiene la auditoria read-only contra el PBX LAB.'
