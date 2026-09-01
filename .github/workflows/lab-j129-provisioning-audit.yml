@@ -1,0 +1,43 @@
+name: Issabel Lab J129 Provisioning Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provisioning-audit:
+    name: Auditoría de provisioning Avaya J129 en LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Sincronizar helper privilegiado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+
+      - name: Auditar provisioning sin exponer secretos
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-provisioning
+
+      - name: Resultado
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'J129-PROVISIONING-WORKFLOW-PASS'
