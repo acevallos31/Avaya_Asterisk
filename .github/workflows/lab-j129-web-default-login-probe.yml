@@ -1,0 +1,35 @@
+name: Issabel Lab J129 Web Default Login Probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Probar un unico login web inicial del J129
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Ejecutar un unico intento de login sin modificar el telefono
+        shell: bash
+        env:
+          J129_WEB_USER: admin
+          J129_WEB_PASSWORD: '27238'
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${J129_WEB_PASSWORD}"
+          python3 tests/lab/j129_web_default_login_probe.py
