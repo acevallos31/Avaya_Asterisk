@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -eq 0 ] || { echo 'ERROR: esta auditoría no acepta argumentos' >&2; exit 2; }
+[ "$(id -u)" -eq 0 ] || { echo 'ERROR: debe ejecutarse como root' >&2; exit 1; }
+
+PHONE_IP='192.168.1.171'
+MAC_FILE='/tftpboot/c81fea9b650d.txt'
+
+echo '=== J129 BOOT / PROVISIONING AUDIT (SOLO LECTURA) ==='
+echo "Host: $(hostname)"
+
+echo '=== RED ==='
+ip neigh show "$PHONE_IP" 2>/dev/null || true
+ping -c 2 -W 1 "$PHONE_IP" 2>/dev/null | tail -n 2 || true
+
+echo '=== HTTP/HTTPS: SOLICITUDES DEL J129 ==='
+http_logs=0
+for log in /var/log/httpd/access_log /var/log/httpd/ssl_access_log /var/log/httpd/*access*.log; do
+  [ -r "$log" ] || continue
+  http_logs=1
+  echo "--- $log ---"
+  grep -F "$PHONE_IP" "$log" 2>/dev/null | tail -n 100 | sed -E 's/(password|secret)(=|%3[Dd])?[^ &\"]*/\1=***OCULTO***/Ig' || true
+done
+[ "$http_logs" -eq 1 ] || echo 'No hay access logs HTTP legibles.'
+
+echo '=== TFTP: ACTIVIDAD RECIENTE ==='
+tftp_logs=0
+for log in /var/log/messages /var/log/syslog; do
+  [ -r "$log" ] || continue
+  tftp_logs=1
+  echo "--- $log ---"
+  grep -Ei 'tftp|in\.tftpd|tftpd' "$log" 2>/dev/null | tail -n 100 || true
+done
+[ "$tftp_logs" -eq 1 ] || echo 'No hay logs TFTP legibles.'
+
+echo '=== ARCHIVOS ESPERADOS ==='
+for file in /tftpboot/46xxsettings.txt "$MAC_FILE" /tftpboot/J100Supgrade.txt; do
+  if [ -f "$file" ]; then
+    stat -c '%n PRESENTE size=%s mtime=%y' "$file"
+  else
+    echo "$file AUSENTE"
+  fi
+done
+
+echo '=== ASTERISK SIP 200 (SIN SECRETOS) ==='
+if command -v asterisk >/dev/null 2>&1; then
+  asterisk -rx 'sip show peer 200' 2>/dev/null \
+    | grep -Ei '^[[:space:]]*(Name|Addr->IP|Status|Reg\. Contact|Useragent|SIP Options)[[:space:]]*:' \
+    || true
+  echo '--- PEERS COINCIDENTES ---'
+  asterisk -rx 'sip show peers' 2>/dev/null | awk '$1 ~ /^200(\/|$)/ {print}' || true
+else
+  echo 'Asterisk CLI no disponible.'
+fi
+
+echo 'J129-BOOT-AUDIT-PASS'
