@@ -1,0 +1,46 @@
+name: Issabel Lab J129 Dry-Run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  j129-dryrun:
+    name: Dry-run J129 en PBX LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Confirmar ejecución sin privilegios
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          if sudo -n true 2>/dev/null; then
+            echo "ERROR: el runner tiene sudo sin contraseña"
+            exit 1
+          fi
+          echo "SECURITY-PASS: sin sudo no interactivo"
+
+      - name: Verificar Python y Tempita de Issabel
+        run: |
+          set -euo pipefail
+          python3 --version
+          python3 -c 'import tempita; print("TEMPITA-PASS")'
+
+      - name: Ejecutar dry-run J129
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_dryrun.py
+
+      - name: Confirmar que el dry-run no creó archivos Avaya en TFTP
+        run: |
+          set -euo pipefail
+          if find /tftpboot -maxdepth 1 -type f \( -iname '46xxsettings.txt' -o -iname 'c81feaaabbcc.txt' \) -print 2>/dev/null | grep -q .; then
+            echo "ERROR: el dry-run modificó /tftpboot"
+            exit 1
+          fi
+          echo "TFTP-NO-WRITE-PASS"
