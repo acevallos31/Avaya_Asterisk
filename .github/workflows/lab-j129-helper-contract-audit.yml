@@ -1,0 +1,48 @@
+name: Issabel Lab J129 Helper Contract Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-helper:
+    name: Auditar contrato de helpers privilegiados J129
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Auditar sudoers y estructura de helpers sin secretos
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== SUDO PERMITIDO (filtrado) ==='
+          sudo -n -l 2>&1 | grep -E 'avaya-j129|issabel-endpointconfig' || true
+
+          for helper in /usr/local/sbin/avaya-j129-lab-deploy /usr/local/sbin/avaya-j129-helper-sync; do
+            echo "=== HELPER: $helper ==="
+            test -e "$helper"
+            stat -c 'owner=%U group=%G mode=%a bytes=%s' "$helper"
+            echo '-- comandos/case/usage --'
+            grep -nE '(^|[[:space:]])(case|usage|Usage|USAGE|install|rollback|inspect|sync|apply|clear|[a-z0-9_-]+\))' "$helper" \
+              | sed -E 's/(pass(word)?|secret|token|pwd)[^[:space:]]*/\1=[REDACTED]/Ig' \
+              | head -n 240 || true
+            echo '-- referencias de rutas --'
+            grep -nE '/usr/bin/issabel-endpointconfig|/etc/amportal\.conf|GITHUB_WORKSPACE|deploy/j129|/usr/local/sbin' "$helper" \
+              | sed -E 's/(pass(word)?|secret|token|pwd)[^[:space:]]*/\1=[REDACTED]/Ig' \
+              | head -n 160 || true
+          done
+
+          echo 'J129-HELPER-CONTRACT-AUDIT-PASS'
