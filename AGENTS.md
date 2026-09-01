@@ -45,7 +45,8 @@ Flujo esperado:
 ```text
 J129 boot
   -> servidor de provisioning
-  -> archivo/settings global
+  -> J100Supgrade.txt
+  -> 46xxsettings.txt
   -> GET $MACADDR.txt
   -> <mac>.txt
   -> credenciales/configuración SIP
@@ -225,9 +226,9 @@ python -m unittest discover -s tests -p "test_*.py" -v
 
 ### Nivel 2 — PBX laboratorio read-only
 
-Futuro self-hosted GitHub Actions runner en una PBX Issabel de laboratorio sobre Proxmox.
+Self-hosted GitHub Actions runner en PBX Issabel de laboratorio sobre Proxmox.
 
-Permitirá auditar:
+Permite auditar:
 
 - versiones;
 - `rpm -V`;
@@ -273,11 +274,12 @@ Antes de trabajar:
 
 1. Leer `AGENTS.md` completo.
 2. Leer `docs/agent-log.md`.
-3. Revisar los commits recientes de la rama de trabajo.
-4. Revisar tests existentes.
-5. Identificarse en el registro de agentes.
-6. No asumir que `main` es arquitectura correcta solo porque funciona.
-7. Comparar con upstream cuando se toque comportamiento de Issabel.
+3. Leer `docs/j129-lab-validation.md` para el estado físico/laboratorio más reciente.
+4. Revisar los commits recientes de la rama de trabajo.
+5. Revisar tests existentes.
+6. Identificarse en el registro de agentes.
+7. No asumir que `main` es arquitectura correcta solo porque funciona.
+8. Comparar con upstream cuando se toque comportamiento de Issabel.
 
 Después de trabajar:
 
@@ -286,7 +288,8 @@ Después de trabajar:
 3. registrar qué no se pudo comprobar;
 4. registrar riesgos y próximos pasos;
 5. incluir identificador del agente/modelo en el commit;
-6. actualizar `docs/agent-log.md` en el mismo commit o inmediatamente después.
+6. actualizar `docs/agent-log.md` en el mismo commit o inmediatamente después;
+7. actualizar `docs/j129-lab-validation.md` si cambió evidencia física, lifecycle o provisioning.
 
 ## 13. Convención de identidad de agentes
 
@@ -321,17 +324,6 @@ Tests: <comandos/resultados>
 Audit: docs/agent-log.md
 ```
 
-Ejemplo:
-
-```text
-test(j129): add golden provisioning contract
-
-Agent: OpenAI-GPT-5.6-Sol
-Task: Protect J129 per-MAC provisioning behavior before refactor.
-Tests: python -m unittest discover -s tests -p "test_*.py" -v
-Audit: docs/agent-log.md
-```
-
 Tipos sugeridos: `docs`, `test`, `refactor`, `fix`, `feat`, `chore`, `security`.
 
 Un commit debe representar una intención coherente. Evitar mezclar refactor, feature y cambios de infraestructura sin necesidad.
@@ -349,7 +341,7 @@ Usar estados explícitos:
 - `PRODUCTION-REFERENCE`
 - `NOT-TESTED`
 
-La evidencia debe quedar en commits, Actions o `docs/agent-log.md`.
+La evidencia debe quedar en commits, Actions, `docs/agent-log.md` o `docs/j129-lab-validation.md`.
 
 ## 16. Qué NO hacer
 
@@ -362,6 +354,7 @@ La evidencia debe quedar en commits, Actions o `docs/agent-log.md`.
 - No registrar SIP secret en logs.
 - No afirmar compatibilidad con otros modelos Avaya basándose en J129.
 - No eliminar comportamiento funcional de `main` sin un test que explique qué se reemplaza.
+- No interpretar `Registered at` de Endpoint Configurator como fuente autoritativa de registro SIP sin contrastar Asterisk.
 
 ## 17. Definición de terminado para J129
 
@@ -378,17 +371,60 @@ La primera versión refactorizada estará lista para candidata de producción cu
 9. integración en PBX de laboratorio pase;
 10. un J129 físico registre y realice llamadas de prueba;
 11. no existan secretos expuestos en logs/argv/repositorio;
-12. exista procedimiento de rollback.
+12. exista procedimiento de rollback;
+13. lifecycle de cambio/eliminación de cuentas y endpoint quede validado;
+14. soporte real de dos cuentas quede validado o documentado explícitamente como limitación.
 
 ## 18. Fuente de verdad
 
 En caso de contradicción, usar este orden:
 
 1. comportamiento comprobado con J129 físico y evidencia reproducible;
-2. documentación oficial Avaya aplicable al firmware/modelo;
-3. código upstream oficial de Issabel;
-4. tests del proyecto;
-5. implementación histórica de `main`;
-6. suposiciones/comentarios antiguos.
+2. Asterisk para estado real de registro SIP (`cuenta + IP + estado`);
+3. documentación oficial Avaya aplicable al firmware/modelo;
+4. código upstream oficial de Issabel;
+5. tests del proyecto;
+6. implementación histórica de `main`;
+7. suposiciones/comentarios antiguos.
 
 Toda discrepancia importante debe documentarse antes de decidir.
+
+## 19. Estado validado del laboratorio — 2026-09-01
+
+El refactor J129 ya superó varias etapas que antes figuraban como pendientes:
+
+- `PHYSICAL-J129-PASS` — detección automática por OUI como Manufacturer `Avaya` y Model `J129`.
+- `LAB-INTEGRATION-PASS` — metadata Avaya/J129 instalada de forma controlada en `endpointconfig`.
+- `LAB-INTEGRATION-PASS` — Accounts estándar de Issabel asigna la extensión sin UI SIP paralela.
+- `PHYSICAL-J129-PASS` — Apply estándar genera provisioning global y archivo por MAC.
+- `PHYSICAL-J129-PASS` — el teléfono descarga por HTTP `J100Supgrade.txt -> 46xxsettings.txt -> <mac>.txt` con HTTP 200.
+- `PHYSICAL-J129-PASS` — J129 registra correctamente en Asterisk mediante `chan_sip`.
+- `PHYSICAL-J129-PASS` — ciclo `Remove -> Rescan -> Reassign -> Apply -> Reboot -> Auto-provision -> Register` validado.
+- `PHYSICAL-J129-PASS` — cambio de extensión validado: guardar Accounts cambia DB, Apply regenera provisioning y el cambio se materializa en el teléfono después del reboot.
+
+### Incidencia conocida: BUG-EC-001
+
+Endpoint Configurator puede mostrar `Registered at: <IP>` para una cuenta SIP antigua que conserva el mismo host/IP pero cuyo peer está `UNREACHABLE`, mientras la cuenta actualmente asignada al teléfono sí aparece `OK` en Asterisk.
+
+Regla operativa hasta corregir o comprender el comportamiento upstream:
+
+```text
+Estado SIP autoritativo = Asterisk + cuenta + IP + estado
+```
+
+No utilizar únicamente el texto `Registered at` de la GUI para decidir qué cuenta está activa.
+
+### Pendientes inmediatos de validación v1
+
+- probar dos extensiones simultáneas en J129;
+- quitar una de dos cuentas y confirmar ausencia de residuos;
+- quitar todas las cuentas manteniendo el endpoint;
+- repetir `Remove configuration` y verificar DB + archivo por MAC + estado físico;
+- probar idempotencia de rescan y Apply;
+- validar comportamiento con endpoint offline durante Apply;
+- completar pruebas de llamadas;
+- añadir hashes/mtime a auditoría de archivos para demostrar recreación/idempotencia;
+- mejorar auditoría SIP para observar registro residual aun cuando `endpoint_account` ya no exista;
+- eliminar helper sync temporal antes de congelar candidata de producción.
+
+La evidencia detallada de estas pruebas debe mantenerse en `docs/j129-lab-validation.md` y las acciones correspondientes.
