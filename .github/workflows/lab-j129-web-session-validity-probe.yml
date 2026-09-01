@@ -1,0 +1,45 @@
+name: Issabel Lab J129 Web Session Validity Probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Validar sesion web del J129 sin cambios
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Validar presencia del secreto web
+        shell: bash
+        env:
+          J129_WEB_PASSWORD: ${{ secrets.J129_WEB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "${J129_WEB_PASSWORD:-}" || {
+            echo "ERROR: falta repository secret J129_WEB_PASSWORD"
+            exit 2
+          }
+          echo 'J129-WEB-SECRET-PRESENT'
+
+      - name: Ejecutar probe read-only de validez de sesion
+        shell: bash
+        env:
+          J129_WEB_USER: admin
+          J129_WEB_PASSWORD: ${{ secrets.J129_WEB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${J129_WEB_PASSWORD}"
+          python3 tests/lab/j129_web_session_validity_probe.py
