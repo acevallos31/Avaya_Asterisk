@@ -1,44 +1,39 @@
 import ast
 import unittest
+from pathlib import Path
 
 from tests.audit.support import RepositoryTextSource
 
 
-CORE = "usr/bin/issabel-endpointconfig"
-AVAYA = "usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py"
-BASE = "usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py"
-EXTENSION = "usr/share/issabel/endpoint-classes/class/issabel/Extension.py"
+DEPLOY_ROOT = "deploy/j129"
+AVAYA = DEPLOY_ROOT + "/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py"
 
 
-class CorePipelineContractTests(unittest.TestCase):
-    """OCP/DIP: the core must not know Avaya-specific credential details."""
+class DeploymentBoundaryTests(unittest.TestCase):
+    """OCP/SRP: el despliegue J129 debe ser un overlay, no un fork del core Issabel."""
 
     @classmethod
     def setUpClass(cls):
         cls.repo = RepositoryTextSource()
-        cls.core = cls.repo.read(CORE)
+        cls.root = Path(__file__).resolve().parents[2] / DEPLOY_ROOT
 
-    def test_core_keeps_standard_account_pipeline(self):
-        self.assertIn("endpoint.setAccountList(endpointList[ip]['accounts'])", self.core)
+    def test_overlay_does_not_ship_issabel_core_executable(self):
+        self.assertFalse((self.root / "usr/bin/issabel-endpointconfig").exists())
 
-    def test_core_has_no_avaya_specific_branch(self):
+    def test_overlay_does_not_ship_foundation_classes(self):
         forbidden = (
-            'manufacturer") == "Avaya"',
-            "manufacturer') == 'Avaya'",
-            'manufacturer"] == "Avaya"',
-            "manufacturer'] == 'Avaya'",
+            self.root / "usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py",
+            self.root / "usr/share/issabel/endpoint-classes/class/issabel/Extension.py",
         )
-        matches = [token for token in forbidden if token in self.core]
-        self.assertEqual([], matches, "Core contains vendor-specific Avaya logic: %r" % matches)
+        self.assertEqual([], [str(path) for path in forbidden if path.exists()])
 
-    def test_core_does_not_extract_secret_directly_from_endpoint_dict(self):
-        forbidden = ("default_secret", ".get(\"secret\"", ".get('secret'")
-        matches = [token for token in forbidden if token in self.core]
-        self.assertEqual([], matches, "Core bypasses the account/Extension pipeline: %r" % matches)
+    def test_overlay_does_not_ship_legacy_php_vendor_path(self):
+        legacy = self.root / "var/www/html/modules/endpoint_configurator/phonesrv/vendor/Avaya.class.php"
+        self.assertFalse(legacy.exists())
 
 
 class AvayaVendorContractTests(unittest.TestCase):
-    """SRP/LSP/DIP: Avaya adapts provisioning, not Issabel database internals."""
+    """SRP/LSP/DIP: Avaya adapta provisionamiento usando el contrato estándar."""
 
     @classmethod
     def setUpClass(cls):
@@ -66,9 +61,10 @@ class AvayaVendorContractTests(unittest.TestCase):
     def test_vendor_does_not_depend_on_google_dns_to_find_server_ip(self):
         self.assertNotIn("8.8.8.8", self.source)
 
-    def test_stock_foundation_classes_are_present(self):
-        self.assertTrue(self.repo.exists(BASE))
-        self.assertTrue(self.repo.exists(EXTENSION))
+    def test_vendor_uses_standard_account_template_pipeline(self):
+        self.assertIn("_prepareVarList", self.source)
+        self.assertIn("_writeTemplate", self.source)
+        self.assertIn("self._accounts", self.source)
 
 
 if __name__ == "__main__":
