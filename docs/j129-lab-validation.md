@@ -20,19 +20,13 @@ Este documento registra evidencia reproducible de las pruebas de integración y 
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-El Endpoint Configurator detecta automáticamente:
-
-- fabricante `Avaya`;
-- modelo `J129`;
-- el teléfono puede configurarse usando el flujo estándar de Accounts de Issabel.
-
-La detección del modelo se realiza mediante el contrato estándar del vendor (`probeModel()` / `_saveModel("J129")`).
+El Endpoint Configurator detecta automáticamente fabricante `Avaya`, modelo `J129`, y permite configurar el teléfono usando el flujo estándar de Accounts de Issabel. La detección del modelo usa `probeModel()` / `_saveModel("J129")`.
 
 ### Provisioning HTTP físico
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-Cadena observada en el access log de Apache durante el arranque del teléfono:
+Cadena observada durante el arranque:
 
 ```text
 GET /J100Supgrade.txt 200
@@ -40,190 +34,111 @@ GET /46xxsettings.txt 200
 GET /<mac-normalizada>.txt 200
 ```
 
-El archivo `J100Supgrade.txt` utilizado en laboratorio es un bootstrap sin actualización de firmware; no contiene `APPNAME` ni instrucciones de descarga de firmware.
+El `J100Supgrade.txt` del laboratorio es un bootstrap sin actualización de firmware.
 
 ### Registro SIP
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-El J129 registra por `chan_sip`. La auditoría valida cuenta + IP del teléfono y no imprime secretos.
+El J129 registra por `chan_sip`. La auditoría valida cuenta + IP del teléfono sin imprimir secretos.
 
 ### Ciclo Remove -> Rescan -> Reassign -> Apply -> Reboot
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-Se comprobó el siguiente ciclo completo:
-
-1. `Remove configuration` desde Endpoint Configurator.
-2. Rescan del teléfono.
-3. El J129 vuelve a detectarse como Avaya/J129.
-4. Se reasigna una cuenta SIP mediante `Configure -> Accounts`.
-5. Se ejecuta `Apply configuration to all selected endpoints`.
-6. Se reinicia el J129 sin introducir credenciales SIP manualmente.
-7. El teléfono vuelve a descargar provisioning por HTTP.
-8. El teléfono vuelve a registrar correctamente.
-9. `Issabel Lab J129 State Audit` en estado `configured` termina verde.
-
-Esto demuestra que el flujo estándar de Issabel puede reconstruir la configuración del J129 después de eliminar el tracking del endpoint.
+Se comprobó el ciclo completo de Remove, rescan, reasignación, Apply principal, reboot, reprovisioning HTTP y registro SIP correcto. `Issabel Lab J129 State Audit` en `configured` termina verde.
 
 ### Cambio de extensión
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-Se comprobó el cambio de la cuenta asignada desde Endpoint Configurator.
-
-Secuencia observada:
-
-1. Se cambia la cuenta asignada en `Configure -> Accounts`.
-2. Antes del Apply principal, el State Audit queda rojo porque la DB espera la nueva cuenta mientras el teléfono conserva el registro anterior.
-3. Se ejecuta el Apply principal para regenerar provisioning.
-4. Sin reiniciar el teléfono, el audit SIP sigue rojo: el J129 todavía conserva la identidad SIP anterior en ejecución.
-5. Se reinicia el teléfono sin modificar SIP manualmente.
-6. El teléfono descarga nuevamente `J100Supgrade.txt`, `46xxsettings.txt` y su archivo por MAC.
-7. El teléfono registra con la nueva extensión.
-8. `Issabel Lab J129 State Audit` termina verde.
-
-Conclusión: guardar Accounts modifica la asociación en Endpoint Configurator; el Apply principal regenera provisioning; el cambio de identidad SIP se vuelve efectivo en el J129 después de reprovisionar/reiniciar.
+Se comprobó que guardar Accounts modifica la asociación de Endpoint Configurator; el Apply principal regenera provisioning; y el cambio de identidad SIP se vuelve efectivo después de reprovisionar/reiniciar el J129.
 
 ### Eliminación de una de dos cuentas
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-Partiendo del escenario multicuenta con prioridad 1 = `201` y prioridad 2 = `200`, el teléfono había terminado registrado con `200` por la limitación descrita en `BUG-J129-002`.
-
-Secuencia validada:
-
-1. Se elimina `200` desde `Configure -> Accounts`, dejando únicamente `201` asignada.
-2. Se guarda con Apply dentro de la ventana Accounts.
-3. Se ejecuta el Apply principal del Endpoint Configurator.
-4. `Issabel Lab J129 Provisioning Audit` termina verde y confirma que el provisioning se regeneró con la asociación restante.
-5. Se reinicia el J129 sin cambios manuales.
-6. El teléfono muestra `201`.
-7. Asterisk muestra `201/201` en estado `OK` y `200/200` en estado `UNREACHABLE`.
-8. `Issabel Lab J129 State Audit` en estado `configured` termina verde.
-
-Conclusión: eliminar una cuenta asignada y volver a aplicar configuración limpia el estado efectivo del teléfono después del reprovisioning/reboot y conserva correctamente la cuenta restante.
+Partiendo de prioridad 1 = `201` y prioridad 2 = `200`, se eliminó `200`, se ejecutó Apply principal y se reinició. El teléfono terminó en `201`; Asterisk mostró `201/201` `OK` y `200/200` `UNREACHABLE`. El State Audit `configured` terminó verde.
 
 ### Endpoint existente con cero cuentas antes del Apply general
 
 **Estado:** `LAB-INTEGRATION-PASS`
 
-Se eliminó la última cuenta `201` desde `Configure -> Accounts` y se guardó con el Apply de la ventana Accounts, sin ejecutar todavía el Apply general del Endpoint Configurator y sin reiniciar el teléfono.
+Se eliminó la última cuenta `201` desde `Configure -> Accounts` y se guardó sin ejecutar todavía el Apply general ni reiniciar el teléfono. El State Audit fue ampliado con `configured_no_accounts`.
 
-El workflow `Issabel Lab J129 State Audit` fue ampliado con el estado explícito `configured_no_accounts` para no confundir este escenario con `removed`.
-
-Resultado observado:
-
-- el endpoint J129 continúa existiendo en Endpoint Configurator;
-- tiene `0` cuentas en `endpoint_account`;
-- el endpoint no está en estado `removed`;
-- la ausencia de una cuenta asignada ya no se interpreta como fallo del State Audit en este modo;
-- `Issabel Lab J129 State Audit` con `configured_no_accounts` termina verde antes del Apply general.
-
-Este punto establece la línea base para la siguiente prueba: ejecutar el Apply general con cero cuentas y comprobar si el provisioning por MAC elimina correctamente cualquier credencial o identidad SIP anterior.
+Resultado: el endpoint continúa existiendo, tiene 0 filas en `endpoint_account`, no está `removed`, y `configured_no_accounts` termina verde.
 
 ## BUG-EC-001 — `Registered at` muestra un peer SIP obsoleto
 
 **Estado:** `LAB-INTEGRATION-PASS` como reproducción del defecto.
 
-### Síntoma
+Después de cambiar la extensión, Endpoint Configurator puede mostrar `Registered at` para la cuenta antigua aunque Asterisk muestre esa cuenta `UNREACHABLE` y la cuenta actual `OK`. La fuente autoritativa para auditorías será Asterisk: cuenta esperada + IP esperada + estado alcanzable/registrado.
 
-Después de cambiar la extensión del J129, Endpoint Configurator muestra en la lista de cuentas no asignadas una cuenta antigua con:
-
-```text
-Registered at: 192.168.1.171
-```
-
-mientras la cuenta actualmente asignada no muestra ese indicador.
-
-### Evidencia autoritativa de Asterisk
-
-En el mismo instante, `sip show peers` mostró el patrón:
-
-```text
-cuenta-antigua   192.168.1.171   UNREACHABLE
-cuenta-actual    192.168.1.171   OK
-```
-
-Por tanto, la cuenta activa del teléfono es la cuenta actual. La cuenta antigua conserva la IP como host/contacto histórico pero está `UNREACHABLE`.
-
-### Conclusión
-
-El indicador `Registered at` de Endpoint Configurator no representa correctamente el estado SIP efectivo en este escenario. Parece considerar la IP asociada al peer sin discriminar adecuadamente un estado `UNREACHABLE`.
-
-Este comportamiento se considera, por ahora, un bug de visualización/detección de estado de Endpoint Configurator y **no un fallo del provisioning Avaya J129**.
-
-### Regla para las auditorías
-
-Para determinar qué cuenta está realmente registrada, la evidencia autoritativa será Asterisk y se exigirá coincidencia de:
-
-- cuenta esperada;
-- IP esperada del J129;
-- estado SIP alcanzable/registrado.
-
-No se utilizará únicamente el texto `Registered at` de la GUI como prueba de registro.
-
-### Pendiente
-
-- Localizar en el código de Endpoint Configurator el origen de `Registered at`.
-- Identificar si la GUI usa solamente `Host`, registro en DB o salida incompleta de Asterisk.
-- Añadir una prueba de regresión antes de corregirlo.
-- Mantener la corrección separada del vendor Avaya si el defecto pertenece al core/web de Endpoint Configurator.
+Pendiente: localizar el origen de `Registered at`, añadir prueba de regresión y corregirlo separadamente del vendor Avaya si pertenece al core/web.
 
 ## BUG-J129-002 — Dos cuentas asignadas no producen dos registros SIP independientes
 
 **Estado:** `PHYSICAL-J129-PASS` como reproducción del defecto; soporte multicuenta funcionalmente pendiente.
 
+Endpoint Configurator aceptó prioridad 1 = `201` y prioridad 2 = `200`, con `max_accounts=2`. El archivo por MAC repitió parámetros `FORCE_SIP_*`, pero después del reboot Asterisk mostró `200` `OK` y `201` `UNREACHABLE`: la segunda identidad sustituyó a la primera.
+
+Pendiente: investigar sintaxis oficial multicuenta J129/Open SIP y corregir template/metadata según evidencia; no repetir parámetros a ciegas.
+
+## BUG-J129-003 — Apply con cero cuentas conserva provisioning SIP anterior
+
+**Estado:** `LAB-INTEGRATION-PASS` como reproducción del defecto; prueba física posterior pendiente.
+
 ### Preparación
 
-Endpoint Configurator aceptó dos cuentas para el mismo J129:
+El J129 permanecía detectado en Endpoint Configurator pero se eliminó su última cuenta `201`. La DB quedó con cero asociaciones en `endpoint_account` y el State Audit `configured_no_accounts` terminó verde antes del Apply general.
+
+### Apply general
+
+Al ejecutar `Apply configuration to all selected endpoints`, Endpoint Configurator cargó normalmente el endpoint y ejecutó la configuración global Avaya, pero la configuración local terminó con:
 
 ```text
-priority 1 -> 201
-priority 2 -> 200
+ERROR: (Avaya) Endpoint Avaya@192.168.1.171 no tiene cuentas para configurar
+WARNING: (issabel-endpointconfig) ... failed configuration for endpoint Avaya@192.168.1.171
 ```
 
-El modelo está registrado con `max_accounts=2`.
+La causa está en `Avaya.Endpoint.updateLocalConfig()`: cuando `len(self._accounts) <= 0`, el vendor retorna `False`. Por tanto, el error no es una restricción demostrada del core de Endpoint Configurator; es comportamiento de la implementación Avaya actual.
 
-### Evidencia de provisioning
+### Evidencia de provisioning después del fallo
 
-Después del Apply principal, la auditoría mostró ambas cuentas en `endpoint_account` y un único archivo por MAC. El archivo contiene bloques repetidos de parámetros `FORCE_SIP_*` para 201 y 200, pero estos parámetros no representan identidades SIP independientes. La auditoría ocultó los secretos y confirmó que existe material de password sin imprimirlo.
+`Issabel Lab J129 Provisioning Audit` terminó verde como workflow de inspección, pero su contenido demostró el defecto:
 
-### Evidencia física
+- Endpoint Avaya/J129 sigue presente.
+- `CUENTAS ASIGNADAS` está vacío.
+- `/tftpboot/c81fea9b650d.txt` sigue presente.
+- El archivo por MAC conserva `DISPLAY_NAME` de la cuenta anterior.
+- Conserva `FORCE_SIP_USERNAME`.
+- Conserva `FORCE_SIP_EXTENSION "201"`.
+- Conserva `FORCE_SIP_PASSWORD` (existencia confirmada, valor oculto).
+- El `mtime` del archivo por MAC permanece anterior al Apply fallido.
+- `46xxsettings.txt` y `J100Supgrade.txt` sí fueron regenerados durante el Apply general.
 
-Antes de esta prueba, el J129 estaba registrado correctamente con 201.
+Esto demuestra que el Apply global actualiza los artefactos globales, pero `updateLocalConfig()` aborta antes de limpiar/regenerar el archivo específico por MAC. El provisioning antiguo y material de autenticación permanecen disponibles.
 
-Después de asignar 201 + 200, ejecutar Apply y reiniciar el teléfono, `sip show peers` mostró:
+### Implicación
 
-```text
-200/200   192.168.1.171   OK
-201/201   192.168.1.171   UNREACHABLE
-```
-
-El teléfono terminó usando la segunda cuenta del provisioning en lugar de mantener dos registros simultáneos.
-
-### Conclusión
-
-La metadata actual permite dos cuentas, pero la plantilla J129 vigente no implementa correctamente dos identidades SIP independientes. Repetir `FORCE_SIP_USERNAME`, `FORCE_SIP_EXTENSION`, `DISPLAY_NAME` y password no constituye soporte multicuenta correcto.
-
-No se debe corregir a ciegas agregando más parámetros repetidos. Primero se debe verificar la sintaxis oficial del J129/Open SIP para múltiples líneas/cuentas, añadir tests y repetir esta misma prueba física.
+Este comportamiento es un defecto de ciclo de vida y de seguridad: retirar la última cuenta en Endpoint Configurator no revoca por sí mismo el provisioning SIP anterior del J129. No se debe reiniciar el teléfono durante esta reproducción hasta definir y probar el comportamiento correcto para cero cuentas.
 
 ### Pendiente
 
-- Revisar documentación oficial Avaya aplicable al firmware del J129 para multicuenta.
-- Determinar si el J129/firmware probado soporta realmente dos registros SIP y con qué parámetros.
-- Corregir template/metadata según evidencia.
-- Añadir golden tests multicuenta o limitar temporalmente `max_accounts` si el soporte real no puede implementarse de forma segura.
-- Repetir prueba física 201 + 200 después de cualquier corrección.
+- Añadir una prueba automatizada que reproduzca `_accounts=[]` con un archivo MAC preexistente.
+- Definir el comportamiento correcto siguiendo el contrato de Issabel: limpiar/eliminar de forma segura el provisioning específico sin convertir el caso en un error engañoso.
+- Confirmar cómo debe marcarse el endpoint (`configured`/sin cuenta) sin modificar el core innecesariamente.
+- Repetir Apply con cero cuentas después de la corrección y exigir ausencia de `FORCE_SIP_USERNAME`, `FORCE_SIP_PASSWORD`, `FORCE_SIP_EXTENSION` y datos de la cuenta anterior.
+- Solo después reiniciar el J129 y verificar físicamente que no conserva el registro SIP anterior.
 
 ## Pruebas pendientes para cerrar J129 v1
 
-- Ejecutar Apply general con el endpoint en `configured_no_accounts` y verificar que no queden credenciales SIP antiguas en el archivo por MAC.
-- Reiniciar el J129 sin cuentas y comprobar que no conserve el registro SIP anterior.
+- Corregir y repetir `BUG-J129-003` con cero cuentas.
+- Reiniciar el J129 sin cuentas después de demostrar que el provisioning anterior fue revocado.
 - Segunda validación completa de `Remove configuration`, incluyendo existencia/hash del archivo por MAC.
 - Rescan repetido sin endpoints duplicados.
 - Bulk Apply sin impacto en otros vendors.
-- Casos controlados: endpoint sin cuenta, extensión inválida/no existente y teléfono offline durante Apply.
+- Casos controlados: extensión inválida/no existente y teléfono offline durante Apply.
 - Rollback/reinstall final del overlay.
 - Retirar mecanismos temporales de privilegios/sincronización antes de producción.
 - Resolver o limitar explícitamente el soporte multicuenta descrito en `BUG-J129-002`.
