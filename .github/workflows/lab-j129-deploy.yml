@@ -51,7 +51,7 @@ jobs:
             'bf6aefdcca992c02a1981e2b7b4f1829bc87fb01e0efea1ba7b87130ed487814' \
             '/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py' | sha256sum -c -
           printf '%s  %s\n' \
-            '2c726d57557aa6fcfcb7a737ec945bd9f6b1dda431c8504c5fc2c57cbb09de3' \
+            '2c726d57557aa6fcfcb7a737ec945bd9f6b1dda431c8504c5fc2c57cbb09de3c' \
             '/usr/share/issabel/endpoint-classes/class/issabel/Extension.py' | sha256sum -c -
 
       - name: Instalar overlay J129
