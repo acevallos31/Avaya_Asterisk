@@ -3,6 +3,7 @@
 # Codificación: UTF-8
 
 import logging
+import os
 
 import issabel.BaseEndpoint
 from issabel.BaseEndpoint import BaseEndpoint
@@ -18,6 +19,7 @@ class Endpoint(BaseEndpoint):
 
     _global_serverip = None
     _j129_oui = "C8:1F:EA"
+    _j100_bootstrap = "GET 46xxsettings.txt\n"
 
     def __init__(self, amipool, dbpool, serverip, ip, mac):
         BaseEndpoint.__init__(self, "Avaya", amipool, dbpool, serverip, ip, mac)
@@ -49,8 +51,50 @@ class Endpoint(BaseEndpoint):
             self._saveModel("J129")
 
     @staticmethod
+    def _writeJ100Bootstrap():
+        """Escribe el archivo inicial que el J129 solicita al arrancar.
+
+        En el LAB no se publica ninguna directiva APPNAME ni binario de firmware.
+        El único propósito de este archivo es continuar al 46xxsettings.txt, donde
+        permanece la configuración global y el GET del archivo específico por MAC.
+        """
+        config_path = issabel.BaseEndpoint.TFTP_DIR + "/J100Supgrade.txt"
+        temp_path = config_path + ".tmp"
+
+        try:
+            with open(temp_path, "w") as config_file:
+                config_file.write(Endpoint._j100_bootstrap)
+            os.rename(temp_path, config_path)
+        except IOError as error:
+            try:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+            except OSError:
+                pass
+            logging.error(
+                "No se pudo escribir el bootstrap Avaya %s - %s",
+                config_path,
+                str(error),
+            )
+            return False
+        except OSError as error:
+            try:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+            except OSError:
+                pass
+            logging.error(
+                "No se pudo publicar el bootstrap Avaya %s - %s",
+                config_path,
+                str(error),
+            )
+            return False
+
+        return True
+
+    @staticmethod
     def updateGlobalConfig(serveriplist, amipool, endpoints):
-        """Genera el archivo global que dirige al J129 a su archivo por MAC."""
+        """Genera la cadena global de provisioning para el J129."""
         serverip = Endpoint._global_serverip
         if serverip is None and serveriplist:
             serverip = serveriplist[0]
@@ -73,6 +117,9 @@ class Endpoint(BaseEndpoint):
                 config_path,
                 str(error),
             )
+            return False
+
+        if not Endpoint._writeJ100Bootstrap():
             return False
 
         return True
