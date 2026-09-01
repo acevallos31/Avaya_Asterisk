@@ -1,0 +1,80 @@
+name: Issabel Lab J129 Core Apply Flow Audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit-core-flow:
+    name: Auditar flujo core de Apply en Endpoint Configurator
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Verificar hash de core Issabel
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' \
+            '2aca894449425f4666a851e6810eb8a51309544d18f3f6fbc563c697cbfe6e32' \
+            '/usr/bin/issabel-endpointconfig' | sha256sum -c -
+
+      - name: Auditar flujo de seleccion y Apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import io
+          import re
+
+          path = '/usr/bin/issabel-endpointconfig'
+          with io.open(path, 'r', encoding='utf-8', errors='replace') as fh:
+              lines = fh.readlines()
+
+          patterns = [
+              r'def loadEndpointIP',
+              r'endpointList\s*=\s*loadEndpointIP',
+              r'endpointClasses\s*=',
+              r'endpointByClass\s*=',
+              r'for ip in endpointList',
+              r'endpoint\s*=\s*eclass\(',
+              r'setAccountList',
+              r'endpointByClass',
+              r'if options\.applyconfig',
+              r'updateGlobalConfig',
+              r'updateLocalConfig',
+          ]
+
+          wanted = []
+          for idx, line in enumerate(lines):
+              if any(re.search(p, line) for p in patterns):
+                  start = max(0, idx - 5)
+                  end = min(len(lines), idx + 9)
+                  wanted.append((start, end))
+
+          merged = []
+          for start, end in sorted(wanted):
+              if not merged or start > merged[-1][1]:
+                  merged.append([start, end])
+              else:
+                  merged[-1][1] = max(merged[-1][1], end)
+
+          print('=== CORE APPLY FLOW (SOLO LECTURA) ===')
+          for start, end in merged:
+              print('--- lineas %d-%d ---' % (start + 1, end))
+              for pos in range(start, end):
+                  text = lines[pos].rstrip('\n')
+                  # Redactar cualquier literal sospechoso de password/secret si existiera.
+                  text = re.sub(r'(?i)(password|passwd|secret)\s*=\s*[^,\)]+', r'\1=[REDACTED]', text)
+                  print('%04d: %s' % (pos + 1, text))
+
+          print('J129-CORE-APPLY-FLOW-AUDIT-PASS')
+          PY
