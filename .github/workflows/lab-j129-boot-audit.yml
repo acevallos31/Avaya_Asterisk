@@ -1,0 +1,44 @@
+name: Issabel Lab J129 Boot Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boot-audit:
+    name: Auditoría de arranque Avaya J129 en LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Sincronizar helpers restringidos
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-boot-audit'
+
+      - name: Auditar boot provisioning y SIP sin secretos
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-boot-audit
+
+      - name: Resultado
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'J129-BOOT-WORKFLOW-PASS'
