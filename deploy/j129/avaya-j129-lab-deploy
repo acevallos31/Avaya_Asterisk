@@ -97,7 +97,7 @@ run_provisioning_inspection() {
   mysql --defaults-extra-file="$defaults_file" --batch --raw endpointconfig <<'SQL'
 SET SESSION TRANSACTION READ ONLY;
 SELECT '=== ENDPOINT AVAYA/J129 ===';
-SELECT e.id, e.mac_address, e.current_ip, mf.name AS manufacturer, m.name AS model
+SELECT e.id, e.mac_address, e.last_known_ipv4, mf.name AS manufacturer, m.name AS model
 FROM endpoint e
 JOIN manufacturer mf ON mf.id=e.id_manufacturer
 LEFT JOIN model m ON m.id=e.id_model
