@@ -1,0 +1,83 @@
+name: Issabel Lab J129 Discovery Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discovery-audit:
+    name: Auditoría de descubrimiento Avaya J129 en LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Sincronizar helper privilegiado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+
+      - name: Estado endpointconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-db
+
+      - name: Evidencia de red del J129
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== IP NEIGH AVAYA ==='
+          ip neigh show | grep -i 'lladdr c8:1f:ea:' || true
+          echo '=== ARP AVAYA ==='
+          arp -an 2>/dev/null | grep -i 'c8:1f:ea:' || true
+
+      - name: Revisar lógica de detección instalada
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== PAQUETE ENDPOINT CONFIGURATOR ==='
+          rpm -q issabel-endpointconfig2 || true
+          echo '=== ARCHIVOS RELACIONADOS CON DETECCIÓN ==='
+          rpm -ql issabel-endpointconfig2 2>/dev/null | grep -Ei 'detect|endpoint|snmp' | head -n 200 || true
+          echo '=== REFERENCIAS A MODELO/FABRICANTE EN /usr/bin ==='
+          grep -nEi 'detect|manufacturer|model|snmp|mac_prefix' /usr/bin/issabel-endpointconfig 2>/dev/null | head -n 250 || true
+          for f in /usr/bin/detect_endpoints /usr/sbin/detect_endpoints; do
+            if [ -r "$f" ]; then
+              echo "=== $f ==="
+              grep -nEi 'manufacturer|model|snmp|mac|prefix|sysDescr|sysObjectID' "$f" | head -n 250 || true
+            fi
+          done
+
+      - name: Buscar evidencia reciente en logs legibles
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='Avaya|J129|C8:1F:EA|c8:1f:ea|endpoint|detect_endpoints|192\.168\.1\.171'
+          for f in /var/log/httpd/access_log /var/log/httpd/error_log /var/log/asterisk/full /var/log/messages; do
+            echo "=== LOG: $f ==="
+            if [ -r "$f" ]; then
+              tail -n 3000 "$f" | grep -Ei "$pattern" | tail -n 200 || true
+            else
+              echo 'NO-LEGIBLE-POR-RUNNER'
+            fi
+          done
+
+      - name: Resultado
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'J129-DISCOVERY-AUDIT-PASS'
