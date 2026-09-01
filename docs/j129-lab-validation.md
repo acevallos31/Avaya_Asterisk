@@ -86,55 +86,82 @@ Pendiente: investigar sintaxis oficial multicuenta J129/Open SIP y corregir temp
 
 ## BUG-J129-003 — Apply con cero cuentas conserva provisioning SIP anterior
 
-**Estado:** `LAB-INTEGRATION-PASS` como reproducción del defecto; prueba física posterior pendiente.
+**Estado:** `LAB-INTEGRATION-PASS` como reproducción y `LAB-FIX-PASS` para la corrección server-side; validación física después del reboot pendiente.
 
-### Preparación
+### Reproducción
 
 El J129 permanecía detectado en Endpoint Configurator pero se eliminó su última cuenta `201`. La DB quedó con cero asociaciones en `endpoint_account` y el State Audit `configured_no_accounts` terminó verde antes del Apply general.
 
-### Apply general
-
-Al ejecutar `Apply configuration to all selected endpoints`, Endpoint Configurator cargó normalmente el endpoint y ejecutó la configuración global Avaya, pero la configuración local terminó con:
+Con la implementación anterior, el Apply general terminaba con:
 
 ```text
 ERROR: (Avaya) Endpoint Avaya@192.168.1.171 no tiene cuentas para configurar
 WARNING: (issabel-endpointconfig) ... failed configuration for endpoint Avaya@192.168.1.171
 ```
 
-La causa está en `Avaya.Endpoint.updateLocalConfig()`: cuando `len(self._accounts) <= 0`, el vendor retorna `False`. Por tanto, el error no es una restricción demostrada del core de Endpoint Configurator; es comportamiento de la implementación Avaya actual.
+`Issabel Lab J129 Provisioning Audit` demostró que el archivo por MAC antiguo permanecía y todavía contenía identidad y material de autenticación de `201`, mientras los archivos globales sí habían sido regenerados.
 
-### Evidencia de provisioning después del fallo
+### Corrección
 
-`Issabel Lab J129 Provisioning Audit` terminó verde como workflow de inspección, pero su contenido demostró el defecto:
+Se añadió un contrato automatizado para `_accounts=[]` y se modificó `Avaya.Endpoint.updateLocalConfig()` para reutilizar `BaseEndpoint.deleteContent()`, marcar el endpoint configurado y devolver éxito en lugar de abortar dejando provisioning obsoleto.
 
-- Endpoint Avaya/J129 sigue presente.
-- `CUENTAS ASIGNADAS` está vacío.
-- `/tftpboot/c81fea9b650d.txt` sigue presente.
-- El archivo por MAC conserva `DISPLAY_NAME` de la cuenta anterior.
-- Conserva `FORCE_SIP_USERNAME`.
-- Conserva `FORCE_SIP_EXTENSION "201"`.
-- Conserva `FORCE_SIP_PASSWORD` (existencia confirmada, valor oculto).
-- El `mtime` del archivo por MAC permanece anterior al Apply fallido.
-- `46xxsettings.txt` y `J100Supgrade.txt` sí fueron regenerados durante el Apply general.
+Commits de la corrección:
 
-Esto demuestra que el Apply global actualiza los artefactos globales, pero `updateLocalConfig()` aborta antes de limpiar/regenerar el archivo específico por MAC. El provisioning antiguo y material de autenticación permanecen disponibles.
+```text
+38ea0566a1fe6e2a46004b9d7aad4156fa568c35  test(j129): cubrir apply con cero cuentas
+efaa562190ef4afbfd4c91379b13d4246ad39515  fix(j129): revocar provisioning al quedar sin cuentas
+```
 
-### Implicación
+### Validación server-side después de la corrección
 
-Este comportamiento es un defecto de ciclo de vida y de seguridad: retirar la última cuenta en Endpoint Configurator no revoca por sí mismo el provisioning SIP anterior del J129. No se debe reiniciar el teléfono durante esta reproducción hasta definir y probar el comportamiento correcto para cero cuentas.
+El overlay corregido fue desplegado en el PBX LAB desde `Audit` y el Apply general se repitió con cero cuentas.
 
-### Pendiente
+Resultado del log de Endpoint Configurator:
 
-- Añadir una prueba automatizada que reproduzca `_accounts=[]` con un archivo MAC preexistente.
-- Definir el comportamiento correcto siguiendo el contrato de Issabel: limpiar/eliminar de forma segura el provisioning específico sin convertir el caso en un error engañoso.
-- Confirmar cómo debe marcarse el endpoint (`configured`/sin cuenta) sin modificar el core innecesariamente.
-- Repetir Apply con cero cuentas después de la corrección y exigir ausencia de `FORCE_SIP_USERNAME`, `FORCE_SIP_PASSWORD`, `FORCE_SIP_EXTENSION` y datos de la cuenta anterior.
-- Solo después reiniciar el J129 y verificar físicamente que no conserva el registro SIP anterior.
+```text
+BEGIN ENDPOINT CONFIGURATION
+Loading endpoint information from database...
+Loaded 1 endpoints
+(1/3) global configuration update for Avaya...
+(2/3) starting configuration for endpoint Avaya@192.168.1.171 (2)...
+(3/3) finished configuration for endpoint Avaya@192.168.1.171 (2)...
+END ENDPOINT CONFIGURATION
+```
+
+No aparece el error `no tiene cuentas para configurar` ni `failed configuration for endpoint`.
+
+La GUI conserva el endpoint Avaya/J129 con `Assigned accounts (0)`, lo cual confirma que cero cuentas no se confunde con `Remove configuration`.
+
+`Issabel Lab J129 Provisioning Audit #9` terminó verde y mostró:
+
+```text
+CUENTAS ASIGNADAS (SIN SECRETOS)
+<vacío>
+/tftpboot/c81fea9b650d.txt AUSENTE
+/tftpboot/46xxsettings.txt PRESENTE
+/tftpboot/J100Supgrade.txt PRESENTE
+J129-PROVISIONING-AUDIT-PASS
+```
+
+Los archivos globales fueron regenerados con el mismo timestamp del Apply exitoso, mientras el archivo específico por MAC dejó de existir.
+
+### Conclusión server-side
+
+La corrección revoca correctamente el provisioning específico cuando el endpoint queda con cero cuentas. Ya no permanece en `/tftpboot` el archivo que contenía `FORCE_SIP_USERNAME`, `FORCE_SIP_PASSWORD`, `FORCE_SIP_EXTENSION`, display name o datos de la cuenta anterior.
+
+El endpoint sigue detectado y administrable en Endpoint Configurator, pero sin cuentas asignadas. Esto cierra la parte server-side de `BUG-J129-003`.
+
+### Pendiente físico
+
+- Reiniciar el J129 sin cuentas.
+- Confirmar mediante HTTP audit que solicita los artefactos globales y que el archivo MAC ya no puede descargarse.
+- Confirmar mediante Asterisk que `201` deja de estar registrado/alcanzable después del reboot.
+- Confirmar el comportamiento visible del teléfono sin introducir credenciales manualmente.
+- Ejecutar `configured_no_accounts` después del reboot y registrar el resultado.
 
 ## Pruebas pendientes para cerrar J129 v1
 
-- Corregir y repetir `BUG-J129-003` con cero cuentas.
-- Reiniciar el J129 sin cuentas después de demostrar que el provisioning anterior fue revocado.
+- Completar la validación física post-reboot de `BUG-J129-003` con cero cuentas.
 - Segunda validación completa de `Remove configuration`, incluyendo existencia/hash del archivo por MAC.
 - Rescan repetido sin endpoints duplicados.
 - Bulk Apply sin impacto en otros vendors.
