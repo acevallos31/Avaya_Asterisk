@@ -13,65 +13,116 @@ BACKUP_DIR="$STATE_DIR/backup"
 STAMP_FILE="$STATE_DIR/installed.sha256"
 
 usage() {
-  echo "Uso: $0 {install|rollback} <overlay-root>" >&2
+  echo "Uso: $0 {install|rollback} <overlay-root> | inspect-db" >&2
   exit 2
 }
 
-[ -n "$ACTION" ] || usage
-[ -n "$OVERLAY_ROOT" ] || usage
+run_db_inspection() {
+  command -v mysql >/dev/null 2>&1 || {
+    echo "ERROR: cliente mysql no disponible" >&2
+    exit 1
+  }
 
-SRC_BASE="$OVERLAY_ROOT/usr/share/issabel/endpoint-classes"
-VENDOR_SRC="$SRC_BASE/class/issabel/vendor/Avaya.py"
-TPL_J129_SRC="$SRC_BASE/tpl/Avaya_J129.tpl"
-TPL_GLOBAL_SRC="$SRC_BASE/tpl/Avaya_global_SIP.tpl"
+  echo "=== ENDPOINTCONFIG DB AUDIT (SOLO LECTURA) ==="
+  echo "Host: $(hostname)"
+
+  # No se aceptan consultas desde GitHub. El SQL permitido está fijo aquí.
+  # La conexión se hace como root local mediante la configuración/autenticación
+  # ya disponible en la PBX; no se leen ni imprimen credenciales de Issabel.
+  mysql --batch --raw endpointconfig <<'SQL'
+SET SESSION TRANSACTION READ ONLY;
+
+SELECT '=== TABLES ===';
+SHOW TABLES;
+
+SELECT '=== DESCRIBE manufacturer ===';
+DESCRIBE manufacturer;
+
+SELECT '=== DESCRIBE model ===';
+DESCRIBE model;
+
+SELECT '=== DESCRIBE model_properties ===';
+DESCRIBE model_properties;
+
+SELECT '=== DESCRIBE mac_prefix ===';
+DESCRIBE mac_prefix;
+
+SELECT '=== MANUFACTURERS ===';
+SELECT * FROM manufacturer ORDER BY 1 LIMIT 200;
+
+SELECT '=== MODELS ===';
+SELECT * FROM model ORDER BY 1 LIMIT 500;
+
+SELECT '=== MAC PREFIX SAMPLE ===';
+SELECT * FROM mac_prefix ORDER BY 1 LIMIT 500;
+
+ROLLBACK;
+SQL
+
+  echo "DB-READONLY-PASS"
+}
+
+[ -n "$ACTION" ] || usage
 
 case "$ACTION" in
-  install)
-    for f in "$VENDOR_SRC" "$TPL_J129_SRC" "$TPL_GLOBAL_SRC"; do
-      [ -f "$f" ] || { echo "Falta archivo de overlay: $f" >&2; exit 1; }
-    done
-
-    install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
-
-    # Solo se hace backup una vez para preservar el estado original del LAB.
-    for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do
-      name="$(basename "$dst")"
-      marker="$BACKUP_DIR/$name.absent"
-      backup="$BACKUP_DIR/$name"
-      if [ ! -e "$backup" ] && [ ! -e "$marker" ]; then
-        if [ -e "$dst" ]; then
-          cp -a "$dst" "$backup"
-        else
-          : > "$marker"
-        fi
-      fi
-    done
-
-    install -m 0644 "$VENDOR_SRC" "$VENDOR_DST"
-    install -m 0644 "$TPL_J129_SRC" "$TPL_J129_DST"
-    install -m 0644 "$TPL_GLOBAL_SRC" "$TPL_GLOBAL_DST"
-
-    sha256sum "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST" > "$STAMP_FILE"
-    echo "Overlay J129 instalado"
+  inspect-db)
+    [ -z "$OVERLAY_ROOT" ] || usage
+    run_db_inspection
     ;;
 
-  rollback)
-    install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
-    for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do
-      name="$(basename "$dst")"
-      marker="$BACKUP_DIR/$name.absent"
-      backup="$BACKUP_DIR/$name"
-      if [ -f "$backup" ]; then
-        cp -a "$backup" "$dst"
-      elif [ -f "$marker" ]; then
-        rm -f "$dst"
-      else
-        echo "No existe estado de backup para $dst" >&2
-        exit 1
-      fi
-    done
-    rm -f "$STAMP_FILE"
-    echo "Rollback J129 completado"
+  install|rollback)
+    [ -n "$OVERLAY_ROOT" ] || usage
+
+    SRC_BASE="$OVERLAY_ROOT/usr/share/issabel/endpoint-classes"
+    VENDOR_SRC="$SRC_BASE/class/issabel/vendor/Avaya.py"
+    TPL_J129_SRC="$SRC_BASE/tpl/Avaya_J129.tpl"
+    TPL_GLOBAL_SRC="$SRC_BASE/tpl/Avaya_global_SIP.tpl"
+
+    if [ "$ACTION" = "install" ]; then
+      for f in "$VENDOR_SRC" "$TPL_J129_SRC" "$TPL_GLOBAL_SRC"; do
+        [ -f "$f" ] || { echo "Falta archivo de overlay: $f" >&2; exit 1; }
+      done
+
+      install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
+
+      # Solo se hace backup una vez para preservar el estado original del LAB.
+      for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do
+        name="$(basename "$dst")"
+        marker="$BACKUP_DIR/$name.absent"
+        backup="$BACKUP_DIR/$name"
+        if [ ! -e "$backup" ] && [ ! -e "$marker" ]; then
+          if [ -e "$dst" ]; then
+            cp -a "$dst" "$backup"
+          else
+            : > "$marker"
+          fi
+        fi
+      done
+
+      install -m 0644 "$VENDOR_SRC" "$VENDOR_DST"
+      install -m 0644 "$TPL_J129_SRC" "$TPL_J129_DST"
+      install -m 0644 "$TPL_GLOBAL_SRC" "$TPL_GLOBAL_DST"
+
+      sha256sum "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST" > "$STAMP_FILE"
+      echo "Overlay J129 instalado"
+    else
+      install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
+      for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do
+        name="$(basename "$dst")"
+        marker="$BACKUP_DIR/$name.absent"
+        backup="$BACKUP_DIR/$name"
+        if [ -f "$backup" ]; then
+          cp -a "$backup" "$dst"
+        elif [ -f "$marker" ]; then
+          rm -f "$dst"
+        else
+          echo "No existe estado de backup para $dst" >&2
+          exit 1
+        fi
+      done
+      rm -f "$STAMP_FILE"
+      echo "Rollback J129 completado"
+    fi
     ;;
 
   *) usage ;;
