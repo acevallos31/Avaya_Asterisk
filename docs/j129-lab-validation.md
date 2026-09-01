@@ -104,6 +104,24 @@ Secuencia validada:
 
 Conclusión: eliminar una cuenta asignada y volver a aplicar configuración limpia el estado efectivo del teléfono después del reprovisioning/reboot y conserva correctamente la cuenta restante.
 
+### Endpoint existente con cero cuentas antes del Apply general
+
+**Estado:** `LAB-INTEGRATION-PASS`
+
+Se eliminó la última cuenta `201` desde `Configure -> Accounts` y se guardó con el Apply de la ventana Accounts, sin ejecutar todavía el Apply general del Endpoint Configurator y sin reiniciar el teléfono.
+
+El workflow `Issabel Lab J129 State Audit` fue ampliado con el estado explícito `configured_no_accounts` para no confundir este escenario con `removed`.
+
+Resultado observado:
+
+- el endpoint J129 continúa existiendo en Endpoint Configurator;
+- tiene `0` cuentas en `endpoint_account`;
+- el endpoint no está en estado `removed`;
+- la ausencia de una cuenta asignada ya no se interpreta como fallo del State Audit en este modo;
+- `Issabel Lab J129 State Audit` con `configured_no_accounts` termina verde antes del Apply general.
+
+Este punto establece la línea base para la siguiente prueba: ejecutar el Apply general con cero cuentas y comprobar si el provisioning por MAC elimina correctamente cualquier credencial o identidad SIP anterior.
+
 ## BUG-EC-001 — `Registered at` muestra un peer SIP obsoleto
 
 **Estado:** `LAB-INTEGRATION-PASS` como reproducción del defecto.
@@ -200,7 +218,8 @@ No se debe corregir a ciegas agregando más parámetros repetidos. Primero se de
 
 ## Pruebas pendientes para cerrar J129 v1
 
-- Endpoint sin cuentas y Apply controlado.
+- Ejecutar Apply general con el endpoint en `configured_no_accounts` y verificar que no queden credenciales SIP antiguas en el archivo por MAC.
+- Reiniciar el J129 sin cuentas y comprobar que no conserve el registro SIP anterior.
 - Segunda validación completa de `Remove configuration`, incluyendo existencia/hash del archivo por MAC.
 - Rescan repetido sin endpoints duplicados.
 - Bulk Apply sin impacto en otros vendors.
