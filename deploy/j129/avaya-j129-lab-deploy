@@ -11,10 +11,23 @@ TPL_GLOBAL_DST="$BASE/tpl/Avaya_global_SIP.tpl"
 STATE_DIR="/var/lib/avaya-j129-lab"
 BACKUP_DIR="$STATE_DIR/backup"
 STAMP_FILE="$STATE_DIR/installed.sha256"
+AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
   echo "Uso: $0 {install|rollback} <overlay-root> | inspect-db" >&2
   exit 2
+}
+
+read_amportal_value() {
+  local key="$1"
+  sed -n "s/^${key}=//p" "$AMPORTAL_CONF" | head -n 1
+}
+
+escape_mysql_option_value() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  printf '%s' "$value"
 }
 
 run_db_inspection() {
@@ -23,13 +36,39 @@ run_db_inspection() {
     exit 1
   }
 
+  [ -r "$AMPORTAL_CONF" ] || {
+    echo "ERROR: no se puede leer $AMPORTAL_CONF" >&2
+    exit 1
+  }
+
+  local db_user db_pass db_host defaults_file
+  db_user="$(read_amportal_value AMPDBUSER)"
+  db_pass="$(read_amportal_value AMPDBPASS)"
+  db_host="$(read_amportal_value AMPDBHOST)"
+
+  [ -n "$db_user" ] || { echo "ERROR: AMPDBUSER no definido" >&2; exit 1; }
+  [ -n "$db_pass" ] || { echo "ERROR: AMPDBPASS no definido" >&2; exit 1; }
+  [ -n "$db_host" ] || db_host="localhost"
+
+  defaults_file="$(mktemp /tmp/avaya-j129-db.XXXXXX.cnf)"
+  chmod 0600 "$defaults_file"
+  trap 'rm -f "$defaults_file"' RETURN EXIT
+
+  {
+    echo '[client]'
+    printf 'user="%s"\n' "$(escape_mysql_option_value "$db_user")"
+    printf 'password="%s"\n' "$(escape_mysql_option_value "$db_pass")"
+    printf 'host="%s"\n' "$(escape_mysql_option_value "$db_host")"
+  } > "$defaults_file"
+
   echo "=== ENDPOINTCONFIG DB AUDIT (SOLO LECTURA) ==="
   echo "Host: $(hostname)"
+  echo "DB auth: configuración local de Issabel (credenciales ocultas)"
 
   # No se aceptan consultas desde GitHub. El SQL permitido está fijo aquí.
-  # La conexión se hace como root local mediante la configuración/autenticación
-  # ya disponible en la PBX; no se leen ni imprimen credenciales de Issabel.
-  mysql --batch --raw endpointconfig <<'SQL'
+  # Las credenciales se leen localmente desde amportal.conf y se pasan mediante
+  # un archivo temporal 0600 que se elimina al terminar. Nunca se imprimen.
+  mysql --defaults-extra-file="$defaults_file" --batch --raw endpointconfig <<'SQL'
 SET SESSION TRANSACTION READ ONLY;
 
 SELECT '=== TABLES ===';
@@ -59,6 +98,8 @@ SELECT * FROM mac_prefix ORDER BY 1 LIMIT 500;
 ROLLBACK;
 SQL
 
+  rm -f "$defaults_file"
+  trap - RETURN EXIT
   echo "DB-READONLY-PASS"
 }
 
