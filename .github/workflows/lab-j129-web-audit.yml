@@ -1,0 +1,52 @@
+name: Issabel Lab J129 Web Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar acceso web del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Auditar conectividad HTTP y HTTPS del telefono
+        shell: bash
+        run: |
+          set -euo pipefail
+          phone_ip='192.168.1.171'
+          echo '=== J129 WEB AUDIT (SOLO LECTURA) ==='
+          echo "Telefono: ${phone_ip}"
+          echo 'No se envian credenciales ni se modifica el telefono.'
+
+          echo '=== TCP ==='
+          for port in 80 443; do
+            if timeout 3 bash -c "</dev/tcp/${phone_ip}/${port}" 2>/dev/null; then
+              echo "tcp/${port}: ABIERTO"
+            else
+              echo "tcp/${port}: CERRADO/NO-RESPONDE"
+            fi
+          done
+
+          echo '=== HTTP HEAD ==='
+          curl --max-time 5 --connect-timeout 3 --silent --show-error \
+            --output /dev/null --write-out 'http status=%{http_code} redirect=%{redirect_url}\n' \
+            "http://${phone_ip}/" || echo 'http: SIN-RESPUESTA'
+
+          echo '=== HTTPS HEAD ==='
+          curl --insecure --max-time 5 --connect-timeout 3 --silent --show-error \
+            --output /dev/null --write-out 'https status=%{http_code} redirect=%{redirect_url}\n' \
+            "https://${phone_ip}/" || echo 'https: SIN-RESPUESTA'
+
+          echo 'J129-WEB-AUDIT-PASS'
