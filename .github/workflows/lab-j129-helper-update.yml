@@ -1,0 +1,74 @@
+name: Issabel Lab J129 Helper Update
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update-helper:
+    name: Habilitar apply-config controlado en helper LAB
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Preparar helper con apply-config restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          helper='deploy/j129/avaya-j129-lab-deploy'
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('deploy/j129/avaya-j129-lab-deploy')
+          s = p.read_text()
+          old_usage = 'inspect-http-requests|inspect-sip-registration|install-db|rollback-db}'
+          new_usage = 'inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-config}'
+          if old_usage not in s and new_usage not in s:
+              raise SystemExit('ERROR: contrato usage inesperado')
+          if old_usage in s:
+              s = s.replace(old_usage, new_usage, 1)
+
+          marker = '  rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;\n'
+          apply_case = '  apply-config) [ -z "$OVERLAY_ROOT" ] || usage; /usr/bin/issabel-endpointconfig --applyconfig ;;\n'
+          if apply_case not in s:
+              if s.count(marker) != 1:
+                  raise SystemExit('ERROR: punto de insercion apply-config inesperado')
+              s = s.replace(marker, marker + apply_case, 1)
+          if s.count('apply-config)') != 1:
+              raise SystemExit('ERROR: apply-config debe existir exactamente una vez')
+          p.write_text(s)
+          PY
+          bash -n "$helper"
+          grep -nF 'apply-config)' "$helper"
+          grep -nF '/usr/bin/issabel-endpointconfig --applyconfig' "$helper"
+          echo 'HELPER-PATCH-PASS'
+
+      - name: Sincronizar helper privilegiado
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+
+      - name: Validar helper instalado sin ejecutar Apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-lab-deploy)" = 'root:root:755'
+          bash -n /usr/local/sbin/avaya-j129-lab-deploy
+          count="$(grep -Fc 'apply-config)' /usr/local/sbin/avaya-j129-lab-deploy)"
+          echo "apply-config-case-count=$count"
+          test "$count" = '1'
+          grep -F '/usr/bin/issabel-endpointconfig --applyconfig' /usr/local/sbin/avaya-j129-lab-deploy >/dev/null
+          echo 'J129-HELPER-UPDATE-PASS'
