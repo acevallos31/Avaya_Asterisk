@@ -1,0 +1,87 @@
+name: Issabel Lab J129 Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Acción a ejecutar"
+        required: true
+        type: choice
+        options:
+          - install
+          - rollback
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-j129:
+    name: Despliegue controlado J129 en PBX LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Preflight de overlay J129
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+          test -f deploy/j129/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl
+          test -f deploy/j129/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
+          python3 -m py_compile deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+          python3 tests/lab/j129_dryrun.py
+
+      - name: Verificar hashes baseline del core Issabel
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' \
+            '2aca894449425f4666a851e6810eb8a51309544d18f3f6fbc563c697cbfe6e32' \
+            '/usr/bin/issabel-endpointconfig' | sha256sum -c -
+          printf '%s  %s\n' \
+            'bf6aefdcca992c02a1981e2b7b4f1829bc87fb01e0efea1ba7b87130ed487814' \
+            '/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py' | sha256sum -c -
+          printf '%s  %s\n' \
+            '2c726d57557aa6fcfcb7a737ec945bd9f6b1dda431c8504c5fc2c57cbb09de3' \
+            '/usr/share/issabel/endpoint-classes/class/issabel/Extension.py' | sha256sum -c -
+
+      - name: Instalar overlay J129
+        if: ${{ inputs.action == 'install' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy install "$GITHUB_WORKSPACE/deploy/j129"
+
+      - name: Rollback overlay J129
+        if: ${{ inputs.action == 'rollback' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy rollback "$GITHUB_WORKSPACE/deploy/j129"
+
+      - name: Verificación posterior
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum \
+            /usr/bin/issabel-endpointconfig \
+            /usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py \
+            /usr/share/issabel/endpoint-classes/class/issabel/Extension.py
+          if [ "${{ inputs.action }}" = "install" ]; then
+            test -f /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+            test -f /usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl
+            test -f /usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
+            python3 -m py_compile /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+            echo "INSTALL-PASS"
+          else
+            echo "ROLLBACK-PASS"
+          fi
