@@ -55,17 +55,14 @@ jobs:
             echo 'mac-file=ausente'
           fi
 
-      - name: Ejecutar Apply real de Endpoint Configurator
+      - name: Ejecutar Apply sin daemonizar
         shell: bash
         run: |
           set -euo pipefail
-          progress="$(mktemp /tmp/j129-apply-progress.XXXXXX)"
-          trap 'rm -f "$progress"' EXIT
-          echo 'Ejecutando /usr/bin/issabel-endpointconfig --applyconfig'
-          /usr/bin/issabel-endpointconfig --applyconfig --progressfile "$progress"
-          echo 'APPLY-CONFIG-COMMAND-PASS'
-          echo '=== PROGRESS (sin secretos) ==='
-          sed -E 's/(secret|password|passwd|pwd)[^[:space:]]*/\1=[REDACTED]/Ig' "$progress" | tail -n 120 || true
+          echo 'Ejecutando /usr/bin/issabel-endpointconfig --applyconfig en modo sincrono'
+          /usr/bin/issabel-endpointconfig --applyconfig 2>&1 \
+            | sed -E 's/(secret|password|passwd|pwd)[^[:space:]]*/\1=[REDACTED]/Ig'
+          echo 'APPLY-CONFIG-SYNC-PASS'
 
       - name: Validar resultado J129
         shell: bash
