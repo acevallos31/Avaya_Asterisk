@@ -14,16 +14,17 @@ import tempita
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DEPLOY_ROOT = os.path.join(ROOT, "deploy", "j129")
 VENDOR = os.path.join(
-    ROOT,
+    DEPLOY_ROOT,
     "usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py",
 )
 J129_TEMPLATE = os.path.join(
-    ROOT,
+    DEPLOY_ROOT,
     "usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl",
 )
 GLOBAL_TEMPLATE = os.path.join(
-    ROOT,
+    DEPLOY_ROOT,
     "usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl",
 )
 
@@ -39,9 +40,6 @@ class FakeExtension(object):
 def render(path, variables):
     template = tempita.Template.from_filename(path)
     rendered = template.substitute(variables)
-    # La versión de Tempita incluida en Issabel/Rocky 8 puede devolver bytes
-    # bajo Python 3.6. Normalizamos a texto para validar el contenido sin
-    # alterar las plantillas ni escribir archivos en /tftpboot.
     if isinstance(rendered, bytes):
         rendered = rendered.decode("utf-8")
     return rendered
@@ -57,7 +55,6 @@ def main():
     print("DRY-RUN J129: inicio")
     print("Python: %s" % sys.version.split()[0])
 
-    # Valida que Avaya.py sea sintácticamente aceptado por el Python real de Issabel.
     fd, compiled = tempfile.mkstemp(prefix="avaya-j129-", suffix=".pyc")
     os.close(fd)
     try:
@@ -112,7 +109,7 @@ def main():
             raise AssertionError("Dato por endpoint o credencial en global: %s" % forbidden)
     print("J129-GLOBAL-TEMPLATE-PASS")
 
-    print("DRY-RUN-PASS: no se escribieron archivos en /tftpboot")
+    print("DRY-RUN-PASS: overlay validado; no se escribieron archivos en /tftpboot")
     return 0
 
 
