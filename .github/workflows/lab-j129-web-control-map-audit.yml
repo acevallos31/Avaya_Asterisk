@@ -1,0 +1,28 @@
+name: Issabel Lab J129 Web Control Map Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar contrato de control web del J129
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Ejecutar auditoria read-only del contrato web
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_web_control_map_audit.py
