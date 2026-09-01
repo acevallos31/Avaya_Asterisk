@@ -1,0 +1,44 @@
+name: Issabel Lab J129 Web Login Contract Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  branch-guard:
+    name: Ejecutar solo desde Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar rama seleccionada
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "Audit" ]; then
+            echo "Este workflow debe ejecutarse seleccionando la rama Audit en Run workflow."
+            echo "Rama actual: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+  audit:
+    name: Auditar contrato real de login web J129
+    needs: branch-guard
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Ejecutar auditoria read-only del login
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_web_login_contract_audit.py
