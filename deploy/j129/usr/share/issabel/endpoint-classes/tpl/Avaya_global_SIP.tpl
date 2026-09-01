@@ -12,5 +12,11 @@ SET ENABLE_AVAYA_ENVIRONMENT 0
 SET DISCOVER_AVAYA_ENVIRONMENT 0
 SET ENABLE_3PCC_ENVIRONMENT 1
 
+## Avaya J129 SIP R2.0.0.0+ soporta OOD SIP NOTIFY Event:resync/check-sync.
+## Permite solicitar resync/restart remoto una vez que el teléfono haya cargado
+## este parámetro. No actualiza firmware por sí solo; el teléfono consulta
+## J100Supgrade.txt/settings al recibir la notificación.
+SET ENABLE_OOD_RESET_NOTIFY 1
+
 ## Cada teléfono obtiene sus credenciales desde su archivo específico por MAC.
 GET $MACADDR.txt
