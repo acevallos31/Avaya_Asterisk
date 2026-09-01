@@ -1,0 +1,64 @@
+name: Issabel Lab J129 DB Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Acción de base de datos"
+        required: true
+        type: choice
+        options:
+          - install
+          - rollback
+
+permissions:
+  contents: read
+
+jobs:
+  db-j129:
+    name: Migración J129 en endpointconfig LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Verificar helper instalado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-lab-deploy
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Estado DB antes del cambio
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-db
+
+      - name: Instalar registros J129
+        if: ${{ inputs.action == 'install' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy install-db
+
+      - name: Rollback registros J129
+        if: ${{ inputs.action == 'rollback' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy rollback-db
+
+      - name: Verificar estado DB final
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-db
