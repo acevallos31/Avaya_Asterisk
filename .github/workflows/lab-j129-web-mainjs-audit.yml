@@ -1,0 +1,28 @@
+name: Issabel Lab J129 Web MainJS Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-mainjs:
+    name: Auditar main.js publico del J129
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Ejecutar auditoria read-only de main.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_web_mainjs_audit.py
