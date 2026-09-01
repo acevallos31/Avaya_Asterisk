@@ -38,7 +38,13 @@ class FakeExtension(object):
 
 def render(path, variables):
     template = tempita.Template.from_filename(path)
-    return template.substitute(variables)
+    rendered = template.substitute(variables)
+    # La versión de Tempita incluida en Issabel/Rocky 8 puede devolver bytes
+    # bajo Python 3.6. Normalizamos a texto para validar el contenido sin
+    # alterar las plantillas ni escribir archivos en /tftpboot.
+    if isinstance(rendered, bytes):
+        rendered = rendered.decode("utf-8")
+    return rendered
 
 
 def assert_contains(text, tokens):
