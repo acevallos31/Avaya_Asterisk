@@ -17,217 +17,93 @@ HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|install-db|rollback-db}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|install-db|rollback-db}" >&2
   exit 2
 }
 
-read_amportal_value() {
-  local key="$1"
-  sed -n "s/^${key}=//p" "$AMPORTAL_CONF" | head -n 1
-}
-
-escape_mysql_option_value() {
-  local value="$1"
-  value="${value//\\/\\\\}"
-  value="${value//\"/\\\"}"
-  printf '%s' "$value"
-}
-
+read_amportal_value() { local key="$1"; sed -n "s/^${key}=//p" "$AMPORTAL_CONF" | head -n 1; }
+escape_mysql_option_value() { local value="$1"; value="${value//\\/\\\\}"; value="${value//\"/\\\"}"; printf '%s' "$value"; }
 make_db_defaults_file() {
   command -v mysql >/dev/null 2>&1 || { echo "ERROR: cliente mysql no disponible" >&2; exit 1; }
   [ -r "$AMPORTAL_CONF" ] || { echo "ERROR: no se puede leer $AMPORTAL_CONF" >&2; exit 1; }
   local db_user db_pass db_host defaults_file
-  db_user="$(read_amportal_value AMPDBUSER)"
-  db_pass="$(read_amportal_value AMPDBPASS)"
-  db_host="$(read_amportal_value AMPDBHOST)"
-  [ -n "$db_user" ] || { echo "ERROR: AMPDBUSER no definido" >&2; exit 1; }
-  [ -n "$db_pass" ] || { echo "ERROR: AMPDBPASS no definido" >&2; exit 1; }
-  [ -n "$db_host" ] || db_host="localhost"
-  defaults_file="$(mktemp /tmp/avaya-j129-db.XXXXXX.cnf)"
-  chmod 0600 "$defaults_file"
-  {
-    echo '[client]'
-    printf 'user="%s"\n' "$(escape_mysql_option_value "$db_user")"
-    printf 'password="%s"\n' "$(escape_mysql_option_value "$db_pass")"
-    printf 'host="%s"\n' "$(escape_mysql_option_value "$db_host")"
-  } > "$defaults_file"
+  db_user="$(read_amportal_value AMPDBUSER)"; db_pass="$(read_amportal_value AMPDBPASS)"; db_host="$(read_amportal_value AMPDBHOST)"
+  [ -n "$db_user" ] || { echo "ERROR: AMPDBUSER no definido" >&2; exit 1; }; [ -n "$db_pass" ] || { echo "ERROR: AMPDBPASS no definido" >&2; exit 1; }; [ -n "$db_host" ] || db_host="localhost"
+  defaults_file="$(mktemp /tmp/avaya-j129-db.XXXXXX.cnf)"; chmod 0600 "$defaults_file"
+  { echo '[client]'; printf 'user="%s"\n' "$(escape_mysql_option_value "$db_user")"; printf 'password="%s"\n' "$(escape_mysql_option_value "$db_pass")"; printf 'host="%s"\n' "$(escape_mysql_option_value "$db_host")"; } > "$defaults_file"
   printf '%s' "$defaults_file"
 }
-
-mysql_scalar() {
-  local defaults_file="$1" sql="$2"
-  mysql --defaults-extra-file="$defaults_file" --batch --skip-column-names endpointconfig -e "$sql"
-}
+mysql_scalar() { local defaults_file="$1" sql="$2"; mysql --defaults-extra-file="$defaults_file" --batch --skip-column-names endpointconfig -e "$sql"; }
 
 run_db_inspection() {
-  local defaults_file
-  defaults_file="$(make_db_defaults_file)"
-  trap 'rm -f "$defaults_file"' RETURN EXIT
-  echo "=== ENDPOINTCONFIG DB AUDIT (SOLO LECTURA) ==="
-  echo "Host: $(hostname)"
-  echo "DB auth: configuración local de Issabel (credenciales ocultas)"
+  local defaults_file; defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
+  echo "=== ENDPOINTCONFIG DB AUDIT (SOLO LECTURA) ==="; echo "Host: $(hostname)"; echo "DB auth: configuración local de Issabel (credenciales ocultas)"
   mysql --defaults-extra-file="$defaults_file" --batch --raw endpointconfig <<'SQL'
 SET SESSION TRANSACTION READ ONLY;
-SELECT '=== AVAYA MANUFACTURER ===';
-SELECT id, name, description FROM manufacturer WHERE name = 'Avaya';
-SELECT '=== AVAYA/J129 MODEL ===';
-SELECT m.id, m.id_manufacturer, m.name, m.description, m.max_accounts,
-       m.static_ip_supported, m.dynamic_ip_supported, m.static_prov_supported
-FROM model m JOIN manufacturer mf ON mf.id = m.id_manufacturer
-WHERE mf.name = 'Avaya' AND m.name = 'J129';
-SELECT '=== J129 MODEL PROPERTIES ===';
-SELECT mp.id, mp.property_key,
-       CASE WHEN LOWER(mp.property_key) LIKE '%password%' THEN '***OCULTO***' ELSE mp.property_value END AS property_value
-FROM model_properties mp JOIN model m ON m.id = mp.id_model JOIN manufacturer mf ON mf.id = m.id_manufacturer
-WHERE mf.name = 'Avaya' AND m.name = 'J129' ORDER BY mp.property_key, mp.id;
-SELECT '=== AVAYA C8:1F:EA PREFIX ===';
-SELECT mp.id, mp.id_manufacturer, mp.mac_prefix, mp.description, mf.name AS manufacturer
-FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id = mp.id_manufacturer WHERE mp.mac_prefix = 'C8:1F:EA';
-SELECT '=== AVAYA ENDPOINT COUNT ===';
-SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id = e.id_manufacturer WHERE mf.name = 'Avaya';
-ROLLBACK;
+SELECT '=== AVAYA MANUFACTURER ==='; SELECT id, name, description FROM manufacturer WHERE name = 'Avaya';
+SELECT '=== AVAYA/J129 MODEL ==='; SELECT m.id, m.id_manufacturer, m.name, m.description, m.max_accounts, m.static_ip_supported, m.dynamic_ip_supported, m.static_prov_supported FROM model m JOIN manufacturer mf ON mf.id = m.id_manufacturer WHERE mf.name = 'Avaya' AND m.name = 'J129';
+SELECT '=== J129 MODEL PROPERTIES ==='; SELECT mp.id, mp.property_key, CASE WHEN LOWER(mp.property_key) LIKE '%password%' THEN '***OCULTO***' ELSE mp.property_value END AS property_value FROM model_properties mp JOIN model m ON m.id = mp.id_model JOIN manufacturer mf ON mf.id = m.id_manufacturer WHERE mf.name = 'Avaya' AND m.name = 'J129' ORDER BY mp.property_key, mp.id;
+SELECT '=== AVAYA C8:1F:EA PREFIX ==='; SELECT mp.id, mp.id_manufacturer, mp.mac_prefix, mp.description, mf.name AS manufacturer FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id = mp.id_manufacturer WHERE mp.mac_prefix = 'C8:1F:EA';
+SELECT '=== AVAYA ENDPOINT COUNT ==='; SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id = e.id_manufacturer WHERE mf.name = 'Avaya'; ROLLBACK;
 SQL
-  rm -f "$defaults_file"; trap - RETURN EXIT
-  echo "DB-READONLY-PASS"
+  rm -f "$defaults_file"; trap - RETURN EXIT; echo "DB-READONLY-PASS"
 }
 
 run_provisioning_inspection() {
-  local defaults_file mac compact file
-  defaults_file="$(make_db_defaults_file)"
-  trap 'rm -f "$defaults_file"' RETURN EXIT
+  local defaults_file mac compact file; defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
   echo '=== J129 PROVISIONING AUDIT (SOLO LECTURA) ==='
   mysql --defaults-extra-file="$defaults_file" --batch --raw endpointconfig <<'SQL'
 SET SESSION TRANSACTION READ ONLY;
-SELECT '=== ENDPOINT AVAYA/J129 ===';
-SELECT e.id, e.mac_address, e.last_known_ipv4, mf.name AS manufacturer, m.name AS model
-FROM endpoint e
-JOIN manufacturer mf ON mf.id=e.id_manufacturer
-LEFT JOIN model m ON m.id=e.id_model
-WHERE mf.name='Avaya' AND m.name='J129';
-SELECT '=== CUENTAS ASIGNADAS (SIN SECRETOS) ===';
-SELECT e.mac_address, ea.account, ea.priority
-FROM endpoint e
-JOIN manufacturer mf ON mf.id=e.id_manufacturer
-JOIN model m ON m.id=e.id_model
-JOIN endpoint_account ea ON ea.id_endpoint=e.id
-WHERE mf.name='Avaya' AND m.name='J129'
-ORDER BY e.mac_address, ea.priority;
-ROLLBACK;
+SELECT '=== ENDPOINT AVAYA/J129 ==='; SELECT e.id, e.mac_address, e.last_known_ipv4, mf.name AS manufacturer, m.name AS model FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer LEFT JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129';
+SELECT '=== CUENTAS ASIGNADAS (SIN SECRETOS) ==='; SELECT e.mac_address, ea.account, ea.priority FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' ORDER BY e.mac_address, ea.priority; ROLLBACK;
 SQL
   echo '=== ARCHIVOS DE PROVISIONING POR MAC ==='
-  while IFS= read -r mac; do
-    [ -n "$mac" ] || continue
-    compact="$(printf '%s' "$mac" | tr -d ':-' | tr '[:upper:]' '[:lower:]')"
-    file="/tftpboot/${compact}.txt"
-    if [ -f "$file" ]; then
-      printf '%s\tPRESENTE\t' "$file"
-      stat -c 'owner=%U group=%G mode=%a size=%s mtime=%y' "$file"
-      echo '--- DIRECTIVAS SEGURAS ---'
-      grep -Ei '^[[:space:]]*SET[[:space:]]+(SIP_CONTROLLER_LIST|SIPPROXYSRVR|SIPDOMAIN|SIPPORT|FORCE_SIP_USERNAME|FORCE_SIP_EXTENSION|DISPLAY_NAME)' "$file" 2>/dev/null | sed -E 's/(FORCE_SIP_USERNAME[[:space:]]+).*/\1***PRESENTE***/I' || true
-      if grep -Eqi '^[[:space:]]*SET[[:space:]]+FORCE_SIP_PASSWORD[[:space:]]+' "$file"; then
-        echo 'FORCE_SIP_PASSWORD=***PRESENTE-Y-OCULTO***'
-      else
-        echo 'FORCE_SIP_PASSWORD=AUSENTE'
-      fi
-    else
-      echo "$file AUSENTE"
+  while IFS= read -r mac; do [ -n "$mac" ] || continue; compact="$(printf '%s' "$mac" | tr -d ':-' | tr '[:upper:]' '[:lower:]')"; file="/tftpboot/${compact}.txt"; if [ -f "$file" ]; then printf '%s\tPRESENTE\t' "$file"; stat -c 'owner=%U group=%G mode=%a size=%s mtime=%y' "$file"; echo '--- DIRECTIVAS SEGURAS ---'; grep -Ei '^[[:space:]]*SET[[:space:]]+(SIP_CONTROLLER_LIST|SIPPROXYSRVR|SIPDOMAIN|SIPPORT|FORCE_SIP_USERNAME|FORCE_SIP_EXTENSION|DISPLAY_NAME)' "$file" 2>/dev/null | sed -E 's/(FORCE_SIP_USERNAME[[:space:]]+).*/\1***PRESENTE***/I' || true; if grep -Eqi '^[[:space:]]*SET[[:space:]]+FORCE_SIP_PASSWORD[[:space:]]+' "$file"; then echo 'FORCE_SIP_PASSWORD=***PRESENTE-Y-OCULTO***'; else echo 'FORCE_SIP_PASSWORD=AUSENTE'; fi; else echo "$file AUSENTE"; fi; done < <(mysql --defaults-extra-file="$defaults_file" --batch --skip-column-names endpointconfig -e "SELECT e.mac_address FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129';")
+  echo '=== GLOBAL AVAYA ==='; for file in /tftpboot/46xxsettings.txt /tftpboot/J100Supgrade.txt; do if [ -f "$file" ]; then stat -c '%n PRESENTE owner=%U group=%G mode=%a size=%s mtime=%y' "$file"; else echo "$file AUSENTE"; fi; done
+  rm -f "$defaults_file"; trap - RETURN EXIT; echo 'J129-PROVISIONING-AUDIT-PASS'
+}
+
+run_http_request_inspection() {
+  local phone_ip='192.168.1.171' found=0 log
+  echo '=== J129 HTTP REQUEST AUDIT (SOLO LECTURA) ==='
+  echo "Telefono esperado: ${phone_ip}"
+  echo 'Se muestran solamente lineas de access log originadas por el telefono; no se leen archivos de provisioning.'
+  for log in /var/log/httpd/access_log /var/log/httpd/*access*.log; do
+    [ -f "$log" ] || continue
+    if grep -F "$phone_ip" "$log" >/dev/null 2>&1; then
+      echo "--- $(basename "$log") ---"
+      grep -F "$phone_ip" "$log" | tail -n 100 | sed -E 's#(GET|HEAD|POST) ([^ ]*FORCE_SIP_PASSWORD[^ ]*)#\1 ***OCULTO***#Ig'
+      found=1
     fi
-  done < <(mysql --defaults-extra-file="$defaults_file" --batch --skip-column-names endpointconfig -e "SELECT e.mac_address FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129';")
-  echo '=== GLOBAL AVAYA ==='
-  for file in /tftpboot/46xxsettings.txt /tftpboot/J100Supgrade.txt; do
-    if [ -f "$file" ]; then stat -c '%n PRESENTE owner=%U group=%G mode=%a size=%s mtime=%y' "$file"; else echo "$file AUSENTE"; fi
   done
-  rm -f "$defaults_file"; trap - RETURN EXIT
-  echo 'J129-PROVISIONING-AUDIT-PASS'
+  if [ "$found" -eq 0 ]; then echo 'SIN-SOLICITUDES-HTTP-DEL-J129'; fi
+  echo '=== RESUMEN ARCHIVOS ESPERADOS ==='
+  for needle in '46xxsettings.txt' 'c81fea9b650d.txt' 'J100Supgrade.txt'; do
+    if grep -Fh "$phone_ip" /var/log/httpd/access_log /var/log/httpd/*access*.log 2>/dev/null | grep -Fi "$needle" >/dev/null 2>&1; then echo "$needle: SOLICITADO"; else echo "$needle: NO-OBSERVADO"; fi
+  done
+  echo 'J129-HTTP-REQUEST-AUDIT-PASS'
 }
 
 install_http_j129() {
-  local src backup marker
-  [ -n "$OVERLAY_ROOT" ] || usage
-  src="$OVERLAY_ROOT/httpd/avaya-j129-provisioning.conf"
-  [ -f "$src" ] || { echo "ERROR: falta $src" >&2; exit 1; }
-  command -v apachectl >/dev/null 2>&1 || { echo "ERROR: apachectl no disponible" >&2; exit 1; }
-  install -d -m 0755 "$HTTP_STATE_DIR"
-  backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"
-  marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"
-  if [ ! -e "$backup" ] && [ ! -e "$marker" ]; then
-    if [ -e "$HTTP_CONF_DST" ]; then cp -a "$HTTP_CONF_DST" "$backup"; else : > "$marker"; fi
-  fi
-  install -o root -g root -m 0644 "$src" "$HTTP_CONF_DST"
-  if ! apachectl -t; then
-    echo "ERROR: configuración Apache inválida; restaurando estado anterior" >&2
-    if [ -f "$backup" ]; then cp -a "$backup" "$HTTP_CONF_DST"; else rm -f "$HTTP_CONF_DST"; fi
-    apachectl -t || true
-    exit 1
-  fi
-  systemctl reload httpd
-  echo 'HTTP-J129-INSTALL-PASS'
+  local src backup marker; [ -n "$OVERLAY_ROOT" ] || usage; src="$OVERLAY_ROOT/httpd/avaya-j129-provisioning.conf"; [ -f "$src" ] || { echo "ERROR: falta $src" >&2; exit 1; }; command -v apachectl >/dev/null 2>&1 || { echo "ERROR: apachectl no disponible" >&2; exit 1; }; install -d -m 0755 "$HTTP_STATE_DIR"; backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"; marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"; if [ ! -e "$backup" ] && [ ! -e "$marker" ]; then if [ -e "$HTTP_CONF_DST" ]; then cp -a "$HTTP_CONF_DST" "$backup"; else : > "$marker"; fi; fi; install -o root -g root -m 0644 "$src" "$HTTP_CONF_DST"; if ! apachectl -t; then echo "ERROR: configuración Apache inválida; restaurando estado anterior" >&2; if [ -f "$backup" ]; then cp -a "$backup" "$HTTP_CONF_DST"; else rm -f "$HTTP_CONF_DST"; fi; apachectl -t || true; exit 1; fi; systemctl reload httpd; echo 'HTTP-J129-INSTALL-PASS'
 }
-
-rollback_http_j129() {
-  local backup marker
-  backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"
-  marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"
-  if [ -f "$backup" ]; then
-    cp -a "$backup" "$HTTP_CONF_DST"
-  elif [ -f "$marker" ]; then
-    rm -f "$HTTP_CONF_DST"
-  else
-    echo "ERROR: no existe estado previo HTTP para rollback" >&2
-    exit 1
-  fi
-  apachectl -t
-  systemctl reload httpd
-  rm -f "$backup" "$marker"
-  echo 'HTTP-J129-ROLLBACK-PASS'
-}
+rollback_http_j129() { local backup marker; backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"; marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"; if [ -f "$backup" ]; then cp -a "$backup" "$HTTP_CONF_DST"; elif [ -f "$marker" ]; then rm -f "$HTTP_CONF_DST"; else echo "ERROR: no existe estado previo HTTP para rollback" >&2; exit 1; fi; apachectl -t; systemctl reload httpd; rm -f "$backup" "$marker"; echo 'HTTP-J129-ROLLBACK-PASS'; }
 
 install_db_j129() {
-  local defaults_file avaya_count j129_count prefix_other prop_sip prop_iax
-  defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
-  install -d -m 0755 "$STATE_DIR"
-  avaya_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM manufacturer WHERE name='Avaya';")"
-  [ "$avaya_count" -le 1 ] || { echo "ERROR: fabricante Avaya duplicado" >&2; exit 1; }
-  if [ "$avaya_count" -eq 1 ]; then j129_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; [ "$j129_count" -le 1 ] || { echo "ERROR: modelo J129 duplicado" >&2; exit 1; }; fi
-  prefix_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mp.mac_prefix='C8:1F:EA' AND COALESCE(mf.name,'') <> 'Avaya';")"
-  [ "$prefix_other" -eq 0 ] || { echo "ERROR: C8:1F:EA ya pertenece a otro fabricante" >&2; exit 1; }
-  prop_sip="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts' AND mp.property_value <> '2';")"
-  prop_iax="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts' AND mp.property_value <> '0';")"
-  [ "$prop_sip" -eq 0 ] || { echo "ERROR: max_sip_accounts existente no coincide con 2" >&2; exit 1; }; [ "$prop_iax" -eq 0 ] || { echo "ERROR: max_iax2_accounts existente no coincide con 0" >&2; exit 1; }
-  if [ ! -f "$DB_STATE_FILE" ]; then
-    { echo "manufacturer_preexisting=$avaya_count"; if [ "$avaya_count" -eq 1 ]; then echo "model_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; else echo "model_preexisting=0"; fi; echo "prefix_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Avaya' AND mp.mac_prefix='C8:1F:EA';")"; echo "sip_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts';")"; echo "iax_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts';")"; } > "$DB_STATE_FILE"; chmod 0600 "$DB_STATE_FILE"
-  fi
+  local defaults_file avaya_count j129_count prefix_other prop_sip prop_iax; defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT; install -d -m 0755 "$STATE_DIR"; avaya_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM manufacturer WHERE name='Avaya';")"; [ "$avaya_count" -le 1 ] || { echo "ERROR: fabricante Avaya duplicado" >&2; exit 1; }; if [ "$avaya_count" -eq 1 ]; then j129_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; [ "$j129_count" -le 1 ] || { echo "ERROR: modelo J129 duplicado" >&2; exit 1; }; fi; prefix_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mp.mac_prefix='C8:1F:EA' AND COALESCE(mf.name,'') <> 'Avaya';")"; [ "$prefix_other" -eq 0 ] || { echo "ERROR: C8:1F:EA ya pertenece a otro fabricante" >&2; exit 1; }; prop_sip="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts' AND mp.property_value <> '2';")"; prop_iax="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts' AND mp.property_value <> '0';")"; [ "$prop_sip" -eq 0 ] || exit 1; [ "$prop_iax" -eq 0 ] || exit 1
+  if [ ! -f "$DB_STATE_FILE" ]; then { echo "manufacturer_preexisting=$avaya_count"; if [ "$avaya_count" -eq 1 ]; then echo "model_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; else echo "model_preexisting=0"; fi; echo "prefix_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Avaya' AND mp.mac_prefix='C8:1F:EA';")"; echo "sip_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts';")"; echo "iax_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts';")"; } > "$DB_STATE_FILE"; chmod 0600 "$DB_STATE_FILE"; fi
   mysql --defaults-extra-file="$defaults_file" endpointconfig <<'SQL'
 START TRANSACTION;
-INSERT INTO manufacturer (name, description) SELECT 'Avaya', 'Avaya IP Phones' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM manufacturer WHERE name = 'Avaya');
-SET @avaya_id := (SELECT id FROM manufacturer WHERE name = 'Avaya' LIMIT 1);
-INSERT INTO model (id_manufacturer, name, description, max_accounts, static_ip_supported, dynamic_ip_supported, static_prov_supported) SELECT @avaya_id, 'J129', 'Avaya J129', 2, 1, 1, 1 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129');
-SET @j129_id := (SELECT id FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129' LIMIT 1);
-INSERT INTO model_properties (id_model, property_key, property_value) SELECT @j129_id, 'max_sip_accounts', '2' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_sip_accounts');
-INSERT INTO model_properties (id_model, property_key, property_value) SELECT @j129_id, 'max_iax2_accounts', '0' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_iax2_accounts');
-INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description) SELECT @avaya_id, 'C8:1F:EA', 'Avaya J129' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM mac_prefix WHERE mac_prefix = 'C8:1F:EA');
-COMMIT;
+INSERT INTO manufacturer (name, description) SELECT 'Avaya', 'Avaya IP Phones' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM manufacturer WHERE name = 'Avaya'); SET @avaya_id := (SELECT id FROM manufacturer WHERE name = 'Avaya' LIMIT 1);
+INSERT INTO model (id_manufacturer, name, description, max_accounts, static_ip_supported, dynamic_ip_supported, static_prov_supported) SELECT @avaya_id, 'J129', 'Avaya J129', 2, 1, 1, 1 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129'); SET @j129_id := (SELECT id FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129' LIMIT 1);
+INSERT INTO model_properties (id_model, property_key, property_value) SELECT @j129_id, 'max_sip_accounts', '2' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_sip_accounts'); INSERT INTO model_properties (id_model, property_key, property_value) SELECT @j129_id, 'max_iax2_accounts', '0' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_iax2_accounts'); INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description) SELECT @avaya_id, 'C8:1F:EA', 'Avaya J129' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM mac_prefix WHERE mac_prefix = 'C8:1F:EA'); COMMIT;
 SQL
   rm -f "$defaults_file"; trap - RETURN EXIT; echo "DB-J129-INSTALL-PASS"
 }
-
 rollback_db_j129() {
-  local defaults_file manufacturer_preexisting model_preexisting prefix_preexisting sip_property_preexisting iax_property_preexisting endpoint_count
-  [ -f "$DB_STATE_FILE" ] || { echo "ERROR: no existe estado previo de migración DB" >&2; exit 1; }
-  . "$DB_STATE_FILE"
-  defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
-  endpoint_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE mf.name='Avaya';")"
-  [ "$endpoint_count" -eq 0 ] || { echo "ERROR: existen endpoints Avaya; rollback DB cancelado" >&2; exit 1; }
+  local defaults_file manufacturer_preexisting model_preexisting prefix_preexisting sip_property_preexisting iax_property_preexisting endpoint_count; [ -f "$DB_STATE_FILE" ] || { echo "ERROR: no existe estado previo de migración DB" >&2; exit 1; }; . "$DB_STATE_FILE"; defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT; endpoint_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE mf.name='Avaya';")"; [ "$endpoint_count" -eq 0 ] || { echo "ERROR: existen endpoints Avaya; rollback DB cancelado" >&2; exit 1; }
   mysql --defaults-extra-file="$defaults_file" endpointconfig <<SQL
-START TRANSACTION;
-SET @avaya_id := (SELECT id FROM manufacturer WHERE name = 'Avaya' LIMIT 1);
-SET @j129_id := (SELECT id FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129' LIMIT 1);
-DELETE FROM mac_prefix WHERE id_manufacturer = @avaya_id AND mac_prefix = 'C8:1F:EA' AND ${prefix_preexisting:-0} = 0;
-DELETE FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_sip_accounts' AND ${sip_property_preexisting:-0} = 0;
-DELETE FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_iax2_accounts' AND ${iax_property_preexisting:-0} = 0;
-DELETE FROM model WHERE id = @j129_id AND ${model_preexisting:-0} = 0;
-DELETE FROM manufacturer WHERE id = @avaya_id AND ${manufacturer_preexisting:-0} = 0;
-COMMIT;
+START TRANSACTION; SET @avaya_id := (SELECT id FROM manufacturer WHERE name = 'Avaya' LIMIT 1); SET @j129_id := (SELECT id FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129' LIMIT 1); DELETE FROM mac_prefix WHERE id_manufacturer = @avaya_id AND mac_prefix = 'C8:1F:EA' AND ${prefix_preexisting:-0} = 0; DELETE FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_sip_accounts' AND ${sip_property_preexisting:-0} = 0; DELETE FROM model_properties WHERE id_model = @j129_id AND property_key = 'max_iax2_accounts' AND ${iax_property_preexisting:-0} = 0; DELETE FROM model WHERE id = @j129_id AND ${model_preexisting:-0} = 0; DELETE FROM manufacturer WHERE id = @avaya_id AND ${manufacturer_preexisting:-0} = 0; COMMIT;
 SQL
   rm -f "$DB_STATE_FILE" "$defaults_file"; trap - RETURN EXIT; echo "DB-J129-ROLLBACK-PASS"
 }
@@ -236,6 +112,7 @@ SQL
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
+  inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
   install-http) install_http_j129 ;;
@@ -244,14 +121,11 @@ case "$ACTION" in
     [ -n "$OVERLAY_ROOT" ] || usage
     SRC_BASE="$OVERLAY_ROOT/usr/share/issabel/endpoint-classes"; VENDOR_SRC="$SRC_BASE/class/issabel/vendor/Avaya.py"; TPL_J129_SRC="$SRC_BASE/tpl/Avaya_J129.tpl"; TPL_GLOBAL_SRC="$SRC_BASE/tpl/Avaya_global_SIP.tpl"
     if [ "$ACTION" = "install" ]; then
-      for f in "$VENDOR_SRC" "$TPL_J129_SRC" "$TPL_GLOBAL_SRC"; do [ -f "$f" ] || { echo "Falta archivo de overlay: $f" >&2; exit 1; }; done
-      install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
+      for f in "$VENDOR_SRC" "$TPL_J129_SRC" "$TPL_GLOBAL_SRC"; do [ -f "$f" ] || { echo "Falta archivo de overlay: $f" >&2; exit 1; }; done; install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
       for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do name="$(basename "$dst")"; marker="$BACKUP_DIR/$name.absent"; backup="$BACKUP_DIR/$name"; if [ ! -e "$backup" ] && [ ! -e "$marker" ]; then if [ -e "$dst" ]; then cp -a "$dst" "$backup"; else : > "$marker"; fi; fi; done
       install -m 0644 "$VENDOR_SRC" "$VENDOR_DST"; install -m 0644 "$TPL_J129_SRC" "$TPL_J129_DST"; install -m 0644 "$TPL_GLOBAL_SRC" "$TPL_GLOBAL_DST"; sha256sum "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST" > "$STAMP_FILE"; echo "Overlay J129 instalado"
     else
-      install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"
-      for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do name="$(basename "$dst")"; marker="$BACKUP_DIR/$name.absent"; backup="$BACKUP_DIR/$name"; if [ -f "$backup" ]; then cp -a "$backup" "$dst"; elif [ -f "$marker" ]; then rm -f "$dst"; else echo "No existe estado de backup para $dst" >&2; exit 1; fi; done
-      rm -f "$STAMP_FILE"; echo "Rollback J129 completado"
+      install -d -m 0755 "$STATE_DIR" "$BACKUP_DIR"; for dst in "$VENDOR_DST" "$TPL_J129_DST" "$TPL_GLOBAL_DST"; do name="$(basename "$dst")"; marker="$BACKUP_DIR/$name.absent"; backup="$BACKUP_DIR/$name"; if [ -f "$backup" ]; then cp -a "$backup" "$dst"; elif [ -f "$marker" ]; then rm -f "$dst"; else echo "No existe estado de backup para $dst" >&2; exit 1; fi; done; rm -f "$STAMP_FILE"; echo "Rollback J129 completado"
     fi ;;
   *) usage ;;
 esac
