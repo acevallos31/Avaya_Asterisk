@@ -85,6 +85,25 @@ Secuencia observada:
 
 Conclusión: guardar Accounts modifica la asociación en Endpoint Configurator; el Apply principal regenera provisioning; el cambio de identidad SIP se vuelve efectivo en el J129 después de reprovisionar/reiniciar.
 
+### Eliminación de una de dos cuentas
+
+**Estado:** `PHYSICAL-J129-PASS`
+
+Partiendo del escenario multicuenta con prioridad 1 = `201` y prioridad 2 = `200`, el teléfono había terminado registrado con `200` por la limitación descrita en `BUG-J129-002`.
+
+Secuencia validada:
+
+1. Se elimina `200` desde `Configure -> Accounts`, dejando únicamente `201` asignada.
+2. Se guarda con Apply dentro de la ventana Accounts.
+3. Se ejecuta el Apply principal del Endpoint Configurator.
+4. `Issabel Lab J129 Provisioning Audit` termina verde y confirma que el provisioning se regeneró con la asociación restante.
+5. Se reinicia el J129 sin cambios manuales.
+6. El teléfono muestra `201`.
+7. Asterisk muestra `201/201` en estado `OK` y `200/200` en estado `UNREACHABLE`.
+8. `Issabel Lab J129 State Audit` en estado `configured` termina verde.
+
+Conclusión: eliminar una cuenta asignada y volver a aplicar configuración limpia el estado efectivo del teléfono después del reprovisioning/reboot y conserva correctamente la cuenta restante.
+
 ## BUG-EC-001 — `Registered at` muestra un peer SIP obsoleto
 
 **Estado:** `LAB-INTEGRATION-PASS` como reproducción del defecto.
@@ -181,7 +200,6 @@ No se debe corregir a ciegas agregando más parámetros repetidos. Primero se de
 
 ## Pruebas pendientes para cerrar J129 v1
 
-- Eliminar una de dos cuentas y verificar ausencia de residuos.
 - Endpoint sin cuentas y Apply controlado.
 - Segunda validación completa de `Remove configuration`, incluyendo existencia/hash del archivo por MAC.
 - Rescan repetido sin endpoints duplicados.
@@ -190,6 +208,7 @@ No se debe corregir a ciegas agregando más parámetros repetidos. Primero se de
 - Rollback/reinstall final del overlay.
 - Retirar mecanismos temporales de privilegios/sincronización antes de producción.
 - Resolver o limitar explícitamente el soporte multicuenta descrito en `BUG-J129-002`.
+- Corregir o aislar `BUG-EC-001` después de cerrar las pruebas funcionales del vendor.
 
 ## Criterio de evidencia
 
