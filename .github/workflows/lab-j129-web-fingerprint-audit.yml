@@ -1,0 +1,119 @@
+name: Issabel Lab J129 Web Fingerprint Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar fingerprint web del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Inspeccionar metadata HTTP y HTTPS sin credenciales
+        shell: bash
+        run: |
+          set -euo pipefail
+          phone_ip='192.168.1.171'
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+
+          echo '=== J129 WEB FINGERPRINT AUDIT (SOLO LECTURA) ==='
+          echo "Telefono: ${phone_ip}"
+          echo 'No se envian credenciales, cookies, formularios ni peticiones POST.'
+          echo 'El cuerpo HTML no se imprime completo.'
+
+          inspect_url() {
+            scheme="$1"
+            url="${scheme}://${phone_ip}/"
+            headers="$tmpdir/${scheme}.headers"
+            body="$tmpdir/${scheme}.body"
+
+            echo "=== ${scheme^^} ==="
+            curl_args=(
+              --max-time 8
+              --connect-timeout 3
+              --silent
+              --show-error
+              --dump-header "$headers"
+              --output "$body"
+            )
+            if [ "$scheme" = 'https' ]; then
+              curl_args+=(--insecure)
+            fi
+
+            if ! curl "${curl_args[@]}" "$url"; then
+              echo "${scheme}: SIN-RESPUESTA"
+              return 0
+            fi
+
+            status="$(awk 'toupper($1) ~ /^HTTP\// {code=$2} END {print code}' "$headers")"
+            server="$(awk 'BEGIN{IGNORECASE=1} /^Server:/ {$1=""; sub(/^ /,""); gsub(/\r/,""); print; exit}' "$headers")"
+            content_type="$(awk 'BEGIN{IGNORECASE=1} /^Content-Type:/ {$1=""; sub(/^ /,""); gsub(/\r/,""); print; exit}' "$headers")"
+            location="$(awk 'BEGIN{IGNORECASE=1} /^Location:/ {$1=""; sub(/^ /,""); gsub(/\r/,""); print; exit}' "$headers")"
+            bytes="$(wc -c < "$body" | tr -d ' ')"
+            sha256="$(sha256sum "$body" | awk '{print $1}')"
+
+            echo "status=${status:-desconocido}"
+            echo "server=${server:-no-publicado}"
+            echo "content-type=${content_type:-no-publicado}"
+            echo "location=${location:-ninguno}"
+            echo "body-bytes=${bytes}"
+            echo "body-sha256=${sha256}"
+
+            python3 - "$body" <<'PY'
+import html
+import re
+import sys
+
+path = sys.argv[1]
+with open(path, 'rb') as fh:
+    raw = fh.read(1024 * 1024)
+text = raw.decode('utf-8', 'replace')
+
+def compact(value):
+    value = re.sub(r'\s+', ' ', html.unescape(value or '')).strip()
+    return value[:200]
+
+m = re.search(r'<title[^>]*>(.*?)</title>', text, re.I | re.S)
+print('title=' + (compact(m.group(1)) if m else 'no-detectado'))
+
+forms = []
+for tag in re.findall(r'<form\b[^>]*>', text, re.I):
+    action = re.search(r'\baction\s*=\s*["\']([^"\']*)["\']', tag, re.I)
+    method = re.search(r'\bmethod\s*=\s*["\']([^"\']*)["\']', tag, re.I)
+    forms.append((compact(method.group(1) if method else 'GET').upper(), compact(action.group(1) if action else '')))
+print('forms=' + (', '.join('%s %s' % item for item in forms[:10]) if forms else 'ninguno'))
+
+names = []
+for tag in re.findall(r'<input\b[^>]*>', text, re.I):
+    name = re.search(r'\bname\s*=\s*["\']([^"\']+)["\']', tag, re.I)
+    if name:
+        n = compact(name.group(1))
+        if n and n not in names:
+            names.append(n)
+print('input-names=' + (', '.join(names[:30]) if names else 'ninguno'))
+
+markers = []
+for token in ('Avaya', 'J129', 'J100', 'firmware', 'software version', '3.0.0.0.20', 'login', 'admin'):
+    if re.search(re.escape(token), text, re.I):
+        markers.append(token)
+print('markers=' + (', '.join(markers) if markers else 'ninguno'))
+PY
+          }
+
+          inspect_url http
+          inspect_url https
+
+          echo 'J129-WEB-FINGERPRINT-AUDIT-PASS'
