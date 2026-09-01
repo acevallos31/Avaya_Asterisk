@@ -175,14 +175,77 @@ Crear el contrato golden del Avaya J129 antes de tocar la lógica funcional.
 
 ---
 
+## 2026-09-01 01:20 -06:00 — OpenAI-GPT-5.6-Sol
+
+**Objetivo:**
+Consolidar la evidencia física acumulada del J129 y dejar trazable el estado real antes de continuar con pruebas de endpoint sin cuentas y eliminación completa de configuración.
+
+**Rama:** `Audit`
+
+**Base revisada:**
+- `AGENTS.md` actualizado durante la sesión.
+- `docs/j129-lab-validation.md` como documento específico de evidencia física.
+- Workflows de auditoría de provisioning, SIP y estado consolidado.
+
+**Archivos leídos:**
+- `AGENTS.md`
+- `docs/j129-lab-validation.md`
+- `docs/agent-log.md`
+- evidencia de GitHub Actions y salidas `sip show peers` compartidas durante las pruebas.
+
+**Archivos modificados:**
+- `AGENTS.md`
+- `docs/j129-lab-validation.md`
+- `docs/agent-log.md`
+
+**Decisiones:**
+- Mantener Asterisk como fuente autoritativa para registro SIP efectivo; la GUI de Endpoint Configurator no es suficiente cuando muestra peers obsoletos.
+- Registrar `BUG-EC-001` por `Registered at` mostrado sobre un peer `UNREACHABLE`.
+- Registrar `BUG-J129-002`: `max_accounts=2` permite dos asignaciones en Issabel, pero el provisioning actual no produce dos identidades SIP independientes; la segunda cuenta termina siendo efectiva después del reboot.
+- No corregir multicuenta a ciegas repitiendo `FORCE_SIP_*`; primero se debe revisar sintaxis oficial Avaya/Open SIP aplicable al firmware probado.
+- Continuar pruebas funcionales de ciclo de vida antes de corregir `BUG-EC-001`.
+
+**Pruebas/evidencia:**
+- `PHYSICAL-J129-PASS` — detección automática Avaya/J129 mediante flujo estándar.
+- `PHYSICAL-J129-PASS` — cadena HTTP observada: `J100Supgrade.txt` -> `46xxsettings.txt` -> archivo por MAC, todos HTTP 200 después de bootstrap.
+- `PHYSICAL-J129-PASS` — registro SIP por `chan_sip` con cuenta + IP comprobadas.
+- `PHYSICAL-J129-PASS` — ciclo `Remove -> Rescan -> Reassign -> Apply -> Reboot -> Register` completo y State Audit verde.
+- `PHYSICAL-J129-PASS` — cambio de extensión: guardar Accounts y Apply regeneran servidor; el cambio efectivo ocurre tras reprovisioning/reboot; State Audit verde después del reboot.
+- `LAB-INTEGRATION-PASS` — `BUG-EC-001` reproducido: GUI mostró `Registered at` para peer antiguo mientras Asterisk lo reportaba `UNREACHABLE` y la cuenta actual estaba `OK`.
+- `PHYSICAL-J129-PASS` como reproducción de defecto — `BUG-J129-002`: con `201` prioridad 1 y `200` prioridad 2, tras Apply + reboot Asterisk mostró `200 OK` y `201 UNREACHABLE`, probando que no existen dos registros independientes.
+- `PHYSICAL-J129-PASS` — eliminación de una de dos cuentas: se quitó `200`, se dejó `201`, Provisioning Audit verde, reboot sin cambios manuales, teléfono mostró `201`, Asterisk mostró `201 OK` y `200 UNREACHABLE`, State Audit verde.
+
+**Riesgos / no comprobado:**
+- El audit consolidado puede resultar verde en estados multicuenta/transitorios porque valida una coincidencia válida y no representa todavía todas las cuentas simultáneamente.
+- Falta probar endpoint sin cuentas y verificar que no queden credenciales antiguas en el archivo por MAC.
+- Falta segunda validación de `Remove configuration` con comprobación directa de existencia/hash del archivo por MAC.
+- Falta resolver o limitar explícitamente `max_accounts=2` antes de candidata de producción.
+- `BUG-EC-001` sigue pendiente de localizar y corregir en el código web/core de Endpoint Configurator.
+- Helper sync privilegiado sigue siendo mecanismo temporal de LAB y debe retirarse antes de producción/freeze.
+
+**Siguiente paso recomendado:**
+- Quitar la única cuenta `201` dejando el endpoint detectado con `Assigned accounts (0)`.
+- Auditar DB/provisioning antes y después del Apply principal.
+- Verificar que el archivo por MAC no conserve credenciales SIP antiguas.
+- Después realizar una segunda prueba completa de `Remove configuration` y comprobar directamente archivo por MAC, DB y estado SIP.
+
+**Commit(s):**
+- `9e0be9f582411e11733729a6aa4f3c63be1addc9 docs(j129): registrar validacion fisica y bug de estado SIP`
+- `d3e8d5634c6c653b0d4ee5a1bb2f7720a065b23d docs(agents): actualizar estado validado del J129`
+- `14de62cc9858924554c2255e7a73cb36ffa18b8e docs(j129): registrar fallo físico de multicuenta`
+- `11aed919747aad07ca7a708f936b918040d26b52 docs(j129): documentar eliminacion de cuenta y estado fisico`
+
+---
+
 ## Handoff actual
 
 El próximo agente debe:
 
-1. leer `AGENTS.md`;
-2. leer esta bitácora;
-3. ejecutar `tests/audit/` y no interpretar los contratos objetivo rojos como una regresión accidental;
-4. mantener el alcance limitado a J129;
-5. no modificar producción;
-6. configurar primero el runner de laboratorio en modo read-only;
-7. registrar aquí cualquier nueva conclusión o cambio.
+1. leer `AGENTS.md`, `docs/agent-log.md` y `docs/j129-lab-validation.md`;
+2. mantener el alcance limitado a J129;
+3. no modificar producción;
+4. tratar Asterisk como fuente de verdad para registro SIP real;
+5. no asumir soporte multicuenta correcto mientras `BUG-J129-002` siga abierto;
+6. continuar con endpoint sin cuentas, luego `Remove configuration` con comprobación directa del archivo MAC;
+7. mantener secretos fuera de logs, documentos y commits;
+8. retirar helper sync temporal antes de candidata de producción.
