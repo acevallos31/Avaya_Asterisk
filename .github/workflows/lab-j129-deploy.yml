@@ -80,7 +80,13 @@ jobs:
             test -f /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
             test -f /usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl
             test -f /usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
-            python3 -m py_compile /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+            python3 - <<'PY'
+          import ast
+          path = '/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py'
+          with open(path, 'r') as f:
+              ast.parse(f.read(), filename=path)
+          print('AVAYA-PY-SYNTAX-PASS')
+          PY
             echo "INSTALL-PASS"
           else
             echo "ROLLBACK-PASS"
