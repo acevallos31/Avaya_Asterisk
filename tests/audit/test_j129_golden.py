@@ -6,20 +6,23 @@ from tests.audit.support import RepositoryTextSource
 AVAYA = "usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py"
 J129_TEMPLATE = "usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl"
 GLOBAL_TEMPLATE = "usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl"
+REFERENCE_AVAYA = (
+    "audit/production-reference/avaya_files_audit/files/usr/share/issabel/"
+    "endpoint-classes/class/issabel/vendor/Avaya.py"
+)
 
 
 class J129ProductionReferenceTests(unittest.TestCase):
-    """Protect behavior that is known to be useful from the historical implementation.
+    """Protege el comportamiento J129 observado en la implementación histórica.
 
-    These tests do not endorse the current architecture. They only prevent a refactor
-    from accidentally deleting the J129 provisioning semantics that made the phones
-    work.
+    La referencia de producción es inmutable para estas pruebas: el código objetivo
+    puede refactorizarse sin borrar la evidencia de cómo se aprovisionaban los J129.
     """
 
     @classmethod
     def setUpClass(cls):
         repo = RepositoryTextSource()
-        cls.vendor = repo.read(AVAYA)
+        cls.reference_vendor = repo.read(REFERENCE_AVAYA)
         cls.global_template = repo.read(GLOBAL_TEMPLATE)
 
     def test_reference_uses_mac_specific_settings_file(self):
@@ -31,19 +34,15 @@ class J129ProductionReferenceTests(unittest.TestCase):
             "FORCE_SIP_PASSWORD",
             "FORCE_SIP_EXTENSION",
         ):
-            self.assertIn(parameter, self.vendor)
+            self.assertIn(parameter, self.reference_vendor)
 
     def test_reference_normalizes_mac_for_per_phone_filename(self):
-        self.assertIn('.lower().replace(":", "")', self.vendor)
-        self.assertIn('/tftpboot/{mac_sin_separadores}.txt', self.vendor)
+        self.assertIn('.lower().replace(":", "")', self.reference_vendor)
+        self.assertIn('/tftpboot/{mac_sin_separadores}.txt', self.reference_vendor)
 
 
 class J129TargetGoldenContractTests(unittest.TestCase):
-    """Target contract for the Issabel-native J129 refactor.
-
-    Some assertions are expected to fail before the refactor. This is intentional:
-    they define the desired architecture before production logic is changed.
-    """
+    """Contrato objetivo para el refactor J129 nativo de Issabel."""
 
     @classmethod
     def setUpClass(cls):
