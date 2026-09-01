@@ -17,7 +17,7 @@ HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|install-db|rollback-db}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db}" >&2
   exit 2
 }
 
@@ -64,24 +64,47 @@ SQL
 }
 
 run_http_request_inspection() {
-  local phone_ip='192.168.1.171' found=0 log
-  echo '=== J129 HTTP REQUEST AUDIT (SOLO LECTURA) ==='
-  echo "Telefono esperado: ${phone_ip}"
-  echo 'Se muestran solamente lineas de access log originadas por el telefono; no se leen archivos de provisioning.'
+  local phone_ip='192.168.1.171' found=0 log needle tmp
+  tmp="$(mktemp /tmp/avaya-j129-http.XXXXXX)"; chmod 0600 "$tmp"; trap 'rm -f "$tmp"' RETURN EXIT
+  echo '=== J129 HTTP REQUEST AUDIT (SOLO LECTURA) ==='; echo "Telefono esperado: ${phone_ip}"; echo 'Se muestran solamente lineas de access log originadas por el telefono; no se leen archivos de provisioning.'
   for log in /var/log/httpd/access_log /var/log/httpd/*access*.log; do
     [ -f "$log" ] || continue
     if grep -F "$phone_ip" "$log" >/dev/null 2>&1; then
-      echo "--- $(basename "$log") ---"
-      grep -F "$phone_ip" "$log" | tail -n 100 | sed -E 's#(GET|HEAD|POST) ([^ ]*FORCE_SIP_PASSWORD[^ ]*)#\1 ***OCULTO***#Ig'
-      found=1
+      grep -F "$phone_ip" "$log" >> "$tmp"; found=1
     fi
   done
-  if [ "$found" -eq 0 ]; then echo 'SIN-SOLICITUDES-HTTP-DEL-J129'; fi
+  if [ "$found" -eq 1 ]; then
+    sort -u "$tmp" | tail -n 100 | sed -E 's#(GET|HEAD|POST) ([^ ]*FORCE_SIP_PASSWORD[^ ]*)#\1 ***OCULTO***#Ig'
+  else
+    echo 'SIN-SOLICITUDES-HTTP-DEL-J129'
+  fi
   echo '=== RESUMEN ARCHIVOS ESPERADOS ==='
   for needle in '46xxsettings.txt' 'c81fea9b650d.txt' 'J100Supgrade.txt'; do
-    if grep -Fh "$phone_ip" /var/log/httpd/access_log /var/log/httpd/*access*.log 2>/dev/null | grep -Fi "$needle" >/dev/null 2>&1; then echo "$needle: SOLICITADO"; else echo "$needle: NO-OBSERVADO"; fi
+    if grep -Fi "$needle" "$tmp" >/dev/null 2>&1; then echo "$needle: SOLICITADO"; else echo "$needle: NO-OBSERVADO"; fi
   done
-  echo 'J129-HTTP-REQUEST-AUDIT-PASS'
+  rm -f "$tmp"; trap - RETURN EXIT; echo 'J129-HTTP-REQUEST-AUDIT-PASS'
+}
+
+run_sip_registration_inspection() {
+  local defaults_file account expected_ip='192.168.1.171' sip_out pjsip_out registered=0
+  command -v asterisk >/dev/null 2>&1 || { echo 'ERROR: asterisk CLI no disponible' >&2; exit 1; }
+  defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
+  account="$(mysql_scalar "$defaults_file" "SELECT ea.account FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D' ORDER BY ea.priority LIMIT 1;")"
+  [ -n "$account" ] || { echo 'ERROR: J129 no tiene cuenta asignada en Endpoint Configurator' >&2; exit 1; }
+  echo '=== J129 SIP REGISTRATION AUDIT (SOLO LECTURA) ==='; echo "Cuenta esperada: $account"; echo "IP esperada del telefono: $expected_ip"; echo 'No se consultan ni muestran secretos SIP.'
+  sip_out="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
+  pjsip_out="$(asterisk -rx 'pjsip show contacts' 2>/dev/null || true)"
+  echo '=== CHAN_SIP ==='
+  if printf '%s\n' "$sip_out" | grep -E "(^|[[:space:]])${account}(/|[[:space:]])" | grep -F "$expected_ip" >/dev/null 2>&1; then
+    printf '%s\n' "$sip_out" | grep -E "(^|[[:space:]])${account}(/|[[:space:]])" | grep -F "$expected_ip" | sed -E 's/[[:space:]]+/ /g'; registered=1
+  else echo 'Sin coincidencia cuenta+IP.'; fi
+  echo '=== PJSIP ==='
+  if printf '%s\n' "$pjsip_out" | grep -F "$account" | grep -F "$expected_ip" >/dev/null 2>&1; then
+    printf '%s\n' "$pjsip_out" | grep -F "$account" | grep -F "$expected_ip" | sed -E 's/[[:space:]]+/ /g'; registered=1
+  else echo 'Sin coincidencia cuenta+IP.'; fi
+  rm -f "$defaults_file"; trap - RETURN EXIT
+  [ "$registered" -eq 1 ] || { echo 'J129-SIP-REGISTRATION-FAIL'; exit 1; }
+  echo 'J129-SIP-REGISTRATION-PASS'
 }
 
 install_http_j129() {
@@ -113,6 +136,7 @@ case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;
+  inspect-sip-registration) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_registration_inspection ;;
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
   install-http) install_http_j129 ;;
