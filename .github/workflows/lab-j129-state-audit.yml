@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - configured
+          - configured_no_accounts
           - removed
 
 permissions:
@@ -45,11 +46,32 @@ jobs:
           set -euo pipefail
           sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-db
 
-      - name: Auditar provisioning
+      - name: Auditar provisioning y asociaciones
         shell: bash
+        env:
+          EXPECTED_STATE: ${{ inputs.estado }}
+          J129_MAC: C8:1F:EA:9B:65:0D
         run: |
           set -euo pipefail
-          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-provisioning
+          output="$(sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-provisioning)"
+          printf '%s\n' "$output"
+
+          if [ "$EXPECTED_STATE" = "configured_no_accounts" ]; then
+            endpoint_section="$(printf '%s\n' "$output" | awk '/=== ENDPOINT AVAYA\/J129 ===/{f=1;next}/=== CUENTAS ASIGNADAS/{f=0}f')"
+            account_section="$(printf '%s\n' "$output" | awk '/=== CUENTAS ASIGNADAS \(SIN SECRETOS\) ===/{f=1;next}/=== ARCHIVOS DE PROVISIONING POR MAC ===/{f=0}f')"
+
+            if ! printf '%s\n' "$endpoint_section" | grep -F "$J129_MAC" >/dev/null; then
+              echo 'ERROR: se esperaba que el J129 siguiera rastreado en Endpoint Configurator.' >&2
+              exit 1
+            fi
+
+            if printf '%s\n' "$account_section" | grep -F "$J129_MAC" >/dev/null; then
+              echo 'ERROR: se esperaba J129 sin cuentas asignadas, pero endpoint_account aún contiene una asociación.' >&2
+              exit 1
+            fi
+
+            echo 'J129-NO-ACCOUNTS-DB-PASS'
+          fi
 
       - name: Auditar registro SIP
         id: sip
@@ -64,22 +86,41 @@ jobs:
           set -e
           printf '%s\n' "$output"
 
-          if [ "$EXPECTED_STATE" = "configured" ]; then
-            if [ "$rc" -ne 0 ]; then
-              echo 'ERROR: se esperaba J129 configurado y registrado.' >&2
-              exit "$rc"
-            fi
-            echo 'SIP-STATE-CONFIGURED-PASS'
-          else
-            if [ "$rc" -eq 0 ]; then
-              echo 'OBSERVACION: el teléfono sigue registrado aunque Endpoint Configurator fue removido.'
-            elif printf '%s\n' "$output" | grep -F 'J129 no tiene cuenta asignada en Endpoint Configurator' >/dev/null; then
-              echo 'OBSERVACION: Endpoint Configurator ya no conserva la asociación de cuenta del J129.'
-            else
-              echo 'OBSERVACION: registro SIP no verificable con la asociación estándar después de Remove.'
-            fi
-            echo 'SIP-STATE-REMOVED-OBSERVED'
-          fi
+          case "$EXPECTED_STATE" in
+            configured)
+              if [ "$rc" -ne 0 ]; then
+                echo 'ERROR: se esperaba J129 configurado y registrado.' >&2
+                exit "$rc"
+              fi
+              echo 'SIP-STATE-CONFIGURED-PASS'
+              ;;
+            configured_no_accounts)
+              if [ "$rc" -eq 0 ]; then
+                echo 'OBSERVACION: el helper encontró una cuenta asociada aunque se esperaba cero cuentas.' >&2
+                exit 1
+              elif printf '%s\n' "$output" | grep -F 'J129 no tiene cuenta asignada en Endpoint Configurator' >/dev/null; then
+                echo 'SIP-STATE-NO-ACCOUNTS-PASS'
+                echo 'OBSERVACION: el teléfono puede conservar temporalmente un registro SIP previo; este helper no lo atribuye sin endpoint_account.'
+              else
+                echo 'ERROR: fallo SIP inesperado para un J129 sin cuentas.' >&2
+                exit "$rc"
+              fi
+              ;;
+            removed)
+              if [ "$rc" -eq 0 ]; then
+                echo 'OBSERVACION: el teléfono sigue registrado aunque Endpoint Configurator fue removido.'
+              elif printf '%s\n' "$output" | grep -F 'J129 no tiene cuenta asignada en Endpoint Configurator' >/dev/null; then
+                echo 'OBSERVACION: Endpoint Configurator ya no conserva la asociación de cuenta del J129.'
+              else
+                echo 'OBSERVACION: registro SIP no verificable con la asociación estándar después de Remove.'
+              fi
+              echo 'SIP-STATE-REMOVED-OBSERVED'
+              ;;
+            *)
+              echo "ERROR: estado no soportado: $EXPECTED_STATE" >&2
+              exit 2
+              ;;
+          esac
 
       - name: Resultado
         shell: bash
