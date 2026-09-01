@@ -88,6 +88,17 @@ class J129TargetGoldenContractTests(unittest.TestCase):
         self.assertIn("_prepareVarList", self.vendor)
         self.assertIn("_writeTemplate", self.vendor)
 
+    def test_zero_accounts_revokes_stale_mac_provisioning_without_error(self):
+        self.assertIn("if len(self._accounts) <= 0:", self.vendor)
+        zero_accounts_block = self.vendor.split("if len(self._accounts) <= 0:", 1)[1].split(
+            "mac_sin_separadores", 1
+        )[0]
+        self.assertIn("self.deleteContent()", zero_accounts_block)
+        self.assertIn("self._setConfigured()", zero_accounts_block)
+        self.assertIn("return True", zero_accounts_block)
+        self.assertNotIn("logging.error", zero_accounts_block)
+        self.assertNotIn("return False", zero_accounts_block)
+
     def test_golden_fixture_uses_only_fake_credentials(self):
         golden = {
             "mac": "C8:1F:EA:AA:BB:CC",
