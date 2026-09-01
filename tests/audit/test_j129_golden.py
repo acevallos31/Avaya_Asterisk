@@ -84,6 +84,10 @@ class J129TargetGoldenContractTests(unittest.TestCase):
         )
         self.assertIn("GET $MACADDR.txt", self.global_template)
 
+    def test_global_template_enables_official_3pcc_remote_resync(self):
+        self.assertIn("SET ENABLE_3PCC_ENVIRONMENT 1", self.global_template)
+        self.assertIn("SET ENABLE_OOD_RESET_NOTIFY 1", self.global_template)
+
     def test_vendor_prepares_standard_issabel_template_variables(self):
         self.assertIn("_prepareVarList", self.vendor)
         self.assertIn("_writeTemplate", self.vendor)
