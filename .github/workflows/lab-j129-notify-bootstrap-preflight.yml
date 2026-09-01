@@ -1,0 +1,66 @@
+name: Issabel Lab J129 Notify Bootstrap Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Auditar precondiciones antes de SIP NOTIFY J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad y rama del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+          test "${GITHUB_REF_NAME}" = "Audit"
+
+      - name: Sincronizar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Confirmar provisioning server-side sin secretos
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-provisioning
+          test -f /tftpboot/46xxsettings.txt
+          grep -Eq '^[[:space:]]*SET[[:space:]]+ENABLE_OOD_RESET_NOTIFY[[:space:]]+1([[:space:]]|$)' /tftpboot/46xxsettings.txt
+          echo 'OOD-RESET-SERVER-SIDE=READY'
+
+      - name: Confirmar Web UI del telefono alcanzable
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -k -sS -o /tmp/j129-preflight-web.$$ -w '%{http_code}' --connect-timeout 5 --max-time 10 'https://192.168.1.171/' || true)"
+          trap 'rm -f /tmp/j129-preflight-web.$$' EXIT
+          echo "J129-HTTPS-STATUS=${code}"
+          test "${code}" = "200"
+          grep -qi 'Avaya J100 Phone' /tmp/j129-preflight-web.$$
+          echo 'J129-WEB-FINGERPRINT=PASS'
+
+      - name: Capturar baseline HTTP del telefono
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-http-requests
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-NOTIFY-BOOTSTRAP-PREFLIGHT-PASS'
+          echo 'NOTIFY-ENVIADO=0'
+          echo 'RESTART-ENVIADO=0'
