@@ -133,9 +133,54 @@ No se utilizará únicamente el texto `Registered at` de la GUI como prueba de r
 - Añadir una prueba de regresión antes de corregirlo.
 - Mantener la corrección separada del vendor Avaya si el defecto pertenece al core/web de Endpoint Configurator.
 
+## BUG-J129-002 — Dos cuentas asignadas no producen dos registros SIP independientes
+
+**Estado:** `PHYSICAL-J129-PASS` como reproducción del defecto; soporte multicuenta funcionalmente pendiente.
+
+### Preparación
+
+Endpoint Configurator aceptó dos cuentas para el mismo J129:
+
+```text
+priority 1 -> 201
+priority 2 -> 200
+```
+
+El modelo está registrado con `max_accounts=2`.
+
+### Evidencia de provisioning
+
+Después del Apply principal, la auditoría mostró ambas cuentas en `endpoint_account` y un único archivo por MAC. El archivo contiene bloques repetidos de parámetros `FORCE_SIP_*` para 201 y 200, pero estos parámetros no representan identidades SIP independientes. La auditoría ocultó los secretos y confirmó que existe material de password sin imprimirlo.
+
+### Evidencia física
+
+Antes de esta prueba, el J129 estaba registrado correctamente con 201.
+
+Después de asignar 201 + 200, ejecutar Apply y reiniciar el teléfono, `sip show peers` mostró:
+
+```text
+200/200   192.168.1.171   OK
+201/201   192.168.1.171   UNREACHABLE
+```
+
+El teléfono terminó usando la segunda cuenta del provisioning en lugar de mantener dos registros simultáneos.
+
+### Conclusión
+
+La metadata actual permite dos cuentas, pero la plantilla J129 vigente no implementa correctamente dos identidades SIP independientes. Repetir `FORCE_SIP_USERNAME`, `FORCE_SIP_EXTENSION`, `DISPLAY_NAME` y password no constituye soporte multicuenta correcto.
+
+No se debe corregir a ciegas agregando más parámetros repetidos. Primero se debe verificar la sintaxis oficial del J129/Open SIP para múltiples líneas/cuentas, añadir tests y repetir esta misma prueba física.
+
+### Pendiente
+
+- Revisar documentación oficial Avaya aplicable al firmware del J129 para multicuenta.
+- Determinar si el J129/firmware probado soporta realmente dos registros SIP y con qué parámetros.
+- Corregir template/metadata según evidencia.
+- Añadir golden tests multicuenta o limitar temporalmente `max_accounts` si el soporte real no puede implementarse de forma segura.
+- Repetir prueba física 201 + 200 después de cualquier corrección.
+
 ## Pruebas pendientes para cerrar J129 v1
 
-- Dos cuentas SIP simultáneas y comportamiento real del J129 con `max_accounts=2`.
 - Eliminar una de dos cuentas y verificar ausencia de residuos.
 - Endpoint sin cuentas y Apply controlado.
 - Segunda validación completa de `Remove configuration`, incluyendo existencia/hash del archivo por MAC.
@@ -144,6 +189,7 @@ No se utilizará únicamente el texto `Registered at` de la GUI como prueba de r
 - Casos controlados: endpoint sin cuenta, extensión inválida/no existente y teléfono offline durante Apply.
 - Rollback/reinstall final del overlay.
 - Retirar mecanismos temporales de privilegios/sincronización antes de producción.
+- Resolver o limitar explícitamente el soporte multicuenta descrito en `BUG-J129-002`.
 
 ## Criterio de evidencia
 
