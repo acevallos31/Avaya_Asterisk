@@ -1,0 +1,36 @@
+name: Issabel Lab Endpoint DB Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  endpoint-db-audit:
+    name: Auditoría de endpointconfig en PBX LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Verificar helper instalado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-lab-deploy
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Inspeccionar endpointconfig en solo lectura
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-db
