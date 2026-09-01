@@ -1,0 +1,28 @@
+name: Issabel Lab J129 Apply Config
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply-config:
+    name: Aplicar configuracion real de Endpoint Configurator en LAB
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar rama de ejecucion
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Este workflow debe ejecutarse en la rama Audit."
+          test "$GITHUB_REF_NAME" = "Audit"
+
+      - name: Placeholder de visibilidad
+        shell: bash
+        run: echo 'Selecciona la rama Audit al ejecutar Run workflow.'
