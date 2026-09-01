@@ -17,6 +17,7 @@ class Endpoint(BaseEndpoint):
     """
 
     _global_serverip = None
+    _j129_oui = "C8:1F:EA"
 
     def __init__(self, amipool, dbpool, serverip, ip, mac):
         BaseEndpoint.__init__(self, "Avaya", amipool, dbpool, serverip, ip, mac)
@@ -30,6 +31,22 @@ class Endpoint(BaseEndpoint):
                 ip,
                 serverip,
             )
+
+    def probeModel(self):
+        """Identifica el J129 descubierto por el OUI aprobado para este scope.
+
+        detect_endpoints ya resolvió el fabricante mediante mac_prefix y luego
+        invoca este método del vendor. Como el overlay actual soporta únicamente
+        J129, solo se persiste el modelo cuando la MAC pertenece al OUI J129
+        registrado por la migración. _saveModel() resuelve el ID por nombre y
+        fabricante, por lo que no se hardcodean IDs de base de datos.
+        """
+        if not self._mac:
+            return
+
+        normalized_mac = self._mac.upper()
+        if normalized_mac.startswith(self._j129_oui):
+            self._saveModel("J129")
 
     @staticmethod
     def updateGlobalConfig(serveriplist, amipool, endpoints):
