@@ -10,40 +10,40 @@ RUNNER_USER="github-runner"
 WORKSPACE="/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk"
 SOURCE="$WORKSPACE/deploy/j129/avaya-j129-lab-deploy"
 DESTINATION="/usr/local/sbin/avaya-j129-lab-deploy"
+BOOT_SOURCE="$WORKSPACE/deploy/j129/avaya-j129-boot-audit"
+BOOT_DESTINATION="/usr/local/sbin/avaya-j129-boot-audit"
+BOOT_SUDOERS="/etc/sudoers.d/avaya-j129-boot-audit"
 
-[ "$(id -u)" -eq 0 ] || {
-  echo "ERROR: debe ejecutarse como root" >&2
-  exit 1
-}
+[ "$(id -u)" -eq 0 ] || { echo "ERROR: debe ejecutarse como root" >&2; exit 1; }
 
-[ -f "$SOURCE" ] || {
-  echo "ERROR: helper fuente no encontrado" >&2
-  exit 1
-}
-
-owner="$(stat -c '%U' "$SOURCE")"
-[ "$owner" = "$RUNNER_USER" ] || {
-  echo "ERROR: propietario inesperado del helper fuente: $owner" >&2
-  exit 1
-}
-
-case "$SOURCE" in
-  "$WORKSPACE"/deploy/j129/avaya-j129-lab-deploy) ;;
-  *) echo "ERROR: ruta fuente fuera del workspace permitido" >&2; exit 1 ;;
-esac
-
-bash -n "$SOURCE"
+for source in "$SOURCE" "$BOOT_SOURCE"; do
+  [ -f "$source" ] || { echo "ERROR: helper fuente no encontrado: $source" >&2; exit 1; }
+  owner="$(stat -c '%U' "$source")"
+  [ "$owner" = "$RUNNER_USER" ] || { echo "ERROR: propietario inesperado del helper fuente: $owner" >&2; exit 1; }
+  case "$source" in
+    "$WORKSPACE"/deploy/j129/avaya-j129-lab-deploy|"$WORKSPACE"/deploy/j129/avaya-j129-boot-audit) ;;
+    *) echo "ERROR: ruta fuente fuera del workspace permitido" >&2; exit 1 ;;
+  esac
+  bash -n "$source"
+done
 
 tmp="$(mktemp /usr/local/sbin/.avaya-j129-lab-deploy.XXXXXX)"
-trap 'rm -f "$tmp"' EXIT
+boot_tmp="$(mktemp /usr/local/sbin/.avaya-j129-boot-audit.XXXXXX)"
+trap 'rm -f "$tmp" "$boot_tmp"' EXIT
 install -o root -g root -m 0755 "$SOURCE" "$tmp"
+install -o root -g root -m 0755 "$BOOT_SOURCE" "$boot_tmp"
 mv -f "$tmp" "$DESTINATION"
+mv -f "$boot_tmp" "$BOOT_DESTINATION"
 trap - EXIT
 
-[ "$(stat -c '%U:%G:%a' "$DESTINATION")" = "root:root:755" ] || {
-  echo "ERROR: permisos finales inesperados" >&2
-  exit 1
-}
-
+[ "$(stat -c '%U:%G:%a' "$DESTINATION")" = "root:root:755" ] || { echo "ERROR: permisos finales inesperados" >&2; exit 1; }
+[ "$(stat -c '%U:%G:%a' "$BOOT_DESTINATION")" = "root:root:755" ] || { echo "ERROR: permisos finales inesperados para boot audit" >&2; exit 1; }
 bash -n "$DESTINATION"
+bash -n "$BOOT_DESTINATION"
+
+printf '%s\n' "$RUNNER_USER ALL=(root) NOPASSWD: $BOOT_DESTINATION" > "$BOOT_SUDOERS"
+chown root:root "$BOOT_SUDOERS"
+chmod 0440 "$BOOT_SUDOERS"
+visudo -cf "$BOOT_SUDOERS" >/dev/null
+
 echo "HELPER-SYNC-PASS"
