@@ -72,47 +72,28 @@ jobs:
             echo "body-bytes=${bytes}"
             echo "body-sha256=${sha256}"
 
-            python3 - "$body" <<'PY'
-import html
-import re
-import sys
+            title="$(tr '\n' ' ' < "$body" | sed -n 's:.*<[Tt][Ii][Tt][Ll][Ee][^>]*>\([^<]*\)</[Tt][Ii][Tt][Ll][Ee]>.*:\1:p' | head -n1 | cut -c1-200)"
+            echo "title=${title:-no-detectado}"
 
-path = sys.argv[1]
-with open(path, 'rb') as fh:
-    raw = fh.read(1024 * 1024)
-text = raw.decode('utf-8', 'replace')
+            form_count="$(grep -Eio '<form([[:space:]>])' "$body" | wc -l | tr -d ' ')"
+            input_count="$(grep -Eio '<input([[:space:]>])' "$body" | wc -l | tr -d ' ')"
+            echo "forms=${form_count}"
+            echo "inputs=${input_count}"
 
-# Solo metadata estructural. Nunca imprimir valores de inputs, cookies ni tokens.
-def compact(value):
-    value = re.sub(r'\s+', ' ', html.unescape(value or '')).strip()
-    return value[:200]
-
-m = re.search(r'<title[^>]*>(.*?)</title>', text, re.I | re.S)
-print('title=' + (compact(m.group(1)) if m else 'no-detectado'))
-
-forms = []
-for tag in re.findall(r'<form\b[^>]*>', text, re.I):
-    action = re.search(r'\baction\s*=\s*["\']([^"\']*)["\']', tag, re.I)
-    method = re.search(r'\bmethod\s*=\s*["\']([^"\']*)["\']', tag, re.I)
-    forms.append((compact(method.group(1) if method else 'GET').upper(), compact(action.group(1) if action else '')))
-print('forms=' + (', '.join('%s %s' % item for item in forms[:10]) if forms else 'ninguno'))
-
-names = []
-for tag in re.findall(r'<input\b[^>]*>', text, re.I):
-    name = re.search(r'\bname\s*=\s*["\']([^"\']+)["\']', tag, re.I)
-    if name:
-        n = compact(name.group(1))
-        if n and n not in names:
-            names.append(n)
-print('input-names=' + (', '.join(names[:30]) if names else 'ninguno'))
-
-# Indicadores no sensibles para reconocer familia/UI/firmware si son visibles en HTML.
-markers = []
-for token in ('Avaya', 'J129', 'J100', 'firmware', 'software version', '3.0.0.0.20', 'login', 'admin'):
-    if re.search(re.escape(token), text, re.I):
-        markers.append(token)
-print('markers=' + (', '.join(markers) if markers else 'ninguno'))
-PY
+            markers=''
+            for token in Avaya J129 J100 firmware login admin; do
+              if grep -Fqi "$token" "$body"; then
+                if [ -n "$markers" ]; then
+                  markers="$markers, $token"
+                else
+                  markers="$token"
+                fi
+              fi
+            done
+            if grep -Fq '3.0.0.0.20' "$body"; then
+              markers="${markers:+$markers, }3.0.0.0.20"
+            fi
+            echo "markers=${markers:-ninguno}"
           }
 
           inspect_url http
