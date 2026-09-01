@@ -1,0 +1,55 @@
+name: Issabel Lab J129 Web Hashed Login Probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  branch-guard:
+    name: Ejecutar solo desde Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar rama seleccionada
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "Audit" ]; then
+            echo "Este workflow debe ejecutarse seleccionando la rama Audit en Run workflow."
+            echo "Rama actual: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+  hashed-login-probe:
+    name: Probar login web real del J129 sin cambios
+    needs: branch-guard
+    runs-on: [self-hosted, linux, x64]
+    env:
+      J129_WEB_USER: admin
+      J129_WEB_PASSWORD: ${{ secrets.J129_WEB_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+
+      - name: Validar secreto
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${J129_WEB_PASSWORD:-}" || { echo "ERROR: falta J129_WEB_PASSWORD"; exit 2; }
+          echo 'J129-WEB-SECRET-PRESENT'
+
+      - name: Ejecutar probe de login con hash y nonce
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${J129_WEB_PASSWORD}"
+          python3 tests/lab/j129_web_hashed_login_probe.py
