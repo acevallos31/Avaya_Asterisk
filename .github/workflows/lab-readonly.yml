@@ -1,0 +1,47 @@
+name: Issabel Lab Read-Only Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lab-readonly:
+    name: Inventario de PBX LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Identidad del runner
+        run: |
+          whoami
+          hostname
+          pwd
+
+      - name: Sistema operativo
+        run: |
+          cat /etc/os-release
+
+      - name: Versiones de Issabel y Asterisk
+        run: |
+          asterisk -V
+          python3 --version
+          rpm -qa | grep -i '^issabel-endpointconfig' || true
+
+      - name: Red de la PBX
+        run: |
+          ip addr
+          ip route
+
+      - name: Verificar archivos de Endpoint Configurator en solo lectura
+        run: |
+          test -r /usr/bin/issabel-endpointconfig
+          ls -l /usr/bin/issabel-endpointconfig
+          rpm -V issabel-endpointconfig2 || true
+
+      - name: Confirmar conectividad HTTPS con GitHub
+        run: |
+          curl -fsSI --connect-timeout 10 https://github.com | head -n 1
