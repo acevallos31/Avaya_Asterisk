@@ -38,6 +38,18 @@ jobs:
             '2c726d57557aa6fcfcb7a737ec945bd9f6b1dda431c8504c5fc2c57cbb09de3c' \
             '/usr/share/issabel/endpoint-classes/class/issabel/Extension.py' | sha256sum -c -
 
+      - name: Verificar helper privilegiado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-lab-deploy
+          test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-lab-deploy)" = "root:root:755"
+          count="$(grep -Ec '^[[:space:]]*apply-config\)' /usr/local/sbin/avaya-j129-lab-deploy || true)"
+          echo "apply-config-count=$count"
+          test "$count" = "1"
+          sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-lab-deploy' >/dev/null
+          echo 'HELPER-APPLY-CONTRACT-PASS'
+
       - name: Capturar estado previo de provisioning
         shell: bash
         run: |
@@ -55,14 +67,14 @@ jobs:
             echo 'mac-file=ausente'
           fi
 
-      - name: Ejecutar Apply sin daemonizar
+      - name: Ejecutar Apply controlado como root
         shell: bash
         run: |
           set -euo pipefail
-          echo 'Ejecutando /usr/bin/issabel-endpointconfig --applyconfig en modo sincrono'
-          /usr/bin/issabel-endpointconfig --applyconfig 2>&1 \
+          echo 'Ejecutando Apply mediante helper privilegiado restringido'
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-config 2>&1 \
             | sed -E 's/(secret|password|passwd|pwd)[^[:space:]]*/\1=[REDACTED]/Ig'
-          echo 'APPLY-CONFIG-SYNC-PASS'
+          echo 'APPLY-CONFIG-HELPER-PASS'
 
       - name: Validar resultado J129
         shell: bash
