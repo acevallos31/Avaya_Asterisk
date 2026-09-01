@@ -66,6 +66,17 @@ class AvayaVendorContractTests(unittest.TestCase):
         self.assertIn("_writeTemplate", self.source)
         self.assertIn("self._accounts", self.source)
 
+    def test_vendor_implements_standard_model_probe(self):
+        self.assertIn("def probeModel(self):", self.source)
+        self.assertIn("self._saveModel(\"J129\")", self.source)
+
+    def test_j129_probe_is_restricted_to_known_j129_oui(self):
+        self.assertIn("C8:1F:EA", self.source)
+        self.assertIn("self._mac", self.source)
+
+    def test_vendor_does_not_hardcode_database_model_id(self):
+        self.assertNotIn("147", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()
