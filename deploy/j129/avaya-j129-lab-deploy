@@ -12,10 +12,12 @@ STATE_DIR="/var/lib/avaya-j129-lab"
 BACKUP_DIR="$STATE_DIR/backup"
 STAMP_FILE="$STATE_DIR/installed.sha256"
 DB_STATE_FILE="$STATE_DIR/db-j129.state"
+HTTP_STATE_DIR="$STATE_DIR/httpd"
+HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
-  echo "Uso: $0 {install|rollback} <overlay-root> | {inspect-db|inspect-provisioning|install-db|rollback-db}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|install-db|rollback-db}" >&2
   exit 2
 }
 
@@ -139,6 +141,47 @@ SQL
   echo 'J129-PROVISIONING-AUDIT-PASS'
 }
 
+install_http_j129() {
+  local src backup marker
+  [ -n "$OVERLAY_ROOT" ] || usage
+  src="$OVERLAY_ROOT/httpd/avaya-j129-provisioning.conf"
+  [ -f "$src" ] || { echo "ERROR: falta $src" >&2; exit 1; }
+  command -v apachectl >/dev/null 2>&1 || { echo "ERROR: apachectl no disponible" >&2; exit 1; }
+  install -d -m 0755 "$HTTP_STATE_DIR"
+  backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"
+  marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"
+  if [ ! -e "$backup" ] && [ ! -e "$marker" ]; then
+    if [ -e "$HTTP_CONF_DST" ]; then cp -a "$HTTP_CONF_DST" "$backup"; else : > "$marker"; fi
+  fi
+  install -o root -g root -m 0644 "$src" "$HTTP_CONF_DST"
+  if ! apachectl -t; then
+    echo "ERROR: configuración Apache inválida; restaurando estado anterior" >&2
+    if [ -f "$backup" ]; then cp -a "$backup" "$HTTP_CONF_DST"; else rm -f "$HTTP_CONF_DST"; fi
+    apachectl -t || true
+    exit 1
+  fi
+  systemctl reload httpd
+  echo 'HTTP-J129-INSTALL-PASS'
+}
+
+rollback_http_j129() {
+  local backup marker
+  backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"
+  marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"
+  if [ -f "$backup" ]; then
+    cp -a "$backup" "$HTTP_CONF_DST"
+  elif [ -f "$marker" ]; then
+    rm -f "$HTTP_CONF_DST"
+  else
+    echo "ERROR: no existe estado previo HTTP para rollback" >&2
+    exit 1
+  fi
+  apachectl -t
+  systemctl reload httpd
+  rm -f "$backup" "$marker"
+  echo 'HTTP-J129-ROLLBACK-PASS'
+}
+
 install_db_j129() {
   local defaults_file avaya_count j129_count prefix_other prop_sip prop_iax
   defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
@@ -195,6 +238,8 @@ case "$ACTION" in
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
+  install-http) install_http_j129 ;;
+  rollback-http) [ -n "$OVERLAY_ROOT" ] || usage; rollback_http_j129 ;;
   install|rollback)
     [ -n "$OVERLAY_ROOT" ] || usage
     SRC_BASE="$OVERLAY_ROOT/usr/share/issabel/endpoint-classes"; VENDOR_SRC="$SRC_BASE/class/issabel/vendor/Avaya.py"; TPL_J129_SRC="$SRC_BASE/tpl/Avaya_J129.tpl"; TPL_GLOBAL_SRC="$SRC_BASE/tpl/Avaya_global_SIP.tpl"
