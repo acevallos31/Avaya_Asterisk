@@ -164,7 +164,7 @@ install_db_j129() {
 START TRANSACTION;
 
 INSERT INTO manufacturer (name, description)
-SELECT 'Avaya', 'Avaya IP Phones'
+SELECT 'Avaya', 'Avaya IP Phones' FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM manufacturer WHERE name = 'Avaya');
 
 SET @avaya_id := (SELECT id FROM manufacturer WHERE name = 'Avaya' LIMIT 1);
@@ -172,7 +172,7 @@ SET @avaya_id := (SELECT id FROM manufacturer WHERE name = 'Avaya' LIMIT 1);
 INSERT INTO model
   (id_manufacturer, name, description, max_accounts,
    static_ip_supported, dynamic_ip_supported, static_prov_supported)
-SELECT @avaya_id, 'J129', 'Avaya J129', 2, 1, 1, 1
+SELECT @avaya_id, 'J129', 'Avaya J129', 2, 1, 1, 1 FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1 FROM model WHERE id_manufacturer = @avaya_id AND name = 'J129'
 );
@@ -182,21 +182,21 @@ SET @j129_id := (
 );
 
 INSERT INTO model_properties (id_model, property_key, property_value)
-SELECT @j129_id, 'max_sip_accounts', '2'
+SELECT @j129_id, 'max_sip_accounts', '2' FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1 FROM model_properties
   WHERE id_model = @j129_id AND property_key = 'max_sip_accounts'
 );
 
 INSERT INTO model_properties (id_model, property_key, property_value)
-SELECT @j129_id, 'max_iax2_accounts', '0'
+SELECT @j129_id, 'max_iax2_accounts', '0' FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1 FROM model_properties
   WHERE id_model = @j129_id AND property_key = 'max_iax2_accounts'
 );
 
 INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description)
-SELECT @avaya_id, 'C8:1F:EA', 'Avaya J129'
+SELECT @avaya_id, 'C8:1F:EA', 'Avaya J129' FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1 FROM mac_prefix WHERE mac_prefix = 'C8:1F:EA'
 );
