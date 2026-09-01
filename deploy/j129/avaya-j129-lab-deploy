@@ -92,6 +92,35 @@ SELECT * FROM manufacturer ORDER BY 1 LIMIT 200;
 SELECT '=== MODELS ===';
 SELECT * FROM model ORDER BY 1 LIMIT 500;
 
+SELECT '=== MODEL PROPERTIES ===';
+SELECT
+  mp.id,
+  mf.name AS manufacturer,
+  m.id AS model_id,
+  m.name AS model,
+  mp.property_key,
+  mp.property_value
+FROM model_properties mp
+JOIN model m ON m.id = mp.id_model
+JOIN manufacturer mf ON mf.id = m.id_manufacturer
+ORDER BY mf.name, m.name, mp.property_key, mp.id
+LIMIT 1000;
+
+SELECT '=== MODEL PROPERTIES FOR STATIC-PROV MODELS ===';
+SELECT
+  mf.name AS manufacturer,
+  m.id AS model_id,
+  m.name AS model,
+  m.max_accounts,
+  mp.property_key,
+  mp.property_value
+FROM model m
+JOIN manufacturer mf ON mf.id = m.id_manufacturer
+LEFT JOIN model_properties mp ON mp.id_model = m.id
+WHERE m.static_prov_supported = 1
+ORDER BY mf.name, m.name, mp.property_key
+LIMIT 1000;
+
 SELECT '=== MAC PREFIX SAMPLE ===';
 SELECT * FROM mac_prefix ORDER BY 1 LIMIT 500;
 
