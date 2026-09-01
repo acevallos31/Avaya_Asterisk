@@ -125,14 +125,16 @@ class Endpoint(BaseEndpoint):
         return True
 
     def updateLocalConfig(self):
-        """Genera /tftpboot/<mac>.txt para un Avaya J129."""
+        """Genera o revoca /tftpboot/<mac>.txt para un Avaya J129."""
         if len(self._accounts) <= 0:
-            logging.error(
-                "Endpoint %s@%s no tiene cuentas para configurar",
-                self._vendorname,
-                self._ip,
-            )
-            return False
+            # El endpoint sigue existiendo en Endpoint Configurator, pero ya no
+            # tiene cuentas asignadas. No debemos conservar un archivo por MAC
+            # con credenciales SIP de una asociación anterior. Reutilizamos el
+            # contrato estándar de BaseEndpoint para borrar artefactos ligados a
+            # esta MAC; con _accounts vacío, _unregister() no toca otras cuentas.
+            self.deleteContent()
+            self._setConfigured()
+            return True
 
         mac_sin_separadores = self._mac.lower().replace(":", "")
         config_filename = "%s.txt" % mac_sin_separadores
