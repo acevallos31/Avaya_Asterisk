@@ -1,0 +1,22 @@
+name: Issabel Lab J129 Web Default Login Probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  branch-guard:
+    name: Ejecutar solo desde Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar rama seleccionada
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "Audit" ]; then
+            echo "Este workflow debe ejecutarse seleccionando la rama Audit en Run workflow."
+            echo "Rama actual: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
