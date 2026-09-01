@@ -1,0 +1,28 @@
+name: Issabel Lab J129 Web Routes Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar rutas web publicas del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Ejecutar auditoria read-only de rutas web
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_web_routes_audit.py
