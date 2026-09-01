@@ -72,11 +72,11 @@ jobs:
             echo "body-bytes=${bytes}"
             echo "body-sha256=${sha256}"
 
-            title="$(tr '\n' ' ' < "$body" | sed -n 's:.*<[Tt][Ii][Tt][Ll][Ee][^>]*>\([^<]*\)</[Tt][Ii][Tt][Ll][Ee]>.*:\1:p' | head -n1 | cut -c1-200)"
+            title="$(tr '\n' ' ' < "$body" | sed -n 's:.*<[Tt][Ii][Tt][Ll][Ee][^>]*>\([^<]*\)</[Tt][Ii][Tt][Ll][Ee]>.*:\1:p' | head -n1 | cut -c1-200 || true)"
             echo "title=${title:-no-detectado}"
 
-            form_count="$(grep -Eio '<form([[:space:]>])' "$body" | wc -l | tr -d ' ')"
-            input_count="$(grep -Eio '<input([[:space:]>])' "$body" | wc -l | tr -d ' ')"
+            form_count="$({ grep -Eio '<form([[:space:]>])' "$body" || true; } | wc -l | tr -d ' ')"
+            input_count="$({ grep -Eio '<input([[:space:]>])' "$body" || true; } | wc -l | tr -d ' ')"
             echo "forms=${form_count}"
             echo "inputs=${input_count}"
 
