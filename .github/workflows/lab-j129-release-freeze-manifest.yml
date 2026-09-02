@@ -1,0 +1,79 @@
+name: 14 | J129 Release v0.1.0 | Freeze Manifest
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba FREEZE-V010 para generar manifiesto SHA256 del commit validado'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_SHA: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
+  RELEASE_DIR: release/j129-v0.1.0
+
+jobs:
+  freeze-manifest:
+    name: Generar SHA256 del paquete exacto validado
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard de congelamiento
+        shell: bash
+        run: |
+          set -euo pipefail
+          test '${{ inputs.confirm }}' = 'FREEZE-V010'
+          echo "RELEASE_SHA=$RELEASE_SHA"
+
+      - name: Checkout release exacta validada
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          path: release-source
+          persist-credentials: false
+
+      - name: Validar commit y alcance
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-source
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f "$RELEASE_DIR/install.sh"
+          test -f "$RELEASE_DIR/README.md"
+          test -f "$RELEASE_DIR/payload/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py"
+          test -f "$RELEASE_DIR/payload/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl"
+          test -f "$RELEASE_DIR/payload/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl"
+          test -f "$RELEASE_DIR/payload/etc/httpd/conf.d/avaya-j129-provisioning.conf"
+
+      - name: Generar manifiesto SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/release-source/$RELEASE_DIR"
+          out="$GITHUB_WORKSPACE/j129-v0.1.0-SHA256SUMS.txt"
+          {
+            echo "# Avaya J129 Issabel release v0.1.0"
+            echo "# Validated release commit: $RELEASE_SHA"
+            echo "# Workflow 13 PASS run: 33648748733"
+            echo "# Generated: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            cd "$root"
+            find . -type f ! -name 'SHA256SUMS*' -print0 | sort -z | xargs -0 sha256sum
+          } | tee "$out"
+          test "$(grep -cE '^[0-9a-f]{64}  ' "$out")" -ge 6
+          echo 'J129-V010-FREEZE-MANIFEST-PASS'
+
+      - name: Subir manifiesto
+        uses: actions/upload-artifact@v4
+        with:
+          name: j129-v0.1.0-freeze-manifest
+          path: j129-v0.1.0-SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo "J129-V010-FROZEN-SHA=$RELEASE_SHA"
+          echo 'J129-V010-FREEZE-PASS'
