@@ -33,7 +33,6 @@ jobs:
         run: |
           set -euo pipefail
           python3 tests/lab/j129_forced_provisioning_baseline_audit.py
-          asterisk -rx 'sip show peer 200' | grep -E 'Addr->IP|Status|Useragent' || true
 
       - name: Preparar helper restringido
         shell: bash
@@ -42,6 +41,7 @@ jobs:
           python3 deploy/j129/prepare-forced-provisioning-time.py
           bash -n deploy/j129/avaya-j129-lab-deploy
           sudo /usr/local/sbin/avaya-j129-helper-sync
+          sudo /usr/local/sbin/avaya-j129-lab-deploy forced-time-sip-ok
 
       - name: Aplicar NTP LAN y parametros de hora
         shell: bash
@@ -67,18 +67,20 @@ jobs:
         run: |
           set -euo pipefail
           echo 'No se envia check-sync/resync en esta fase: buscamos polling natural sin reboot.'
-          BASE=$(date +%s)
           SAW_DOWN=0
           SAW_HTTP=0
+          HTTP_BASE=$(grep -h '192.168.1.168' /var/log/httpd/*access* 2>/dev/null | grep -F '/46xxsettings.txt' | wc -l || true)
+          echo "HTTP_BASE=$HTTP_BASE"
           for i in $(seq 1 20); do
             sleep 15
-            if ! asterisk -rx 'sip show peer 200' 2>/dev/null | grep -Eq 'Status[[:space:]]*: OK'; then SAW_DOWN=1; fi
-            if grep -h '192.168.1.168' /var/log/httpd/*access* 2>/dev/null | tail -n 30 | grep -F '/46xxsettings.txt' >/dev/null; then SAW_HTTP=1; fi
-            echo "t=$((i*15))s sip_down_seen=$SAW_DOWN http_seen=$SAW_HTTP"
+            if ! sudo /usr/local/sbin/avaya-j129-lab-deploy forced-time-sip-ok; then SAW_DOWN=1; fi
+            HTTP_NOW=$(grep -h '192.168.1.168' /var/log/httpd/*access* 2>/dev/null | grep -F '/46xxsettings.txt' | wc -l || true)
+            if [ "$HTTP_NOW" -gt "$HTTP_BASE" ]; then SAW_HTTP=1; fi
+            echo "t=$((i*15))s sip_down_seen=$SAW_DOWN fresh_http_seen=$SAW_HTTP http_count=$HTTP_NOW"
           done
-          asterisk -rx 'sip show peer 200' | grep -E 'Addr->IP|Status|Useragent'
+          sudo /usr/local/sbin/avaya-j129-lab-deploy forced-time-sip-ok
           test "$SAW_DOWN" -eq 0
-          echo "HTTP_46XX_OBSERVED=$SAW_HTTP"
+          echo "HTTP_46XX_FRESH_OBSERVED=$SAW_HTTP"
           echo 'J129-FORCED-TIME-NO-SIP-DOWN-PASS'
 
       - name: Resultado
