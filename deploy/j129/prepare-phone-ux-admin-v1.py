@@ -4,7 +4,7 @@ from pathlib import Path
 HELPER = Path('deploy/j129/avaya-j129-lab-deploy')
 text = HELPER.read_text()
 
-if 'apply-phone-ux-v1)' in text:
+if 'apply-phone-ux-v2)' in text:
     print('PHONE-UX-PREPARE-ALREADY-PRESENT')
     raise SystemExit(0)
 
@@ -12,7 +12,7 @@ marker = 'case "$ACTION" in\n'
 if marker not in text:
     raise SystemExit('No se encontro case "$ACTION" in en helper')
 
-block = r'''  apply-phone-ux-v1)
+block = r'''  apply-phone-ux-v2)
     TPL=/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
     BACKUP=/var/lib/avaya-j129-lab/Avaya_global_SIP.tpl.pre-phone-ux-v1
     [ -f "$TPL" ] || { echo "ERROR: no existe $TPL" >&2; exit 1; }
@@ -39,37 +39,23 @@ for key, value in params.items():
 p.write_text('\n'.join(lines) + '\n')
 PY
 
-    # Seleccion controlada: solo el J129 LAB puede quedar seleccionado.
-    python3 - <<'PY'
-import sqlite3
-DB='/var/www/db/endpointconfig.db'
-con=sqlite3.connect(DB)
-cur=con.cursor()
-rows=cur.execute("SELECT id, mac_address, ip_address, selected FROM endpoint WHERE selected=1").fetchall()
-foreign=[r for r in rows if (r[1] or '').lower().replace(':','') != 'c81fea9b650d']
-if foreign:
-    raise SystemExit('ERROR: hay otros endpoints seleccionados: %r' % (foreign,))
-target=cur.execute("SELECT id, mac_address, ip_address FROM endpoint WHERE lower(replace(mac_address,':',''))='c81fea9b650d'").fetchall()
-if len(target) != 1:
-    raise SystemExit('ERROR: se esperaba exactamente un J129 LAB y se obtuvo %d' % len(target))
-cur.execute('UPDATE endpoint SET selected=1 WHERE id=?', (target[0][0],))
-con.commit()
-print('PHONE_UX_SELECTED_ENDPOINT=%s ip=%s' % (target[0][0], target[0][2]))
-PY
+    defaults_file="$(make_db_defaults_file)"
+    trap 'rm -f "$defaults_file"' RETURN EXIT
+    target_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D';")"
+    [ "$target_count" = "1" ] || { echo "ERROR: se esperaba exactamente un J129 objetivo y se encontraron $target_count" >&2; exit 1; }
+    target_id="$(mysql_scalar "$defaults_file" "SELECT e.id FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D' LIMIT 1;")"
+    target_ip="$(mysql_scalar "$defaults_file" "SELECT e.ip_address FROM endpoint e WHERE e.id=${target_id};")"
+    selected_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint WHERE selected=1 AND id<>${target_id};")"
+    [ "$selected_other" = "0" ] || { echo "ERROR: hay otros endpoints seleccionados; se aborta" >&2; exit 1; }
 
+    mysql --defaults-extra-file="$defaults_file" endpointconfig -e "UPDATE endpoint SET selected=1 WHERE id=${target_id};"
+    echo "PHONE_UX_SELECTED_ENDPOINT=${target_id} ip=${target_ip}"
     /usr/bin/issabel-endpointconfig --applyconfig
-
-    python3 - <<'PY'
-import sqlite3
-DB='/var/www/db/endpointconfig.db'
-con=sqlite3.connect(DB)
-cur=con.cursor()
-row=cur.execute("SELECT selected FROM endpoint WHERE lower(replace(mac_address,':',''))='c81fea9b650d'").fetchone()
-if row is None or row[0] != 0:
-    raise SystemExit('ERROR: Issabel no limpio selected del J129')
-print('PHONE_UX_SELECTED_CLEARED=YES')
-PY
-    echo 'J129-PHONE-UX-V1-APPLY-PASS'
+    selected_after="$(mysql_scalar "$defaults_file" "SELECT selected FROM endpoint WHERE id=${target_id};")"
+    [ "$selected_after" = "0" ] || { echo 'ERROR: Issabel no limpio selected del J129' >&2; exit 1; }
+    echo 'PHONE_UX_SELECTED_CLEARED=YES'
+    rm -f "$defaults_file"; trap - RETURN EXIT
+    echo 'J129-PHONE-UX-V2-APPLY-PASS'
     ;;
   phone-ux-sip-ok)
     OUT=$(asterisk -rx 'sip show peer 200' 2>&1)
@@ -79,5 +65,9 @@ PY
 '''
 
 text = text.replace(marker, marker + block, 1)
+# El workflow sigue llamando apply-phone-ux-v1 por compatibilidad, pero apunta a V2.
+text = text.replace(marker, marker + '  apply-phone-ux-v1) set -- apply-phone-ux-v2; ACTION=apply-phone-ux-v2 ;;\n', 1)
+# Como el dispatch del helper ya evalua una sola vez, agregamos alias real antes de V2.
+text = text.replace('  apply-phone-ux-v2)\n', '  apply-phone-ux-v1|apply-phone-ux-v2)\n', 1)
 HELPER.write_text(text)
 print('PHONE-UX-PREPARE-PASS')
