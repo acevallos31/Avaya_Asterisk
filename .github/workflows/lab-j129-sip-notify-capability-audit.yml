@@ -1,0 +1,61 @@
+name: J129 | SIP | Notify Capability Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar capacidad SIP NOTIFY sin enviar NOTIFY
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad y rama
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$(hostname -s)" = "issabel"
+          test "${GITHUB_REF_NAME}" = "Audit"
+
+      - name: Auditar acceso read-only al CLI de Asterisk
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== ASTERISK CLI READ-ONLY ==='
+          asterisk -rx 'core show version'
+          echo '=== SIP NOTIFY HELP ==='
+          asterisk -rx 'core show help sip notify' || true
+          echo '=== SIP PEERS RELACIONADOS CON J129 ==='
+          asterisk -rx 'sip show peers' | grep -E '192\.168\.1\.171|(^|[[:space:]])201(/|[[:space:]])' || true
+          echo '=== CANALES ACTIVOS RELACIONADOS ==='
+          asterisk -rx 'core show channels concise' | grep -E '192\.168\.1\.171|(^|/)201-' || true
+          echo 'ASTERISK-READONLY-CLI-PASS'
+
+      - name: Auditar tipos NOTIFY configurados si son legibles
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== SIP_NOTIFY.CONF ==='
+          if test -r /etc/asterisk/sip_notify.conf; then
+            awk '
+              /^[[:space:]]*\[/ { print; next }
+              /^[[:space:]]*[Ee]vent[[:space:]]*=>/ { print; next }
+              /^[[:space:]]*[Cc]ontent-[Tt]ype[[:space:]]*=>/ { print; next }
+            ' /etc/asterisk/sip_notify.conf
+            echo 'SIP-NOTIFY-CONF=READABLE'
+          else
+            echo 'SIP-NOTIFY-CONF=NOT-READABLE-BY-RUNNER'
+          fi
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-SIP-NOTIFY-CAPABILITY-AUDIT-PASS'
+          echo 'NOTIFY-ENVIADO=0'
+          echo 'RESTART-ENVIADO=0'
