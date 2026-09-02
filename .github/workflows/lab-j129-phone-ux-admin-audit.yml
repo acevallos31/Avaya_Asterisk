@@ -1,0 +1,82 @@
+name: 11 | Issabel Lab | J129 Phone UX & Admin | Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-phone-ux-admin:
+    name: Auditar menu local, idioma, hora y Web Admin
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar entorno LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$GITHUB_REF_NAME" = "Audit"
+
+      - name: Auditar provisioning UX sin secretos
+        shell: bash
+        run: |
+          set -euo pipefail
+          SETTINGS=$(mktemp)
+          trap 'rm -f "$SETTINGS"' EXIT
+          curl -fsS http://127.0.0.1/46xxsettings.txt > "$SETTINGS"
+          echo "SETTINGS_BYTES=$(wc -c < "$SETTINGS")"
+          for p in SYSTEM_LANGUAGE LANGUAGES LANG0STAT PROCSTAT PROCPSWD PROVIDE_OPTIONS_SCREEN PROVIDE_NETWORKINFO_SCREEN PROVIDE_LOGOUT ENABLE_WEBSERVER WEBSERVER_ON_HTTP WEB_HTTP_PORT WEB_HTTPS_PORT FORCE_WEB_ADMIN_PASSWORD ENTRYNAME DISPLAY_NAME SNTPSRVR SNTP_SYNC_INTERVAL GMTOFFSET DAYLIGHT_SAVING_SETTING_MODE; do
+            if grep -Eq "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS"; then
+              case "$p" in
+                PROCPSWD|FORCE_WEB_ADMIN_PASSWORD)
+                  echo "$p=PRESENT_REDACTED"
+                  ;;
+                *)
+                  grep -E "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS" | sed -E 's/[[:space:]]+/ /g'
+                  ;;
+              esac
+            else
+              echo "$p=ABSENT"
+            fi
+          done
+
+      - name: Auditar archivos de idioma J129
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== J129 LANGUAGE FILE INVENTORY ==='
+          find /tftpboot /var/www/html /usr/share/issabel -type f \( -iname 'Mlf_J129_*Spanish*.xml' -o -iname 'Mlf_J129_*.xml' \) -print 2>/dev/null | sort || true
+          LATAM=$(find /tftpboot /var/www/html /usr/share/issabel -type f -iname 'Mlf_J129_LatinAmericanSpanish.xml' -print -quit 2>/dev/null || true)
+          CAST=$(find /tftpboot /var/www/html /usr/share/issabel -type f -iname 'Mlf_J129_CastilianSpanish.xml' -print -quit 2>/dev/null || true)
+          [ -n "$LATAM" ] && echo 'J129_LATAM_SPANISH_FILE=YES' || echo 'J129_LATAM_SPANISH_FILE=NO'
+          [ -n "$CAST" ] && echo 'J129_CASTILIAN_SPANISH_FILE=YES' || echo 'J129_CASTILIAN_SPANISH_FILE=NO'
+
+      - name: Auditar Web UI sin autenticacion
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== J129 WEB UI REACHABILITY ==='
+          HTTP_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 http://192.168.1.168/ || true)
+          HTTPS_CODE=$(curl -k -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 https://192.168.1.168/ || true)
+          echo "J129_HTTP_CODE=$HTTP_CODE"
+          echo "J129_HTTPS_CODE=$HTTPS_CODE"
+          test "$HTTP_CODE" != "000" -o "$HTTPS_CODE" != "000"
+
+      - name: Verificar SIP sin modificar telefono
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-forced-provisioning-time.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+          sudo /usr/local/sbin/avaya-j129-lab-deploy forced-time-sip-ok
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-PHONE-UX-ADMIN-BASELINE-AUDIT-PASS'
