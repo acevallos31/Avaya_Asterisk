@@ -1,0 +1,49 @@
+name: 07 | Issabel Lab | J129 Rescan Idempotency | Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Auditar rescan idempotente del Avaya J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+
+      - name: Preparar auditoria de rescan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-rescan-idempotency-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sincronizar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Ejecutar dos rescans y verificar idempotencia
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy audit-rescan-idempotency
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-RESCAN-IDEMPOTENCY-WORKFLOW-PASS'
