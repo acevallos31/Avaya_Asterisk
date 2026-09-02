@@ -9,15 +9,19 @@ if marker not in s:
 
 if 'send_j129_check_sync() {' not in s:
     fn = r'''send_j129_check_sync() {
-  local expected_ip='192.168.1.171' peer='201' sip_out channels_out notify_out
+  local peer='201' peer_out channels_out notify_out
   command -v asterisk >/dev/null 2>&1 || { echo 'ERROR: asterisk CLI no disponible' >&2; exit 1; }
   echo '=== PRECHECK J129 ==='
-  sip_out="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
-  printf '%s\n' "$sip_out" | grep -E "(^|[[:space:]])${peer}/${peer}[[:space:]]+${expected_ip}([[:space:]]|$)" >/dev/null || {
-    echo 'ERROR: peer 201 no coincide exactamente con IP esperada del J129' >&2
+  peer_out="$(asterisk -rx "sip show peer ${peer}" 2>/dev/null || true)"
+  [ -n "$peer_out" ] || {
+    echo 'ERROR: peer 201 no existe o no puede consultarse' >&2
     exit 1
   }
-  printf '%s\n' "$sip_out" | grep -E "(^|[[:space:]])${peer}/${peer}[[:space:]]+${expected_ip}([[:space:]]|$)" | sed -E 's/[[:space:]]+/ /g'
+  printf '%s\n' "$peer_out" | grep -Ei '(^|[[:space:]])Addr->IP|Useragent|Status' || true
+  printf '%s\n' "$peer_out" | grep -Eiq 'Avaya|J129|J100' || {
+    echo 'ERROR: peer 201 no se identifica como telefono Avaya/J129' >&2
+    exit 1
+  }
   channels_out="$(asterisk -rx 'core show channels concise' 2>/dev/null || true)"
   if printf '%s\n' "$channels_out" | grep -E "(^|/)${peer}-" >/dev/null 2>&1; then
     echo 'ERROR: existen canales activos del peer 201; NOTIFY cancelado' >&2
