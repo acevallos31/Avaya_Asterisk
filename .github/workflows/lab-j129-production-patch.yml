@@ -37,15 +37,15 @@ jobs:
         run: |
           set -euo pipefail
           bash -n dist/j129-v0.1.0/install.sh
-          python3 -m unittest discover -s tests -p 'test_*.py' -v
-          python3 -c "import ast; from pathlib import Path; files=['deploy/j129/prepare-production-patch-cycle.py','deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py']; [ast.parse(Path(p).read_text(), filename=p) for p in files]; print('PY-SYNTAX-PASS')"
+          python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+          python3 -B -c "import ast; from pathlib import Path; files=['deploy/j129/prepare-production-patch-cycle.py','deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py']; [ast.parse(Path(p).read_text(), filename=p) for p in files]; print('PY-SYNTAX-PASS')"
           test -z "$(find deploy/j129 -type f -name '*.pyc' -print -quit)"
 
       - name: Preparar helper restringido
         shell: bash
         run: |
           set -euo pipefail
-          python3 deploy/j129/prepare-production-patch-cycle.py
+          python3 -B deploy/j129/prepare-production-patch-cycle.py
           bash -n deploy/j129/avaya-j129-lab-deploy
           sudo /usr/local/sbin/avaya-j129-helper-sync
 
