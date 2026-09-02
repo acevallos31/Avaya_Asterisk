@@ -1,4 +1,4 @@
-name: Issabel Lab J129 SIP Registration Audit
+name: 05 | Issabel Lab | J129 SIP Registration | Audit
 
 on:
   workflow_dispatch:
