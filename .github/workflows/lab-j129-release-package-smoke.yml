@@ -27,27 +27,26 @@ jobs:
           test "$GITHUB_WORKSPACE" = "$expected"
 
           base="$GITHUB_WORKSPACE/deploy/j129"
+          quarantine_root="$(dirname "$GITHUB_WORKSPACE")/.runner-root-pycache-${GITHUB_RUN_ID}"
           [ -d "$base" ] || exit 0
+          test ! -e "$quarantine_root"
 
           found=0
           while IFS= read -r -d '' cache; do
             if find "$cache" -type f -name '*.pyc' -user root -print -quit 2>/dev/null | grep -q .; then
-              parent="$(dirname "$cache")"
-              quarantine="$parent/.runner-root-pycache-${GITHUB_RUN_ID}-${found}"
-              test ! -e "$quarantine"
-              mv -- "$cache" "$quarantine"
-              echo "LEGACY-ROOT-PYCACHE-QUARANTINED=${quarantine#$GITHUB_WORKSPACE/}"
+              mkdir -p "$quarantine_root"
+              target="$quarantine_root/cache-${found}"
+              mv -- "$cache" "$target"
+              echo "LEGACY-ROOT-PYCACHE-MOVED-OUTSIDE-WORKSPACE=$target"
               found=$((found + 1))
             fi
-          done < <(find "$base" -type d -name '__pycache__' -print0 2>/dev/null)
+          done < <(find "$base" -type d \( -name '__pycache__' -o -name '.runner-root-pycache-*' \) -print0 2>/dev/null)
 
           echo "LEGACY-ROOT-PYCACHE-QUARANTINE-COUNT=$found"
 
       - name: Checkout harness Audit
         uses: actions/checkout@v4
         with:
-          # La cuarentena legacy se elimina más adelante mediante el helper root
-          # restringido. clean=false evita que checkout intente borrarla antes.
           clean: false
 
       - name: Guard de LAB
