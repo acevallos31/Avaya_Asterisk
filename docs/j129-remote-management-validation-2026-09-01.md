@@ -102,20 +102,61 @@ No se debe guardar una contraseña real en templates, fixtures, documentación n
 
 Actualmente existe un problema circular: para aplicar una nueva contraseña mediante provisioning, el teléfono primero debe volver a descargar `46xxsettings.txt`.
 
+## Preflight remoto previo a SIP NOTIFY
+
+Workflow: `Issabel Lab J129 Notify Bootstrap Preflight`
+
+Run validado: `33573812715`
+
+Resultado:
+
+```text
+OOD-RESET-SERVER-SIDE=READY
+J129-HTTPS-STATUS=200
+J129-WEB-FINGERPRINT=PASS
+J129-HTTP-REQUEST-AUDIT-PASS
+J129-NOTIFY-BOOTSTRAP-PREFLIGHT-PASS
+NOTIFY-ENVIADO=0
+RESTART-ENVIADO=0
+```
+
+El run confirmó además:
+
+```text
+/tftpboot/46xxsettings.txt PRESENTE size=846
+/tftpboot/J100Supgrade.txt PRESENTE
+/tftpboot/c81fea9b650d.txt AUSENTE
+```
+
+El access log conserva evidencia histórica de que el J129 físico descargó `J100Supgrade.txt`, `46xxsettings.txt` y el archivo por MAC en boots anteriores. La última evidencia de esa auditoría no demuestra todavía que el teléfono haya descargado la versión actual de 846 bytes que contiene `ENABLE_OOD_RESET_NOTIFY 1`.
+
+El preflight fue estrictamente preparatorio: no envió NOTIFY, no usó `Operation=4` y no reinició el teléfono.
+
 ## Ruta siguiente — SIP NOTIFY
 
-Antes de introducir `FORCE_WEB_ADMIN_PASSWORD`, la siguiente ruta es auditar la capacidad SIP actual y después, solo mediante workflow manual explícito, probar un único NOTIFY de sincronización contra el J129 LAB.
+Antes de introducir `FORCE_WEB_ADMIN_PASSWORD`, se añadió un segundo workflow read-only llamado `J129 | SIP | Notify Capability Audit`.
 
-La prueba debe cumplir:
+Su objetivo es determinar sin enviar tráfico modificador:
+
+- si el runner puede consultar Asterisk CLI;
+- qué ayuda expone `sip notify`;
+- qué peer sigue asociado al J129/IP de laboratorio;
+- si existen canales activos relacionados;
+- si `/etc/asterisk/sip_notify.conf` es legible y qué tipos NOTIFY están definidos, mostrando solo nombres de secciones y cabeceras seguras.
+
+Solo después de ese resultado se diseñará el workflow que envíe exactamente un `check-sync` o `resync` con confirmación explícita.
+
+La prueba modificadora deberá cumplir:
 
 1. confirmar que el destino corresponde al J129 LAB y a su IP esperada;
 2. confirmar estado SIP antes de enviar cualquier NOTIFY;
-3. no imprimir secretos SIP;
-4. no enviar NOTIFY en producción;
-5. ejecutar como máximo un evento controlado;
-6. observar si el teléfono cae/sube y si solicita `J100Supgrade.txt` / `46xxsettings.txt`;
-7. volver a auditar provisioning y estado SIP;
-8. clasificar un no-reinicio como evidencia de que el teléfono todavía no había cargado `ENABLE_OOD_RESET_NOTIFY=1`, no como fallo del overlay server-side.
+3. confirmar que no hay llamada activa relacionada;
+4. no imprimir secretos SIP;
+5. no enviar NOTIFY en producción;
+6. ejecutar como máximo un evento controlado;
+7. observar si el teléfono cae/sube y si solicita `J100Supgrade.txt` / `46xxsettings.txt`;
+8. volver a auditar provisioning y estado SIP;
+9. clasificar un no-reinicio como evidencia posible de que el teléfono todavía no había cargado `ENABLE_OOD_RESET_NOTIFY=1`, no como fallo del overlay server-side.
 
 ## Seguridad
 
@@ -127,6 +168,7 @@ La prueba debe cumplir:
 - No factory reset como primera opción.
 - No modificar core Issabel para resolver gestión remota.
 - Los workflows modificadores deben ser `workflow_dispatch`, limitados al runner LAB y con prechecks.
+- El capability audit de SIP NOTIFY es read-only y debe terminar con `NOTIFY-ENVIADO=0` y `RESTART-ENVIADO=0`.
 
 ## Estado
 
@@ -134,7 +176,9 @@ La prueba debe cumplir:
 - Contrato de login: `LAB-READ-PASS`.
 - Login con credencial disponible: `LOGIN-REJECTED` por respuesta explícita del J129.
 - Reinicio Web UI: `NOT-TESTED`.
-- SIP NOTIFY bootstrap: `NOT-TESTED`.
+- SIP NOTIFY preflight: `LAB-READ-PASS`.
+- SIP NOTIFY capability audit: `READY-TO-RUN`.
+- SIP NOTIFY modificador: `NOT-TESTED`.
 - `ENABLE_OOD_RESET_NOTIFY=1` servido por la PBX: `LAB-INTEGRATION-PASS`.
 - Carga efectiva de esa directiva por el teléfono: `NOT-TESTED`.
 
