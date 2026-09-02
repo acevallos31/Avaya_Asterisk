@@ -1,4 +1,4 @@
-name: Issabel Lab J129 Discovery Audit
+name: 01 | Issabel Lab | J129 Discovery | Audit
 
 on:
   workflow_dispatch:
