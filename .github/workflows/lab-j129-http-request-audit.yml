@@ -1,4 +1,4 @@
-name: Issabel Lab J129 HTTP Request Audit
+name: 06 | Issabel Lab | J129 HTTP Provisioning Requests | Audit
 
 on:
   workflow_dispatch:
@@ -20,6 +20,13 @@ jobs:
           set -euo pipefail
           echo "Runner: $(id -un)@$(hostname)"
           test "$(id -un)" = "github-runner"
+
+      - name: Preparar auditoria HTTP con IP dinamica
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-http-request-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
 
       - name: Sincronizar helper restringido
         shell: bash
