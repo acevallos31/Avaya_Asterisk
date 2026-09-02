@@ -26,9 +26,11 @@ release_package_cycle_v010() {
   local df before_vendor before_j129 before_global before_http before_max before_sip before_iax
   local after_vendor after_j129 after_global after_http after_max after_sip after_iax
 
-  # El workflow 12 antiguo ejecutó py_compile como root y dejó __pycache__
-  # propiedad de root dentro del checkout del runner. Solo permitimos limpiar
-  # esa ruta exacta y nunca una ruta suministrada arbitrariamente.
+  # Un workflow anterior ejecutó py_compile como root contra el checkout y dejó
+  # __pycache__ que actions/checkout no podía borrar. El paso pre-checkout del
+  # workflow 13 renombra esos directorios dentro de su mismo padre para romper
+  # el bloqueo sin sudo. Aquí, ya dentro del helper root restringido, eliminamos
+  # únicamente bytecode/cuarentenas bajo el workspace fijo de este repositorio.
   harness_root="$(cd "$checkout_root/.." && pwd)"
   [ "$harness_root" = "/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk" ] || {
     echo "ERROR: workspace inesperado: $harness_root" >&2
@@ -36,6 +38,7 @@ release_package_cycle_v010() {
   }
   if [ -d "$harness_root/deploy/j129" ]; then
     find "$harness_root/deploy/j129" -type d -name '__pycache__' -prune -exec rm -rf -- {} +
+    find "$harness_root/deploy/j129" -type d -name '.runner-root-pycache-*' -prune -exec rm -rf -- {} +
     find "$harness_root/deploy/j129" -type f -name '*.pyc' -delete
   fi
   echo 'RELEASE-WORKSPACE-PYCACHE-CLEAN-PASS'
