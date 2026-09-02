@@ -4,81 +4,41 @@ on:
   workflow_dispatch:
     inputs:
       confirm_restart:
-        description: 'Escribe J129-LAB para autorizar un unico NOTIFY check-sync potencialmente reiniciador'
+        description: Escribe J129-LAB para autorizar un unico NOTIFY check-sync
         required: true
-        default: ''
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   controlled_check_sync:
-    if: github.ref_name == 'Audit'
     name: Enviar un unico check-sync al J129 LAB
     runs-on: [self-hosted, Linux, X64, issabel-lab]
+    env:
+      CONFIRM_RESTART: ${{ inputs.confirm_restart }}
     steps:
-      - name: Checkout repository
+      - name: Checkout Audit
         uses: actions/checkout@v4
+        with:
+          ref: Audit
 
-      - name: Verificar identidad, rama y confirmacion
+      - name: Verificar rama, runner y confirmacion
         shell: bash
         run: |
           set -euo pipefail
+          test "$GITHUB_REF_NAME" = "Audit"
           test "$(id -un)" = "github-runner"
           test "$(hostname -s)" = "issabel"
-          test "${GITHUB_REF_NAME}" = "Audit"
-          test "${{ github.event.inputs.confirm_restart }}" = "J129-LAB"
+          test "$CONFIRM_RESTART" = "J129-LAB"
           echo 'CONFIRMACION=VALIDA'
 
-      - name: Preparar accion controlada temporal en helper
+      - name: Preparar helper controlado
         shell: bash
         run: |
           set -euo pipefail
-          helper='deploy/j129/avaya-j129-lab-deploy'
-          test -f "$helper"
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('deploy/j129/avaya-j129-lab-deploy')
-          s = p.read_text()
-          marker = 'install_http_j129() {'
-          assert marker in s
-          fn = r'''send_j129_check_sync() {
-            local expected_ip='192.168.1.171' peer='201' sip_out channels_out notify_out
-            command -v asterisk >/dev/null 2>&1 || { echo 'ERROR: asterisk CLI no disponible' >&2; exit 1; }
-            echo '=== PRECHECK J129 ==='
-            sip_out="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
-            printf '%s\n' "$sip_out" | grep -E "(^|[[:space:]])${peer}/${peer}[[:space:]]+${expected_ip}([[:space:]]|$)" >/dev/null || {
-              echo 'ERROR: peer 201 no coincide exactamente con IP esperada del J129' >&2
-              exit 1
-            }
-            printf '%s\n' "$sip_out" | grep -E "(^|[[:space:]])${peer}/${peer}[[:space:]]+${expected_ip}([[:space:]]|$)" | sed -E 's/[[:space:]]+/ /g'
-            channels_out="$(asterisk -rx 'core show channels concise' 2>/dev/null || true)"
-            if printf '%s\n' "$channels_out" | grep -E "(^|/)${peer}-" >/dev/null 2>&1; then
-              echo 'ERROR: existen canales activos del peer 201; NOTIFY cancelado' >&2
-              exit 1
-            fi
-            grep -A4 -E '^\[aastra-check-cfg\]' /etc/asterisk/sip_notify.conf | grep -Eiq '^[[:space:]]*Event[[:space:]]*=>[[:space:]]*check-sync[[:space:]]*$' || {
-              echo 'ERROR: tipo aastra-check-cfg no contiene Event=>check-sync' >&2
-              exit 1
-            }
-            echo 'PRECHECK-NOTIFY=PASS'
-            echo 'NOTIFY-TIPO=check-sync'
-            echo 'NOTIFY-DESTINO=peer-201-j129-lab'
-            notify_out="$(asterisk -rx 'sip notify aastra-check-cfg 201' 2>&1)"
-            printf '%s\n' "$notify_out"
-            echo 'NOTIFY-ENVIADO=1'
-            echo 'NOTIFY-CANTIDAD=1'
-          }
-
-'''
-          s = s.replace(marker, fn + marker, 1)
-          needle = '  inspect-sip-registration) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_registration_inspection ;;'
-          assert needle in s
-          s = s.replace(needle, needle + '\n  send-j129-check-sync) [ -z "$OVERLAY_ROOT" ] || usage; send_j129_check_sync ;;', 1)
-          p.write_text(s)
-          PY
-          bash -n "$helper"
-          echo 'HELPER-RUNTIME-PATCH=PASS'
+          python3 deploy/j129/prepare-controlled-check-sync.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
 
       - name: Sincronizar helper restringido
         shell: bash
@@ -100,7 +60,7 @@ jobs:
           set -euo pipefail
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy send-j129-check-sync
 
-      - name: Observar telefono y nuevas solicitudes
+      - name: Observar telefono y provisioning
         shell: bash
         run: |
           set -euo pipefail
