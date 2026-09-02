@@ -3,8 +3,16 @@ name: 11 | Issabel Lab | J129 Phone UX & Admin | Apply & Audit
 on:
   workflow_dispatch:
     inputs:
+      operation:
+        description: 'Operacion del workflow 11'
+        required: true
+        default: 'OBSERVE-RESTART'
+        type: choice
+        options:
+          - OBSERVE-RESTART
+          - APPLY-UX
       confirm:
-        description: 'Escriba APPLY-UX para provisionar menu local y ENTRYNAME en el J129 LAB'
+        description: 'Para OBSERVE-RESTART escriba RESTART-J129; para APPLY-UX escriba APPLY-UX'
         required: true
         type: string
 
@@ -12,8 +20,8 @@ permissions:
   contents: read
 
 jobs:
-  apply-audit-phone-ux-admin:
-    name: Aplicar menu local y ENTRYNAME, luego auditar
+  phone-ux-admin:
+    name: Aplicar o auditar UX/Admin del J129
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     steps:
       - name: Checkout repository
@@ -25,11 +33,16 @@ jobs:
           set -euo pipefail
           echo "Runner: $(id -un)@$(hostname)"
           echo "Branch: $GITHUB_REF_NAME"
+          echo "Operation: ${{ inputs.operation }}"
           test "$(id -un)" = "github-runner"
           test "$GITHUB_REF_NAME" = "Audit"
-          test '${{ inputs.confirm }}' = 'APPLY-UX'
+          if [ '${{ inputs.operation }}' = 'APPLY-UX' ]; then
+            test '${{ inputs.confirm }}' = 'APPLY-UX'
+          else
+            test '${{ inputs.confirm }}' = 'RESTART-J129'
+          fi
 
-      - name: Preparar helper y validar baseline
+      - name: Preparar helper y validar SIP baseline
         shell: bash
         run: |
           set -euo pipefail
@@ -38,28 +51,14 @@ jobs:
           sudo /usr/local/sbin/avaya-j129-helper-sync
           sudo /usr/local/sbin/avaya-j129-lab-deploy phone-ux-sip-ok
 
-      - name: Baseline provisioning UX
-        shell: bash
-        run: |
-          set -euo pipefail
-          SETTINGS=$(mktemp)
-          trap 'rm -f "$SETTINGS"' EXIT
-          curl -fsS http://127.0.0.1/46xxsettings.txt > "$SETTINGS"
-          for p in PROCSTAT PROVIDE_OPTIONS_SCREEN PROVIDE_NETWORKINFO_SCREEN PROVIDE_LOGOUT ENTRYNAME; do
-            if grep -Eq "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS"; then
-              grep -E "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS"
-            else
-              echo "$p=ABSENT"
-            fi
-          done
-
       - name: Aplicar UX por Endpoint Configurator
+        if: ${{ inputs.operation == 'APPLY-UX' }}
         shell: bash
         run: |
           set -euo pipefail
           sudo /usr/local/sbin/avaya-j129-lab-deploy apply-phone-ux-v3
 
-      - name: Verificar provisioning generado
+      - name: Verificar provisioning preparado
         shell: bash
         run: |
           set -euo pipefail
@@ -74,9 +73,62 @@ jobs:
           grep -Fx 'SET SNTPSRVR 192.168.1.10' "$SETTINGS"
           grep -Fx 'SET GMTOFFSET -6:00' "$SETTINGS"
           sudo /usr/local/sbin/avaya-j129-lab-deploy phone-ux-sip-ok
-          echo 'J129-PHONE-UX-PROVISIONING-PASS'
+          echo 'J129-PHONE-UX-PROVISIONING-READY'
 
-      - name: Observar telefono sin NOTIFY
+      - name: Observar reinicio manual y consumo de provisioning
+        if: ${{ inputs.operation == 'OBSERVE-RESTART' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHONE_IP='192.168.1.168'
+          MAC_FILE='c81fea9b650d.txt'
+          count_req() {
+            local needle="$1"
+            grep -h "$PHONE_IP" /var/log/httpd/*access* 2>/dev/null | grep -F "$needle" | wc -l || true
+          }
+          BASE_UPGRADE=$(count_req 'J100Supgrade.txt')
+          BASE_SETTINGS=$(count_req '46xxsettings.txt')
+          BASE_MAC=$(count_req "$MAC_FILE")
+          echo "HTTP_BASE upgrade=$BASE_UPGRADE settings=$BASE_SETTINGS mac=$BASE_MAC"
+          echo 'OBSERVATION_READY=YES'
+          echo 'AHORA puede pulsar Restart una sola vez desde Web Admin del J129.'
+          echo 'Se observaran 300 segundos; este workflow NO envia NOTIFY ni reinicia el telefono.'
+
+          SAW_DOWN=0
+          SAW_UP=0
+          SAW_UPGRADE=0
+          SAW_SETTINGS=0
+          SAW_MAC=0
+          for i in $(seq 1 20); do
+            sleep 15
+            if sudo /usr/local/sbin/avaya-j129-lab-deploy phone-ux-sip-ok; then
+              if [ "$SAW_DOWN" -eq 1 ]; then SAW_UP=1; fi
+            else
+              SAW_DOWN=1
+            fi
+            NOW_UPGRADE=$(count_req 'J100Supgrade.txt')
+            NOW_SETTINGS=$(count_req '46xxsettings.txt')
+            NOW_MAC=$(count_req "$MAC_FILE")
+            [ "$NOW_UPGRADE" -gt "$BASE_UPGRADE" ] && SAW_UPGRADE=1 || true
+            [ "$NOW_SETTINGS" -gt "$BASE_SETTINGS" ] && SAW_SETTINGS=1 || true
+            [ "$NOW_MAC" -gt "$BASE_MAC" ] && SAW_MAC=1 || true
+            echo "t=$((i*15))s sip_down=$SAW_DOWN sip_returned=$SAW_UP upgrade=$SAW_UPGRADE settings=$SAW_SETTINGS mac=$SAW_MAC"
+          done
+
+          echo "RESTART_DOWN_OBSERVED=$SAW_DOWN"
+          echo "SIP_RETURN_OBSERVED=$SAW_UP"
+          echo "HTTP_J100SUPGRADE_FRESH=$SAW_UPGRADE"
+          echo "HTTP_46XXSETTINGS_FRESH=$SAW_SETTINGS"
+          echo "HTTP_MAC_FILE_FRESH=$SAW_MAC"
+          test "$SAW_DOWN" -eq 1
+          test "$SAW_UP" -eq 1
+          test "$SAW_SETTINGS" -eq 1
+          test "$SAW_MAC" -eq 1
+          sudo /usr/local/sbin/avaya-j129-lab-deploy phone-ux-sip-ok
+          echo 'J129-MANUAL-RESTART-CONSUMPTION-PASS'
+
+      - name: Observar estabilidad sin NOTIFY tras Apply
+        if: ${{ inputs.operation == 'APPLY-UX' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -98,4 +150,4 @@ jobs:
       - name: Resultado
         shell: bash
         run: |
-          echo 'J129-PHONE-UX-ADMIN-APPLY-AUDIT-PASS'
+          echo "J129-PHONE-UX-ADMIN-${{ inputs.operation }}-PASS"
