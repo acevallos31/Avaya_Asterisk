@@ -22,8 +22,23 @@ release_package_cycle_v010() {
   local checkout_root="$1"
   local release_root="$checkout_root/release/j129-v0.1.0"
   local installer="$release_root/install.sh"
+  local harness_root
   local df before_vendor before_j129 before_global before_http before_max before_sip before_iax
   local after_vendor after_j129 after_global after_http after_max after_sip after_iax
+
+  # El workflow 12 antiguo ejecutó py_compile como root y dejó __pycache__
+  # propiedad de root dentro del checkout del runner. Solo permitimos limpiar
+  # esa ruta exacta y nunca una ruta suministrada arbitrariamente.
+  harness_root="$(cd "$checkout_root/.." && pwd)"
+  [ "$harness_root" = "/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk" ] || {
+    echo "ERROR: workspace inesperado: $harness_root" >&2
+    exit 1
+  }
+  if [ -d "$harness_root/deploy/j129" ]; then
+    find "$harness_root/deploy/j129" -type d -name '__pycache__' -prune -exec rm -rf -- {} +
+    find "$harness_root/deploy/j129" -type f -name '*.pyc' -delete
+  fi
+  echo 'RELEASE-WORKSPACE-PYCACHE-CLEAN-PASS'
 
   [ -f "$installer" ] || { echo "ERROR: falta $installer" >&2; exit 1; }
   [ -d "$release_root/payload" ] || { echo "ERROR: falta payload de release" >&2; exit 1; }
