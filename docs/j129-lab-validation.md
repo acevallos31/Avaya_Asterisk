@@ -79,13 +79,7 @@ SET GMTOFFSET -6:00
 SET DAYLIGHT_SAVING_SETTING_MODE 0
 ```
 
-Durante 300 s:
-
-- SIP permaneció `OK`.
-- no se envió NOTIFY/check-sync.
-- el J129 no realizó un nuevo GET de `46xxsettings.txt`.
-
-Conclusión: quedó validada la generación server-side sin interrupción SIP, pero NO la aplicación de esos parámetros por el teléfono.
+Durante 300 s SIP permaneció `OK`, no se envió NOTIFY/check-sync y el J129 no realizó un nuevo GET observado de `46xxsettings.txt`. Quedó validada la generación server-side sin interrupción SIP; en ese run todavía no se había validado la aplicación física.
 
 Chronyd quedó escuchando UDP/123 para LAN. Antes de producción, el test debe esperar y afirmar que chronyd vuelve a sincronizarse después de un restart; el run exitoso observó temporalmente `Stratum 0 / Not synchronised` inmediatamente tras reiniciarlo.
 
@@ -93,10 +87,11 @@ Chronyd quedó escuchando UDP/123 para LAN. Antes de producción, el test debe e
 
 Antes del workflow 11:
 
-- idle muestra hora, pero estaba incorrecta/desactualizada;
-- flecha abajo muestra extensión `200`;
-- `Briam` no aparece en idle;
-- softkeys en inglés: `Redial`, `Contacts`.
+- idle mostraba hora incorrecta/desactualizada;
+- flecha abajo mostraba extensión `200`;
+- `Briam` no aparecía en idle;
+- softkeys en inglés: `Redial`, `Contacts`;
+- no había acceso visible a softkey/menu Admin.
 
 `DISPLAY_NAME "Briam"` no produjo el resultado visible esperado.
 
@@ -107,54 +102,116 @@ Antes del workflow 11:
 Run `33603387145`:
 
 - `SIP_STATUS=OK account=200`.
-- Web UI HTTP `200`.
-- Web UI HTTPS `200`.
-- `46xxsettings.txt` ya contiene los cuatro parámetros NTP del workflow 10.
-- ausentes: `SYSTEM_LANGUAGE`, `LANGUAGES`, `LANG0STAT`, `PROCSTAT`, `PROCPSWD`, `PROVIDE_OPTIONS_SCREEN`, `PROVIDE_NETWORKINFO_SCREEN`, `PROVIDE_LOGOUT`, controles Web gestionados, `ENTRYNAME` y `DISPLAY_NAME` global.
-- no existen en PBX `Mlf_J129_LatinAmericanSpanish.xml` ni `Mlf_J129_CastilianSpanish.xml`.
+- Web UI HTTP `200` y HTTPS `200`.
+- `46xxsettings.txt` contenía los cuatro parámetros NTP del workflow 10.
+- estaban ausentes los controles UX/Admin y lenguaje objeto de investigación.
+- no existían en PBX `Mlf_J129_LatinAmericanSpanish.xml` ni `Mlf_J129_CastilianSpanish.xml`.
 
-### Intentos Apply 11 — todavía NO validados
+### Intentos Apply previos
 
-Run 2, branch `Audit`: falló antes del Apply por usar SQLite y buscar tabla `endpoint`. Endpoint Configurator usa MySQL/MariaDB `endpointconfig`.
+- Run 2, `Audit`: falló antes del Apply por usar SQLite y buscar tabla `endpoint`; Endpoint Configurator usa MySQL/MariaDB `endpointconfig`.
+- Run 3, `Audit`: falló antes del Apply por consultar columna inexistente `e.ip_address`.
+- Run 4, `main`: abortó correctamente por el guard que exige `Audit`; no hubo mutación.
 
-Run 3, branch `Audit`: falló antes del Apply por consultar columna inexistente `e.ip_address`.
+Estos fallos quedan como evidencia de que los workflows no deben asumir esquema DB no validado y deben conservar guards de entorno.
 
-Run 4, branch `main`: el workflow abortó en el guard `GITHUB_REF_NAME=Audit`. No hubo baseline, Apply ni mutación. Este rojo fue una protección correcta, no un fallo funcional del J129.
+### Apply UX/Admin — PASS server-side
 
-### Corrección necesaria antes del siguiente Apply
-
-La investigación vigente del proyecto indica:
+El Apply corregido utilizó el flujo normal de Endpoint Configurator y generó:
 
 ```text
-PROCSTAT 0 -> Admin menu permitido
-PROCSTAT 1 -> Admin menu restringido/no permitido para configuración
+SET PROCSTAT 0
+SET PROVIDE_OPTIONS_SCREEN 1
+SET PROVIDE_NETWORKINFO_SCREEN 1
+SET PROVIDE_LOGOUT 1
+SET ENTRYNAME Briam
 ```
 
-El intento preparado con `PROCSTAT 1` contradice el objetivo de habilitar el menú. Debe corregirse a `PROCSTAT 0` antes de ejecutar nuevamente.
+Además preservó NTP:
+
+```text
+SET SNTPSRVR 192.168.1.10
+SET SNTP_SYNC_INTERVAL 60
+SET GMTOFFSET -6:00
+SET DAYLIGHT_SAVING_SETTING_MODE 0
+```
+
+Durante la observación sin NOTIFY el teléfono no hizo un GET nuevo observado y SIP permaneció `OK`. Por tanto, Apply normal genera provisioning pero no fuerza consumo inmediato en este firmware.
+
+### Reinicio manual controlado — run `33608941143`
+
+El workflow se ejecutó en `Audit` con operación `OBSERVE-RESTART`. Antes del reinicio confirmó SIP `OK` y que el provisioning preparado contenía los parámetros UX/NTP.
+
+Secuencia SIP observada:
+
+```text
+t=45s  SIP OK
+t=60s  SIP NOT_OK
+t=150s SIP NOT_OK
+t=165s SIP OK
+...
+t=300s SIP OK
+```
+
+Resultado:
+
+```text
+RESTART_DOWN_OBSERVED=1
+SIP_RETURN_OBSERVED=1
+HTTP_J100SUPGRADE_FRESH=0
+HTTP_46XXSETTINGS_FRESH=0
+HTTP_MAC_FILE_FRESH=0
+```
+
+El run terminó rojo porque el detector HTTP exigía contadores de access log que quedaron en cero. Esto NO invalida el reinicio ni el re-registro SIP: ambos fueron observados. El detector HTTP debe corregirse para usar una ruta de lectura autorizada/fiable antes de convertir esos contadores en criterio de PASS.
+
+### Evidencia física posterior al reinicio
+
+- La hora del J129 quedó correcta después del reinicio. Esto constituye evidencia física de aplicación de la configuración de tiempo preparada previamente.
+- El acceso visible al menú/Admin sigue sin aparecer.
+- Por tanto, `PROCSTAT 0`, `PROVIDE_OPTIONS_SCREEN 1` y `PROVIDE_NETWORKINFO_SCREEN 1` no deben describirse como parámetros que crean por sí mismos una softkey de menú. Su semántica/limitación exacta en J129 3.0.0.0.20 queda pendiente de validación.
+- Antes de v1 se permite una prueba adicional específica de menú, pero no debe bloquear el parche mínimo de producción si SIP/provisioning estándar ya están validados.
+
+## Web Admin / capacidades observadas
+
+La interfaz Web del firmware LAB expone, entre otras, administración de red, SIP, fecha/hora, Management, Password, Debugging, Certificates, Environment Settings, Background/Screen Saver, Calendar, Restart y Reset to Default. También se observaron Syslog, SNMP, packet capture, Phone Report y controles de dispositivo.
+
+No se encontró un botón Web visible equivalente a `Update/Get Updates`; el teléfono sí dispone de esa función local cuando el menú administrativo es accesible.
+
+La UI SIP observada presenta una sola cuenta. Junto con las pruebas físicas, esto respalda la decisión v1 de `max_accounts=1` y `max_sip_accounts=1`.
 
 ## Idioma español
 
-Objetivo: español latinoamericano para Honduras.
+Objetivo posterior: español latinoamericano para Honduras. El XML oficial no está instalado en PBX. No inventar el archivo; usar únicamente el recurso oficial Avaya. La validación requerirá recurso oficial, consumo por el teléfono y evidencia física de UI en español.
 
-El XML oficial no está instalado en PBX. No inventar el archivo; usar únicamente el recurso oficial Avaya. La validación requerirá HTTP GET y evidencia física de UI en español.
-
-## BUGS
+## BUGS / deuda técnica
 
 ### BUG-EC-001
-
 `Registered at` en GUI puede quedar obsoleto. Usar Asterisk para registro real.
 
 ### BUG-J129-002
-
-Multicuenta histórica incorrecta. Mitigado en v1 con límite de una cuenta.
+Multicuenta histórica incorrecta. Mitigado en v1 con límite de una cuenta. El helper permanente que todavía espere valor 2 debe normalizarse antes del parche de producción.
 
 ### BUG-J129-003
-
 Apply con cero cuentas fue corregido server-side usando `BaseEndpoint.deleteContent()`; archivo por MAC se elimina.
 
 ### BUG-J129-004
-
 La ausencia del archivo por MAC no borra una identidad SIP ya persistida en el J129. Factory reset restableció una línea base limpia. Falta un mecanismo oficial de revocación remota o una limitación explícita de v1.
+
+### TD-J129-005 — consumo inmediato de provisioning
+Apply normal no fuerza polling inmediato. `check-sync` reinicia físicamente este firmware. No existe botón Web Update observado. Documentar restart/resync como operación separada del Apply.
+
+### TD-J129-006 — menú local
+La configuración probada no hizo aparecer el acceso visible al menú/Admin. Investigar parámetro específico o limitación de firmware sin bloquear v1 mínima.
+
+### TD-J129-007 — detector HTTP
+El workflow 11 de reinicio leyó contadores HTTP como cero. Corregir la recolección de access log mediante helper restringido y no confundir fallo de observabilidad con fallo del teléfono.
+
+### TD-J129-008 — idioma
+Falta incorporar y validar el XML oficial Latin American Spanish.
+
+### TD-J129-009 — helpers LAB
+Eliminar hardcodes históricos de IP y runtime patching; consolidar comportamiento probado en código permanente antes de producción.
 
 ## Seguridad
 
@@ -163,12 +220,26 @@ La ausencia del archivo por MAC no borra una identidad SIP ya persistida en el J
 - La credencial Web Admin previamente expuesta debe rotarse antes de producción.
 - `J129_WEB_PASSWORD` solo como Repository Secret.
 - No ampliar sudo del self-hosted runner.
+- Phone Reports/exportaciones pueden contener material sensible; no subir reportes brutos al repositorio.
+
+## Criterio para primera distribución
+
+La primera distribución debe ser un parche conservador para Issabel 5, orientado a habilitar J129 sin modificar core innecesariamente:
+
+1. preflight de versión/archivos/DB;
+2. backup de todo archivo que vaya a tocarse;
+3. instalar únicamente integración Avaya/J129 y templates requeridos;
+4. registrar fabricante/modelo/prefijo/propiedades de forma idempotente;
+5. `max_accounts=1`, `max_sip_accounts=1`, `max_iax2_accounts=0`;
+6. no desplegar firmware automáticamente;
+7. no cambiar credenciales Web Admin automáticamente en v1;
+8. validar sintaxis, DB, detección y provisioning después de instalar;
+9. proporcionar rollback;
+10. dejar menú local, español, revocación remota y actualización sin reboot como deuda técnica explícita si no están cerrados.
 
 ## Próximo paso
 
-1. corregir workflow 11 a `PROCSTAT 0`;
-2. reutilizar el flujo MySQL probado en workflow 10, sin asumir columnas nuevas;
-3. ejecutar nuevo workflow 11 en branch `Audit` con `APPLY-UX`;
-4. no usar `check-sync` durante la prueba no-reboot;
-5. después de un Apply verde, verificar físicamente menú, `ENTRYNAME` y hora;
-6. idioma español se prueba en una fase posterior del mismo 11 cuando exista el XML oficial.
+1. hacer una última prueba acotada del menú, pudiendo usar el mecanismo de reinicio remoto ya validado por PBX;
+2. no seguir agregando parámetros experimentales al parche mínimo sin evidencia;
+3. congelar una v1 candidata;
+4. construir el primer instalador/parche de producción con preflight, backup, instalación idempotente, validación y rollback.
