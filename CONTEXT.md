@@ -2,35 +2,181 @@
 
 Actualizado: 2026-09-02
 
-Este archivo resume el estado operativo actual para poder retomar el proyecto sin reconstruir la historia desde cero. No contiene secretos reales.
+Este archivo resume el estado operativo vigente para retomar el proyecto sin reconstruir la historia. No contiene secretos reales.
 
 ## Objetivo actual
 
-Cerrar una primera distribución `v0.1.0` que habilite Avaya J129 en Issabel 5 usando el Endpoint Configurator estándar y sin modificar el core de Issabel.
+La release `v0.1.0` ya está instalada y validada server-side en producción. El siguiente objetivo es cerrar seguridad/gobernanza de workflows y ejecutar una prueba física controlada con un J129 localizable.
 
-El paquete exacto de release ya fue validado en el LAB. La prioridad inmediata pasa a congelar/checksum de v0.1.0 y preparar una instalación controlada en una central de producción.
+Arquitectura objetivo:
 
-## Estado funcional confirmado
+```text
+Discovery -> Avaya/J129 -> Accounts estándar -> Apply Issabel
+-> Extension/setAccountList -> Avaya vendor -> provisioning
+-> J100Supgrade.txt -> 46xxsettings.txt -> <mac>.txt -> SIP
+```
 
-- Discovery identifica el J129 como Avaya/J129.
-- El flujo estándar Accounts de Issabel asigna la extensión.
-- El vendor usa `_accounts` entregadas por Issabel; no debe consultar secretos directamente desde DB.
-- Provisioning funcional:
+## Release congelada
+
+Rama:
+
+```text
+release/j129-v0.1.0
+```
+
+Commit exacto:
+
+```text
+74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
+```
+
+Alcance:
+
+- Avaya J129 en Endpoint Configurator estándar;
+- una cuenta SIP;
+- provisioning Avaya;
+- Apache provisioning;
+- installer preflight/install/verify/rollback;
+- sin firmware automático;
+- sin español;
+- sin menú UX experimental;
+- sin cambio automático de Web Admin password;
+- sin reboot automático durante instalación.
+
+## Producción
+
+```text
+Host:       cei-pbx02
+PBX:        10.3.40.2
+OS:         Rocky Linux 8.10
+Asterisk:   18.19
+Python:     3.6.8
+Runner:     cei-pbx02-j129-production
+Usuario:    github-runner-prod
+Labels:     self-hosted, Linux, X64, j129-production, cei-pbx02
+```
+
+Instalación v0.1.0: completada.
+
+Validación automática workflow 15:
+
+```text
+audit                PASS  run 33692817597
+preflight            PASS  run 33694718272
+verify               PASS  run 33695299816
+install-idempotency  PASS  run 33695636455
+```
+
+Clasificación actual:
+
+```text
+PRODUCTION-SERVER-PASS
+```
+
+No declarar todavía `PRODUCTION-PHYSICAL-PASS`.
+
+## Evidencia server-side física preparada
+
+En producción ya se validó anteriormente generación/HTTP de:
 
 ```text
 J100Supgrade.txt
--> 46xxsettings.txt
--> <mac>.txt
--> registro SIP
+46xxsettings.txt
+<mac>.txt
 ```
 
-- J129 físico registra cuenta `200` por `chan_sip`.
-- Rescan es idempotente.
-- v1 soporta una sola cuenta SIP.
-- `check-sync` reinicia físicamente el J129 3.0.0.0.20 y luego reprovisiona/re-registra.
-- NTP generado por Issabel fue consumido tras reinicio y corrigió la hora física del teléfono.
+Un J129 descubierto/configurado temporalmente generó correctamente provisioning por MAC, pero no se completó lifecycle físico porque no se pudo localizar físicamente ese teléfono. Se decidió desconfigurarlo y usar un equipo localizable para la prueba definitiva.
 
-## LAB
+## Discovery inter-VLAN — limitación confirmada
+
+El scanner stock `/usr/share/issabel/privileged/detect_endpoints` usa nmap y solo procesa endpoints cuando la salida incluye `MAC Address:`.
+
+En la misma VLAN/L2:
+
+```text
+Host up + MAC Address -> discovery posible
+```
+
+Inter-VLAN/L3:
+
+```text
+Host up + sin MAC Address -> Issabel stock no crea/discrimina endpoint
+```
+
+No es fallo de v0.1.0. Sprint 1 de v0.2.0 documentado en:
+
+```text
+docs/j129-v0.2.0-sprint-1.md
+```
+
+La solución futura debe obtener IP+MAC desde una fuente autoritativa sin modificar innecesariamente el core de Issabel.
+
+## Seguridad de self-hosted runners
+
+Se detectó deuda importante: algunos workflows LAB históricos usan selectores genéricos como:
+
+```yaml
+runs-on: self-hosted
+```
+
+o:
+
+```yaml
+runs-on: [self-hosted, Linux, X64]
+```
+
+Eso puede hacer que GitHub asigne accidentalmente un job LAB al runner de producción porque este también posee las etiquetas automáticas `self-hosted`, `Linux`, `X64`.
+
+Regla obligatoria:
+
+```yaml
+# LAB
+runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+# Producción
+runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+```
+
+Antes de nuevas pruebas físicas hay que completar la normalización de los workflows LAB con selector genérico.
+
+## Numeración de pruebas
+
+Fuente autoritativa:
+
+```text
+docs/j129-test-registry.md
+```
+
+Formato:
+
+```text
+NN | Entorno | Componente | Propósito
+```
+
+Los IDs 07–15 ya tienen evidencia histórica y no deben renumerarse. Todos los workflows auxiliares/históricos también reciben ID para evitar pruebas sin numeración.
+
+Resumen principal:
+
+```text
+01 baseline read-only
+02 endpoint DB
+03 discovery
+04 provisioning
+05 SIP registration
+06 apply config
+07 rescan idempotency
+08 single account v1
+09 remote provisioning lifecycle
+10 forced provisioning / NTP
+11 phone UX & admin
+12 production patch LAB
+13 release package smoke
+14 freeze manifest
+15 production server validation
+16–44 diagnósticos/helpers/probes históricos registrados
+```
+
+## LAB histórico
 
 ```text
 Issabel:    5
@@ -43,207 +189,69 @@ MAC:        C8:1F:EA:9B:65:0D
 Firmware:   3.0.0.0.20
 Endpoint:   id 3
 SIP:        200
-Runner:     github-runner / self-hosted
+Runner:     github-runner / issabel-lab
 ```
 
-`192.168.1.169` está ocupado por otro dispositivo y no debe usarse para la PBX.
-
-## Ramas
-
-### `main`
-
-Referencia/histórico y workflow definitions visibles en GitHub Actions. Evitar pruebas mutantes.
-
-### `Audit`
-
-Harness de laboratorio, auditorías, helpers, documentación y workflows de validación.
-
-### `release/j129-v0.1.0`
-
-Rama limpia del paquete de distribución. No debe absorber todo `Audit`.
-
-## Arquitectura de release
-
-Payload esperado:
+Evidencia histórica importante:
 
 ```text
-release/j129-v0.1.0/
-├── install.sh
-├── README.md
-└── payload/
-    ├── etc/httpd/conf.d/avaya-j129-provisioning.conf
-    └── usr/share/issabel/endpoint-classes/
-        ├── class/issabel/vendor/Avaya.py
-        └── tpl/
-            ├── Avaya_J129.tpl
-            └── Avaya_global_SIP.tpl
+07 PASS — rescan idempotente
+08 PASS — una cuenta SIP
+09 PHYSICAL-J129-PASS — check-sync reinicia y reprovisiona
+10 PASS server-side — NTP consumido físicamente tras reboot posterior
+11 UX — hora correcta, menú visible no apareció
+12 PASS — install/verify/idempotencia/rollback LAB
+13 RELEASE-PASS — package smoke exacto
+14 PASS — freeze/checksums
+15 PRODUCTION-SERVER-PASS — audit/preflight/verify/idempotency
 ```
-
-No incluir copias estáticas operativas de `46xxsettings.txt` ni archivos históricos de teléfonos en el payload.
-
-## Referencias históricas
-
-El repositorio contiene un archivo llamado `46xxsettings.txt funciona Choloma.txt` que corresponde a una configuración conocida como funcional. No se necesita para instalar v0.1.0.
-
-Si se conserva, debe tratarse solo como evidencia y renombrarse a algo explícito, por ejemplo:
-
-```text
-examples/j129-working-reference-choloma.txt
-```
-
-Antes de moverlo a `examples/`, revisar que no contenga credenciales o material sensible.
-
-El `46xxsettings.txt` operativo debe ser generado por Issabel desde la plantilla, no copiado desde un ejemplo.
-
-## Workflows relevantes
-
-### 07 — Rescan Idempotency
-PASS.
-
-### 08 — Single Account V1
-PASS.
-
-### 09 — Remote Restart
-PASS físico. `check-sync` implica reboot en este firmware.
-
-### 10 — NTP / Forced Provisioning
-PASS server-side. La hora quedó físicamente correcta después de un reinicio posterior.
-
-### 11 — Phone UX & Admin
-Apply server-side generó parámetros de menú/nombre. La hora sí cambió después del reinicio, pero el menú visible no apareció. No incluir UX experimental en v0.1.0.
-
-### 12 — Production Patch | Install & Rollback Test
-VERDE.
-
-Ciclo validado:
-
-```text
-preflight -> install -> verify -> install -> verify -> rollback
-```
-
-### 13 — Release Package | Smoke Test
-VERDE.
-
-Run de cierre:
-
-```text
-run #5
-run id: 33648748733
-harness Audit: 5b7ab70b7d1eea7219fb084a75bc900639b0757f
-release exacta: 74d3f4c
-```
-
-Marcadores confirmados:
-
-```text
-RELEASE-PY-SYNTAX-PASS
-RELEASE-WORKSPACE-PYCACHE-CLEAN-PASS
-RELEASE-FIRST-INSTALL-PASS
-RELEASE-SECOND-INSTALL-IDEMPOTENT-PASS
-RELEASE-ROLLBACK-EXACT-PASS
-J129-RELEASE-PACKAGE-V010-LAB-PASS
-RUNNER-WORKSPACE-NO-ROOT-PYC-PASS
-J129-RELEASE-PACKAGE-V010-SMOKE-PASS
-```
-
-El paquete exacto de la rama `release/j129-v0.1.0` pasó validación estática y el ciclo real:
-
-```text
-preflight -> install -> verify -> install -> verify -> rollback
-```
-
-El segundo install fue idempotente. El rollback devolvió archivos y valores DB al baseline previo.
-
-Baseline DB observado antes del ciclo:
-
-```text
-max_accounts=1
-max_sip_accounts=1
-max_iax2_accounts=0
-```
-
-## Incidente root-owned pycache — cerrado
-
-La causa del bloqueo anterior fue un `python3 -m py_compile` ejecutado de forma privilegiada contra código dentro del checkout, que dejó `__pycache__/Avaya.cpython-36.pyc` propiedad de root. `actions/checkout` no podía borrarlo como `github-runner`.
-
-Se corrigió la causa estructural:
-
-```text
-PYTHONDONTWRITEBYTECODE=1
-python3 -B
-validación sintáctica con ast.parse en vez de py_compile
-no generar temporales root dentro de $GITHUB_WORKSPACE
-```
-
-También se eliminó manualmente una sola vez el residuo histórico que ya bloqueaba el checkout. En el run #5 la auditoría final confirmó que no quedaron `.pyc` propiedad de root dentro del workspace.
-
-No reabrir este problema con `chmod 777`, chown recursivo ni ampliando sudo.
-
-## Alcance de v0.1.0
-
-Incluido:
-
-- Avaya J129 en Endpoint Configurator estándar;
-- OUI/modelo J129;
-- una cuenta SIP;
-- generación de provisioning;
-- Apache provisioning;
-- installer con preflight/install/verify/rollback;
-- idempotencia;
-- rollback exacto validado en LAB sobre el paquete de release.
-
-Excluido:
-
-- firmware upgrade;
-- español;
-- menú local experimental;
-- cambio automático de Web Admin password;
-- polling/update sin reboot;
-- solución definitiva a identidad SIP persistente después de retirar la última cuenta.
 
 ## Bugs y deuda
 
-- `BUG-EC-001`: Registered at de GUI puede estar stale.
+- `BUG-EC-001`: `Registered at` de GUI puede quedar stale; Asterisk es autoritativo.
 - `BUG-J129-002`: multicuenta no soportada en v1.
-- `BUG-J129-004`: identidad SIP puede persistir localmente aunque desaparezca el provisioning por MAC.
-- detector HTTP del workflow 11 requiere observabilidad autorizada.
-- chronyd debe recuperar sync de forma afirmada después de restart.
-- menú local no resuelto.
-- español requiere XML oficial Avaya.
-- helpers LAB todavía tienen runtime patching/hardcodes históricos que pueden reducirse después de cerrar producción.
+- `BUG-J129-004`: identidad SIP puede persistir localmente al retirar provisioning.
+- Discovery inter-VLAN stock requiere MAC visible en L2.
+- Menú local e idioma español fuera de v0.1.0.
+- Algunos workflows LAB históricos necesitan selector `issabel-lab` explícito.
+- Nombres visibles de workflows históricos deben quedar sincronizados con `docs/j129-test-registry.md`.
 
-## Seguridad
+## Reglas para agentes
 
-- No imprimir SIP passwords.
-- No imprimir Web Admin password, cookies, nonce, XToken ni hashes.
-- La credencial Web Admin expuesta anteriormente debe rotarse antes de producción.
-- No subir Phone Reports brutos.
-- Mantener sudo mínimo y helper restringido.
+Leer antes de modificar:
+
+1. `AGENTS.md`
+2. `CONTEXT.md`
+3. `docs/j129-test-registry.md`
+4. `docs/j129-lab-validation.md`
+5. `docs/j129-research-notes.md`
+6. `docs/agent-log.md`
+7. README de release si aplica
+8. commits/runs recientes
+
+Antes de terminar cualquier sesión de trabajo, el agente debe actualizar:
+
+```text
+CONTEXT.md
+docs/agent-log.md
+docs/j129-test-registry.md si cambió tests/workflows
+AGENTS.md si cambió gobernanza/arquitectura/seguridad
+```
+
+El handoff debe incluir objetivo, cambios, archivos, pruebas/runs, resultado, riesgos, estado final y siguiente paso. No escribir secretos.
 
 ## Próxima secuencia
 
 ```text
-1. congelar paquete exacto v0.1.0 + SHA256
-2. auditar central de producción
-3. rotar credencial Web Admin expuesta antes de producción
-4. backup/snapshot
-5. preflight producción
-6. install
-7. verify
-8. discovery + asignación account + Apply
-9. validar HTTP provisioning + SIP
-10. rollback si cualquier criterio crítico falla
+1. normalizar selectores de runner LAB que todavía sean genéricos
+2. normalizar nombres visibles de workflows contra j129-test-registry.md
+3. verificar que ningún LAB pueda caer en cei-pbx02-j129-production
+4. seleccionar un J129 físico localizable en la red de producción
+5. discovery en misma VLAN/L2
+6. asignar extensión desde Endpoint Configurator
+7. Apply
+8. validar GET de J100Supgrade/46xxsettings/<mac>.txt
+9. validar registro SIP
+10. llamadas entrante/saliente y audio
+11. documentar PRODUCTION-PHYSICAL-PASS solo si todo lo anterior pasa
 ```
-
-## Regla de handoff
-
-Antes de tocar implementación, leer:
-
-1. `AGENTS.md`
-2. `CONTEXT.md`
-3. `docs/j129-lab-validation.md`
-4. `docs/j129-research-notes.md`
-5. `docs/agent-log.md`
-6. README de la release si el trabajo es de distribución
-
-El objetivo inmediato ya no es corregir el workflow 13 ni agregar funciones al teléfono: es congelar de forma reproducible v0.1.0 y preparar producción con controles de preflight/backup/verify/rollback.
