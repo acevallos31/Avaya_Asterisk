@@ -1,4 +1,4 @@
-name: Issabel Lab J129 Apply Config
+name: 06 | Issabel Lab | J129 Apply Config | Controlled Test
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
 jobs:
   apply-config:
     name: Aplicar configuracion real de Endpoint Configurator en LAB
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 10
 
     steps:
