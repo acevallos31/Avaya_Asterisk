@@ -1,0 +1,58 @@
+name: 12 | Issabel Lab | J129 Production Patch | Install & Rollback Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba TEST-PATCH para probar install x2 + verify + rollback en LAB'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  production-patch-cycle:
+    name: Validar preflight, idempotencia y rollback del parche J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Guard de LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          echo "Branch: $GITHUB_REF_NAME"
+          test "$(id -un)" = "github-runner"
+          test "$GITHUB_REF_NAME" = "Audit"
+          test '${{ inputs.confirm }}' = 'TEST-PATCH'
+
+      - name: Validacion estatica del candidato
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n dist/j129-v0.1.0/install.sh
+          python3 -m py_compile deploy/j129/prepare-production-patch-cycle.py
+          python3 -m py_compile deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Preparar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-production-patch-cycle.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+
+      - name: Ejecutar ciclo de distribucion en LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy production-patch-cycle-v010 "$GITHUB_WORKSPACE"
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-PRODUCTION-PATCH-V010-LAB-PASS'
