@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Este instalador se ejecuta como root desde los workflows LAB. Impedir que
+# Python escriba __pycache__ dentro del checkout del self-hosted runner.
+export PYTHONDONTWRITEBYTECODE=1
+
 PATCH_VERSION="0.1.0"
 PATCH_NAME="avaya-j129-issabel"
 STATE_DIR="/var/lib/${PATCH_NAME}/${PATCH_VERSION}"
@@ -47,7 +51,7 @@ preflight(){
   need_file "$VENDOR_SRC"; need_file "$TPL_J129_SRC"; need_file "$TPL_GLOBAL_SRC"; need_file "$HTTP_SRC"
   command -v python3 >/dev/null 2>&1 || die 'python3 no disponible'
   command -v apachectl >/dev/null 2>&1 || die 'apachectl no disponible'
-  python3 -m py_compile "$VENDOR_SRC"
+  python3 -B -c "import ast; ast.parse(open('$VENDOR_SRC', encoding='utf-8').read(), filename='$VENDOR_SRC')"
   local df mf model bad_prefix assigned
   df="$(make_defaults)"; trap 'rm -f "$df"' RETURN EXIT
   mf="$(scalar "$df" "SELECT COUNT(*) FROM manufacturer WHERE name='Avaya';")"; [ "$mf" -le 1 ] || die 'fabricante Avaya duplicado'
@@ -115,7 +119,8 @@ verify(){
   cmp -s "$TPL_J129_SRC" "$TPL_J129_DST" || die 'Avaya_J129.tpl no coincide con payload'
   cmp -s "$TPL_GLOBAL_SRC" "$TPL_GLOBAL_DST" || die 'Avaya_global_SIP.tpl no coincide con payload'
   cmp -s "$HTTP_SRC" "$HTTP_DST" || die 'config Apache no coincide con payload'
-  python3 -m py_compile "$VENDOR_DST"; apachectl -t
+  python3 -B -c "import ast; ast.parse(open('$VENDOR_DST', encoding='utf-8').read(), filename='$VENDOR_DST')"
+  apachectl -t
   local df model maxa sip iax prefix
   df="$(make_defaults)"; trap 'rm -f "$df"' RETURN EXIT
   model="$(scalar "$df" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"
