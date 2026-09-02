@@ -24,11 +24,12 @@ jobs:
         run: |
           set -euo pipefail
           echo "Runner: $(id -un)@$(hostname)"
+          echo "Branch: $GITHUB_REF_NAME"
           test "$(id -un)" = "github-runner"
           test "$GITHUB_REF_NAME" = "Audit"
           test '${{ inputs.confirm }}' = 'APPLY-UX'
 
-      - name: Baseline SIP y provisioning
+      - name: Preparar helper y validar baseline
         shell: bash
         run: |
           set -euo pipefail
@@ -36,18 +37,27 @@ jobs:
           bash -n deploy/j129/avaya-j129-lab-deploy
           sudo /usr/local/sbin/avaya-j129-helper-sync
           sudo /usr/local/sbin/avaya-j129-lab-deploy phone-ux-sip-ok
+
+      - name: Baseline provisioning UX
+        shell: bash
+        run: |
+          set -euo pipefail
           SETTINGS=$(mktemp)
           trap 'rm -f "$SETTINGS"' EXIT
           curl -fsS http://127.0.0.1/46xxsettings.txt > "$SETTINGS"
           for p in PROCSTAT PROVIDE_OPTIONS_SCREEN PROVIDE_NETWORKINFO_SCREEN PROVIDE_LOGOUT ENTRYNAME; do
-            grep -E "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS" || echo "$p=ABSENT"
+            if grep -Eq "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS"; then
+              grep -E "^[[:space:]]*SET[[:space:]]+$p([[:space:]]|$)" "$SETTINGS"
+            else
+              echo "$p=ABSENT"
+            fi
           done
 
       - name: Aplicar UX por Endpoint Configurator
         shell: bash
         run: |
           set -euo pipefail
-          sudo /usr/local/sbin/avaya-j129-lab-deploy apply-phone-ux-v1
+          sudo /usr/local/sbin/avaya-j129-lab-deploy apply-phone-ux-v3
 
       - name: Verificar provisioning generado
         shell: bash
@@ -56,7 +66,7 @@ jobs:
           SETTINGS=$(mktemp)
           trap 'rm -f "$SETTINGS"' EXIT
           curl -fsS http://127.0.0.1/46xxsettings.txt > "$SETTINGS"
-          grep -Fx 'SET PROCSTAT 1' "$SETTINGS"
+          grep -Fx 'SET PROCSTAT 0' "$SETTINGS"
           grep -Fx 'SET PROVIDE_OPTIONS_SCREEN 1' "$SETTINGS"
           grep -Fx 'SET PROVIDE_NETWORKINFO_SCREEN 1' "$SETTINGS"
           grep -Fx 'SET PROVIDE_LOGOUT 1' "$SETTINGS"
