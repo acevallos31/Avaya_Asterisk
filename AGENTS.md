@@ -140,8 +140,6 @@ preflight -> install -> verify -> install -> verify -> rollback
 
 Esto valida instalación, verificación, idempotencia y rollback en el LAB para el candidato previo a empaquetado.
 
-No confundir este PASS con autorización automática para producción: todavía falta validar el paquete exacto de release y auditar la central destino.
-
 ## Release v0.1.0
 
 Rama: `release/j129-v0.1.0`.
@@ -165,42 +163,51 @@ El archivo histórico `46xxsettings.txt funciona Choloma.txt` es evidencia de re
 
 ## Workflow 13 — Release Package Smoke Test
 
-`13 | Issabel Lab | J129 Release Package | Smoke Test` todavía NO está verde.
+`13 | Issabel Lab | J129 Release Package | Smoke Test` quedó VERDE el 2026-09-02.
 
-Los rojos recientes no han demostrado un fallo funcional del instalador de release. El fallo actual ocurre antes de probar el paquete porque `actions/checkout` intenta limpiar el workspace y encuentra archivos `.pyc` creados previamente por `root`.
-
-Error observado:
+Run validado:
 
 ```text
-EACCES: permission denied, unlink
-.../deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/__pycache__/Avaya.cpython-36.pyc
+run #5
+run id: 33648748733
+harness Audit: 5b7ab70b7d1eea7219fb084a75bc900639b0757f
+release exacta: 74d3f4c
 ```
 
-Causa confirmada:
+Evidencia del run:
 
-1. self-hosted runner usa `github-runner`;
-2. una ejecución anterior con privilegios generó `__pycache__/*.pyc` propiedad de `root` dentro del checkout;
-3. el siguiente `actions/checkout` intenta limpiar antes de que cualquier step del workflow tenga oportunidad de ejecutar un helper;
-4. `github-runner` no puede borrar el archivo de `root` y el job falla en checkout.
+```text
+RELEASE-PY-SYNTAX-PASS
+RELEASE-WORKSPACE-PYCACHE-CLEAN-PASS
+[J129-PATCH 0.1.0] PREFLIGHT-PASS
+RELEASE-FIRST-INSTALL-PASS
+RELEASE-SECOND-INSTALL-IDEMPOTENT-PASS
+[J129-PATCH 0.1.0] ROLLBACK-PASS
+RELEASE-ROLLBACK-EXACT-PASS
+J129-RELEASE-PACKAGE-V010-LAB-PASS
+RUNNER-WORKSPACE-NO-ROOT-PYC-PASS
+J129-RELEASE-PACKAGE-V010-SMOKE-PASS
+```
 
-Regla: no afirmar que el workflow 13 probó o invalidó el paquete mientras muera en el checkout inicial.
+Baseline DB antes del ciclo:
 
-## Problema de ownership del runner — prioridad inmediata
+```text
+max_accounts=1
+max_sip_accounts=1
+max_iax2_accounts=0
+```
 
-El workspace de GitHub Actions no debe quedar contaminado con archivos generados por root.
+El ciclo real probado sobre la rama exacta de release fue:
 
-Antes de repetir workflow 13 debe limpiarse/corregirse ownership de los residuos root-owned ya existentes en el workspace. Después, evitar que los helpers root ejecuten Python de manera que escriba `__pycache__` dentro del checkout.
+```text
+preflight -> install -> verify -> install -> verify -> rollback
+```
 
-Mitigaciones de diseño obligatorias:
+El segundo install fue idempotente y el rollback restauró exactamente archivos y valores DB comparados contra el baseline.
 
-- mantener `PYTHONDONTWRITEBYTECODE=1` para Python ejecutado en workflows;
-- preferir `python3 -B` en comandos privilegiados que lean código desde el checkout;
-- helpers root no deben generar artefactos dentro del repositorio/workspace;
-- si un helper necesita temporales, usar `/tmp` o un directorio de estado controlado fuera del checkout;
-- añadir auditoría de ownership/residuos antes y después de los ciclos que usan sudo;
-- no resolver con `sudo chmod -R 777` ni sudo amplio.
+El antiguo bloqueo de `__pycache__/*.pyc` root-owned fue resuelto con limpieza puntual del residuo histórico y con prevención estructural: `PYTHONDONTWRITEBYTECODE=1`, `python3 -B` y validación por `ast.parse` en lugar de `py_compile` para el código leído desde el workspace. El run #5 terminó sin `.pyc` propiedad de root dentro del checkout.
 
-Importante: un step posterior a `actions/checkout` no puede arreglar un archivo que hace fallar ese mismo checkout. La limpieza inicial debe hacerse fuera de ese checkout problemático o una sola vez desde la consola del LAB/runner con alcance exacto.
+Este PASS valida el paquete exacto v0.1.0 en el LAB. No equivale todavía a autorización ciega para producción: falta congelar/checksum del paquete y auditar la central destino.
 
 ## BUGS / deuda abierta
 
@@ -211,8 +218,8 @@ Importante: un step posterior a `actions/checkout` no puede arreglar un archivo 
 - menú local: parámetros probados no hicieron aparecer acceso visible.
 - idioma: falta XML oficial Latin American Spanish.
 - observabilidad HTTP del restart: detector debe usar lectura autorizada de logs.
-- helpers LAB: eliminar hardcodes/runtime patching y prevenir residuos root-owned.
-- release: workflow 13 debe quedar verde sobre el paquete exacto antes de producción.
+- helpers LAB: reducir hardcodes/runtime patching histórico sin ampliar sudo.
+- runner: mantener prevención de bytecode privilegiado dentro del workspace.
 
 ## Regla para DB Endpoint Configurator
 
@@ -220,13 +227,14 @@ La base real es MySQL/MariaDB `endpointconfig`, no SQLite. No asumir nombres de 
 
 ## Próximo paso obligatorio
 
-1. reparar una sola vez el ownership/residuo `.pyc` que bloquea el checkout del self-hosted runner;
-2. ajustar el harness para que ningún proceso root vuelva a escribir `__pycache__` dentro del workspace;
-3. lanzar un NUEVO workflow 13 en `Audit` con `TEST-RELEASE`;
-4. solo si llega al ciclo real del instalador, evaluar preflight/install/verify/idempotencia/rollback;
-5. si queda verde, congelar el paquete exacto v0.1.0 con checksums;
-6. auditar la central de producción antes de instalar;
-7. preparar runbook de producción con preflight, backup, install, verify y rollback.
+1. congelar el paquete exacto v0.1.0 y registrar checksums SHA256;
+2. auditar la central de producción antes de instalar;
+3. rotar antes de producción cualquier credencial Web Admin previamente expuesta;
+4. preparar runbook de producción con preflight, backup/snapshot, install, verify y rollback;
+5. validar discovery, asignación de cuenta, Apply, provisioning HTTP y registro SIP en producción;
+6. hacer rollback inmediato si falla cualquier criterio crítico.
+
+No agregar nuevas funciones al J129 hasta cerrar este ciclo de release/producción de v0.1.0.
 
 ## Protocolo para agentes
 
@@ -240,4 +248,4 @@ Leer en orden:
 6. `release/j129-v0.1.0/README.md` cuando se trabaje en distribución;
 7. runs y commits recientes de `Audit` y `release/j129-v0.1.0`.
 
-No afirmar `PHYSICAL-J129-PASS` si solo pasó CI/LAB server-side. No afirmar `RELEASE-PASS` hasta que workflow 13 complete el ciclo real del paquete exacto.
+No afirmar `PHYSICAL-J129-PASS` si solo pasó CI/LAB server-side. `RELEASE-PASS` para v0.1.0 queda respaldado por workflow 13 run #5 en LAB; producción sigue requiriendo auditoría y ejecución controlada separada.
