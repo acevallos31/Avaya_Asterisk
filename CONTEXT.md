@@ -8,7 +8,7 @@ Este archivo resume el estado operativo actual para poder retomar el proyecto si
 
 Cerrar una primera distribución `v0.1.0` que habilite Avaya J129 en Issabel 5 usando el Endpoint Configurator estándar y sin modificar el core de Issabel.
 
-Prioridad inmediata: validar el paquete exacto de release en el LAB y después preparar instalación controlada en una central de producción.
+El paquete exacto de release ya fue validado en el LAB. La prioridad inmediata pasa a congelar/checksum de v0.1.0 y preparar una instalación controlada en una central de producción.
 
 ## Estado funcional confirmado
 
@@ -122,37 +122,62 @@ preflight -> install -> verify -> install -> verify -> rollback
 ```
 
 ### 13 — Release Package | Smoke Test
-ROJO, pero todavía por infraestructura del runner, no por un fallo demostrado del paquete.
+VERDE.
 
-Error vigente:
+Run de cierre:
 
 ```text
-EACCES: permission denied, unlink
-.../vendor/__pycache__/Avaya.cpython-36.pyc
+run #5
+run id: 33648748733
+harness Audit: 5b7ab70b7d1eea7219fb084a75bc900639b0757f
+release exacta: 74d3f4c
 ```
 
-## Causa del fallo workflow 13
+Marcadores confirmados:
 
-El self-hosted runner ejecuta checkout como `github-runner`. Una tarea privilegiada anterior generó archivos `.pyc` propiedad de `root` dentro del workspace. `actions/checkout` intenta limpiar el árbol antes de ejecutar steps y no puede eliminar esos archivos.
+```text
+RELEASE-PY-SYNTAX-PASS
+RELEASE-WORKSPACE-PYCACHE-CLEAN-PASS
+RELEASE-FIRST-INSTALL-PASS
+RELEASE-SECOND-INSTALL-IDEMPOTENT-PASS
+RELEASE-ROLLBACK-EXACT-PASS
+J129-RELEASE-PACKAGE-V010-LAB-PASS
+RUNNER-WORKSPACE-NO-ROOT-PYC-PASS
+J129-RELEASE-PACKAGE-V010-SMOKE-PASS
+```
 
-Esto significa que agregar un step de cleanup después del checkout no resuelve el primer fallo: el job no llega hasta ese step.
+El paquete exacto de la rama `release/j129-v0.1.0` pasó validación estática y el ciclo real:
 
-## Decisión de corrección
+```text
+preflight -> install -> verify -> install -> verify -> rollback
+```
 
-Hacer una limpieza puntual del residuo root-owned fuera del checkout que falla y después cambiar el diseño para impedir que vuelva a ocurrir.
+El segundo install fue idempotente. El rollback devolvió archivos y valores DB al baseline previo.
 
-Reglas futuras:
+Baseline DB observado antes del ciclo:
+
+```text
+max_accounts=1
+max_sip_accounts=1
+max_iax2_accounts=0
+```
+
+## Incidente root-owned pycache — cerrado
+
+La causa del bloqueo anterior fue un `python3 -m py_compile` ejecutado de forma privilegiada contra código dentro del checkout, que dejó `__pycache__/Avaya.cpython-36.pyc` propiedad de root. `actions/checkout` no podía borrarlo como `github-runner`.
+
+Se corrigió la causa estructural:
 
 ```text
 PYTHONDONTWRITEBYTECODE=1
-python3 -B ... cuando se ejecute Python privilegiado
-no crear temporales root dentro de $GITHUB_WORKSPACE
-usar /tmp o /var/lib/... para estado privilegiado
-no chmod 777
-no sudo amplio
+python3 -B
+validación sintáctica con ast.parse en vez de py_compile
+no generar temporales root dentro de $GITHUB_WORKSPACE
 ```
 
-Agregar comprobaciones de ownership/residuos antes y después de las operaciones privilegiadas siempre que el flujo permita llegar a esos steps.
+También se eliminó manualmente una sola vez el residuo histórico que ya bloqueaba el checkout. En el run #5 la auditoría final confirmó que no quedaron `.pyc` propiedad de root dentro del workspace.
+
+No reabrir este problema con `chmod 777`, chown recursivo ni ampliando sudo.
 
 ## Alcance de v0.1.0
 
@@ -164,7 +189,8 @@ Incluido:
 - generación de provisioning;
 - Apache provisioning;
 - installer con preflight/install/verify/rollback;
-- idempotencia.
+- idempotencia;
+- rollback exacto validado en LAB sobre el paquete de release.
 
 Excluido:
 
@@ -184,8 +210,7 @@ Excluido:
 - chronyd debe recuperar sync de forma afirmada después de restart.
 - menú local no resuelto.
 - español requiere XML oficial Avaya.
-- helpers LAB todavía tienen runtime patching/hardcodes históricos.
-- runner puede quedar contaminado por archivos root-owned; debe corregirse estructuralmente.
+- helpers LAB todavía tienen runtime patching/hardcodes históricos que pueden reducirse después de cerrar producción.
 
 ## Seguridad
 
@@ -198,19 +223,16 @@ Excluido:
 ## Próxima secuencia
 
 ```text
-1. limpiar residuo root-owned del runner
-2. impedir creación futura de __pycache__ root en workspace
-3. nuevo run 13 en Audit / TEST-RELEASE
-4. verificar ciclo real release: preflight/install/verify/install/verify/rollback
-5. congelar v0.1.0 + SHA256
-6. auditar central producción
-7. backup/snapshot
-8. preflight producción
-9. install
-10. verify
-11. discovery + asignación account + Apply
-12. validar HTTP provisioning + SIP
-13. rollback si cualquier criterio crítico falla
+1. congelar paquete exacto v0.1.0 + SHA256
+2. auditar central de producción
+3. rotar credencial Web Admin expuesta antes de producción
+4. backup/snapshot
+5. preflight producción
+6. install
+7. verify
+8. discovery + asignación account + Apply
+9. validar HTTP provisioning + SIP
+10. rollback si cualquier criterio crítico falla
 ```
 
 ## Regla de handoff
@@ -224,4 +246,4 @@ Antes de tocar implementación, leer:
 5. `docs/agent-log.md`
 6. README de la release si el trabajo es de distribución
 
-El objetivo inmediato no es seguir agregando funciones al teléfono: es cerrar de forma segura y reproducible la v0.1.0 mínima para producción.
+El objetivo inmediato ya no es corregir el workflow 13 ni agregar funciones al teléfono: es congelar de forma reproducible v0.1.0 y preparar producción con controles de preflight/backup/verify/rollback.
