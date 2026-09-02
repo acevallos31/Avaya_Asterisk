@@ -43,14 +43,21 @@ apply_forced_time_v1() {
   python3 - "$tpl" <<'PY'
 from __future__ import print_function
 import io, sys
-p=sys.argv[1]
-with io.open(p,'r',encoding='utf-8') as f: s=f.read()
-block='''\n## Hora J129 LAB - parametros oficiales Avaya\nSET SNTPSRVR 192.168.1.10\nSET SNTP_SYNC_INTERVAL 60\nSET GMTOFFSET -6:00\nSET DAYLIGHT_SAVING_SETTING_MODE 0\n'''
+p = sys.argv[1]
+with io.open(p, 'r', encoding='utf-8') as f:
+    s = f.read()
+block = ("\n## Hora J129 LAB - parametros oficiales Avaya\n"
+         "SET SNTPSRVR 192.168.1.10\n"
+         "SET SNTP_SYNC_INTERVAL 60\n"
+         "SET GMTOFFSET -6:00\n"
+         "SET DAYLIGHT_SAVING_SETTING_MODE 0\n")
 if 'SET SNTPSRVR 192.168.1.10' not in s:
-    anchor='## Cada teléfono obtiene sus credenciales desde su archivo específico por MAC.\n'
-    if anchor not in s: raise SystemExit('ERROR: anchor template no encontrado')
-    s=s.replace(anchor, block+'\n'+anchor, 1)
-with io.open(p,'w',encoding='utf-8') as f: f.write(s)
+    anchor = '## Cada teléfono obtiene sus credenciales desde su archivo específico por MAC.\n'
+    if anchor not in s:
+        raise SystemExit('ERROR: anchor template no encontrado')
+    s = s.replace(anchor, block + '\n' + anchor, 1)
+with io.open(p, 'w', encoding='utf-8') as f:
+    f.write(s)
 PY
   /usr/bin/issabel-endpointconfig --applyconfig
   echo 'J129-FORCED-TIME-APPLY-PASS'
@@ -71,7 +78,6 @@ rollback_forced_time_v1() {
         print("ERROR: no se encontro case ACTION", file=sys.stderr)
         return 1
     text = text.replace(case, insert + "\n" + case, 1)
-    # Add actions to existing case without depending on historical action list.
     needle = 'case "$ACTION" in\n'
     repl = needle + '  apply-forced-time-v1) apply_forced_time_v1 ;;\n  rollback-forced-time-v1) rollback_forced_time_v1 ;;\n'
     text = text.replace(needle, repl, 1)
