@@ -1,0 +1,146 @@
+name: 15 | J129 Production | v0.1.0 Server Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Modo: audit, preflight, verify o install-idempotency'
+        required: true
+        default: audit
+        type: choice
+        options:
+          - audit
+          - preflight
+          - verify
+          - install-idempotency
+      confirm:
+        description: 'audit/preflight/verify: VALIDATE-PROD ; install-idempotency: INSTALL-PROD-V010'
+        required: true
+        type: string
+      mac:
+        description: 'MAC J129 opcional para validar archivo por-MAC sin mostrar contenido'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  FROZEN_SHA: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
+  PYTHONDONTWRITEBYTECODE: '1'
+
+jobs:
+  production-server-validation:
+    name: Validar servidor cei-pbx02 contra release v0.1.0 congelada
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 15
+    steps:
+      - name: Guard de runner de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner=$(id -un)@$(hostname -s)"
+          test "$(id -un)" = "github-runner-prod"
+          test "$(hostname -s)" = "cei-pbx02"
+          test "$GITHUB_REF_NAME" = "Audit"
+          case '${{ inputs.mode }}' in
+            audit|preflight|verify)
+              test '${{ inputs.confirm }}' = 'VALIDATE-PROD'
+              ;;
+            install-idempotency)
+              test '${{ inputs.confirm }}' = 'INSTALL-PROD-V010'
+              ;;
+            *) exit 2 ;;
+          esac
+          echo 'J129-PROD-RUNNER-GUARD-PASS'
+
+      - name: Checkout harness Audit
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Checkout release congelada exacta
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FROZEN_SHA }}
+          path: _release_checkout
+
+      - name: Validar SHA y paquete en espacio no privilegiado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C _release_checkout rev-parse HEAD)" = "$FROZEN_SHA"
+          pkg="$GITHUB_WORKSPACE/_release_checkout/release/j129-v0.1.0"
+          test -f "$pkg/install.sh"
+          (
+            cd "$pkg"
+            echo "fa2aca1fb187d2801082b0dc8afb099f8d1ab9c3ef18390fb119b9c94e26a4a3  README.md" | sha256sum -c -
+            echo "13bc6fda46e48b66ef8bb45479eee9ce5ea5353a43fbf196a30796ab589bf3ff  install.sh" | sha256sum -c -
+            echo "9a34bc0e417dc4babcda686d18efa5f9b41a060d892de787cbd56ea24be8ed20  payload/etc/httpd/conf.d/avaya-j129-provisioning.conf" | sha256sum -c -
+            echo "fcb4eec19d7015cdaf7014c7d05fa179a984ae342b382ee41b069806c2c28ebf  payload/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py" | sha256sum -c -
+            echo "0c9f60d48db4e105e91ace29909eeb3e168fdb8e16d35427a2ad85227f1fbd08  payload/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl" | sha256sum -c -
+            echo "575cc4b290b9919edfbf74d2643dbcaa671565b6d163a8b3856592c5dd00e492  payload/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl" | sha256sum -c -
+            bash -n install.sh
+          )
+          echo 'J129-PROD-USERSPACE-FROZEN-PACKAGE-PASS'
+
+      - name: Ejecutar auditoría completa read-only
+        if: ${{ inputs.mode == 'audit' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation audit '${{ inputs.mac }}' | tee "$RUNNER_TEMP/j129-prod-validation.txt"
+
+      - name: Ejecutar preflight oficial de la release
+        if: ${{ inputs.mode == 'preflight' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation preflight | tee "$RUNNER_TEMP/j129-prod-validation.txt"
+          grep -F '[J129-PATCH 0.1.0] PREFLIGHT-PASS' "$RUNNER_TEMP/j129-prod-validation.txt"
+          echo 'J129-PROD-PREFLIGHT-WORKFLOW-PASS'
+
+      - name: Ejecutar verify oficial independiente
+        if: ${{ inputs.mode == 'verify' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation verify | tee "$RUNNER_TEMP/j129-prod-validation.txt"
+          grep -F '[J129-PATCH 0.1.0] VERIFY-PASS' "$RUNNER_TEMP/j129-prod-validation.txt"
+          echo 'J129-PROD-VERIFY-WORKFLOW-PASS'
+
+      - name: Probar instalación idempotente del paquete exacto
+        if: ${{ inputs.mode == 'install-idempotency' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/j129-prod-validation.txt"
+          : > "$report"
+          echo '=== PRE-INSTALL VERIFY ===' | tee -a "$report"
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation verify | tee -a "$report"
+          echo '=== INSTALL EXACT RELEASE ===' | tee -a "$report"
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation install INSTALL-PROD-V010 | tee -a "$report"
+          echo '=== POST-INSTALL VERIFY ===' | tee -a "$report"
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation verify | tee -a "$report"
+          echo '=== SECOND INSTALL / IDEMPOTENCY ===' | tee -a "$report"
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation install INSTALL-PROD-V010 | tee -a "$report"
+          echo '=== FINAL AUDIT ===' | tee -a "$report"
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation audit '${{ inputs.mac }}' | tee -a "$report"
+          grep -F '[J129-PATCH 0.1.0] INSTALL-PASS' "$report"
+          grep -F 'J129-PROD-SERVER-AUDIT-PASS' "$report"
+          echo 'J129-PROD-INSTALL-IDEMPOTENCY-PASS'
+
+      - name: Guardar evidencia sanitizada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: j129-production-v010-${{ inputs.mode }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/j129-prod-validation.txt
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Resultado
+        if: success()
+        shell: bash
+        run: |
+          echo "J129-PROD-V010-SERVER-VALIDATION-PASS mode=${{ inputs.mode }}"
