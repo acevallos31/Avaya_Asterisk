@@ -1,4 +1,4 @@
-name: Issabel Lab J129 Web Control Map Audit
+name: 29 | Issabel Lab | J129 Web Control Map | Audit
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
 jobs:
   audit:
     name: Auditar contrato de control web del J129
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
