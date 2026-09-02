@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+
 jobs:
   production-patch-cycle:
     name: Validar preflight, idempotencia y rollback del parche J129
@@ -34,9 +37,19 @@ jobs:
         run: |
           set -euo pipefail
           bash -n dist/j129-v0.1.0/install.sh
-          python3 -m py_compile deploy/j129/prepare-production-patch-cycle.py
-          python3 -m py_compile deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
           python3 -m unittest discover -s tests -p 'test_*.py' -v
+          python3 - <<'PY'
+import ast
+from pathlib import Path
+for name in [
+    'deploy/j129/prepare-production-patch-cycle.py',
+    'deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py',
+]:
+    source = Path(name).read_text()
+    ast.parse(source, filename=name)
+    print('PY-SYNTAX-PASS', name)
+PY
+          test -z "$(find deploy/j129 -type f -name '*.pyc' -print -quit)"
 
       - name: Preparar helper restringido
         shell: bash
