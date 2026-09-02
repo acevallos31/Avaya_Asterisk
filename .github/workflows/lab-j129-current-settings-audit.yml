@@ -1,4 +1,4 @@
-name: Issabel Lab J129 Current Settings Audit
+name: 04 | Issabel Lab | J129 Current Settings | Audit
 
 on:
   workflow_dispatch:
