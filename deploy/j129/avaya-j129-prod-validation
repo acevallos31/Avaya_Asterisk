@@ -117,9 +117,9 @@ run_release(){
   verify_package
   cd "$EXPECTED_PKG"
   case "$action" in
-    preflight) ./install.sh preflight ;;
-    verify) ./install.sh verify ;;
-    install) ./install.sh install ;;
+    preflight) bash install.sh preflight ;;
+    verify) bash install.sh verify ;;
+    install) bash install.sh install ;;
     *) fail "invalid release action" ;;
   esac
 }
