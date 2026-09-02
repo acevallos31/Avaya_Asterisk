@@ -1,0 +1,24 @@
+name: J129 | SIP | Controlled Check-Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_restart:
+        description: 'Escribe J129-LAB para autorizar un unico NOTIFY check-sync potencialmente reiniciador'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_stub:
+    name: Ejecutar desde rama Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar rama
+        shell: bash
+        run: |
+          echo 'Este workflow debe ejecutarse desde la rama Audit.'
+          echo 'Selecciona Audit en Run workflow.'
+          exit 1
