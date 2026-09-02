@@ -7,13 +7,14 @@
 - Rama de pruebas: `Audit`
 - Issabel 5 / Rocky Linux 8
 - Asterisk 18.19.0
+- Python 3.6.8
 - PBX / provisioning: `192.168.1.10`
 - J129: `192.168.1.168`
 - MAC: `C8:1F:EA:9B:65:0D`
 - Firmware: `3.0.0.0.20`
 - Endpoint id: `3`
 - Cuenta SIP: `200`
-- Provisioning HTTP desde PBX
+- Runner self-hosted: usuario `github-runner`
 - `192.168.1.169` está ocupado por otro dispositivo y no debe asignarse a la PBX.
 
 ## Evidencia consolidada
@@ -46,25 +47,11 @@ max_sip_accounts=1
 max_iax2_accounts=0
 ```
 
-J129 v1 queda limitado a una cuenta mientras no exista una implementación multicuenta oficial validada.
-
 ### 09 — Remote restart + reprovisioning
 
 `PHYSICAL-J129-PASS` — run `33599222299`.
 
 El evento SIP `check-sync` produjo caída del peer, reinicio físico, nueva descarga HTTP y re-registro SIP. En firmware `3.0.0.0.20` no debe llamarse “reload silencioso”.
-
-Secuencia observada:
-
-```text
-SIP OK
--> check-sync
--> peer down/not OK
--> GET J100Supgrade.txt
--> GET 46xxsettings.txt
--> GET c81fea9b650d.txt
--> SIP OK nuevamente
-```
 
 ### 10 — Forced Provisioning / NTP
 
@@ -79,9 +66,11 @@ SET GMTOFFSET -6:00
 SET DAYLIGHT_SAVING_SETTING_MODE 0
 ```
 
-Durante 300 s SIP permaneció `OK`, no se envió NOTIFY/check-sync y el J129 no realizó un nuevo GET observado de `46xxsettings.txt`. Quedó validada la generación server-side sin interrupción SIP; en ese run todavía no se había validado la aplicación física.
+Durante 300 s SIP permaneció `OK`, no se envió NOTIFY/check-sync y el J129 no realizó un nuevo GET observado de `46xxsettings.txt`.
 
-Chronyd quedó escuchando UDP/123 para LAN. Antes de producción, el test debe esperar y afirmar que chronyd vuelve a sincronizarse después de un restart; el run exitoso observó temporalmente `Stratum 0 / Not synchronised` inmediatamente tras reiniciarlo.
+Más tarde, tras reiniciar el teléfono durante la validación del workflow 11, la hora quedó correcta. Esto confirma físicamente que la configuración de tiempo sí es funcional cuando el J129 la consume.
+
+Deuda: después de reiniciar chronyd, el test debe esperar y afirmar recuperación del estado sincronizado antes de considerarlo listo para producción.
 
 ## Línea base física de pantalla
 
@@ -101,23 +90,15 @@ Antes del workflow 11:
 
 Run `33603387145`:
 
-- `SIP_STATUS=OK account=200`.
-- Web UI HTTP `200` y HTTPS `200`.
-- `46xxsettings.txt` contenía los cuatro parámetros NTP del workflow 10.
-- estaban ausentes los controles UX/Admin y lenguaje objeto de investigación.
-- no existían en PBX `Mlf_J129_LatinAmericanSpanish.xml` ni `Mlf_J129_CastilianSpanish.xml`.
-
-### Intentos Apply previos
-
-- Run 2, `Audit`: falló antes del Apply por usar SQLite y buscar tabla `endpoint`; Endpoint Configurator usa MySQL/MariaDB `endpointconfig`.
-- Run 3, `Audit`: falló antes del Apply por consultar columna inexistente `e.ip_address`.
-- Run 4, `main`: abortó correctamente por el guard que exige `Audit`; no hubo mutación.
-
-Estos fallos quedan como evidencia de que los workflows no deben asumir esquema DB no validado y deben conservar guards de entorno.
+- SIP 200 OK;
+- Web UI HTTP/HTTPS 200;
+- parámetros NTP presentes;
+- parámetros UX/idioma/Web Admin/ENTRYNAME ausentes;
+- no existe XML J129 Spanish en PBX.
 
 ### Apply UX/Admin — PASS server-side
 
-El Apply corregido utilizó el flujo normal de Endpoint Configurator y generó:
+El Apply corregido generó:
 
 ```text
 SET PROCSTAT 0
@@ -127,62 +108,116 @@ SET PROVIDE_LOGOUT 1
 SET ENTRYNAME Briam
 ```
 
-Además preservó NTP:
+Además preservó NTP.
+
+### Reinicio controlado / evidencia física
+
+El teléfono cayó y volvió a registrar SIP, confirmando el ciclo de reinicio. El detector HTTP del workflow dio falsos negativos/observabilidad insuficiente y no debe usarse como prueba negativa del consumo.
+
+Después del reinicio:
+
+- la hora quedó correcta;
+- el menú visible no apareció.
+
+Conclusión: el tiempo quedó validado físicamente; los parámetros UX no deben incluirse en la release mínima v0.1.0 sin más evidencia.
+
+## 12 — Production Patch | Install & Rollback Test
+
+Estado: `LAB-INTEGRATION-PASS`.
+
+Workflow:
 
 ```text
-SET SNTPSRVR 192.168.1.10
-SET SNTP_SYNC_INTERVAL 60
-SET GMTOFFSET -6:00
-SET DAYLIGHT_SAVING_SETTING_MODE 0
+12 | Issabel Lab | J129 Production Patch | Install & Rollback Test
 ```
 
-Durante la observación sin NOTIFY el teléfono no hizo un GET nuevo observado y SIP permaneció `OK`. Por tanto, Apply normal genera provisioning pero no fuerza consumo inmediato en este firmware.
-
-### Reinicio manual controlado — run `33608941143`
-
-El workflow se ejecutó en `Audit` con operación `OBSERVE-RESTART`. Antes del reinicio confirmó SIP `OK` y que el provisioning preparado contenía los parámetros UX/NTP.
-
-Secuencia SIP observada:
+El candidato de parche mínimo completó en LAB:
 
 ```text
-t=45s  SIP OK
-t=60s  SIP NOT_OK
-t=150s SIP NOT_OK
-t=165s SIP OK
-...
-t=300s SIP OK
+preflight
+-> install
+-> verify
+-> segundo install
+-> segundo verify
+-> rollback
 ```
 
-Resultado:
+El segundo install valida idempotencia y el rollback deja el LAB en el estado previo esperado.
+
+Este PASS valida el candidato de parche dentro de la estructura de Audit, pero no sustituye la prueba del paquete autocontenido exacto de la rama de release.
+
+## 13 — Release Package | Smoke Test
+
+Workflow:
 
 ```text
-RESTART_DOWN_OBSERVED=1
-SIP_RETURN_OBSERVED=1
-HTTP_J100SUPGRADE_FRESH=0
-HTTP_46XXSETTINGS_FRESH=0
-HTTP_MAC_FILE_FRESH=0
+13 | Issabel Lab | J129 Release Package | Smoke Test
 ```
 
-El run terminó rojo porque el detector HTTP exigía contadores de access log que quedaron en cero. Esto NO invalida el reinicio ni el re-registro SIP: ambos fueron observados. El detector HTTP debe corregirse para usar una ruta de lectura autorizada/fiable antes de convertir esos contadores en criterio de PASS.
+Objetivo: checkout de `release/j129-v0.1.0` y ejecutar el ciclo exacto del paquete distribuible.
 
-### Evidencia física posterior al reinicio
+Estado actual: `INFRA-BLOCKED`, no `RELEASE-FAIL`.
 
-- La hora del J129 quedó correcta después del reinicio. Esto constituye evidencia física de aplicación de la configuración de tiempo preparada previamente.
-- El acceso visible al menú/Admin sigue sin aparecer.
-- Por tanto, `PROCSTAT 0`, `PROVIDE_OPTIONS_SCREEN 1` y `PROVIDE_NETWORKINFO_SCREEN 1` no deben describirse como parámetros que crean por sí mismos una softkey de menú. Su semántica/limitación exacta en J129 3.0.0.0.20 queda pendiente de validación.
-- Antes de v1 se permite una prueba adicional específica de menú, pero no debe bloquear el parche mínimo de producción si SIP/provisioning estándar ya están validados.
+### Primer rojo
 
-## Web Admin / capacidades observadas
+Una ejecución falló durante checkout/limpieza por residuos `.pyc` creados por root de pruebas anteriores.
 
-La interfaz Web del firmware LAB expone, entre otras, administración de red, SIP, fecha/hora, Management, Password, Debugging, Certificates, Environment Settings, Background/Screen Saver, Calendar, Restart y Reset to Default. También se observaron Syslog, SNMP, packet capture, Phone Report y controles de dispositivo.
+### Rojo vigente
 
-No se encontró un botón Web visible equivalente a `Update/Get Updates`; el teléfono sí dispone de esa función local cuando el menú administrativo es accesible.
+Error observado:
 
-La UI SIP observada presenta una sola cuenta. Junto con las pruebas físicas, esto respalda la decisión v1 de `max_accounts=1` y `max_sip_accounts=1`.
+```text
+Error: File was unable to be removed
+Error: EACCES: permission denied, unlink
+'/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk/deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/__pycache__/Avaya.cpython-36.pyc'
+```
+
+### Causa
+
+- El runner es self-hosted.
+- `actions/checkout` corre como `github-runner`.
+- Un proceso privilegiado anterior creó `__pycache__/Avaya.cpython-36.pyc` como `root` dentro del workspace.
+- Checkout intenta limpiar el repositorio antes de ejecutar cualquier step posterior.
+- `github-runner` no puede borrar ese archivo y el job muere antes de probar la release.
+
+Por tanto, no existe evidencia todavía de que el paquete exacto v0.1.0 falle funcionalmente.
+
+### Corrección requerida
+
+Una limpieza puntual del residuo root-owned debe hacerse fuera del checkout que está fallando. Después, el harness debe impedir que root vuelva a generar bytecode dentro del workspace.
+
+Controles requeridos:
+
+```text
+PYTHONDONTWRITEBYTECODE=1
+python3 -B para Python privilegiado
+no temporales root dentro de $GITHUB_WORKSPACE
+usar /tmp o /var/lib para estado privilegiado
+no chmod 777
+no sudo amplio
+```
+
+Agregar comprobaciones de ownership y ausencia de `__pycache__` root-owned alrededor de acciones privilegiadas cuando sea posible.
+
+## Release v0.1.0
+
+Rama limpia:
+
+```text
+release/j129-v0.1.0
+```
+
+El paquete no debe incluir configuraciones estáticas históricas de teléfonos. `46xxsettings.txt` debe generarlo Issabel.
+
+El archivo histórico `46xxsettings.txt funciona Choloma.txt` puede conservarse como referencia conocida funcional únicamente si se revisa por secretos y se mueve/renombra fuera del payload, por ejemplo:
+
+```text
+examples/j129-working-reference-choloma.txt
+```
 
 ## Idioma español
 
-Objetivo posterior: español latinoamericano para Honduras. El XML oficial no está instalado en PBX. No inventar el archivo; usar únicamente el recurso oficial Avaya. La validación requerirá recurso oficial, consumo por el teléfono y evidencia física de UI en español.
+Fuera de v0.1.0. Requiere XML oficial Avaya y validación física.
 
 ## BUGS / deuda técnica
 
@@ -190,56 +225,61 @@ Objetivo posterior: español latinoamericano para Honduras. El XML oficial no es
 `Registered at` en GUI puede quedar obsoleto. Usar Asterisk para registro real.
 
 ### BUG-J129-002
-Multicuenta histórica incorrecta. Mitigado en v1 con límite de una cuenta. El helper permanente que todavía espere valor 2 debe normalizarse antes del parche de producción.
+Multicuenta histórica incorrecta. Mitigado en v1 con una cuenta.
 
 ### BUG-J129-003
-Apply con cero cuentas fue corregido server-side usando `BaseEndpoint.deleteContent()`; archivo por MAC se elimina.
+Apply con cero cuentas fue corregido server-side usando `BaseEndpoint.deleteContent()`.
 
 ### BUG-J129-004
-La ausencia del archivo por MAC no borra una identidad SIP ya persistida en el J129. Factory reset restableció una línea base limpia. Falta un mecanismo oficial de revocación remota o una limitación explícita de v1.
+La ausencia del archivo por MAC no borra identidad SIP ya persistida en el J129.
 
-### TD-J129-005 — consumo inmediato de provisioning
-Apply normal no fuerza polling inmediato. `check-sync` reinicia físicamente este firmware. No existe botón Web Update observado. Documentar restart/resync como operación separada del Apply.
+### TD-J129-005 — consumo inmediato
+Apply normal no fuerza polling inmediato. `check-sync` reinicia físicamente este firmware.
 
 ### TD-J129-006 — menú local
-La configuración probada no hizo aparecer el acceso visible al menú/Admin. Investigar parámetro específico o limitación de firmware sin bloquear v1 mínima.
+No resuelto; no bloquear v0.1.0 mínima.
 
-### TD-J129-007 — detector HTTP
-El workflow 11 de reinicio leyó contadores HTTP como cero. Corregir la recolección de access log mediante helper restringido y no confundir fallo de observabilidad con fallo del teléfono.
+### TD-J129-007 — observabilidad HTTP
+Corregir lectura autorizada de access logs.
 
 ### TD-J129-008 — idioma
-Falta incorporar y validar el XML oficial Latin American Spanish.
+Falta XML oficial Latin American Spanish.
 
 ### TD-J129-009 — helpers LAB
-Eliminar hardcodes históricos de IP y runtime patching; consolidar comportamiento probado en código permanente antes de producción.
+Eliminar hardcodes/runtime patching y normalizar comportamiento.
+
+### TD-J129-010 — ownership del self-hosted runner
+Procesos root no deben crear `__pycache__` ni otros artefactos dentro del checkout. Esta deuda bloquea actualmente workflow 13.
 
 ## Seguridad
 
 - No registrar SIP secrets reales.
 - No imprimir contraseña Web Admin, cookies, XToken, nonce ni hashes.
-- La credencial Web Admin previamente expuesta debe rotarse antes de producción.
-- `J129_WEB_PASSWORD` solo como Repository Secret.
-- No ampliar sudo del self-hosted runner.
-- Phone Reports/exportaciones pueden contener material sensible; no subir reportes brutos al repositorio.
+- Rotar credencial Web Admin expuesta antes de producción.
+- No ampliar sudo del runner.
+- No subir Phone Reports brutos.
+- No usar permisos globales como `chmod -R 777` para resolver ownership.
 
 ## Criterio para primera distribución
 
-La primera distribución debe ser un parche conservador para Issabel 5, orientado a habilitar J129 sin modificar core innecesariamente:
+La distribución debe conservar:
 
 1. preflight de versión/archivos/DB;
-2. backup de todo archivo que vaya a tocarse;
-3. instalar únicamente integración Avaya/J129 y templates requeridos;
-4. registrar fabricante/modelo/prefijo/propiedades de forma idempotente;
-5. `max_accounts=1`, `max_sip_accounts=1`, `max_iax2_accounts=0`;
-6. no desplegar firmware automáticamente;
-7. no cambiar credenciales Web Admin automáticamente en v1;
-8. validar sintaxis, DB, detección y provisioning después de instalar;
-9. proporcionar rollback;
-10. dejar menú local, español, revocación remota y actualización sin reboot como deuda técnica explícita si no están cerrados.
+2. backup de cada archivo tocado;
+3. integración Avaya/J129 mínima;
+4. DB idempotente;
+5. una cuenta SIP;
+6. sin firmware automático;
+7. sin cambio automático de Web Admin password;
+8. verify posterior;
+9. rollback;
+10. paquete exacto validado por workflow 13 antes de producción.
 
 ## Próximo paso
 
-1. hacer una última prueba acotada del menú, pudiendo usar el mecanismo de reinicio remoto ya validado por PBX;
-2. no seguir agregando parámetros experimentales al parche mínimo sin evidencia;
-3. congelar una v1 candidata;
-4. construir el primer instalador/parche de producción con preflight, backup, instalación idempotente, validación y rollback.
+1. limpiar el residuo root-owned que bloquea checkout;
+2. modificar la ejecución privilegiada para usar Python sin bytecode y no escribir dentro del workspace;
+3. lanzar un run nuevo de workflow 13 en `Audit` con `TEST-RELEASE`;
+4. revisar logs del ciclo real de release;
+5. si queda verde, congelar v0.1.0 y generar checksums;
+6. auditar la central de producción antes de instalar.
