@@ -21,6 +21,13 @@ jobs:
           echo "Runner: $(id -un)@$(hostname)"
           test "$(id -un)" = "github-runner"
 
+      - name: Preparar auditoria SIP con IP dinamica
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-sip-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
       - name: Sincronizar helper restringido
         shell: bash
         run: |
