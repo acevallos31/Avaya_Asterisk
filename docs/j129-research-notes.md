@@ -10,25 +10,23 @@ Este documento separa documentación oficial, evidencia propia del LAB e hipóte
 - Firmware oficial más reciente investigado: J100 SIP `4.1.11.0`, mayo de 2026.
 - Binario J129 documentado: `FW_S_J129_R4_1_11_0_10.bin`.
 
-No realizar upgrade todavía. Primero identificar hardware/comcode, revisar ruta de upgrade/downgrade, preparar recovery y validar paquete oficial completo.
-
-Fuente principal: Avaya J100 Series SIP Release 4.1.11.0 Readme.
+No realizar upgrade todavía. Firmware queda fuera de v0.1.0.
 
 ## Open SIP / Asterisk
 
-Avaya documenta Open SIP con plataformas que incluyen Asterisk R16. El LAB utiliza Asterisk 18.19.0 y su funcionamiento es evidencia propia de este proyecto, no una certificación explícita de Avaya para R18.
+El LAB usa Asterisk 18.19.0. La interoperabilidad observada es evidencia propia del proyecto.
 
-Valores Open SIP a evaluar/conservar:
+Valores Open SIP relevantes:
 
 ```text
 SET ENABLE_AVAYA_ENVIRONMENT 0
 SET DISCOVER_AVAYA_ENVIRONMENT 0
-SET ENABLE_IPOFFICE 0
+SET ENABLE_3PCC_ENVIRONMENT 1
 ```
 
 ## Provisioning y firmware
 
-La PBX puede actuar como file/provisioning server HTTP/HTTPS para:
+La PBX puede servir:
 
 ```text
 J100Supgrade.txt
@@ -38,23 +36,25 @@ FW_S_J129_*.bin
 Mlf_J129_*.xml
 ```
 
-Provisioning normal y firmware upgrade deben permanecer como responsabilidades separadas. El Apply estándar nunca debe activar accidentalmente un firmware nuevo.
+Provisioning normal y firmware upgrade deben permanecer separados.
+
+`46xxsettings.txt` no debe distribuirse como archivo estático de producción. Debe generarse desde `Avaya_global_SIP.tpl` mediante el flujo normal de Issabel.
+
+El archivo histórico `46xxsettings.txt funciona Choloma.txt` representa una configuración conocida funcional. Es útil como evidencia comparativa, pero no como payload. Si se conserva, debe revisarse por secretos y renombrarse/moverse como ejemplo no instalable.
 
 ## check-sync / actualización remota
 
-La documentación de J100/Open SIP describe eventos de resync/reset, pero la evidencia física del proyecto manda para este firmware.
-
-Workflow 09 demostró en `3.0.0.0.20`:
+Evidencia física del workflow 09:
 
 ```text
 check-sync -> reinicio físico -> nueva descarga de provisioning -> nuevo registro SIP
 ```
 
-Por tanto, no usar `check-sync` para pruebas cuyo requisito sea “sin reboot”.
+No usar `check-sync` para un requisito de actualización sin reboot.
 
 ## NTP / hora
 
-Para firmware anterior a ramas modernas de J100 se seleccionó la ruta compatible basada en:
+Configuración probada:
 
 ```text
 SET SNTPSRVR 192.168.1.10
@@ -63,102 +63,121 @@ SET GMTOFFSET -6:00
 SET DAYLIGHT_SAVING_SETTING_MODE 0
 ```
 
-`SNTP_SYNC_INTERVAL` es intervalo de sincronización de hora, no polling de provisioning.
+Workflow 10 validó generación server-side sin caída SIP. El teléfono no hizo polling natural durante 300 s.
 
-Workflow 10 probó que Issabel puede generar estos valores sin caída SIP. No probó que el teléfono los consumiera durante la ventana de 300 s, porque no hubo nuevo GET de `46xxsettings.txt`.
+En una prueba posterior con reinicio, la hora física del J129 quedó correcta. Esto confirma que esos parámetros funcionan cuando el teléfono consume el provisioning.
 
-La PBX quedó configurada para servir NTP a `192.168.1.0/24`. Antes de producción debe agregarse una aserción que espere el regreso de chronyd a estado sincronizado después de restart.
+Deuda: al reiniciar chronyd, esperar explícitamente la recuperación de sync.
 
 ## Idioma español
 
-Avaya distribuye recursos específicos J129, incluyendo:
+Avaya distribuye recursos específicos J129:
 
 ```text
 Mlf_J129_CastilianSpanish.xml
 Mlf_J129_LatinAmericanSpanish.xml
 ```
 
-Para Honduras, candidato inicial: Latin American Spanish.
+Para Honduras, el candidato es Latin American Spanish. No incluir en v0.1.0 sin recurso oficial y validación física.
 
-El baseline del workflow 11 comprobó que ninguno de esos XML existe actualmente en la PBX LAB. No reconstruir, inventar ni copiar archivos de idioma de fuentes no oficiales.
+## Admin menu
 
-La prueba de idioma debe requerir:
-
-1. XML oficial Avaya;
-2. publicación HTTP controlada;
-3. parámetros de idioma exactos para el firmware;
-4. GET observado en access log;
-5. cambio visible en el J129 físico.
-
-## Admin menu — corrección importante
-
-La investigación oficial registrada para J129 establece:
+Investigación oficial registrada:
 
 ```text
 PROCSTAT 0 -> Admin menu permitido
-PROCSTAT 1 -> Admin menu no permitido/restringido para configuración
+PROCSTAT 1 -> Admin menu restringido/no permitido
 ```
 
-Fuente: Installing and Administering Avaya J129 IP Phone, sección de parámetros de Admin menu.
-
-Esto corrige una decisión errónea introducida durante la preparación inicial del workflow 11: si el objetivo es habilitar el menú local, no debe aplicarse `PROCSTAT 1`; el candidato correcto de laboratorio es `PROCSTAT 0`.
-
-`PROCPSWD`/`ADMIN_PASSWORD` corresponde al acceso del menú físico y no debe confundirse con la contraseña de Web UI.
-
-Antes de producción debe existir recovery/factory-reset documentado si se centraliza la política del menú.
-
-## Otros parámetros UX en investigación
-
-Candidatos del workflow 11:
+Workflow 11 llegó a generar:
 
 ```text
-PROVIDE_OPTIONS_SCREEN
-PROVIDE_NETWORKINFO_SCREEN
-PROVIDE_LOGOUT
-ENTRYNAME
+SET PROCSTAT 0
+SET PROVIDE_OPTIONS_SCREEN 1
+SET PROVIDE_NETWORKINFO_SCREEN 1
+SET PROVIDE_LOGOUT 1
+SET ENTRYNAME Briam
 ```
 
-No afirmar efecto físico hasta probarlo en el J129.
+Tras reinicio, el menú visible no apareció. Por tanto, no atribuir a esos parámetros la creación de una softkey/menu visible en J129 3.0.0.0.20 sin evidencia adicional.
 
-`DISPLAY_NAME` no consiguió mostrar `Briam` en idle en la línea base física; `ENTRYNAME` queda como candidato de prueba, no como solución confirmada.
+Esta investigación no bloquea la release mínima.
 
 ## Web Admin
 
-Baseline workflow 11:
+La Web UI responde por HTTP y HTTPS. La credencial usada anteriormente debe considerarse comprometida/expuesta y rotarse antes de producción.
 
-```text
-HTTP  -> 200
-HTTPS -> 200
-```
-
-La Web UI ya es alcanzable. Aún no se ha gestionado su password mediante provisioning en esta fase.
-
-La credencial usada anteriormente debe considerarse comprometida/expuesta. Nunca imprimir ni almacenar la contraseña en repo. Cuando se pruebe administración central, usar Repository Secret y valores redactados en logs.
+No incluir gestión automática del password Web Admin en v0.1.0.
 
 ## BUG-J129-004 — identidad SIP persistente
 
-Evidencia física:
+Eliminar el archivo por MAC server-side no garantiza logout local. Una identidad SIP persistida puede sobrevivir y volver a registrar después de reboot.
 
-- Endpoint Configurator queda con 0 cuentas.
-- archivo `<mac>.txt` eliminado server-side.
-- después de reboot el teléfono puede volver a registrar una identidad SIP persistida localmente.
+No resolver con valores vacíos o comandos inventados. Fuera del alcance v0.1.0 salvo documentación de la limitación.
 
-Eliminar provisioning no equivale a logout del teléfono. No usar valores vacíos ni comandos inventados. La solución o limitación debe basarse en semántica oficial Avaya.
+## Esquema Endpoint Configurator
 
-## Esquema Endpoint Configurator — regla de investigación
+El LAB usa MySQL/MariaDB `endpointconfig`. No usar SQLite ni asumir columnas. Reutilizar consultas validadas o auditar esquema primero.
 
-El LAB usa MySQL/MariaDB `endpointconfig`. Durante workflow 11 se cometieron dos errores por asumir infraestructura/esquema:
+## Producción patch vs release package
 
-- usar SQLite: `no such table: endpoint`;
-- asumir columna `endpoint.ip_address`: `Unknown column`.
+### Workflow 12
 
-Regla: antes de escribir consultas nuevas, reutilizar consultas ya validadas del workflow 10 o ejecutar primero un audit read-only de `SHOW COLUMNS`/joins reales. No adivinar esquema.
+El candidato de parche dentro de la estructura de Audit completó:
 
-## Estado del workflow 11
+```text
+preflight -> install -> verify -> install -> verify -> rollback
+```
 
-Baseline read-only: PASS.
+Estado: PASS.
 
-Apply aún no validado. Los fallos hasta ahora ocurrieron antes de `issabel-endpointconfig --applyconfig`. El run más reciente además fue lanzado en `main` y abortó correctamente por el guard que exige `Audit`.
+Esto demuestra idempotencia y rollback del candidato, pero todavía no es evidencia de que el artefacto autocontenido exacto de distribución haya pasado.
+
+### Workflow 13
+
+Objetivo: probar exactamente `release/j129-v0.1.0`.
+
+Estado actual: bloqueado por infraestructura del self-hosted runner.
+
+Error observado:
+
+```text
+EACCES: permission denied, unlink
+.../vendor/__pycache__/Avaya.cpython-36.pyc
+```
+
+El fallo ocurre durante `actions/checkout`, antes del ciclo del installer. No clasificarlo como fallo funcional de release.
+
+## Investigación del ownership del runner
+
+Causa:
+
+1. runner self-hosted ejecuta el checkout como `github-runner`;
+2. un proceso anterior ejecutado con root generó `.pyc` dentro del checkout;
+3. el archivo quedó propiedad de root;
+4. el siguiente checkout intenta limpiar ese árbol;
+5. `github-runner` no puede hacer unlink y el job termina antes de los steps.
+
+Punto importante: un cleanup step colocado después de `actions/checkout` no puede reparar un archivo que impide que ese checkout termine.
+
+Diseño preventivo recomendado:
+
+```text
+PYTHONDONTWRITEBYTECODE=1
+python3 -B ... para Python ejecutado con privilegios
+no generar temporales en $GITHUB_WORKSPACE cuando se ejecuta como root
+usar /tmp o /var/lib/... para estado de root
+no chmod 777
+no ampliar sudo
+```
+
+Conviene auditar ownership y `__pycache__` antes/después de operaciones privilegiadas cuando el workflow ya tenga un checkout funcional.
+
+## Rama de release
+
+`release/j129-v0.1.0` debe mantenerse limpia y separada de `Audit`.
+
+No hacer merge masivo de Audit. La release solo necesita installer, payload, documentación, checksums y eventualmente ejemplos sanitizados claramente fuera del payload.
 
 ## Fuentes oficiales principales
 
@@ -168,12 +187,14 @@ Apply aún no validado. Los fallos hasta ahora ocurrieron antes de `issabel-endp
 - Installing and Administering Avaya J129 IP Phone — https://support.avaya.com/css/public/documents/101033171
 - IP Office SIP Telephone Installation Notes — https://support.avaya.com/css/public/documents/101091571
 
-## Próxima investigación
+## Próxima investigación/prueba
 
-1. corregir `PROCSTAT` del workflow 11 a `0`;
-2. validar Apply UX server-side usando consultas MySQL ya probadas;
-3. comprobar menú/nombre/hora físicamente;
-4. conseguir paquete oficial con XML Latin American Spanish;
-5. probar idioma como fase separada y reversible;
-6. luego estudiar Web Admin password central y `BUG-J129-004`;
-7. firmware upgrade queda separado y posterior.
+La prioridad ya no es agregar funciones UX al teléfono. La secuencia es:
+
+1. reparar ownership/residuo root del runner;
+2. impedir nuevos `.pyc` root-owned;
+3. ejecutar workflow 13 hasta llegar al installer real;
+4. validar release exacta;
+5. congelar checksums;
+6. auditar central de producción;
+7. dejar español, menú, Web Admin central y firmware para fases posteriores.
