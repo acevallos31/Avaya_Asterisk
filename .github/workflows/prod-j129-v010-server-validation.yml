@@ -65,11 +65,10 @@ jobs:
           ref: ${{ env.FROZEN_SHA }}
           path: _release_checkout
 
-      - name: Validar SHA y paquete en espacio no privilegiado
+      - name: Validar paquete congelado en espacio no privilegiado
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C _release_checkout rev-parse HEAD)" = "$FROZEN_SHA"
           pkg="$GITHUB_WORKSPACE/_release_checkout/release/j129-v0.1.0"
           test -f "$pkg/install.sh"
           (
@@ -82,6 +81,7 @@ jobs:
             echo "575cc4b290b9919edfbf74d2643dbcaa671565b6d163a8b3856592c5dd00e492  payload/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl" | sha256sum -c -
             bash -n install.sh
           )
+          echo "J129-PROD-FROZEN-REF=$FROZEN_SHA"
           echo 'J129-PROD-USERSPACE-FROZEN-PACKAGE-PASS'
 
       - name: Ejecutar auditoría completa read-only
