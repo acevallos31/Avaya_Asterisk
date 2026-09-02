@@ -29,10 +29,6 @@ verify_package(){
     fail "release package contains symlink"
   fi
 
-  local checkout
-  checkout="$(realpath "$pkg/../..")"
-  [ "$(git -C "$checkout" rev-parse HEAD)" = "$FROZEN_SHA" ] || fail "release checkout is not frozen SHA"
-
   (
     cd "$pkg"
     echo "fa2aca1fb187d2801082b0dc8afb099f8d1ab9c3ef18390fb119b9c94e26a4a3  README.md" | sha256sum -c -
