@@ -23,35 +23,66 @@ jobs:
           test "$(hostname -s)" = "issabel"
           test "${GITHUB_REF_NAME}" = "Audit"
 
-      - name: Auditar acceso read-only al CLI de Asterisk
+      - name: Preparar accion read-only temporal en helper
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== ASTERISK CLI READ-ONLY ==='
-          asterisk -rx 'core show version'
-          echo '=== SIP NOTIFY HELP ==='
-          asterisk -rx 'core show help sip notify' || true
-          echo '=== SIP PEERS RELACIONADOS CON J129 ==='
-          asterisk -rx 'sip show peers' | grep -E '192\.168\.1\.171|(^|[[:space:]])201(/|[[:space:]])' || true
-          echo '=== CANALES ACTIVOS RELACIONADOS ==='
-          asterisk -rx 'core show channels concise' | grep -E '192\.168\.1\.171|(^|/)201-' || true
-          echo 'ASTERISK-READONLY-CLI-PASS'
+          helper='deploy/j129/avaya-j129-lab-deploy'
+          test -f "$helper"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('deploy/j129/avaya-j129-lab-deploy')
+          s = p.read_text()
+          marker = 'install_http_j129() {'
+          assert marker in s
+          fn = r'''run_sip_notify_capability_inspection() {
+            local expected_ip='192.168.1.171' sip_out channels_out
+            command -v asterisk >/dev/null 2>&1 || { echo 'ERROR: asterisk CLI no disponible' >&2; exit 1; }
+            echo '=== ASTERISK CLI READ-ONLY ==='
+            asterisk -rx 'core show version'
+            echo '=== SIP NOTIFY HELP ==='
+            asterisk -rx 'core show help sip notify' || true
+            echo '=== SIP PEERS RELACIONADOS CON J129 ==='
+            sip_out="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
+            printf '%s\n' "$sip_out" | grep -E "${expected_ip}|(^|[[:space:]])201(/|[[:space:]])" || echo 'SIN-PEER-J129-OBSERVADO'
+            echo '=== CANALES ACTIVOS RELACIONADOS ==='
+            channels_out="$(asterisk -rx 'core show channels concise' 2>/dev/null || true)"
+            printf '%s\n' "$channels_out" | grep -E "${expected_ip}|(^|/)201-" || echo 'SIN-CANALES-J129-ACTIVOS'
+            echo '=== SIP_NOTIFY.CONF ==='
+            if [ -r /etc/asterisk/sip_notify.conf ]; then
+              awk '/^[[:space:]]*\[/ {print; next} /^[[:space:]]*[Ee]vent[[:space:]]*=>/ {print; next} /^[[:space:]]*[Cc]ontent-[Tt]ype[[:space:]]*=>/ {print; next}' /etc/asterisk/sip_notify.conf
+              echo 'SIP-NOTIFY-CONF=READABLE'
+            else
+              echo 'SIP-NOTIFY-CONF=NOT-READABLE'
+            fi
+            echo 'J129-SIP-NOTIFY-CAPABILITY-HELPER-PASS'
+            echo 'NOTIFY-ENVIADO=0'
+            echo 'RESTART-ENVIADO=0'
+          }
 
-      - name: Auditar tipos NOTIFY configurados si son legibles
+          '''
+          s = s.replace(marker, fn + marker, 1)
+          needle = '  inspect-sip-registration) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_registration_inspection ;;'
+          assert needle in s
+          s = s.replace(needle, needle + '\n  inspect-sip-notify-capability) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_notify_capability_inspection ;;', 1)
+          p.write_text(s)
+          PY
+          bash -n "$helper"
+          echo 'HELPER-RUNTIME-PATCH=PASS'
+
+      - name: Sincronizar helper restringido
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== SIP_NOTIFY.CONF ==='
-          if test -r /etc/asterisk/sip_notify.conf; then
-            awk '
-              /^[[:space:]]*\[/ { print; next }
-              /^[[:space:]]*[Ee]vent[[:space:]]*=>/ { print; next }
-              /^[[:space:]]*[Cc]ontent-[Tt]ype[[:space:]]*=>/ { print; next }
-            ' /etc/asterisk/sip_notify.conf
-            echo 'SIP-NOTIFY-CONF=READABLE'
-          else
-            echo 'SIP-NOTIFY-CONF=NOT-READABLE-BY-RUNNER'
-          fi
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Auditar capacidad SIP NOTIFY como root restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-sip-notify-capability
 
       - name: Resultado
         shell: bash
