@@ -19,12 +19,35 @@ jobs:
     name: Validar paquete autocontenido v0.1.0 y rollback exacto
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     steps:
+      - name: Sanear bloqueo legado del workspace antes de checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk'
+          test "$GITHUB_WORKSPACE" = "$expected"
+
+          base="$GITHUB_WORKSPACE/deploy/j129"
+          [ -d "$base" ] || exit 0
+
+          found=0
+          while IFS= read -r -d '' cache; do
+            if find "$cache" -type f -name '*.pyc' -user root -print -quit 2>/dev/null | grep -q .; then
+              parent="$(dirname "$cache")"
+              quarantine="$parent/.runner-root-pycache-${GITHUB_RUN_ID}-${found}"
+              test ! -e "$quarantine"
+              mv -- "$cache" "$quarantine"
+              echo "LEGACY-ROOT-PYCACHE-QUARANTINED=${quarantine#$GITHUB_WORKSPACE/}"
+              found=$((found + 1))
+            fi
+          done < <(find "$base" -type d -name '__pycache__' -print0 2>/dev/null)
+
+          echo "LEGACY-ROOT-PYCACHE-QUARANTINE-COUNT=$found"
+
       - name: Checkout harness Audit
         uses: actions/checkout@v4
         with:
-          # Un workflow anterior dejó un __pycache__ propiedad de root en este
-          # workspace. Evitamos que actions/checkout intente borrarlo antes de
-          # que nuestro helper restringido pueda sanearlo de forma controlada.
+          # La cuarentena legacy se elimina más adelante mediante el helper root
+          # restringido. clean=false evita que checkout intente borrarla antes.
           clean: false
 
       - name: Guard de LAB
@@ -53,13 +76,13 @@ jobs:
           test -f _release_checkout/release/j129-v0.1.0/payload/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
           test -f _release_checkout/release/j129-v0.1.0/payload/etc/httpd/conf.d/avaya-j129-provisioning.conf
           bash -n _release_checkout/release/j129-v0.1.0/install.sh
-          python3 -c "import ast; p='_release_checkout/release/j129-v0.1.0/payload/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py'; ast.parse(open(p, encoding='utf-8').read(), filename=p); print('RELEASE-PY-SYNTAX-PASS')"
+          python3 -B -c "import ast; p='_release_checkout/release/j129-v0.1.0/payload/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py'; ast.parse(open(p, encoding='utf-8').read(), filename=p); print('RELEASE-PY-SYNTAX-PASS')"
 
       - name: Preparar helper restringido
         shell: bash
         run: |
           set -euo pipefail
-          python3 deploy/j129/prepare-release-package-cycle.py
+          python3 -B deploy/j129/prepare-release-package-cycle.py
           bash -n deploy/j129/avaya-j129-lab-deploy
           sudo /usr/local/sbin/avaya-j129-helper-sync
 
@@ -68,6 +91,18 @@ jobs:
         run: |
           set -euo pipefail
           sudo /usr/local/sbin/avaya-j129-lab-deploy release-package-cycle-v010 "$GITHUB_WORKSPACE/_release_checkout"
+
+      - name: Verificar workspace limpio de bytecode privilegiado
+        shell: bash
+        if: always()
+        run: |
+          set -euo pipefail
+          if find "$GITHUB_WORKSPACE/deploy/j129" -type f -name '*.pyc' -user root -print -quit 2>/dev/null | grep -q .; then
+            echo 'ERROR: persiste bytecode Python propiedad de root dentro del workspace' >&2
+            find "$GITHUB_WORKSPACE/deploy/j129" -type f -name '*.pyc' -user root -print 2>/dev/null || true
+            exit 1
+          fi
+          echo 'RUNNER-WORKSPACE-NO-ROOT-PYC-PASS'
 
       - name: Resultado
         shell: bash
