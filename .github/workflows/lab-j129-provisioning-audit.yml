@@ -1,4 +1,4 @@
-name: Issabel Lab J129 Provisioning Audit
+name: 03 | Issabel Lab | J129 Provisioning | Audit
 
 on:
   workflow_dispatch:
