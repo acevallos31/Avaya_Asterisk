@@ -1,0 +1,34 @@
+name: 10 | Issabel Lab | J129 Forced Provisioning | Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-forced-provisioning-baseline:
+    name: Auditar baseline de provisioning forzado del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          test "$GITHUB_REF_NAME" = "Audit"
+
+      - name: Auditar hora NTP y settings actuales
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/lab/j129_forced_provisioning_baseline_audit.py
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-FORCED-PROVISIONING-BASELINE-WORKFLOW-PASS'
