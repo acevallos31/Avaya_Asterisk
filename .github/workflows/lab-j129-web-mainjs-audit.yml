@@ -1,4 +1,4 @@
-name: Issabel Lab J129 Web MainJS Audit
+name: 26 | Issabel Lab | J129 Web MainJS | Audit
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
 jobs:
   audit-mainjs:
     name: Auditar main.js publico del J129
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
