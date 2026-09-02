@@ -2,17 +2,23 @@
 
 Este documento registra evidencia reproducible de las pruebas de integración y ciclo de vida del Avaya J129 sobre Issabel 5. Complementa `docs/agent-log.md` y el historial de Git.
 
-> No almacenar secretos SIP reales en este archivo.
+> No almacenar secretos SIP ni credenciales Web Admin reales en este archivo.
 
-## Entorno de prueba
+## Entorno de prueba actual
 
 - Rama: `Audit`
 - PBX de laboratorio: Issabel 5 / Rocky Linux 8
 - Asterisk: 18.19.0
+- PBX / servidor de provisioning actual: `192.168.1.10`
 - Teléfono: Avaya J129 físico
-- IP del teléfono en laboratorio: `192.168.1.171`
+- Firmware: `3.0.0.0.20`
+- MAC: `C8:1F:EA:9B:65:0D`
+- IP actual del teléfono: `192.168.1.168`
+- Endpoint actual: id `3`
+- Cuenta SIP actual: `200`
 - Provisioning: HTTP desde la PBX
 - Flujo objetivo: Endpoint Configurator estándar de Issabel, sin UI Avaya paralela para usuario/contraseña SIP.
+- `192.168.1.169` está ocupado por otro dispositivo y no debe usarse para la PBX.
 
 ## Estado validado
 
@@ -20,18 +26,20 @@ Este documento registra evidencia reproducible de las pruebas de integración y 
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-El Endpoint Configurator detecta automáticamente fabricante `Avaya`, modelo `J129`, y permite configurar el teléfono usando el flujo estándar de Accounts de Issabel. La detección del modelo usa `probeModel()` / `_saveModel("J129")`.
+Endpoint Configurator detecta automáticamente fabricante `Avaya`, modelo `J129`, y permite configurar el teléfono usando el flujo estándar de Accounts de Issabel. La detección del modelo usa `probeModel()` / `_saveModel("J129")`.
+
+La auditoría de discovery confirmó un único J129 físico y el prefijo Avaya `C8:1F:EA`.
 
 ### Provisioning HTTP físico
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-Cadena observada durante el arranque:
+Cadena actual observada durante el arranque:
 
 ```text
 GET /J100Supgrade.txt 200
 GET /46xxsettings.txt 200
-GET /<mac-normalizada>.txt 200
+GET /c81fea9b650d.txt 200
 ```
 
 El `J100Supgrade.txt` del laboratorio es un bootstrap sin actualización de firmware.
@@ -40,137 +48,181 @@ El `J100Supgrade.txt` del laboratorio es un bootstrap sin actualización de firm
 
 **Estado:** `PHYSICAL-J129-PASS`
 
-El J129 registra por `chan_sip`. La auditoría valida cuenta + IP del teléfono sin imprimir secretos.
+El J129 registra por `chan_sip`. Estado actual validado: cuenta `200`, IP `192.168.1.168`, User-Agent Avaya J129 `3.0.0.0.20`, peer `OK`. Las auditorías no consultan ni imprimen el secreto SIP.
 
-### Ciclo Remove -> Rescan -> Reassign -> Apply -> Reboot
-
-**Estado:** `PHYSICAL-J129-PASS`
-
-Se comprobó el ciclo completo de Remove, rescan, reasignación, Apply principal, reboot, reprovisioning HTTP y registro SIP correcto. `Issabel Lab J129 State Audit` en `configured` termina verde.
-
-### Cambio de extensión
-
-**Estado:** `PHYSICAL-J129-PASS`
-
-Se comprobó que guardar Accounts modifica la asociación de Endpoint Configurator; el Apply principal regenera provisioning; y el cambio de identidad SIP se vuelve efectivo después de reprovisionar/reiniciar el J129.
-
-### Eliminación de una de dos cuentas
-
-**Estado:** `PHYSICAL-J129-PASS`
-
-Partiendo de prioridad 1 = `201` y prioridad 2 = `200`, se eliminó `200`, se ejecutó Apply principal y se reinició. El teléfono terminó en `201`; Asterisk mostró `201/201` `OK` y `200/200` `UNREACHABLE`. El State Audit `configured` terminó verde.
-
-### Endpoint existente con cero cuentas antes del Apply general
+### Rescan repetido
 
 **Estado:** `LAB-INTEGRATION-PASS`
 
-Se eliminó la última cuenta `201` desde `Configure -> Accounts` y se guardó sin ejecutar todavía el Apply general ni reiniciar el teléfono. El State Audit fue ampliado con `configured_no_accounts`.
+Workflow `07 | Issabel Lab | J129 Rescan Idempotency | Audit` validó dos rescans consecutivos. El endpoint permaneció único con id `3`, IP `192.168.1.168`, fabricante Avaya, modelo J129 y cuenta `[200]`.
 
-Resultado: el endpoint continúa existiendo, tiene 0 filas en `endpoint_account`, no está `removed`, y `configured_no_accounts` termina verde.
+No se crearon endpoints duplicados ni se perdió la asociación de Accounts.
 
-## BUG-EC-001 — `Registered at` muestra un peer SIP obsoleto
+### Contrato de una sola cuenta para J129 v1
 
-**Estado:** `LAB-INTEGRATION-PASS` como reproducción del defecto.
+**Estado:** `LAB-INTEGRATION-PASS`
 
-Después de cambiar la extensión, Endpoint Configurator puede mostrar `Registered at` para la cuenta antigua aunque Asterisk muestre esa cuenta `UNREACHABLE` y la cuenta actual `OK`. La fuente autoritativa para auditorías será Asterisk: cuenta esperada + IP esperada + estado alcanzable/registrado.
+Workflow `08 | Issabel Lab | J129 Single Account V1 | Apply & Audit` fijó en LAB:
 
-Pendiente: localizar el origen de `Registered at`, añadir prueba de regresión y corregirlo separadamente del vendor Avaya si pertenece al core/web.
+```text
+max_accounts=1
+max_sip_accounts=1
+max_iax2_accounts=0
+cuentas_asignadas=1 [200]
+```
 
-## BUG-J129-002 — Dos cuentas asignadas no producen dos registros SIP independientes
+Esto limita explícitamente J129 v1 a una cuenta SIP mientras no exista evidencia de una sintaxis multicuenta correcta para este firmware.
 
-**Estado:** `PHYSICAL-J129-PASS` como reproducción del defecto; soporte multicuenta funcionalmente pendiente.
+> Deuda técnica: normalizar estos valores en la fuente permanente de instalación DB antes de producción; actualmente parte del helper histórico todavía espera valores `2`.
 
-Endpoint Configurator aceptó prioridad 1 = `201` y prioridad 2 = `200`, con `max_accounts=2`. El archivo por MAC repitió parámetros `FORCE_SIP_*`, pero después del reboot Asterisk mostró `200` `OK` y `201` `UNREACHABLE`: la segunda identidad sustituyó a la primera.
+### Reinicio remoto + reprovisionamiento
 
-Pendiente: investigar sintaxis oficial multicuenta J129/Open SIP y corregir template/metadata según evidencia; no repetir parámetros a ciegas.
+**Estado:** `PHYSICAL-J129-PASS`
+
+Workflow `09 | Issabel Lab | J129 Remote Provisioning Reload | Audit`, run `33599222299`, validó físicamente el comportamiento real del evento SIP `check-sync` sobre firmware `3.0.0.0.20`.
+
+Baseline:
+
+```text
+Cuenta=200
+IP=192.168.1.168
+Status=OK (17 ms)
+Useragent=Avaya J129 IP Phone 3.0.0.0.20
+```
+
+Se envió exactamente un NOTIFY `aastra-check-cfg` / `Event=>check-sync`.
+
+A los 45 segundos se observó que el peer dejó de estar disponible/OK:
+
+```text
+RESTART_EVIDENCE=peer-down-or-not-ok t=45s
+```
+
+Después del arranque el teléfono volvió a descargar:
+
+```text
+GET /J100Supgrade.txt 200
+GET /46xxsettings.txt 200
+GET /c81fea9b650d.txt 200
+```
+
+Finalmente volvió a registrar:
+
+```text
+Addr->IP : 192.168.1.168
+Status   : OK (41 ms)
+Useragent: Avaya J129 IP Phone 3.0.0.0.20
+SIP_REREGISTRATION=PASS
+RESTART_DOWN_OBSERVED=1
+J129-REMOTE-RESTART-PROVISIONING-PASS
+```
+
+### Conclusión del workflow 09
+
+En este J129/firmware, `check-sync` **no debe documentarse como una recarga silenciosa**. La evidencia física demuestra un **reinicio remoto seguido de reprovisionamiento y nuevo registro SIP**.
+
+Esto proporciona una ruta de recuperación remota validada antes de modificar parámetros de Web Admin o menú local.
+
+## Línea base física de pantalla — 2026-09-02
+
+Antes de las siguientes pruebas se observó físicamente:
+
+- En reposo el J129 muestra la hora.
+- La hora mostrada está desactualizada.
+- Al pulsar flecha abajo aparece la extensión `200`.
+- No se muestra el nombre `Briam` en la pantalla, aunque el provisioning actual contiene `DISPLAY_NAME "Briam"`.
+- Las softkeys visibles son `Redial` y `Contacts`.
+
+Estas observaciones son evidencia física y no deben confundirse con una afirmación sobre la semántica de parámetros Avaya todavía no investigados.
+
+## Próxima investigación funcional
+
+### Workflow 10 — Forced Provisioning sin reinicio
+
+Objetivo: determinar si el J129 permite forzar una nueva lectura/aplicación del provisioning **sin reiniciar el teléfono**.
+
+Criterio deseado:
+
+```text
+cambio controlado
+-> Apply Issabel
+-> archivo provisioning actualizado
+-> trigger remoto distinto del check-sync que reinicia
+-> nuevo GET de provisioning
+-> SIP permanece OK / sin transición de caída
+-> cambio aplicado físicamente
+```
+
+Se investigarán primero mecanismos oficiales soportados por J129/Open SIP. No se enviarán eventos SIP o parámetros inventados a producción.
+
+Un candidato de prueba será un cambio visible y reversible relacionado con hora/NTP o etiqueta de pantalla, una vez confirmados los parámetros oficiales.
+
+### Workflow 11 — Web Admin + menú local en pantalla
+
+Objetivos:
+
+1. Administrar Web Admin mediante provisioning sin exponer credenciales.
+2. Investigar y habilitar de forma controlada las opciones administrativas necesarias en el menú físico del J129.
+3. Determinar el parámetro correcto para nombre/label visible de la línea; `DISPLAY_NAME` por sí solo no ha producido el nombre visible esperado.
+4. Corregir sincronización de hora mediante parámetros oficiales de NTP/SNTP, zona horaria y DST apropiados para el entorno.
+
+No se habilitarán `PROCPSWD`, `PROCSTAT`, `PROVIDE_LOGOUT`, `FORCE_WEB_ADMIN_PASSWORD` u otros parámetros a ciegas. Primero se verificará su semántica oficial y compatibilidad con firmware `3.0.0.0.20`.
+
+## BUG-EC-001 — `Registered at` puede mostrar un peer SIP obsoleto
+
+**Estado:** reproducido.
+
+Después de cambiar la extensión, Endpoint Configurator puede mostrar `Registered at` para una cuenta antigua aunque Asterisk muestre esa cuenta `UNREACHABLE` y la actual `OK`. Para auditorías la fuente autoritativa es Asterisk: cuenta esperada + IP esperada + estado.
+
+## BUG-J129-002 — Multicuenta
+
+**Estado:** reproducido; limitado explícitamente para v1.
+
+Con dos cuentas, el template histórico repetía parámetros globales `FORCE_SIP_*`; físicamente solo una identidad terminó registrada. J129 v1 queda limitado a una cuenta mediante `max_accounts=1` y `max_sip_accounts=1` hasta investigar sintaxis oficial multicuenta.
 
 ## BUG-J129-003 — Apply con cero cuentas conserva provisioning SIP anterior
 
-**Estado:** `LAB-INTEGRATION-PASS` como reproducción y `LAB-FIX-PASS` para la limpieza server-side.
+**Estado:** `LAB-FIX-PASS` para limpieza server-side.
 
-Con la implementación anterior, retirar la última cuenta hacía fallar `updateLocalConfig()` y dejaba el archivo MAC con las credenciales anteriores. Se añadió un contrato automatizado y se cambió `Avaya.Endpoint.updateLocalConfig()` para reutilizar `BaseEndpoint.deleteContent()`, marcar el endpoint configurado y devolver éxito.
+`Avaya.Endpoint.updateLocalConfig()` fue corregido para reutilizar `BaseEndpoint.deleteContent()`, marcar el endpoint configurado y devolver éxito cuando no hay cuentas. El archivo específico por MAC se elimina del servidor.
 
-Commits:
+Commits originales de la corrección:
 
 ```text
 38ea0566a1fe6e2a46004b9d7aad4156fa568c35  test(j129): cubrir apply con cero cuentas
 efaa562190ef4afbfd4c91379b13d4246ad39515  fix(j129): revocar provisioning al quedar sin cuentas
 ```
 
-Después de desplegar la corrección, el Apply general terminó sin errores y `Issabel Lab J129 Provisioning Audit #9` mostró:
+## BUG-J129-004 — Persistencia local de identidad SIP
 
-```text
-CUENTAS ASIGNADAS (SIN SECRETOS)
-<vacío>
-/tftpboot/c81fea9b650d.txt AUSENTE
-/tftpboot/46xxsettings.txt PRESENTE
-/tftpboot/J100Supgrade.txt PRESENTE
-J129-PROVISIONING-AUDIT-PASS
-```
+**Estado:** comportamiento físico reproducido; pendiente una revocación remota documentada.
 
-Esto cierra la limpieza server-side del archivo secreto por MAC, pero no implica por sí solo que el teléfono borre la identidad SIP que ya tenía almacenada localmente.
+Eliminar el archivo por MAC revoca el secreto almacenado en el servidor, pero no obliga al J129 a borrar una identidad SIP que ya persistió localmente. La ausencia del archivo no equivale a una instrucción de limpieza del teléfono.
 
-## BUG-J129-004 — El J129 conserva la identidad SIP local cuando desaparece el archivo MAC
+Un factory reset permitió establecer nuevamente una línea base limpia. No se debe ocultar esta limitación mediante parámetros vacíos o hacks sin documentación oficial.
 
-**Estado:** `PHYSICAL-J129-PASS` como reproducción del comportamiento; revocación física pendiente.
+## Seguridad
 
-### Preparación
+- Nunca almacenar secretos SIP reales en documentación, fixtures o logs.
+- Nunca imprimir contraseña Web Admin, cookies, XToken, nonce o hashes de autenticación.
+- La credencial Web Admin usada anteriormente debe considerarse expuesta y rotarse antes de producción.
+- `J129_WEB_PASSWORD` debe mantenerse únicamente como GitHub Repository Secret cuando vuelva a utilizarse.
+- Los workflows mantienen sudo restringido a los helpers autorizados; no conceder sudo amplio al runner.
 
-Después de corregir `BUG-J129-003`, el servidor quedó con:
+## Pendientes para J129 v1 / hardening
 
-```text
-endpoint J129 existente
-0 cuentas asignadas
-/tftpboot/c81fea9b650d.txt AUSENTE
-46xxsettings.txt PRESENTE
-J100Supgrade.txt PRESENTE
-```
-
-`Issabel Lab J129 State Audit` en `configured_no_accounts` terminó verde antes del reboot.
-
-### Evidencia física después del reboot
-
-El J129 fue reiniciado sin introducir ninguna cuenta ni credencial manualmente. Después del arranque, Asterisk mostró:
-
-```text
-200/200   (Unspecified)      UNKNOWN
-201/201   192.168.1.171      OK
-```
-
-Por tanto, el teléfono volvió a registrar con `201` aunque:
-
-- Endpoint Configurator tenía cero cuentas asignadas;
-- el archivo específico por MAC ya no existía en el servidor;
-- el Apply general anterior había terminado correctamente.
-
-El State Audit `configured_no_accounts` también terminó verde después del reboot, lo que confirma una limitación de esa auditoría: valida estado de Endpoint Configurator/provisioning server-side, pero todavía no demuestra ausencia de una identidad SIP persistente en el teléfono.
-
-### Conclusión
-
-Eliminar el archivo por MAC revoca el secreto almacenado en el servidor, pero **no ordena al J129 borrar la configuración SIP que ya tenía persistida localmente**. La ausencia del archivo específico no equivale a una instrucción de limpieza del teléfono.
-
-No se debe considerar cerrado el caso de cero cuentas hasta encontrar una forma documentada y segura de limpiar/deshabilitar la identidad SIP del J129 mediante provisioning.
-
-### Pendiente
-
-- Revisar documentación oficial Avaya J129/Open SIP para parámetros soportados que borren o deshabiliten una cuenta SIP previamente provisionada.
-- No inventar valores vacíos ni repetir `FORCE_SIP_*` sin evidencia documental y tests.
-- Diseñar un archivo MAC de estado `no_accounts` solo si existe una semántica oficial y segura para revocar la identidad local.
-- Añadir una auditoría específica que, en `configured_no_accounts`, falle si Asterisk todavía ve una cuenta anterior `OK` desde la IP del J129.
-- Repetir Apply + reboot y exigir que ninguna cuenta SIP anterior quede `OK`.
-
-## Pruebas pendientes para cerrar J129 v1
-
-- Resolver `BUG-J129-004` y repetir la prueba física con cero cuentas.
-- Segunda validación completa de `Remove configuration`, incluyendo existencia/hash del archivo por MAC y estado real del teléfono.
-- Rescan repetido sin endpoints duplicados.
+- Workflow 10: investigar y validar forced provisioning sin reboot, o documentar formalmente que no es soportado en este firmware.
+- Workflow 11: Web Admin, menú físico, hora/NTP y label visible.
+- Añadir prueba negativa: Issabel debe impedir una segunda cuenta para J129 v1.
 - Bulk Apply sin impacto en otros vendors.
 - Casos controlados: extensión inválida/no existente y teléfono offline durante Apply.
 - Rollback/reinstall final del overlay.
+- Normalizar helper permanente: eliminar IPs históricas hardcodeadas y runtime patches.
+- Normalizar instalación DB permanente a una cuenta para v1.
 - Retirar mecanismos temporales de privilegios/sincronización antes de producción.
-- Resolver o limitar explícitamente el soporte multicuenta descrito en `BUG-J129-002`.
-- Corregir o aislar `BUG-EC-001` después de cerrar las pruebas funcionales del vendor.
+- Resolver `BUG-J129-004` o documentarlo explícitamente como limitación de v1.
+- Corregir o aislar `BUG-EC-001` separadamente del vendor Avaya.
 
 ## Criterio de evidencia
 
-Las capturas de GUI son evidencia complementaria. Para DB, archivos de provisioning y registro SIP se priorizan los workflows de auditoría y la salida directa de Asterisk, siempre sin exponer secretos.
+Las observaciones físicas/capturas de GUI son evidencia complementaria. Para DB, archivos de provisioning, requests HTTP y registro SIP se priorizan workflows de auditoría y salida directa de Asterisk, siempre sin exponer secretos.
