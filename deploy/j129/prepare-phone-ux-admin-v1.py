@@ -4,7 +4,7 @@ from pathlib import Path
 HELPER = Path('deploy/j129/avaya-j129-lab-deploy')
 text = HELPER.read_text()
 
-if 'apply-phone-ux-v2)' in text:
+if 'apply-phone-ux-v1|apply-phone-ux-v2)' in text:
     print('PHONE-UX-PREPARE-ALREADY-PRESENT')
     raise SystemExit(0)
 
@@ -12,7 +12,7 @@ marker = 'case "$ACTION" in\n'
 if marker not in text:
     raise SystemExit('No se encontro case "$ACTION" in en helper')
 
-block = r'''  apply-phone-ux-v2)
+block = r'''  apply-phone-ux-v1|apply-phone-ux-v2)
     TPL=/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
     BACKUP=/var/lib/avaya-j129-lab/Avaya_global_SIP.tpl.pre-phone-ux-v1
     [ -f "$TPL" ] || { echo "ERROR: no existe $TPL" >&2; exit 1; }
@@ -65,9 +65,5 @@ PY
 '''
 
 text = text.replace(marker, marker + block, 1)
-# El workflow sigue llamando apply-phone-ux-v1 por compatibilidad, pero apunta a V2.
-text = text.replace(marker, marker + '  apply-phone-ux-v1) set -- apply-phone-ux-v2; ACTION=apply-phone-ux-v2 ;;\n', 1)
-# Como el dispatch del helper ya evalua una sola vez, agregamos alias real antes de V2.
-text = text.replace('  apply-phone-ux-v2)\n', '  apply-phone-ux-v1|apply-phone-ux-v2)\n', 1)
 HELPER.write_text(text)
 print('PHONE-UX-PREPARE-PASS')
