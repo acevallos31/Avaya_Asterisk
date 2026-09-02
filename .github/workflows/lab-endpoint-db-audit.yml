@@ -1,4 +1,4 @@
-name: Issabel Lab Endpoint DB Audit
+name: 02 | Issabel Lab | Endpoint DB | Audit
 
 on:
   workflow_dispatch:
