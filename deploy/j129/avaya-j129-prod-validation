@@ -30,7 +30,7 @@ verify_package(){
   fi
 
   local checkout
-  checkout="$(realpath "$pkg/../../..")"
+  checkout="$(realpath "$pkg/../..")"
   [ "$(git -C "$checkout" rev-parse HEAD)" = "$FROZEN_SHA" ] || fail "release checkout is not frozen SHA"
 
   (
