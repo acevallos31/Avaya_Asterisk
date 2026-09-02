@@ -21,6 +21,11 @@ jobs:
     steps:
       - name: Checkout harness Audit
         uses: actions/checkout@v4
+        with:
+          # Un workflow anterior dejó un __pycache__ propiedad de root en este
+          # workspace. Evitamos que actions/checkout intente borrarlo antes de
+          # que nuestro helper restringido pueda sanearlo de forma controlada.
+          clean: false
 
       - name: Guard de LAB
         shell: bash
