@@ -1,34 +1,87 @@
-name: 10 | Issabel Lab | J129 Forced Provisioning | Audit
+name: 10 | Issabel Lab | J129 Forced Provisioning | Apply & Audit
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba APPLY-TIME para habilitar NTP LAN y provisionar hora J129'
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  audit-forced-provisioning-baseline:
-    name: Auditar baseline de provisioning forzado del J129
+  apply-audit-forced-provisioning:
+    name: Aplicar hora y auditar provisioning del J129
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verificar identidad del runner
+      - name: Verificar identidad y confirmacion
         shell: bash
         run: |
           set -euo pipefail
           echo "Runner: $(id -un)@$(hostname)"
           test "$(id -un)" = "github-runner"
           test "$GITHUB_REF_NAME" = "Audit"
+          test '${{ inputs.confirm }}' = 'APPLY-TIME'
 
-      - name: Auditar hora NTP y settings actuales
+      - name: Baseline read-only
         shell: bash
         run: |
           set -euo pipefail
           python3 tests/lab/j129_forced_provisioning_baseline_audit.py
+          asterisk -rx 'sip show peer 200' | grep -E 'Addr->IP|Status|Useragent' || true
+
+      - name: Preparar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-forced-provisioning-time.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          sudo /usr/local/sbin/avaya-j129-helper-sync
+
+      - name: Aplicar NTP LAN y parametros de hora
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo /usr/local/sbin/avaya-j129-lab-deploy apply-forced-time-v1
+
+      - name: Verificar servidor NTP y provisioning generado
+        shell: bash
+        run: |
+          set -euo pipefail
+          ss -lun | grep -E '(^|[[:space:]:])123([[:space:]]|$)'
+          chronyc tracking | grep -E 'Stratum|Leap status|Reference ID'
+          curl -fsS http://127.0.0.1/46xxsettings.txt > /tmp/j129-settings-after.txt
+          grep -Fx 'SET SNTPSRVR 192.168.1.10' /tmp/j129-settings-after.txt
+          grep -Fx 'SET SNTP_SYNC_INTERVAL 60' /tmp/j129-settings-after.txt
+          grep -Fx 'SET GMTOFFSET -6:00' /tmp/j129-settings-after.txt
+          grep -Fx 'SET DAYLIGHT_SAVING_SETTING_MODE 0' /tmp/j129-settings-after.txt
+          rm -f /tmp/j129-settings-after.txt
+
+      - name: Observar polling sin enviar NOTIFY
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'No se envia check-sync/resync en esta fase: buscamos polling natural sin reboot.'
+          BASE=$(date +%s)
+          SAW_DOWN=0
+          SAW_HTTP=0
+          for i in $(seq 1 20); do
+            sleep 15
+            if ! asterisk -rx 'sip show peer 200' 2>/dev/null | grep -Eq 'Status[[:space:]]*: OK'; then SAW_DOWN=1; fi
+            if grep -h '192.168.1.168' /var/log/httpd/*access* 2>/dev/null | tail -n 30 | grep -F '/46xxsettings.txt' >/dev/null; then SAW_HTTP=1; fi
+            echo "t=$((i*15))s sip_down_seen=$SAW_DOWN http_seen=$SAW_HTTP"
+          done
+          asterisk -rx 'sip show peer 200' | grep -E 'Addr->IP|Status|Useragent'
+          test "$SAW_DOWN" -eq 0
+          echo "HTTP_46XX_OBSERVED=$SAW_HTTP"
+          echo 'J129-FORCED-TIME-NO-SIP-DOWN-PASS'
 
       - name: Resultado
         shell: bash
         run: |
-          echo 'J129-FORCED-PROVISIONING-BASELINE-WORKFLOW-PASS'
+          echo 'J129-FORCED-PROVISIONING-TIME-WORKFLOW-PASS'
