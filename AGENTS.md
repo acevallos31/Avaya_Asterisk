@@ -1,96 +1,51 @@
 # AGENTS.md — Avaya Asterisk / Issabel Endpoint Configurator
 
-> Documento de contexto operativo para humanos, agentes de IA y otros modelos que trabajen en este repositorio.
->
-> **Leer este archivo antes de modificar código.**
+> Contexto operativo obligatorio para humanos y agentes de IA. Leer antes de modificar código.
 
-## 1. Objetivo del proyecto
+## Objetivo
 
-Integrar teléfonos Avaya al Endpoint Configurator de Issabel manteniendo el flujo estándar de Issabel y evitando modificaciones innecesarias al core.
+Integrar Avaya J129 al Endpoint Configurator estándar de Issabel 5 sin crear una UI paralela para credenciales SIP y evitando cambios al core de Issabel.
 
-### Alcance actual
-
-**Prioridad exclusiva: Avaya J129.**
-
-Otros modelos (1603-I, 1603SW-I, 96xx, J169/J179, etc.) quedan fuera del alcance hasta estabilizar J129.
-
-### Experiencia de usuario objetivo
-
-1. Detección automática del endpoint.
-2. Identificación como Avaya/J129.
-3. Asignación desde la pestaña estándar **Accounts**.
-4. Apply estándar de Issabel.
-5. Issabel entrega cuentas mediante `Extension`/`setAccountList()`.
-6. El vendor Avaya genera provisioning.
-7. El J129 descarga configuración por HTTP/HTTPS.
-8. Registro automático en Asterisk sin introducir credenciales SIP manualmente.
-
-No crear una interfaz paralela para usuario/password SIP Avaya.
-
-## 2. Referencias del repositorio
-
-- `main`: referencia histórica funcional con deuda técnica. No copiar ciegamente.
-- `Audit`: rama actual de auditoría, pruebas, documentación y refactor controlado.
-- Issabel oficial: `IssabelFoundation/endpointconfig2` como upstream.
-- `docs/j129-lab-validation.md`: evidencia física y lifecycle.
-- `docs/j129-research-notes.md`: investigación oficial de firmware, Open SIP, idiomas y administración.
-- `docs/agent-log.md`: bitácora compartida de agentes.
-
-## 3. Comportamiento J129 que debemos conservar
-
-Flujo validado:
+Flujo esperado:
 
 ```text
-J129 boot
-  -> servidor de provisioning
-  -> J100Supgrade.txt
-  -> 46xxsettings.txt
-  -> GET $MACADDR.txt
-  -> <mac>.txt
-  -> credenciales/configuración SIP
-  -> registro en Asterisk
+Discovery -> Avaya/J129 -> Accounts estándar -> Apply Issabel
+-> Extension/setAccountList -> Avaya vendor -> provisioning
+-> J100Supgrade.txt -> 46xxsettings.txt -> <mac>.txt -> SIP
 ```
 
-El archivo específico puede incluir:
+## Ramas
 
-```text
-SET FORCE_SIP_USERNAME "<extension>"
-SET FORCE_SIP_PASSWORD "<secret>"
-SET FORCE_SIP_EXTENSION "<extension>"
-```
+- `main`: referencia/histórico y workflows visibles en Actions; no usar para pruebas mutantes LAB.
+- `Audit`: rama de trabajo, pruebas y validación LAB.
+- Todo workflow mutante LAB debe abortar si `GITHUB_REF_NAME != Audit`.
 
-Los archivos se generan bajo `/tftpboot`; HTTP/HTTPS/TFTP son mecanismos de entrega separados.
+## LAB actual — 2026-09-02
 
-## 4. Pipeline estándar de Issabel que debemos respetar
+- Issabel 5 / Rocky Linux 8.
+- Asterisk 18.19.0.
+- PBX/provisioning: `192.168.1.10`.
+- J129: `192.168.1.168`.
+- MAC: `C8:1F:EA:9B:65:0D`.
+- Firmware: `3.0.0.0.20`.
+- Endpoint id: `3`.
+- Cuenta SIP actual: `200`.
+- `192.168.1.169` está ocupado por otro dispositivo; no usarlo para la PBX.
 
-```text
-endpoint_account
-  -> loadEndpointIP()
-  -> issabel.Extension
-  -> Endpoint.setAccountList()
-  -> self._accounts
-  -> Avaya.Endpoint
-  -> _prepareVarList()
-  -> template/provisioning J129
-  -> /tftpboot/<mac>.txt
-```
+## Arquitectura obligatoria
 
-`Extension.py` ya obtiene los datos SIP/PJSIP. Avaya no debe volver a consultar MySQL para extension/secret/display name.
+El vendor Avaya debe consumir `_accounts` entregadas por Issabel. No reconsultar secretos SIP desde DB.
 
-## 5. Core que debe permanecer stock salvo evidencia extraordinaria
-
-Preferir no modificar:
+No modificar salvo evidencia extraordinaria:
 
 ```text
 /usr/bin/issabel-endpointconfig
-/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py
-/usr/share/issabel/endpoint-classes/class/issabel/Extension.py
+BaseEndpoint.py
+Extension.py
 EndpointManager_Standard.class.php
 ```
 
-Si se propone tocar core: justificar, comparar con upstream, añadir regresión y documentar explícitamente.
-
-## 6. Área prevista para personalización Avaya
+Personalización prevista:
 
 ```text
 deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
@@ -98,219 +53,133 @@ deploy/j129/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl
 deploy/j129/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl
 ```
 
-más metadata `manufacturer`, `model`, `model_properties`, `mac_prefix`, y artefactos oficiales de provisioning/firmware cuando corresponda.
+## Seguridad
 
-## 7. Deuda técnica histórica que no debe regresar
+Nunca almacenar ni imprimir secretos SIP reales, contraseña Web Admin, cookies, XToken, nonce, hashes de autenticación, tokens o claves privadas.
 
-- constructor Avaya especial con `ext`/`secret`;
-- ramas `if Avaya` en core;
-- consultas MySQL directas desde `Avaya.py`;
-- logging de secretos;
-- credenciales embebidas;
-- lógica PHP/Python duplicada;
-- secrets en argv;
-- lookup externo para IP local;
-- templates no compatibles con el comportamiento físico probado.
+La credencial Web Admin usada anteriormente debe considerarse expuesta y rotarse antes de producción. `J129_WEB_PASSWORD` permanece solo como GitHub Repository Secret.
 
-## 8. Principios SOLID
+No ampliar sudo del runner. Mantener helpers restringidos.
 
-- SRP: detección, cuentas, vendor, template y file serving separados.
-- OCP: extender por vendor/templates/metadata, no por ifs en core.
-- LSP: constructor estándar `Endpoint(amipool, dbpool, serverip, ip, mac)`.
-- ISP: no asumir que todo Avaya comparte capacidades J129.
-- DIP: Avaya depende de `_accounts`, `_serverip`, `_mac`, `_model` y propiedades entregadas por Issabel.
+## J129 v1 — una sola cuenta
 
-## 9. Seguridad
-
-Nunca almacenar passwords DB, SIP secrets reales, tokens, claves privadas ni credenciales administrativas reales.
-
-Fixture recomendado:
+Workflow 08 validó en LAB:
 
 ```text
-extension = 4200
-secret = TEST-SIP-SECRET-NOT-REAL
-mac = C8:1F:EA:AA:BB:CC
-server = 192.0.2.10
+max_accounts=1
+max_sip_accounts=1
+max_iax2_accounts=0
 ```
 
-Nunca imprimir `Extension.secret` en logs.
+Multicuenta sigue fuera de alcance hasta contar con sintaxis oficial probada.
 
-## 10. Estrategia de pruebas
+## Workflows validados
 
-### Nivel 1 — GitHub hosted
+### 07 — Rescan Idempotency
 
-Tests estáticos/unitarios: arquitectura, SOLID, seguridad, templates, golden fixtures y regresiones.
+`LAB-INTEGRATION-PASS`: dos rescans no duplican endpoint ni pierden cuenta 200.
 
-```bash
-python -m unittest discover -s tests -p "test_*.py" -v
-```
+### 08 — Single Account V1
 
-### Nivel 2 — PBX LAB read-only
+`LAB-INTEGRATION-PASS`: J129 v1 queda limitado a una cuenta.
 
-Self-hosted runner sobre Issabel 5 / Rocky 8. Permite DB SELECT, Asterisk CLI, `/tftpboot`, HTTP/HTTPS, servicios y logs.
+### 09 — Remote Provisioning / comportamiento real
 
-### Nivel 3 — Integración J129
+`PHYSICAL-J129-PASS`: `check-sync` provoca reinicio físico, nueva descarga de provisioning y re-registro SIP. No documentarlo como reload silencioso.
 
-Solo manual (`workflow_dispatch`). Despliegues controlados en LAB. Nunca producción automática.
+### 10 — Forced Provisioning / NTP
 
-## 11. Golden path J129
+`LAB-INTEGRATION-PASS` server-side:
 
 ```text
-MAC:       C8:1F:EA:AA:BB:CC
-IP phone:  192.0.2.100
-PBX:       192.0.2.10
-Extension: 4200
-Secret:    TEST-SIP-SECRET-NOT-REAL
+SET SNTPSRVR 192.168.1.10
+SET SNTP_SYNC_INTERVAL 60
+SET GMTOFFSET -6:00
+SET DAYLIGHT_SAVING_SETTING_MODE 0
 ```
 
-Resultado conceptual:
+Apply normal de Issabel regeneró `46xxsettings.txt` sin caída SIP. El J129 NO hizo un GET nuevo de `46xxsettings.txt` durante 300 s, por lo que no afirmar que aplicó los parámetros en el teléfono.
+
+Chronyd quedó habilitado para `192.168.1.0/24`, pero antes de producción el test debe esperar/asegurar que chronyd vuelva a estado sincronizado después de restart.
+
+### 11 — Phone UX & Admin
+
+Baseline read-only verde:
+
+- SIP 200 `OK`.
+- HTTP y HTTPS del J129 responden 200.
+- no existen archivos `Mlf_J129_LatinAmericanSpanish.xml` ni `Mlf_J129_CastilianSpanish.xml` en PBX.
+- ausentes en provisioning: idioma, menú UX, Web Admin gestionado y `ENTRYNAME`.
+- parámetros NTP del workflow 10 presentes.
+
+Intentos Apply del 11:
+
+1. falló por usar SQLite incorrectamente (`no such table: endpoint`); no llegó a Apply.
+2. falló por consultar columna inexistente `endpoint.ip_address`; no llegó a Apply.
+3. el run más reciente fue lanzado por error sobre `main`; el guard de entorno falló antes de cualquier mutación.
+
+No usar Copilot para adivinar el esquema DB. Reutilizar las consultas MySQL ya probadas en workflow 10.
+
+## Corrección crítica sobre PROCSTAT
+
+Documentación/investigación actual del proyecto indica:
 
 ```text
-SET FORCE_SIP_USERNAME "4200"
-SET FORCE_SIP_PASSWORD "TEST-SIP-SECRET-NOT-REAL"
-SET FORCE_SIP_EXTENSION "4200"
+PROCSTAT 0 -> Admin menu permitido
+PROCSTAT 1 -> Admin menu restringido/no permitido para configuración
 ```
 
-## 12. Protocolo obligatorio para agentes IA
+Por lo tanto, el workflow 11 NO debe aplicar `PROCSTAT 1` si el objetivo es habilitar el menú físico. Antes del próximo Apply, corregir a `PROCSTAT 0` y mantener recuperación documentada.
 
-Antes de trabajar:
+## Idioma
 
-1. leer `AGENTS.md`;
-2. leer `docs/agent-log.md`;
-3. leer `docs/j129-lab-validation.md`;
-4. leer `docs/j129-research-notes.md`;
-5. revisar commits recientes y tests;
-6. no asumir que `main` es arquitectura correcta;
-7. comparar con upstream cuando se toque Issabel.
+El objetivo es español latinoamericano para Honduras. El LAB no tiene todavía el XML oficial. No inventar ni reconstruir el XML. Incorporarlo solo desde paquete oficial Avaya y validar descarga HTTP + cambio físico.
 
-Después de trabajar: ejecutar pruebas, registrar evidencia/no comprobado/riesgos, actualizar bitácora y documentación física/investigación cuando corresponda.
+## Nombre visible
 
-## 13. Identidad de agentes
+`DISPLAY_NAME` no produjo `Briam` visible en idle. `ENTRYNAME` es candidato de investigación/prueba, pero no afirmar resultado hasta evidencia física.
 
-Usar identificadores visibles como `OpenAI-GPT-5.6-Sol`, `Human-Axeell`, etc. No inventar versiones.
+## BUGS abiertos
 
-## 14. Commits
+- `BUG-EC-001`: GUI `Registered at` puede quedar obsoleta; Asterisk es fuente autoritativa.
+- `BUG-J129-002`: multicuenta histórica incorrecta; v1 limitado a una cuenta.
+- `BUG-J129-004`: eliminar provisioning server-side no borra identidad SIP persistida localmente; factory reset produjo línea base limpia. Resolver/documentar con mecanismo oficial.
 
-Formato recomendado:
+## Deuda técnica antes de producción
 
-```text
-<type>(<scope>): <descripción corta>
+- normalizar helper permanente; hoy varios workflows usan runtime prepare/patch.
+- remover IPs históricas hardcodeadas.
+- normalizar DB installer a una cuenta.
+- incorporar parámetros NTP/UX validados a fuente overlay, no solo copia desplegada LAB.
+- fortalecer post-restart de chronyd.
+- revisar rollback de workflows mutantes.
+- rotar credencial Web Admin comprometida.
 
-Agent: <agent-id>
-Task: <objetivo>
-Tests: <resultado>
-Audit: docs/agent-log.md
-```
+## Regla para DB Endpoint Configurator
 
-## 15. Estados de evidencia
+La base real es MySQL/MariaDB `endpointconfig`, no SQLite. No asumir nombres de columnas. Antes de escribir una nueva consulta, reutilizar una consulta ya validada o añadir primero una auditoría read-only de esquema.
 
-- `STATIC-PASS`
-- `LAB-READ-PASS`
-- `LAB-INTEGRATION-PASS`
-- `LAB-FIX-PASS`
-- `PHYSICAL-J129-PASS`
-- `PRODUCTION-REFERENCE`
-- `NOT-TESTED`
+## Próximo paso obligatorio
 
-No afirmar prueba física si solo pasó CI.
+Antes del siguiente Apply 11:
 
-## 16. Qué NO hacer
+1. corregir `PROCSTAT` a `0`;
+2. revisar el helper contra el flujo MySQL validado del workflow 10;
+3. ejecutar tests estáticos;
+4. lanzar NUEVO workflow 11 en branch `Audit`, nunca rerun de SHA viejo y nunca `main`;
+5. confirmar `APPLY-UX`;
+6. verificar server-side y SIP antes de cualquier trigger al teléfono;
+7. no enviar `check-sync` durante la prueba no-reboot;
+8. después pedir observación física del menú, nombre y hora.
 
-- no push experimental directo a `main`;
-- no producción automática;
-- no core si el vendor puede resolverlo;
-- no segundo origen de SIP secret;
-- no secret en properties/argv/logs;
-- no asumir soporte de otros Avaya por J129;
-- no usar `Registered at` como fuente autoritativa sin Asterisk;
-- no asumir que eliminar `<mac>.txt` borra credenciales ya persistidas en el J129;
-- no enviar valores vacíos o comandos de logout inventados para resolver persistencia SIP;
-- no actualizar firmware sin paquete oficial completo, revisión de hardware y plan de recuperación.
+## Protocolo para agentes
 
-## 17. Definición de terminado para J129 v1
+Leer en orden:
 
-Candidata de producción cuando:
+1. `AGENTS.md`;
+2. `docs/j129-lab-validation.md`;
+3. `docs/j129-research-notes.md`;
+4. `docs/agent-log.md`;
+5. commits y runs recientes de `Audit`.
 
-1. core Issabel permanezca stock o excepción probada;
-2. detección Avaya/J129 funcione;
-3. Accounts estándar funcione;
-4. Apply/provisioning funcione;
-5. secrets provengan de `Extension`;
-6. HTTP provisioning sea reproducible;
-7. tests estáticos e integración pasen;
-8. J129 físico registre y complete llamadas/hold/transfer/DTMF básicos;
-9. lifecycle de cambio/eliminación quede validado;
-10. cero cuentas no deje provisioning secreto ni identidad activa después del mecanismo de revocación definido;
-11. multicuenta se implemente correctamente o `max_accounts` se limite explícitamente;
-12. idioma español y preferencias mínimas v1 queden definidos/probados;
-13. política del menú Admin quede definida/probada;
-14. exista rollback;
-15. helper sync temporal sea retirado;
-16. estrategia de firmware quede documentada, aunque upgrade automático pueda quedar para v1.1 si no es necesario para producción inicial.
-
-## 18. Fuente de verdad
-
-1. J129 físico + evidencia reproducible;
-2. Asterisk para registro SIP real;
-3. documentación oficial Avaya del firmware/modelo;
-4. upstream Issabel;
-5. tests;
-6. referencia histórica de `main`;
-7. suposiciones antiguas.
-
-## 19. Estado validado del laboratorio — 2026-09-01 02:05 -06:00
-
-Validado:
-
-- `PHYSICAL-J129-PASS` — detección automática Avaya/J129.
-- `LAB-INTEGRATION-PASS` — metadata controlada en Endpoint Configurator.
-- `LAB-INTEGRATION-PASS` — Accounts estándar sin UI SIP paralela.
-- `PHYSICAL-J129-PASS` — provisioning HTTP `J100Supgrade -> 46xxsettings -> <mac>`.
-- `PHYSICAL-J129-PASS` — registro `chan_sip`.
-- `PHYSICAL-J129-PASS` — ciclo Remove/Rescan/Reassign/Apply/Reboot/Register.
-- `PHYSICAL-J129-PASS` — cambio de extensión.
-- `PHYSICAL-J129-PASS` — eliminar una de dos cuentas y volver a 201.
-- `LAB-FIX-PASS` — `BUG-J129-003`: con cero cuentas el Apply ahora termina bien y elimina `/tftpboot/<mac>.txt`.
-- `PHYSICAL-J129-PASS` como reproducción de `BUG-J129-004`: aun con 0 cuentas y archivo MAC ausente, después de reboot el teléfono volvió a registrar la identidad `201` persistida localmente.
-
-### Bugs abiertos
-
-`BUG-EC-001`: GUI `Registered at` puede mostrar peer obsoleto/UNREACHABLE.
-
-`BUG-J129-002`: metadata permite 2 cuentas pero el template actual no crea dos registros SIP independientes; la segunda cuenta gana.
-
-`BUG-J129-004`: borrar provisioning server-side no limpia credenciales SIP persistidas localmente. No inventar solución; investigar logout/revocación oficial.
-
-### Firmware / Open SIP
-
-- J129 LAB: firmware `3.0.0.0.20`.
-- Release oficial investigado: J100 SIP `4.1.11.0`, binario J129 `FW_S_J129_R4_1_11_0_10.bin`.
-- Avaya lista Open SIP con Asterisk R16; nuestro Asterisk 18.19.0 está probado por evidencia propia, no como certificación oficial.
-- PBX como servidor de firmware es técnicamente viable por HTTP/HTTPS, pero debe existir workflow/procedimiento separado y controlado.
-- No actualizar todavía el J129 físico sin identificar hardware/comcode, revisar advisements y preparar recovery.
-
-### Idioma / preferencias / administración
-
-- Paquetes oficiales incluyen `Mlf_J129_LatinAmericanSpanish.xml` y `Mlf_J129_CastilianSpanish.xml`.
-- Para Honduras, candidato inicial: Latin American Spanish.
-- `PROCSTAT 0` permite Admin menu; `PROCSTAT 1` impide administración mediante ese menú.
-- `PROCPSWD`/`ADMIN_PASSWORD` corresponde al menú Admin físico, no al password Web UI.
-- SSH J100 es Avaya Services/EASG; no mapear credenciales SSH genéricas de Issabel sin evidencia.
-- En Open SIP evaluar parámetros oficiales `ENABLE_AVAYA_ENVIRONMENT 0`, `DISCOVER_AVAYA_ENVIRONMENT 0`, `ENABLE_IPOFFICE 0`.
-
-### Próxima sesión — orden recomendado
-
-1. investigar y resolver `BUG-J129-004`;
-2. identificar hardware/comcode del J129 LAB;
-3. preparar firmware audit read-only, sin upgrade;
-4. validar español latinoamericano;
-5. probar política `PROCSTAT`/Admin menu con recovery definido;
-6. definir preferencias mínimas de v1 (zona horaria, fecha/hora, dial plan, etc.);
-7. revisar `BUG-J129-002` con sintaxis moderna multicuenta;
-8. pruebas llamadas/DTMF/hold/transfer;
-9. segunda validación de Remove con check directo de archivo MAC;
-10. rescan/bulk Apply/offline/idempotencia;
-11. rollback/reinstall final y cleanup de helper sync;
-12. solo después evaluar upgrade de firmware controlado.
-
-Toda investigación detallada queda en `docs/j129-research-notes.md` y toda evidencia física en `docs/j129-lab-validation.md`.
+No afirmar `PHYSICAL-J129-PASS` si solo pasó CI/LAB server-side.
