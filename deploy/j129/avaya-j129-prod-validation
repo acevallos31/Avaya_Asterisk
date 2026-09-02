@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FROZEN_SHA="74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3"
+RUNNER_USER="github-runner-prod"
+EXPECTED_HOST="cei-pbx02"
+EXPECTED_PKG="/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_release_checkout/release/j129-v0.1.0"
+AMPORTAL_CONF="/etc/amportal.conf"
+
+fail(){ echo "J129-PROD-VALIDATION-FAIL: $*" >&2; exit 1; }
+pass(){ echo "$1"; }
+
+need_root(){ [ "${EUID}" -eq 0 ] || fail "helper must run as root"; }
+
+verify_caller(){
+  local caller="${SUDO_USER:-}"
+  [ "$caller" = "$RUNNER_USER" ] || fail "unauthorized caller"
+  case "$(hostname -s)" in
+    "$EXPECTED_HOST") ;;
+    *) fail "unexpected host" ;;
+  esac
+}
+
+verify_package(){
+  local pkg="${1:-$EXPECTED_PKG}"
+  [ "$pkg" = "$EXPECTED_PKG" ] || fail "unexpected package path"
+  [ -d "$pkg" ] || fail "release package missing"
+  if find "$pkg" -type l -print -quit | grep -q .; then
+    fail "release package contains symlink"
+  fi
+
+  local checkout
+  checkout="$(realpath "$pkg/../../..")"
+  [ "$(git -C "$checkout" rev-parse HEAD)" = "$FROZEN_SHA" ] || fail "release checkout is not frozen SHA"
+
+  (
+    cd "$pkg"
+    echo "fa2aca1fb187d2801082b0dc8afb099f8d1ab9c3ef18390fb119b9c94e26a4a3  README.md" | sha256sum -c -
+    echo "13bc6fda46e48b66ef8bb45479eee9ce5ea5353a43fbf196a30796ab589bf3ff  install.sh" | sha256sum -c -
+    echo "9a34bc0e417dc4babcda686d18efa5f9b41a060d892de787cbd56ea24be8ed20  payload/etc/httpd/conf.d/avaya-j129-provisioning.conf" | sha256sum -c -
+    echo "fcb4eec19d7015cdaf7014c7d05fa179a984ae342b382ee41b069806c2c28ebf  payload/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py" | sha256sum -c -
+    echo "0c9f60d48db4e105e91ace29909eeb3e168fdb8e16d35427a2ad85227f1fbd08  payload/usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl" | sha256sum -c -
+    echo "575cc4b290b9919edfbf74d2643dbcaa671565b6d163a8b3856592c5dd00e492  payload/usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl" | sha256sum -c -
+    bash -n install.sh
+  )
+  pass "J129-PROD-FROZEN-PACKAGE-PASS"
+}
+
+read_amp(){ sed -n "s/^$1=//p" "$AMPORTAL_CONF" | head -n1; }
+escape_mysql(){ local v="$1"; v="${v//\\/\\\\}"; v="${v//\"/\\\"}"; printf '%s' "$v"; }
+make_defaults(){
+  local u p h f
+  [ -f "$AMPORTAL_CONF" ] || fail "amportal.conf missing"
+  u="$(read_amp AMPDBUSER)"; p="$(read_amp AMPDBPASS)"; h="$(read_amp AMPDBHOST)"
+  [ -n "$u" ] || fail "AMPDBUSER missing"
+  [ -n "$p" ] || fail "AMPDBPASS missing"
+  [ -n "$h" ] || h=localhost
+  f="$(mktemp /tmp/j129-prod-validation.XXXXXX.cnf)"
+  chmod 0600 "$f"
+  {
+    echo '[client]'
+    printf 'user="%s"\n' "$(escape_mysql "$u")"
+    printf 'password="%s"\n' "$(escape_mysql "$p")"
+    printf 'host="%s"\n' "$(escape_mysql "$h")"
+  } > "$f"
+  printf '%s' "$f"
+}
+scalar(){ mysql --defaults-extra-file="$1" --batch --skip-column-names endpointconfig -e "$2"; }
+
+server_audit(){
+  echo "J129-PROD-HOST=$(hostname -f 2>/dev/null || hostname)"
+  echo "J129-PROD-OS=$(cat /etc/redhat-release 2>/dev/null || true)"
+  asterisk -rx 'core show version' | head -n1
+  python3 --version
+  httpd -v | head -n1
+  apachectl -t
+  test -d /usr/share/issabel/endpoint-classes
+  test -x /usr/bin/issabel-endpointconfig
+  test -s /var/lib/avaya-j129-issabel/0.1.0/state.env
+  test -s /var/lib/avaya-j129-issabel/0.1.0/installed.version
+
+  local df mf model prefix maxa sip iax multi
+  df="$(make_defaults)"; trap 'rm -f "$df"' RETURN EXIT
+  mf="$(scalar "$df" "SELECT COUNT(*) FROM manufacturer WHERE name='Avaya';")"
+  model="$(scalar "$df" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"
+  prefix="$(scalar "$df" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Avaya' AND mp.mac_prefix='C8:1F:EA';")"
+  maxa="$(scalar "$df" "SELECT COALESCE(MAX(m.max_accounts),-1) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"
+  sip="$(scalar "$df" "SELECT COALESCE(MAX(mp.property_value),'-1') FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts';")"
+  iax="$(scalar "$df" "SELECT COALESCE(MAX(mp.property_value),'-1') FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts';")"
+  multi="$(scalar "$df" "SELECT COUNT(*) FROM (SELECT ea.id_endpoint FROM endpoint_account ea JOIN endpoint e ON e.id=ea.id_endpoint JOIN manufacturer mf ON mf.id=e.id_manufacturer LEFT JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129' GROUP BY ea.id_endpoint HAVING COUNT(*)>1) q;")"
+  rm -f "$df"; trap - RETURN EXIT
+
+  echo "J129-PROD-DB manufacturer=$mf model=$model prefix=$prefix max_accounts=$maxa max_sip=$sip max_iax2=$iax multiaccount=$multi"
+  [ "$mf" = 1 ] && [ "$model" = 1 ] && [ "$prefix" = 1 ] && [ "$maxa" = 1 ] && [ "$sip" = 1 ] && [ "$iax" = 0 ] && [ "$multi" = 0 ] || fail "database contract mismatch"
+
+  pass "J129-PROD-SERVER-AUDIT-PASS"
+}
+
+provisioning_audit(){
+  local mac="${1:-}"
+  for f in J100Supgrade.txt 46xxsettings.txt; do
+    test -s "/tftpboot/$f" || fail "$f missing"
+    curl -fsSI "http://127.0.0.1/$f" >/dev/null || fail "$f HTTP failed"
+    echo "J129-PROD-HTTP-PASS=$f"
+  done
+
+  if [ -n "$mac" ]; then
+    mac="$(printf '%s' "$mac" | tr '[:upper:]' '[:lower:]' | tr -d ':.-')"
+    [[ "$mac" =~ ^[0-9a-f]{12}$ ]] || fail "invalid MAC"
+    test -s "/tftpboot/${mac}.txt" || fail "MAC provisioning file missing"
+    curl -fsSI "http://127.0.0.1/${mac}.txt" >/dev/null || fail "MAC provisioning HTTP failed"
+    echo "J129-PROD-MAC-PROVISIONING-PASS=$mac"
+  else
+    echo "J129-PROD-MAC-PROVISIONING=SKIPPED"
+  fi
+  pass "J129-PROD-PROVISIONING-AUDIT-PASS"
+}
+
+run_release(){
+  local action="$1"
+  verify_package
+  cd "$EXPECTED_PKG"
+  case "$action" in
+    preflight) ./install.sh preflight ;;
+    verify) ./install.sh verify ;;
+    install) ./install.sh install ;;
+    *) fail "invalid release action" ;;
+  esac
+}
+
+main(){
+  need_root
+  verify_caller
+  case "${1:-}" in
+    audit)
+      verify_package
+      server_audit
+      provisioning_audit "${2:-}"
+      ;;
+    preflight)
+      run_release preflight
+      ;;
+    verify)
+      run_release verify
+      ;;
+    install)
+      [ "${2:-}" = "INSTALL-PROD-V010" ] || fail "install confirmation missing"
+      run_release install
+      ;;
+    *)
+      echo "usage: $0 {audit [mac]|preflight|verify|install INSTALL-PROD-V010}" >&2
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"
