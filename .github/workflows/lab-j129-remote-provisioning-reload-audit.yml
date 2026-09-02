@@ -1,0 +1,58 @@
+name: 09 | Issabel Lab | J129 Remote Provisioning Reload | Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_reload:
+        description: Escribe J129-LAB para autorizar un unico NOTIFY check-sync
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  remote_reload:
+    name: Auditar recarga remota de provisioning del J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    env:
+      CONFIRM_RELOAD: ${{ inputs.confirm_reload }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad y autorizacion
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "Audit"
+          test "$(id -un)" = "github-runner"
+          test "$CONFIRM_RELOAD" = "J129-LAB"
+          echo 'AUTORIZACION=VALIDA'
+
+      - name: Preparar auditoria de recarga remota
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-remote-provisioning-reload-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sincronizar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Enviar check-sync y exigir nueva descarga HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy remote-provisioning-reload
+
+      - name: Resultado
+        shell: bash
+        run: |
+          echo 'J129-REMOTE-PROVISIONING-RELOAD-WORKFLOW-PASS'
+          echo 'NOTIFY-CANTIDAD-MAXIMA=1'
