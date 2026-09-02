@@ -44,12 +44,11 @@ PY
     target_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D';")"
     [ "$target_count" = "1" ] || { echo "ERROR: se esperaba exactamente un J129 objetivo y se encontraron $target_count" >&2; exit 1; }
     target_id="$(mysql_scalar "$defaults_file" "SELECT e.id FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D' LIMIT 1;")"
-    target_ip="$(mysql_scalar "$defaults_file" "SELECT e.ip_address FROM endpoint e WHERE e.id=${target_id};")"
     selected_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint WHERE selected=1 AND id<>${target_id};")"
     [ "$selected_other" = "0" ] || { echo "ERROR: hay otros endpoints seleccionados; se aborta" >&2; exit 1; }
 
     mysql --defaults-extra-file="$defaults_file" endpointconfig -e "UPDATE endpoint SET selected=1 WHERE id=${target_id};"
-    echo "PHONE_UX_SELECTED_ENDPOINT=${target_id} ip=${target_ip}"
+    echo "PHONE_UX_SELECTED_ENDPOINT=${target_id}"
     /usr/bin/issabel-endpointconfig --applyconfig
     selected_after="$(mysql_scalar "$defaults_file" "SELECT selected FROM endpoint WHERE id=${target_id};")"
     [ "$selected_after" = "0" ] || { echo 'ERROR: Issabel no limpio selected del J129' >&2; exit 1; }
