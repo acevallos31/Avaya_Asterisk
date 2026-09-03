@@ -105,24 +105,18 @@ Estado:
 PRODUCTION-SERVER-PASS
 ```
 
-No declarar todavía `PRODUCTION-PHYSICAL-PASS`.
-
 ### Incidentes de automatización resueltos
 
 1. PBX de producción no tiene `git`; `actions/checkout@v4` usa fallback REST API.
 2. Se retiró dependencia directa de `git rev-parse` del workflow/helper.
 3. Archive REST no preservó bit ejecutable de `install.sh`; helper fue corregido para usar `bash install.sh ...`.
-4. Hubo ejecuciones rojas por inputs manuales incorrectos (`VALIDATE-PRO` y combinaciones `audit`/`INSTALL-PROD-V010`); los guards funcionaron y abortaron antes de tocar producción.
+4. Hubo ejecuciones rojas por inputs manuales incorrectos; los guards funcionaron y abortaron antes de tocar producción.
 
 Estos incidentes fueron de harness/inputs, no regresiones de la release.
 
 ### Discovery inter-VLAN
 
 Se confirmó que scanner stock de Issabel requiere que nmap entregue `MAC Address:`. Un host inter-VLAN responde ping/nmap pero no entrega MAC L2, por lo que discovery stock no puede completarse. Se documentó Sprint 1 v0.2.0 para resolver IP+MAC sin modificar innecesariamente core.
-
-### Prueba física parcial
-
-Se configuró server-side un J129 descubierto en producción y se generaron correctamente `46xxsettings.txt` y archivo por MAC con HTTP 200. El teléfono no pudo localizarse físicamente, por lo que se decidió desconfigurarlo y usar un J129 localizable para la prueba definitiva.
 
 ---
 
@@ -138,12 +132,12 @@ Se configuró server-side un J129 descubierto en producción y se generaron corr
 
 ### Cambios realizados
 
-- Creado `docs/j129-test-registry.md` como fuente autoritativa de IDs 00–44.
+- Creado `docs/j129-test-registry.md` como fuente autoritativa de IDs.
 - Preservados IDs históricos 07–15.
 - Definida regla de no crear/usar pruebas sin ID.
 - Actualizado `AGENTS.md` con protocolo obligatorio de entrada/handoff para agentes.
 - Actualizado `CONTEXT.md` con estado real de producción, runs PASS, discovery inter-VLAN y gobernanza.
-- Se identificó riesgo de workflows LAB con `runs-on: self-hosted` o selectores genéricos capaces de coincidir con el runner de producción.
+- Se identificó y comenzó a corregir riesgo de workflows LAB con `runs-on` genérico.
 
 ### Regla de handoff obligatoria
 
@@ -152,25 +146,52 @@ Antes de terminar cualquier sesión, todo agente debe actualizar:
 ```text
 CONTEXT.md
 docs/agent-log.md
-docs/j129-test-registry.md si cambió tests/workflows
+docs/j129-test-registry.md si cambió tests/workflows/evidencia
 AGENTS.md si cambió gobernanza/arquitectura/seguridad
 ```
 
-Y registrar:
+Y registrar fecha, agente/modelo, objetivo, cambios, archivos, pruebas/runs, resultado, riesgos/deuda, estado final y siguiente paso.
+
+---
+
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Cierre físico de producción
+
+### 45 — Production Physical Validation
+
+Identificación:
 
 ```text
-fecha
-agente/modelo
-objetivo
-cambios
-archivos
-pruebas/runs
-resultado
-riesgos/deuda
-estado final
-siguiente paso
+45 | Production | J129 Physical Validation | Registration & Operation
+```
+
+Evidencia recibida del operador:
+
+```text
+El J129 ya registró y funciona correctamente.
+```
+
+Clasificación:
+
+```text
+PRODUCTION-PHYSICAL-PASS
+```
+
+Con este punto queda cerrado el pendiente físico principal de la v0.1.0 en producción. La release exacta ya tenía `PRODUCTION-SERVER-PASS`; ahora además cuenta con confirmación operativa física.
+
+### Documentación actualizada
+
+- `CONTEXT.md`
+- `docs/j129-test-registry.md` — prueba 45 y próximo ID 46
+- `docs/agent-log.md`
+
+### Estado final
+
+```text
+RELEASE-PASS
+PRODUCTION-SERVER-PASS
+PRODUCTION-PHYSICAL-PASS
 ```
 
 ### Siguiente paso
 
-Normalizar los `name:` visibles y selectores de runner de workflows históricos contra `docs/j129-test-registry.md`, verificar que ningún LAB pueda seleccionar `cei-pbx02-j129-production`, y solo después continuar con prueba física definitiva en producción.
+Terminar la normalización de nombres de workflows y auditoría de aislamiento de runners. No modificar la release congelada v0.1.0. Las mejoras funcionales nuevas deben entrar en v0.2.0 o posterior.
