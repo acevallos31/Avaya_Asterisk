@@ -80,33 +80,46 @@ J129-PROD-MAC-PROVISIONING-PASS=c81feac3d6b2
 
 La MAC validada fue `C8:1F:EA:C3:D6:B2`.
 
-## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 47 preparado
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 47
 
-Creado en `Audit` y `main`:
+Workflow:
 
 ```text
 .github/workflows/prod-j129-physical-call-e2e.yml
 47 | J129 Production | Physical Call | Controlled E2E
 ```
 
-Objetivo: comprobar Asterisk -> SIP -> J129 con evidencia técnica y confirmación física.
-
-Diseño de seguridad:
+Primer preflight:
 
 ```text
-mode=preflight: no origina llamada; valida acceso del runner a Asterisk CLI/logs
-mode=call: requiere CALL-PROD-J129 + extensión explícita
-runner: self-hosted, Linux, X64, j129-production, cei-pbx02
-rama requerida: Audit
-sin sudo asterisk genérico
+run: 33703875115
+resultado: INFRA-BLOCKED
 ```
 
-La fase de llamada configura temporalmente `core set verbose 10`, `sip set debug peer <ext>` y, si se proporciona IP, `rtp set debug ip <ip>`. Usa `trap` para ejecutar siempre `sip set debug off`, `rtp set debug off` y restaurar `core set verbose 3`. Origina `SIP/<ext>` con `Playback hello-world` y conserva evidencia sanitizada como artifact.
-
-Estado:
+Guard de producción PASS. El runner `github-runner-prod` no puede abrir el socket CLI de Asterisk:
 
 ```text
-47 IMPLEMENTADA / NOT-TESTED
+Unable to connect to remote asterisk (does /var/run/asterisk/asterisk.ctl exist?)
 ```
 
-Siguiente paso exacto: ejecutar rama `Audit`, `mode=preflight`, `confirm=PREFLIGHT-PROD-J129-CALL`. Si el runner no tiene permiso directo sobre el socket Asterisk, el run debe fallar sin llamada; en ese caso diseñar un helper privilegiado mínimo en lugar de ampliar sudo genérico.
+No se originó ninguna llamada. La evidencia del run se guardó como artifact.
+
+Se preparó, pero NO se instaló en producción, un helper privilegiado mínimo:
+
+```text
+deploy/j129/avaya-j129-prod-call-test
+deploy/j129/avaya-j129-prod-call-test.sudoers
+```
+
+El helper valida `SUDO_USER=github-runner-prod`, host `cei-pbx02`, extensión e IP, y solo permite `preflight`, `peer`, `call` y `cleanup`. La fase `call` usa verbose 10, SIP debug específico y RTP debug opcional, origina `SIP/<ext> application Playback hello-world` y siempre restaura debug/verbose.
+
+El workflow 47 se actualizó en `Audit` y `main` para usar exclusivamente `/usr/local/sbin/avaya-j129-prod-call-test`; no se concede `sudo asterisk` ni shell root genérico.
+
+Estado final:
+
+```text
+47 INFRA-BLOCKED
+helper/sudoers STAGED, NOT-INSTALLED
+```
+
+Siguiente paso exacto: con acceso root a `cei-pbx02`, instalar el helper como `root:root 0755`, instalar la regla sudoers como `root:root 0440`, validar con `visudo -cf`, y reejecutar `47` en rama `Audit`, `mode=preflight`, `confirm=PREFLIGHT-PROD-J129-CALL`. Solo después de preflight PASS se ejecutará `mode=call` con una persona físicamente junto al J129.
