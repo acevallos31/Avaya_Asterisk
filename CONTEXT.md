@@ -6,7 +6,9 @@ Este archivo resume el estado operativo vigente para retomar el proyecto sin rec
 
 ## Objetivo actual
 
-La release `v0.1.0` ya está instalada y validada server-side en producción. El siguiente objetivo es cerrar seguridad/gobernanza de workflows y ejecutar una prueba física controlada con un J129 localizable.
+La release `v0.1.0` ya está instalada y validada tanto server-side como físicamente en producción. El J129 ya registró y el operador confirmó que funciona correctamente.
+
+El objetivo inmediato pasa a cerrar la normalización/gobernanza de workflows y dejar v0.1.0 documentada como producción funcional antes de iniciar mejoras v0.2.0.
 
 Arquitectura objetivo:
 
@@ -67,17 +69,24 @@ verify               PASS  run 33695299816
 install-idempotency  PASS  run 33695636455
 ```
 
+Validación física manual de producción:
+
+```text
+45 | Production | J129 Physical Validation | Registration & Operation
+Resultado: PRODUCTION-PHYSICAL-PASS
+Evidencia operativa: el J129 registró y el operador confirmó funcionamiento correcto.
+```
+
 Clasificación actual:
 
 ```text
 PRODUCTION-SERVER-PASS
+PRODUCTION-PHYSICAL-PASS
 ```
 
-No declarar todavía `PRODUCTION-PHYSICAL-PASS`.
+## Evidencia física de producción
 
-## Evidencia server-side física preparada
-
-En producción ya se validó anteriormente generación/HTTP de:
+Antes de la prueba definitiva ya se había validado generación/HTTP server-side de:
 
 ```text
 J100Supgrade.txt
@@ -85,7 +94,9 @@ J100Supgrade.txt
 <mac>.txt
 ```
 
-Un J129 descubierto/configurado temporalmente generó correctamente provisioning por MAC, pero no se completó lifecycle físico porque no se pudo localizar físicamente ese teléfono. Se decidió desconfigurarlo y usar un equipo localizable para la prueba definitiva.
+La prueba física definitiva ya cerró el punto pendiente de la v0.1.0: el J129 registró en producción y el operador confirmó funcionamiento correcto.
+
+No introducir nuevas funciones dentro de la release congelada v0.1.0. Las mejoras posteriores deben ir a una versión siguiente.
 
 ## Discovery inter-VLAN — limitación confirmada
 
@@ -113,20 +124,6 @@ La solución futura debe obtener IP+MAC desde una fuente autoritativa sin modifi
 
 ## Seguridad de self-hosted runners
 
-Se detectó deuda importante: algunos workflows LAB históricos usan selectores genéricos como:
-
-```yaml
-runs-on: self-hosted
-```
-
-o:
-
-```yaml
-runs-on: [self-hosted, Linux, X64]
-```
-
-Eso puede hacer que GitHub asigne accidentalmente un job LAB al runner de producción porque este también posee las etiquetas automáticas `self-hosted`, `Linux`, `X64`.
-
 Regla obligatoria:
 
 ```yaml
@@ -137,7 +134,9 @@ runs-on: [self-hosted, Linux, X64, issabel-lab]
 runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
 ```
 
-Antes de nuevas pruebas físicas hay que completar la normalización de los workflows LAB con selector genérico.
+No se permite que un workflow LAB tenga un selector genérico capaz de ser satisfecho por el runner de producción.
+
+Los workflows 06, 26 y 29 que se habían identificado con selectores genéricos ya fueron corregidos para usar `issabel-lab` explícitamente. La auditoría final de todos los workflows sigue siendo tarea de cierre de gobernanza.
 
 ## Numeración de pruebas
 
@@ -153,7 +152,7 @@ Formato:
 NN | Entorno | Componente | Propósito
 ```
 
-Los IDs 07–15 ya tienen evidencia histórica y no deben renumerarse. Todos los workflows auxiliares/históricos también reciben ID para evitar pruebas sin numeración.
+Los IDs 07–15 conservan evidencia histórica. Los workflows auxiliares/históricos están registrados 00–44 y la prueba física manual de producción queda registrada como ID 45.
 
 Resumen principal:
 
@@ -174,6 +173,7 @@ Resumen principal:
 14 freeze manifest
 15 production server validation
 16–44 diagnósticos/helpers/probes históricos registrados
+45 production physical validation — PASS
 ```
 
 ## LAB histórico
@@ -204,6 +204,7 @@ Evidencia histórica importante:
 13 RELEASE-PASS — package smoke exacto
 14 PASS — freeze/checksums
 15 PRODUCTION-SERVER-PASS — audit/preflight/verify/idempotency
+45 PRODUCTION-PHYSICAL-PASS — J129 registrado y operativo
 ```
 
 ## Bugs y deuda
@@ -213,8 +214,8 @@ Evidencia histórica importante:
 - `BUG-J129-004`: identidad SIP puede persistir localmente al retirar provisioning.
 - Discovery inter-VLAN stock requiere MAC visible en L2.
 - Menú local e idioma español fuera de v0.1.0.
-- Algunos workflows LAB históricos necesitan selector `issabel-lab` explícito.
 - Nombres visibles de workflows históricos deben quedar sincronizados con `docs/j129-test-registry.md`.
+- Completar auditoría final de runners LAB/producción aunque los selectores genéricos ya detectados fueron corregidos.
 
 ## Reglas para agentes
 
@@ -234,7 +235,7 @@ Antes de terminar cualquier sesión de trabajo, el agente debe actualizar:
 ```text
 CONTEXT.md
 docs/agent-log.md
-docs/j129-test-registry.md si cambió tests/workflows
+docs/j129-test-registry.md si cambió tests/workflows/evidencia de pruebas
 AGENTS.md si cambió gobernanza/arquitectura/seguridad
 ```
 
@@ -243,15 +244,11 @@ El handoff debe incluir objetivo, cambios, archivos, pruebas/runs, resultado, ri
 ## Próxima secuencia
 
 ```text
-1. normalizar selectores de runner LAB que todavía sean genéricos
-2. normalizar nombres visibles de workflows contra j129-test-registry.md
-3. verificar que ningún LAB pueda caer en cei-pbx02-j129-production
-4. seleccionar un J129 físico localizable en la red de producción
-5. discovery en misma VLAN/L2
-6. asignar extensión desde Endpoint Configurator
-7. Apply
-8. validar GET de J100Supgrade/46xxsettings/<mac>.txt
-9. validar registro SIP
-10. llamadas entrante/saliente y audio
-11. documentar PRODUCTION-PHYSICAL-PASS solo si todo lo anterior pasa
+1. terminar normalización de nombres visibles 00–44
+2. auditar todos los runs-on de LAB y producción
+3. confirmar LAB-GENERIC-RUNNERS=0
+4. confirmar PROD-RUNNER-ISOLATED=PASS
+5. cerrar documentación/release notes de v0.1.0 como producción funcional
+6. no modificar la release congelada v0.1.0
+7. iniciar v0.2.0 con Sprint 1 de discovery inter-VLAN cuando corresponda
 ```
