@@ -8,7 +8,7 @@ Este archivo resume el estado operativo vigente para retomar el proyecto sin rec
 
 La release `v0.1.0` ya está instalada y validada server-side y físicamente en producción. El J129 registró y el operador confirmó funcionamiento correcto.
 
-Antes de cerrar definitivamente v0.1.0 se añadió una auditoría post-implementación read-only y se reservó una prueba E2E de llamada física.
+Antes de cerrar definitivamente v0.1.0 se añadió una auditoría post-implementación read-only (46) y se reservó una prueba E2E de llamada física (47).
 
 Arquitectura objetivo:
 
@@ -56,26 +56,44 @@ Prueba física manual:
 PRODUCTION-PHYSICAL-PASS
 ```
 
-## Auditoría post-implementación
-
-Preparada:
+## Auditoría post-implementación — Test 46
 
 ```text
 46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
 workflow: .github/workflows/prod-j129-v010-end-to-end-audit.yml
 ```
 
-Objetivo: ejecutar desde el runner de producción, sin acceso SSH interactivo y sin mutar la PBX, las verificaciones de paquete congelado, instalación, DB, Apache, provisioning global/per-MAC y HTTP. Usa el helper restringido ya instalado `/usr/local/sbin/avaya-j129-prod-validation`.
-
-Input de confirmación:
+Primer run:
 
 ```text
-AUDIT-PROD-J129
+run: 33701760211
+job: 100482362478
+resultado: HARNESS-FAIL
 ```
 
-`mac` es opcional; si se conoce el J129 actual debe incluirse para validar también `<mac>.txt`.
+El guard de producción, checkout de `Audit` y verificación del helper pasaron. La auditoría abortó con `J129-PROD-VALIDATION-FAIL: release package missing` antes de auditar la PBX.
 
-Esta auditoría no origina llamadas ni reinicia teléfonos.
+Causa confirmada: el helper `/usr/local/sbin/avaya-j129-prod-validation` exige por diseño el paquete congelado bajo `_release_checkout/release/j129-v0.1.0`, pero la primera versión de workflow 46 no había hecho checkout de la release exacta en esa ruta.
+
+Esto se clasifica como fallo del harness, no fallo de la central ni de la release. No hubo mutaciones en producción.
+
+Corrección aplicada en rama `Audit`:
+
+```text
+commit: 6bdc195bd0f6d5ef396a78fc437f9145d7209c1b
+```
+
+El workflow 46 ahora hace checkout explícito del SHA congelado `74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3` hacia `_release_checkout` antes de invocar el helper.
+
+Siguiente ejecución recomendada:
+
+```text
+Branch: Audit
+confirm: AUDIT-PROD-J129
+mac: vacío
+```
+
+Primero se cerrará la auditoría general. Después se repetirá/expandirá la validación per-MAC con la MAC del J129 físico confirmado si hace falta.
 
 ## E2E físico reservado
 
@@ -110,7 +128,7 @@ Fuente autoritativa: `docs/j129-test-registry.md`.
 ```text
 00–44 pruebas históricas/workflows
 45 validación física de producción — PASS
-46 auditoría post-implementación read-only — PREPARADA
+46 auditoría post-implementación read-only — primer run HARNESS-FAIL, workflow corregido
 47 llamada física controlada E2E — RESERVADA
 ```
 
@@ -124,7 +142,7 @@ Próximo ID disponible: `48`.
 - Discovery inter-VLAN stock requiere MAC visible en L2.
 - Menú local e idioma español fuera de v0.1.0.
 - Completar normalización de nombres visibles y auditoría global de runners.
-- Ejecutar 46 antes de diseñar/ejecutar 47.
+- Reejecutar 46 corregida antes de diseñar/ejecutar 47.
 
 ## Reglas para agentes
 
@@ -135,10 +153,11 @@ Antes de terminar cualquier sesión actualizar `CONTEXT.md`, `docs/agent-log.md`
 ## Próxima secuencia
 
 ```text
-1. ejecutar workflow 46 en rama Audit
-2. revisar todos los marcadores PASS/FAIL del run 46
-3. si 46 queda verde, diseñar helper mínimo para prueba 47
-4. ejecutar 47 solo cuando haya alguien físicamente junto al J129 para confirmar timbrado/answer/audio
-5. terminar normalización de workflows/runners
-6. cerrar v0.1.0 y luego iniciar v0.2.0
+1. reejecutar workflow 46 corregido en rama Audit, sin MAC
+2. revisar marcadores reales del run 46
+3. si 46 queda verde, identificar/verificar la MAC física si se desea validación per-MAC
+4. diseñar helper mínimo para prueba 47
+5. ejecutar 47 solo con una persona físicamente junto al J129
+6. terminar normalización de workflows/runners
+7. cerrar v0.1.0 y luego iniciar v0.2.0
 ```
