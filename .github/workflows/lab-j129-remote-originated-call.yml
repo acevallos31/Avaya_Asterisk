@@ -1,0 +1,130 @@
+name: 48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'preflight o call'
+        required: true
+        default: preflight
+        type: choice
+        options:
+          - preflight
+          - call
+      confirm:
+        description: 'preflight: PREFLIGHT-LAB-J129-REMOTE ; call: CALL-LAB-J129-REMOTE'
+        required: true
+        type: string
+      source_extension:
+        description: 'J129 origen. Vacío = resolver único J129 desde Endpoint Configurator.'
+        required: false
+        default: '200'
+        type: string
+      destination_extension:
+        description: 'Destino SIP físico.'
+        required: true
+        default: '201'
+        type: string
+      source_mac:
+        description: 'MAC J129 opcional.'
+        required: false
+        default: ''
+        type: string
+      source_ip:
+        description: 'IP SIP esperada opcional.'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  remote-originated-call:
+    name: Probar control SIP remoto J129 hacia otro peer
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+
+    steps:
+      - name: Guard LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          case '${{ inputs.mode }}' in
+            preflight) test '${{ inputs.confirm }}' = 'PREFLIGHT-LAB-J129-REMOTE' ;;
+            call) test '${{ inputs.confirm }}' = 'CALL-LAB-J129-REMOTE' ;;
+            *) exit 2 ;;
+          esac
+          [[ '${{ inputs.source_extension }}' =~ ^[0-9]{2,8}$ ]]
+          [[ '${{ inputs.destination_extension }}' =~ ^[0-9]{2,8}$ ]]
+          test '${{ inputs.source_extension }}' != '${{ inputs.destination_extension }}'
+          echo 'J129-LAB-REMOTE-GUARD-PASS'
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sincronizar helper reutilizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -F 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Preflight reutilizando Test 49/51
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test \
+            preflight \
+            '${{ inputs.source_extension }}' \
+            '${{ inputs.source_mac }}' \
+            '${{ inputs.source_ip }}' \
+            '${{ inputs.destination_extension }}' \
+            | tee "$RUNNER_TEMP/j129-remote-call.log"
+          grep -F 'J129-LAB-DUAL-PEER-AUDIT-PASS' "$RUNNER_TEMP/j129-remote-call.log"
+          grep -F 'J129-LAB-CALL-PREFLIGHT-PASS' "$RUNNER_TEMP/j129-remote-call.log"
+
+      - name: Solicitar llamada remota SIP 200 hacia 201
+        if: ${{ inputs.mode == 'call' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test \
+            call \
+            '${{ inputs.source_extension }}' \
+            '${{ inputs.source_mac }}' \
+            '${{ inputs.source_ip }}' \
+            '${{ inputs.destination_extension }}' \
+            | tee -a "$RUNNER_TEMP/j129-remote-call.log"
+          grep -F 'J129-LAB-REMOTE-REFER-COMMAND-PASS' "$RUNNER_TEMP/j129-remote-call.log"
+          grep -F 'J129-LAB-REMOTE-DESTINATION-CHANNEL-PASS' "$RUNNER_TEMP/j129-remote-call.log"
+          grep -F 'J129-LAB-REMOTE-AUTOMATED-PHASE-PASS' "$RUNNER_TEMP/j129-remote-call.log"
+
+      - name: Cleanup defensivo
+        if: always()
+        shell: bash
+        run: |
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test cleanup >>"$RUNNER_TEMP/j129-remote-call.log" 2>&1 || true
+
+      - name: Guardar evidencia sanitizada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: j129-remote-call-${{ inputs.mode }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/j129-remote-call.log
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Resultado
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          if [ '${{ inputs.mode }}' = 'preflight' ]; then
+            echo 'J129-LAB-REMOTE-PREFLIGHT-WORKFLOW-PASS'
+          else
+            echo 'J129-LAB-REMOTE-CALL-AUTOMATED-PASS'
+            echo 'NOTE=Confirmar físicamente: J129 contestado, 201 timbró y Caller ID correspondió a 200.'
+          fi
