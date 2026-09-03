@@ -57,8 +57,9 @@ jobs:
           set -euo pipefail
           test -x /usr/local/sbin/avaya-j129-helper-sync
           sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-helper-sync' >/dev/null
-          sudo -n /usr/local/sbin/avaya-j129-helper-sync
-          grep -F 'HELPER-SYNC-ALL-PASS' <(sudo -n /usr/local/sbin/avaya-j129-helper-sync)
+          SYNC_OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$SYNC_OUT"
+          grep -F 'HELPER-SYNC-ALL-PASS' <<<"$SYNC_OUT"
 
       - name: Verificar helper restringido
         shell: bash
