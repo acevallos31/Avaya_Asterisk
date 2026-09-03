@@ -4,7 +4,7 @@ Registro autoritativo de pruebas, auditorías, probes y validaciones del proyect
 
 ## Formato obligatorio
 
-Todo workflow de prueba debe usar nombre visible:
+Toda prueba debe usar identificación:
 
 ```text
 NN | Entorno | Componente | Propósito
@@ -14,7 +14,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 
 ## Registro
 
-| ID | Workflow | Nombre normalizado | Estado / función |
+| ID | Workflow / tipo | Nombre normalizado | Estado / función |
 |---:|---|---|---|
 | 00 | `audit-tests.yml` | `00 | Repository | Audit Harness | Static Checks` | Auditoría general del repositorio |
 | 01 | `lab-readonly.yml` | `01 | Issabel Lab | Baseline | Read-Only Inventory` | Inventario base LAB |
@@ -61,6 +61,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 42 | `lab-j129-web-hashed-login-response-audit.yml` | `42 | Issabel Lab | J129 Web Hashed Login Response | Audit` | Respuesta hash login |
 | 43 | `lab-j129-state-audit.yml` | `43 | Issabel Lab | J129 State | Audit` | Estado integral |
 | 44 | `lab-j129-web-fingerprint-audit.yml` | `44 | Issabel Lab | J129 Web Fingerprint | Audit` | Fingerprint web |
+| 45 | `manual-production-physical` | `45 | Production | J129 Physical Validation | Registration & Operation` | `PRODUCTION-PHYSICAL-PASS`: J129 registró y operador confirmó funcionamiento correcto |
 
 ## Reglas de runners
 
@@ -82,11 +83,14 @@ No se permite un workflow LAB con selector genérico que también pueda ser sati
 
 1. Revisar este registro.
 2. Reservar el siguiente ID disponible.
-3. Crear/renombrar workflow usando el formato normalizado.
-4. Verificar selector de runner y trigger.
-5. Ejecutar la prueba.
-6. Registrar run, resultado y evidencia en `docs/agent-log.md` y `CONTEXT.md` si cambia el estado del proyecto.
+3. Si es workflow, crear/renombrar usando el formato normalizado.
+4. Si es prueba manual/física, registrar explícitamente el tipo y la evidencia disponible.
+5. Verificar selector de runner y trigger cuando aplique.
+6. Ejecutar la prueba.
+7. Registrar run/resultado/evidencia en `docs/agent-log.md` y `CONTEXT.md` si cambia el estado del proyecto.
 
 ## Estado de normalización
 
-La numeración de 07–15 ya tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
+La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y la validación manual de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
+
+Próximo ID disponible: `46`.
