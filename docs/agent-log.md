@@ -46,79 +46,67 @@ install-idempotency  PASS  run 33695636455
 
 Estado: `PRODUCTION-SERVER-PASS`.
 
-Se confirmó además la limitación de discovery inter-VLAN por ausencia de MAC L2 en nmap stock.
-
-## 2026-09-02 — OpenAI GPT-5.6 Sol — Gobernanza
-
-Se creó `docs/j129-test-registry.md`, se estableció numeración obligatoria, handoff obligatorio para agentes y separación estricta de runners LAB/producción.
-
 ## 2026-09-02 — OpenAI GPT-5.6 Sol — Cierre físico de producción
-
-### 45 — Production Physical Validation
 
 ```text
 45 | Production | J129 Physical Validation | Registration & Operation
 PRODUCTION-PHYSICAL-PASS
 ```
 
-Evidencia del operador: el J129 registró y funciona correctamente.
+El operador confirmó que el J129 registró y funciona correctamente.
 
----
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 46
 
-## 2026-09-02 — OpenAI GPT-5.6 Sol — Auditoría post-implementación preparada
+Primer run `33701760211`: `HARNESS-FAIL` por ausencia del checkout de la release congelada. No se auditó ni modificó la PBX. Se corrigió el workflow en commit `6bdc195bd0f6d5ef396a78fc437f9145d7209c1b`.
 
-### 46 — End-to-End Read-Only Audit
-
-Workflow:
+Run válido:
 
 ```text
-.github/workflows/prod-j129-v010-end-to-end-audit.yml
-46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
+33702529808
+PRODUCTION-END-TO-END-SERVER-AUDIT-PASS
 ```
 
-Guard obligatorio: rama `Audit`, runner `cei-pbx02-j129-production`, usuario `github-runner-prod`, confirmación `AUDIT-PROD-J129`.
-
-La prueba reutiliza el helper privilegiado restringido ya instalado, sin ampliar sudo. No origina llamadas, no reinicia teléfonos y no modifica DB/configuración.
-
-### Primer run — HARNESS-FAIL
+Marcadores observados:
 
 ```text
-run: 33701760211
-job: 100482362478
-resultado: HARNESS-FAIL
+J129-PROD-FROZEN-PACKAGE-PASS
+J129-PROD-SERVER-AUDIT-PASS
+J129-PROD-PROVISIONING-AUDIT-PASS
+J129-PROD-E2E-RELEASE-VERIFY-PASS
+J129-PROD-E2E-HTTP-PASS
+J129-PROD-E2E-APACHE-PASS
+J129-PROD-MAC-PROVISIONING-PASS=c81feac3d6b2
 ```
 
-El guard de producción, checkout de `Audit` y verificación del helper pasaron. La primera auditoría real abortó con:
+La MAC validada fue `C8:1F:EA:C3:D6:B2`.
+
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 47 preparado
+
+Creado en `Audit` y `main`:
 
 ```text
-J129-PROD-VALIDATION-FAIL: release package missing
-```
-
-Causa: el helper restringido valida deliberadamente el paquete congelado en `_release_checkout/release/j129-v0.1.0`, pero la primera versión del workflow 46 no hacía checkout de la release exacta a `_release_checkout`.
-
-Clasificación correcta: fallo de harness/workflow, no fallo de PBX ni de release. El helper abortó antes de ejecutar la auditoría de la central y no hubo mutaciones en producción.
-
-Corrección aplicada en `Audit`:
-
-```text
-commit: 6bdc195bd0f6d5ef396a78fc437f9145d7209c1b
-```
-
-Se añadió checkout explícito de la release congelada exacta:
-
-```text
-74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
--> _release_checkout
-```
-
-Siguiente paso: lanzar un nuevo workflow 46 en rama `Audit`, con `confirm=AUDIT-PROD-J129`. Para aislar primero la auditoría general, dejar `mac` vacío; la validación per-MAC se ejecutará después con la MAC del J129 físico confirmado.
-
-### 47 — Physical Call Controlled E2E
-
-Reservada:
-
-```text
+.github/workflows/prod-j129-physical-call-e2e.yml
 47 | J129 Production | Physical Call | Controlled E2E
 ```
 
-No se implementará hasta que 46 quede verde. Para automatizarla desde GitHub se diseñará un helper mínimo que solo permita la operación necesaria con validación estricta de peer/extensión y confirmación explícita.
+Objetivo: comprobar Asterisk -> SIP -> J129 con evidencia técnica y confirmación física.
+
+Diseño de seguridad:
+
+```text
+mode=preflight: no origina llamada; valida acceso del runner a Asterisk CLI/logs
+mode=call: requiere CALL-PROD-J129 + extensión explícita
+runner: self-hosted, Linux, X64, j129-production, cei-pbx02
+rama requerida: Audit
+sin sudo asterisk genérico
+```
+
+La fase de llamada configura temporalmente `core set verbose 10`, `sip set debug peer <ext>` y, si se proporciona IP, `rtp set debug ip <ip>`. Usa `trap` para ejecutar siempre `sip set debug off`, `rtp set debug off` y restaurar `core set verbose 3`. Origina `SIP/<ext>` con `Playback hello-world` y conserva evidencia sanitizada como artifact.
+
+Estado:
+
+```text
+47 IMPLEMENTADA / NOT-TESTED
+```
+
+Siguiente paso exacto: ejecutar rama `Audit`, `mode=preflight`, `confirm=PREFLIGHT-PROD-J129-CALL`. Si el runner no tiene permiso directo sobre el socket Asterisk, el run debe fallar sin llamada; en ese caso diseñar un helper privilegiado mínimo en lugar de ampliar sudo genérico.
