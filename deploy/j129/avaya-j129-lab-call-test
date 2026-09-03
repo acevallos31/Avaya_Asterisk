@@ -15,11 +15,12 @@ fail() { echo "J129-LAB-CALL-FAIL=$1" >&2; exit 1; }
 [ "${SUDO_USER:-}" = "$EXPECTED_RUNNER" ] || fail "unexpected sudo caller"
 command -v asterisk >/dev/null 2>&1 || fail "asterisk unavailable"
 
-for ext in "$REQUESTED_EXTENSION" "$PEER_EXTENSION"; do
-  if [ -n "$ext" ]; then
-    [[ "$ext" =~ ^[0-9]{2,8}$ ]] || fail "invalid extension"
-  fi
-done
+if [ -n "$REQUESTED_EXTENSION" ]; then
+  [[ "$REQUESTED_EXTENSION" =~ ^[0-9]{2,8}$ ]] || fail "invalid extension"
+fi
+if [ -n "$PEER_EXTENSION" ] && [ "$PEER_EXTENSION" != "IVR-PREFLIGHT" ]; then
+  [[ "$PEER_EXTENSION" =~ ^[0-9]{2,8}$ ]] || fail "invalid peer extension"
+fi
 if [ -n "$REQUESTED_MAC" ]; then
   REQUESTED_MAC="$(printf '%s' "$REQUESTED_MAC" | tr '[:lower:]' '[:upper:]' | tr '-' ':')"
   [[ "$REQUESTED_MAC" =~ ^([0-9A-F]{2}:){5}[0-9A-F]{2}$ ]] || fail "invalid mac"
@@ -124,20 +125,6 @@ cleanup() {
   echo 'J129-LAB-CALL-DEBUG-CLEANUP-DONE'
 }
 
-remote_preflight() {
-  local account mac source_ip destination_ip
-  [ -n "$PEER_EXTENSION" ] || fail "destination extension required"
-  read -r account mac <<<"$(resolve_target)"
-  [ "$account" != "$PEER_EXTENSION" ] || fail "source and destination must differ"
-  source_ip="$(get_peer_ip "$account")"
-  destination_ip="$(get_peer_ip "$PEER_EXTENSION")"
-  peer_check "$account"
-  [ "$(peer_status "$PEER_EXTENSION")" = "OK" ] || fail "destination peer not ready"
-  audit_peer_safe "$account"
-  audit_peer_safe "$PEER_EXTENSION"
-  echo "J129-LAB-REMOTE-PREFLIGHT-PASS source=$account source_ip=$source_ip destination=$PEER_EXTENSION destination_ip=$destination_ip mac=$mac"
-}
-
 remote_call() {
   local account mac source_ip destination_ip seen
   [ -n "$PEER_EXTENSION" ] || fail "destination extension required"
@@ -147,11 +134,13 @@ remote_call() {
   destination_ip="$(get_peer_ip "$PEER_EXTENSION")"
   peer_check "$account"
   [ "$(peer_status "$PEER_EXTENSION")" = "OK" ] || fail "destination peer not ready"
+  audit_peer_safe "$account"
+  audit_peer_safe "$PEER_EXTENSION"
   trap cleanup EXIT INT TERM
   asterisk -rx 'core set verbose 10' >/dev/null
   asterisk -rx "sip set debug ip $source_ip" >/dev/null
   echo "J129-LAB-REMOTE-REQUEST-START source=$account destination=$PEER_EXTENSION source_ip=$source_ip destination_ip=$destination_ip mechanism=SIP-REFER-via-Transfer"
-  echo 'J129-LAB-REMOTE-ACTION=Answer the J129 source phone; Asterisk will then request the remote SIP endpoint to transfer to the destination.'
+  echo 'J129-LAB-REMOTE-ACTION=Answer the J129 source phone; Asterisk will request the remote SIP endpoint to transfer to the destination.'
   asterisk -rx "channel originate SIP/$account application Transfer SIP/$PEER_EXTENSION" >/dev/null || fail "remote transfer originate command failed"
   echo "J129-LAB-REMOTE-REFER-COMMAND-PASS source=$account destination=$PEER_EXTENSION"
   seen=0
@@ -196,6 +185,10 @@ ivr_preflight() {
 
 case "$ACTION" in
   preflight)
+    if [ "$PEER_EXTENSION" = "IVR-PREFLIGHT" ]; then
+      ivr_preflight
+      exit 0
+    fi
     read -r account mac <<<"$(resolve_target)"
     asterisk -rx 'core show version' | head -n 1
     ip="$(get_peer_ip "$account")"
@@ -209,6 +202,10 @@ case "$ACTION" in
     echo "J129-LAB-CALL-PREFLIGHT-PASS extension=$account mac=$mac ip=$ip"
     ;;
   call)
+    if [ -n "$PEER_EXTENSION" ]; then
+      remote_call
+      exit 0
+    fi
     read -r account mac <<<"$(resolve_target)"
     ip="$(get_peer_ip "$account")"
     echo "J129-LAB-CALL-TARGET-PASS extension=$account mac=$mac ip=$ip"
@@ -236,20 +233,11 @@ case "$ACTION" in
     cleanup
     trap - EXIT INT TERM
     ;;
-  remote-preflight)
-    remote_preflight
-    ;;
-  remote-call)
-    remote_call
-    ;;
-  ivr-preflight)
-    ivr_preflight
-    ;;
   cleanup)
     cleanup
     ;;
   *)
-    echo "Uso: $0 {preflight|call|remote-preflight|remote-call|ivr-preflight|cleanup} [extension] [mac] [ip] [peer-extension]" >&2
+    echo "Uso: $0 {preflight|call|cleanup} [extension] [mac] [ip] [peer-extension|IVR-PREFLIGHT]" >&2
     exit 2
     ;;
 esac
