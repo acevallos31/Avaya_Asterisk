@@ -6,9 +6,9 @@ Este archivo resume el estado operativo vigente para retomar el proyecto sin rec
 
 ## Objetivo actual
 
-La release `v0.1.0` ya está instalada y validada tanto server-side como físicamente en producción. El J129 ya registró y el operador confirmó que funciona correctamente.
+La release `v0.1.0` ya está instalada y validada server-side y físicamente en producción. El J129 registró y el operador confirmó funcionamiento correcto.
 
-El objetivo inmediato pasa a cerrar la normalización/gobernanza de workflows y dejar v0.1.0 documentada como producción funcional antes de iniciar mejoras v0.2.0.
+Antes de cerrar definitivamente v0.1.0 se añadió una auditoría post-implementación read-only y se reservó una prueba E2E de llamada física.
 
 Arquitectura objetivo:
 
@@ -20,30 +20,12 @@ Discovery -> Avaya/J129 -> Accounts estándar -> Apply Issabel
 
 ## Release congelada
 
-Rama:
-
 ```text
-release/j129-v0.1.0
+rama: release/j129-v0.1.0
+commit: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
 ```
 
-Commit exacto:
-
-```text
-74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
-```
-
-Alcance:
-
-- Avaya J129 en Endpoint Configurator estándar;
-- una cuenta SIP;
-- provisioning Avaya;
-- Apache provisioning;
-- installer preflight/install/verify/rollback;
-- sin firmware automático;
-- sin español;
-- sin menú UX experimental;
-- sin cambio automático de Web Admin password;
-- sin reboot automático durante instalación.
+Alcance: integración J129 estándar, una cuenta SIP, provisioning Avaya, Apache e installer preflight/install/verify/rollback. No incluye firmware automático, español, UX experimental, cambio automático de Web Admin password ni reboot automático durante instalación.
 
 ## Producción
 
@@ -58,9 +40,7 @@ Usuario:    github-runner-prod
 Labels:     self-hosted, Linux, X64, j129-production, cei-pbx02
 ```
 
-Instalación v0.1.0: completada.
-
-Validación automática workflow 15:
+Workflow 15:
 
 ```text
 audit                PASS  run 33692817597
@@ -69,60 +49,47 @@ verify               PASS  run 33695299816
 install-idempotency  PASS  run 33695636455
 ```
 
-Validación física manual de producción:
+Prueba física manual:
 
 ```text
 45 | Production | J129 Physical Validation | Registration & Operation
-Resultado: PRODUCTION-PHYSICAL-PASS
-Evidencia operativa: el J129 registró y el operador confirmó funcionamiento correcto.
-```
-
-Clasificación actual:
-
-```text
-PRODUCTION-SERVER-PASS
 PRODUCTION-PHYSICAL-PASS
 ```
 
-## Evidencia física de producción
+## Auditoría post-implementación
 
-Antes de la prueba definitiva ya se había validado generación/HTTP server-side de:
+Preparada:
 
 ```text
-J100Supgrade.txt
-46xxsettings.txt
-<mac>.txt
+46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
+workflow: .github/workflows/prod-j129-v010-end-to-end-audit.yml
 ```
 
-La prueba física definitiva ya cerró el punto pendiente de la v0.1.0: el J129 registró en producción y el operador confirmó funcionamiento correcto.
+Objetivo: ejecutar desde el runner de producción, sin acceso SSH interactivo y sin mutar la PBX, las verificaciones de paquete congelado, instalación, DB, Apache, provisioning global/per-MAC y HTTP. Usa el helper restringido ya instalado `/usr/local/sbin/avaya-j129-prod-validation`.
 
-No introducir nuevas funciones dentro de la release congelada v0.1.0. Las mejoras posteriores deben ir a una versión siguiente.
+Input de confirmación:
+
+```text
+AUDIT-PROD-J129
+```
+
+`mac` es opcional; si se conoce el J129 actual debe incluirse para validar también `<mac>.txt`.
+
+Esta auditoría no origina llamadas ni reinicia teléfonos.
+
+## E2E físico reservado
+
+```text
+47 | J129 Production | Physical Call | Controlled E2E
+```
+
+La prueba 47 queda reservada para una llamada controlada Asterisk -> J129 y confirmación física de timbrado, answer y audio. No debe improvisarse mediante comandos genéricos ni ampliando sudo. Para automatizarla desde GitHub habrá que diseñar primero un helper privilegiado mínimo con validación estricta de peer/extensión y confirmación explícita.
 
 ## Discovery inter-VLAN — limitación confirmada
 
-El scanner stock `/usr/share/issabel/privileged/detect_endpoints` usa nmap y solo procesa endpoints cuando la salida incluye `MAC Address:`.
+El scanner stock `/usr/share/issabel/privileged/detect_endpoints` solo procesa endpoints cuando nmap entrega `MAC Address:`. En misma VLAN/L2 discovery funciona; inter-VLAN/L3 responde host pero no hay MAC L2. No es fallo v0.1.0. Sprint 1 de v0.2.0: `docs/j129-v0.2.0-sprint-1.md`.
 
-En la misma VLAN/L2:
-
-```text
-Host up + MAC Address -> discovery posible
-```
-
-Inter-VLAN/L3:
-
-```text
-Host up + sin MAC Address -> Issabel stock no crea/discrimina endpoint
-```
-
-No es fallo de v0.1.0. Sprint 1 de v0.2.0 documentado en:
-
-```text
-docs/j129-v0.2.0-sprint-1.md
-```
-
-La solución futura debe obtener IP+MAC desde una fuente autoritativa sin modificar innecesariamente el core de Issabel.
-
-## Seguridad de self-hosted runners
+## Seguridad de runners
 
 Regla obligatoria:
 
@@ -134,78 +101,20 @@ runs-on: [self-hosted, Linux, X64, issabel-lab]
 runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
 ```
 
-No se permite que un workflow LAB tenga un selector genérico capaz de ser satisfecho por el runner de producción.
+Los selectores genéricos previamente detectados en 06, 26 y 29 fueron corregidos. Falta auditoría final global de workflows.
 
-Los workflows 06, 26 y 29 que se habían identificado con selectores genéricos ya fueron corregidos para usar `issabel-lab` explícitamente. La auditoría final de todos los workflows sigue siendo tarea de cierre de gobernanza.
+## Numeración
 
-## Numeración de pruebas
-
-Fuente autoritativa:
+Fuente autoritativa: `docs/j129-test-registry.md`.
 
 ```text
-docs/j129-test-registry.md
+00–44 pruebas históricas/workflows
+45 validación física de producción — PASS
+46 auditoría post-implementación read-only — PREPARADA
+47 llamada física controlada E2E — RESERVADA
 ```
 
-Formato:
-
-```text
-NN | Entorno | Componente | Propósito
-```
-
-Los IDs 07–15 conservan evidencia histórica. Los workflows auxiliares/históricos están registrados 00–44 y la prueba física manual de producción queda registrada como ID 45.
-
-Resumen principal:
-
-```text
-01 baseline read-only
-02 endpoint DB
-03 discovery
-04 provisioning
-05 SIP registration
-06 apply config
-07 rescan idempotency
-08 single account v1
-09 remote provisioning lifecycle
-10 forced provisioning / NTP
-11 phone UX & admin
-12 production patch LAB
-13 release package smoke
-14 freeze manifest
-15 production server validation
-16–44 diagnósticos/helpers/probes históricos registrados
-45 production physical validation — PASS
-```
-
-## LAB histórico
-
-```text
-Issabel:    5
-OS:         Rocky Linux 8
-Asterisk:   18.19.0
-Python:     3.6.8
-PBX:        192.168.1.10
-J129:       192.168.1.168
-MAC:        C8:1F:EA:9B:65:0D
-Firmware:   3.0.0.0.20
-Endpoint:   id 3
-SIP:        200
-Runner:     github-runner / issabel-lab
-```
-
-Evidencia histórica importante:
-
-```text
-07 PASS — rescan idempotente
-08 PASS — una cuenta SIP
-09 PHYSICAL-J129-PASS — check-sync reinicia y reprovisiona
-10 PASS server-side — NTP consumido físicamente tras reboot posterior
-11 UX — hora correcta, menú visible no apareció
-12 PASS — install/verify/idempotencia/rollback LAB
-13 RELEASE-PASS — package smoke exacto
-14 PASS — freeze/checksums
-15 PRODUCTION-SERVER-PASS — audit/preflight/verify/idempotency
-45 PRODUCTION-PHYSICAL-PASS — J129 registrado y operativo
-```
+Próximo ID disponible: `48`.
 
 ## Bugs y deuda
 
@@ -214,41 +123,22 @@ Evidencia histórica importante:
 - `BUG-J129-004`: identidad SIP puede persistir localmente al retirar provisioning.
 - Discovery inter-VLAN stock requiere MAC visible en L2.
 - Menú local e idioma español fuera de v0.1.0.
-- Nombres visibles de workflows históricos deben quedar sincronizados con `docs/j129-test-registry.md`.
-- Completar auditoría final de runners LAB/producción aunque los selectores genéricos ya detectados fueron corregidos.
+- Completar normalización de nombres visibles y auditoría global de runners.
+- Ejecutar 46 antes de diseñar/ejecutar 47.
 
 ## Reglas para agentes
 
-Leer antes de modificar:
+Leer antes de modificar: `AGENTS.md`, `CONTEXT.md`, `docs/j129-test-registry.md`, validaciones/research notes, `docs/agent-log.md`, README de release y runs/commits recientes.
 
-1. `AGENTS.md`
-2. `CONTEXT.md`
-3. `docs/j129-test-registry.md`
-4. `docs/j129-lab-validation.md`
-5. `docs/j129-research-notes.md`
-6. `docs/agent-log.md`
-7. README de release si aplica
-8. commits/runs recientes
-
-Antes de terminar cualquier sesión de trabajo, el agente debe actualizar:
-
-```text
-CONTEXT.md
-docs/agent-log.md
-docs/j129-test-registry.md si cambió tests/workflows/evidencia de pruebas
-AGENTS.md si cambió gobernanza/arquitectura/seguridad
-```
-
-El handoff debe incluir objetivo, cambios, archivos, pruebas/runs, resultado, riesgos, estado final y siguiente paso. No escribir secretos.
+Antes de terminar cualquier sesión actualizar `CONTEXT.md`, `docs/agent-log.md`, el test registry si cambian pruebas/workflows y `AGENTS.md` si cambia gobernanza/arquitectura/seguridad. Registrar objetivo, cambios, archivos, pruebas/runs, resultado, riesgos, estado y siguiente paso. Nunca guardar secretos.
 
 ## Próxima secuencia
 
 ```text
-1. terminar normalización de nombres visibles 00–44
-2. auditar todos los runs-on de LAB y producción
-3. confirmar LAB-GENERIC-RUNNERS=0
-4. confirmar PROD-RUNNER-ISOLATED=PASS
-5. cerrar documentación/release notes de v0.1.0 como producción funcional
-6. no modificar la release congelada v0.1.0
-7. iniciar v0.2.0 con Sprint 1 de discovery inter-VLAN cuando corresponda
+1. ejecutar workflow 46 en rama Audit
+2. revisar todos los marcadores PASS/FAIL del run 46
+3. si 46 queda verde, diseñar helper mínimo para prueba 47
+4. ejecutar 47 solo cuando haya alguien físicamente junto al J129 para confirmar timbrado/answer/audio
+5. terminar normalización de workflows/runners
+6. cerrar v0.1.0 y luego iniciar v0.2.0
 ```
