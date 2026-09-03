@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ACTION="${1:-}"
+PHONE_IP="${2:-192.168.1.171}"
+AMPORTAL_CONF="/etc/amportal.conf"
+EXPECTED_RUNNER="github-runner"
+
+fail() { echo "J129-LAB-CALL-FAIL=$1" >&2; exit 1; }
+
+[ "$(id -u)" -eq 0 ] || fail "helper must run as root"
+[ "${SUDO_USER:-}" = "$EXPECTED_RUNNER" ] || fail "unexpected sudo caller"
+[[ "$PHONE_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail "invalid phone ip"
+command -v asterisk >/dev/null 2>&1 || fail "asterisk unavailable"
+
+read_amportal_value() { sed -n "s/^${1}=//p" "$AMPORTAL_CONF" | head -n 1; }
+get_account() {
+  command -v mysql >/dev/null 2>&1 || fail "mysql unavailable"
+  [ -r "$AMPORTAL_CONF" ] || fail "amportal config unreadable"
+  local u p h f account
+  u="$(read_amportal_value AMPDBUSER)"; p="$(read_amportal_value AMPDBPASS)"; h="$(read_amportal_value AMPDBHOST)"; [ -n "$h" ] || h=localhost
+  [ -n "$u" ] && [ -n "$p" ] || fail "database settings unavailable"
+  f="$(mktemp /tmp/j129-lab-call-db.XXXXXX.cnf)"; chmod 0600 "$f"
+  trap 'rm -f "$f"' RETURN
+  { printf '[client]\nuser=%s\npassword=%s\nhost=%s\n' "$u" "$p" "$h"; } > "$f"
+  account="$(mysql --defaults-extra-file="$f" --batch --skip-column-names endpointconfig -e "SELECT ea.account FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D' ORDER BY ea.priority LIMIT 1;" 2>/dev/null || true)"
+  rm -f "$f"; trap - RETURN
+  [[ "$account" =~ ^[0-9]{2,8}$ ]] || fail "J129 account unavailable or invalid"
+  printf '%s' "$account"
+}
+
+peer_check() {
+  local account="$1" peers
+  peers="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
+  printf '%s\n' "$peers" | grep -E "(^|[[:space:]])${account}(/|[[:space:]])" | grep -F "$PHONE_IP" >/dev/null || fail "peer not ready at expected IP"
+  echo "J129-LAB-CALL-PEER-READY-PASS extension=$account ip=$PHONE_IP"
+}
+
+cleanup() {
+  asterisk -rx 'sip set debug off' >/dev/null 2>&1 || true
+  asterisk -rx 'rtp set debug off' >/dev/null 2>&1 || true
+  asterisk -rx 'core set verbose 3' >/dev/null 2>&1 || true
+  echo 'J129-LAB-CALL-DEBUG-CLEANUP-DONE'
+}
+
+case "$ACTION" in
+  preflight)
+    account="$(get_account)"
+    asterisk -rx 'core show version' | head -n 1
+    peer_check "$account"
+    echo "J129-LAB-CALL-PREFLIGHT-PASS extension=$account ip=$PHONE_IP"
+    ;;
+  call)
+    account="$(get_account)"
+    peer_check "$account"
+    trap cleanup EXIT INT TERM
+    asterisk -rx 'core set verbose 10' >/dev/null
+    asterisk -rx "sip set debug ip $PHONE_IP" >/dev/null
+    asterisk -rx "rtp set debug ip $PHONE_IP" >/dev/null 2>&1 || true
+    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$PHONE_IP"
+    asterisk -rx "channel originate SIP/$account application Playback hello-world" >/dev/null || fail "originate command failed"
+    echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS'
+    sleep 3
+    asterisk -rx 'core show channels concise' 2>/dev/null | grep -E "(^|!)SIP/${account}-" | head -n 3 || true
+    echo 'J129-LAB-CALL-AUTOMATED-PHASE-PASS'
+    cleanup
+    trap - EXIT INT TERM
+    ;;
+  cleanup)
+    cleanup
+    ;;
+  *)
+    echo "Uso: $0 {preflight|call|cleanup} [phone_ip]" >&2
+    exit 2
+    ;;
+esac
