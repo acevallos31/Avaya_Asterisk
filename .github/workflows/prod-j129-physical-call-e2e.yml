@@ -1,0 +1,165 @@
+name: 47 | J129 Production | Physical Call | Controlled E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Modo: preflight o call'
+        required: true
+        default: preflight
+        type: choice
+        options:
+          - preflight
+          - call
+      confirm:
+        description: 'preflight: PREFLIGHT-PROD-J129-CALL ; call: CALL-PROD-J129'
+        required: true
+        type: string
+      extension:
+        description: 'Extensión SIP del J129 (solo requerida en call)'
+        required: false
+        type: string
+      phone_ip:
+        description: 'IP del J129 para RTP debug específico (opcional)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  ASTERISK_FULL_LOG: /var/log/asterisk/full
+
+jobs:
+  controlled-physical-call:
+    name: Validar llamada controlada Asterisk hacia J129
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 8
+
+    steps:
+      - name: Guard de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "Audit"
+          test "$(hostname -s)" = 'cei-pbx02'
+          test "$(id -un)" = 'github-runner-prod'
+          case '${{ inputs.mode }}' in
+            preflight)
+              test '${{ inputs.confirm }}' = 'PREFLIGHT-PROD-J129-CALL'
+              ;;
+            call)
+              test '${{ inputs.confirm }}' = 'CALL-PROD-J129'
+              ;;
+            *) exit 2 ;;
+          esac
+          echo 'J129-PROD-CALL-GUARD-PASS'
+
+      - name: Preflight de acceso Asterisk sin sudo genérico
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner=$(id -un)@$(hostname -s)"
+          if ! asterisk -rx 'core show version' >"$RUNNER_TEMP/j129-asterisk-version.txt" 2>&1; then
+            cat "$RUNNER_TEMP/j129-asterisk-version.txt"
+            echo 'J129-PROD-CALL-PREFLIGHT-FAIL=runner cannot access Asterisk CLI without privileged helper'
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/j129-asterisk-version.txt"
+          asterisk -rx 'sip show peers' >"$RUNNER_TEMP/j129-sip-peers.txt"
+          test -s "$RUNNER_TEMP/j129-sip-peers.txt"
+          if [ -r "$ASTERISK_FULL_LOG" ]; then
+            echo 'J129-PROD-CALL-FULL-LOG-READABLE=YES'
+          else
+            echo 'J129-PROD-CALL-FULL-LOG-READABLE=NO'
+          fi
+          echo 'J129-PROD-CALL-PREFLIGHT-PASS'
+
+      - name: Validar inputs de llamada
+        if: ${{ inputs.mode == 'call' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXT='${{ inputs.extension }}'
+          IP='${{ inputs.phone_ip }}'
+          [[ "$EXT" =~ ^[0-9]{2,8}$ ]] || { echo 'Invalid extension'; exit 2; }
+          if [ -n "$IP" ]; then
+            [[ "$IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo 'Invalid phone_ip'; exit 2; }
+          fi
+          asterisk -rx "sip show peer $EXT" >"$RUNNER_TEMP/j129-peer.txt"
+          grep -Eq 'Status[[:space:]]*:[[:space:]]*(OK|Reachable)' "$RUNNER_TEMP/j129-peer.txt" || {
+            sed -n '/^  Name/,/^$/p' "$RUNNER_TEMP/j129-peer.txt" || true
+            echo 'J129-PROD-CALL-PEER-NOT-READY'
+            exit 1
+          }
+          echo 'J129-PROD-CALL-PEER-READY-PASS'
+
+      - name: Originar llamada con debug temporal y cleanup garantizado
+        if: ${{ inputs.mode == 'call' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXT='${{ inputs.extension }}'
+          IP='${{ inputs.phone_ip }}'
+          LOG="$RUNNER_TEMP/j129-call-e2e.log"
+          : > "$LOG"
+
+          cleanup() {
+            asterisk -rx 'sip set debug off' >>"$LOG" 2>&1 || true
+            asterisk -rx 'rtp set debug off' >>"$LOG" 2>&1 || true
+            asterisk -rx 'core set verbose 3' >>"$LOG" 2>&1 || true
+            echo 'J129-PROD-CALL-DEBUG-CLEANUP-DONE' >>"$LOG"
+          }
+          trap cleanup EXIT INT TERM
+
+          START_LINE=0
+          if [ -r "$ASTERISK_FULL_LOG" ]; then
+            START_LINE="$(wc -l < "$ASTERISK_FULL_LOG" || echo 0)"
+          fi
+
+          asterisk -rx 'core set verbose 10' | tee -a "$LOG"
+          asterisk -rx "sip set debug peer $EXT" | tee -a "$LOG"
+          if [ -n "$IP" ]; then
+            asterisk -rx "rtp set debug ip $IP" | tee -a "$LOG"
+          fi
+
+          echo "J129-PROD-CALL-ORIGINATE-START extension=$EXT" | tee -a "$LOG"
+          asterisk -rx "channel originate SIP/$EXT application Playback hello-world" | tee -a "$LOG"
+          echo 'J129-PROD-CALL-ORIGINATE-COMMAND-PASS' | tee -a "$LOG"
+
+          sleep 3
+          asterisk -rx 'core show channels verbose' >>"$LOG" 2>&1 || true
+
+          if [ -r "$ASTERISK_FULL_LOG" ] && [ "$START_LINE" -ge 0 ]; then
+            tail -n "+$((START_LINE + 1))" "$ASTERISK_FULL_LOG" \
+              | sed -E 's/(secret|password|passwd|authorization|proxy-authorization)[^[:space:]]*/\1=[REDACTED]/Ig' \
+              >>"$LOG" || true
+          fi
+
+          echo 'J129-PROD-CALL-AUTOMATED-PHASE-PASS' | tee -a "$LOG"
+
+      - name: Guardar evidencia sanitizada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: j129-production-call-e2e-${{ inputs.mode }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/j129-asterisk-version.txt
+            ${{ runner.temp }}/j129-peer.txt
+            ${{ runner.temp }}/j129-call-e2e.log
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Resultado preflight
+        if: ${{ success() && inputs.mode == 'preflight' }}
+        shell: bash
+        run: |
+          echo 'J129-PROD-CALL-E2E-PREFLIGHT-PASS'
+          echo 'NOTE=No se originó ninguna llamada.'
+
+      - name: Resultado llamada automatizada
+        if: ${{ success() && inputs.mode == 'call' }}
+        shell: bash
+        run: |
+          echo 'J129-PROD-CALL-E2E-AUTOMATED-PASS'
+          echo 'NOTE=La confirmación física de timbrado, answer y audio debe registrarse manualmente después del run.'
