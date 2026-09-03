@@ -62,6 +62,8 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 43 | `lab-j129-state-audit.yml` | `43 | Issabel Lab | J129 State | Audit` | Estado integral |
 | 44 | `lab-j129-web-fingerprint-audit.yml` | `44 | Issabel Lab | J129 Web Fingerprint | Audit` | Fingerprint web |
 | 45 | `manual-production-physical` | `45 | Production | J129 Physical Validation | Registration & Operation` | `PRODUCTION-PHYSICAL-PASS`: J129 registró y operador confirmó funcionamiento correcto |
+| 46 | `prod-j129-v010-end-to-end-audit.yml` | `46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit` | Preparada; audita release instalada, DB, provisioning, Apache y HTTP sin mutar producción |
+| 47 | `reserved-production-e2e-call` | `47 | J129 Production | Physical Call | Controlled E2E` | Reservada; futura llamada controlada Asterisk -> J129 con confirmación física de timbrado/answer/audio |
 
 ## Reglas de runners
 
@@ -91,6 +93,6 @@ No se permite un workflow LAB con selector genérico que también pueda ser sati
 
 ## Estado de normalización
 
-La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y la validación manual de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
+La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y validaciones de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
 
-Próximo ID disponible: `46`.
+Próximo ID disponible: `48`.
