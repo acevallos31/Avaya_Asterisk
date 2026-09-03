@@ -80,7 +80,7 @@ J129-PROD-MAC-PROVISIONING-PASS=c81feac3d6b2
 
 La MAC validada fue `C8:1F:EA:C3:D6:B2`.
 
-## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 47
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 47 cerrado para v0.1.0
 
 Workflow:
 
@@ -89,55 +89,81 @@ Workflow:
 47 | J129 Production | Physical Call | Controlled E2E
 ```
 
-Primer preflight:
+Evolución:
 
 ```text
-run: 33703875115
-resultado: INFRA-BLOCKED
+33703875115  INFRA-BLOCKED: runner sin acceso directo al socket CLI
+33710642058  preflight PASS mediante helper restringido
+33711068591  llamada automatizada PASS
 ```
 
-Guard de producción PASS. El runner `github-runner-prod` no puede abrir el socket CLI de Asterisk:
-
-```text
-Unable to connect to remote asterisk (does /var/run/asterisk/asterisk.ctl exist?)
-```
-
-No se originó ninguna llamada. La evidencia del run se guardó como artifact.
-
-Se preparó un helper privilegiado mínimo:
+Para habilitar el acceso controlado se creó e instaló:
 
 ```text
 deploy/j129/avaya-j129-prod-call-test
 deploy/j129/avaya-j129-prod-call-test.sudoers
+/usr/local/sbin/avaya-j129-prod-call-test
 ```
 
-El helper valida `SUDO_USER=github-runner-prod`, host `cei-pbx02`, extensión e IP, y solo permite `preflight`, `peer`, `call` y `cleanup`. La fase `call` usa verbose 10, SIP debug específico y RTP debug opcional, origina `SIP/<ext> application Playback hello-world` y siempre restaura debug/verbose.
+No se concedió `sudo asterisk` ni shell root genérico.
 
-El workflow 47 usa exclusivamente `/usr/local/sbin/avaya-j129-prod-call-test`; no se concede `sudo asterisk` ni shell root genérico.
-
-El operador instaló manualmente el helper y sudoers en `cei-pbx02`; `visudo -cf` devolvió `parsed OK`, con helper `root:root 0755` y sudoers `root:root 0440`.
-
-Estado actual:
+Run `33711068591`:
 
 ```text
-47 pendiente de reejecutar preflight
-helper/sudoers INSTALADOS
+peer 4455 READY
+J129 IP 10.3.40.32
+MAC C8:1F:EA:C3:D6:B2
+100 Trying
+180 Ringing
+Asterisk mostró SIP/4455 Ringing
+cleanup PASS
 ```
 
-## 2026-09-02 — OpenAI GPT-5.6 Sol — Scripts operativos
+No había operador físicamente junto al J129; `answer` y audio quedaron `NOT-TESTED`. La prueba se cierra para v0.1.0 sin promover este run a evidencia física. La validación física previa 45 sigue siendo la evidencia de operación real en producción.
 
-Se creó la sección `scripts/` para eliminar procedimientos manuales repetitivos.
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 48 reservado para v0.2.0
 
-Archivos iniciales:
+Reservado:
 
 ```text
+48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe
+NOT-TESTED
+```
+
+Objetivo: investigar primero en LAB si el propio J129 puede iniciar/controlar remotamente una llamada hacia otra extensión, diferenciando ese flujo de un originate generado por Asterisk. No se hará en producción hasta tener evidencia LAB y un procedimiento controlado.
+
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Scripts operativos y roadmap de flota
+
+La carpeta `scripts/` pasa a considerarse catálogo operativo permanente, no solo tooling de pruebas. Se documentó evolución hacia categorías de bootstrap, deploy, diagnostics, maintenance, security y testing.
+
+Se agregó:
+
+```text
+docs/pbx-fleet-control-roadmap.md
+```
+
+Visión futura: servidor local de distribución/control para múltiples PBX Issabel, con inventario, releases aprobadas, preflight/deploy/verify/rollback, diagnósticos remotos y bootstrap de nuevas PBX. La intención es lograr una experiencia similar a GitHub Actions dentro de la red propia, sin convertir el controlador en una vía de shell root genérico.
+
+Decisión de prioridad: no iniciar todavía el PBX Fleet Controller. Primero continuar la optimización de Endpoint Configurator; mientras tanto, todo procedimiento repetitivo útil debe tender a convertirse en script seguro, versionado e idempotente.
+
+Archivos tocados en este cierre:
+
+```text
+docs/j129-test-registry.md
+docs/pbx-fleet-control-roadmap.md
 scripts/README.md
-scripts/install-j129-prod-call-helper.sh
-scripts/install-production-runner.sh
+CONTEXT.md
+docs/agent-log.md
 ```
 
-`install-j129-prod-call-helper.sh` descarga, valida e instala automáticamente el helper/sudoers de Test 47.
+Estado final:
 
-`install-production-runner.sh` automatiza la instalación del self-hosted runner de producción para `Avaya_Asterisk`: crea `github-runner-prod`, instala en `/opt/actions-runner-prod`, deriva el nombre desde el hostname y aplica labels `j129-production,<hostname>`. El único dato interactivo es el token temporal de registro, leído sin eco y no persistido por el script.
+```text
+v0.1.0 producción: suficientemente cerrada para continuar
+Test 47: CERRADA para v0.1.0
+Test 48: RESERVADA v0.2.0 LAB / NOT-TESTED
+PBX Fleet Controller: ROADMAP, no implementación todavía
+prioridad actual: optimización Endpoint Configurator
+```
 
-Siguiente paso exacto: reejecutar Test 47 en rama `Audit`, `mode=preflight`, `confirm=PREFLIGHT-PROD-J129-CALL`. Si pasa, preparar la llamada controlada con la extensión/IP correctas y una persona físicamente junto al J129.
+Siguiente paso exacto: retomar Endpoint Configurator y revisar qué deuda/optimización conviene cerrar antes de abrir cambios funcionales de v0.2.0.
