@@ -6,9 +6,7 @@ Este archivo resume el estado operativo vigente para retomar el proyecto sin rec
 
 ## Objetivo actual
 
-La release `v0.1.0` ya está instalada y validada server-side y físicamente en producción. El J129 registró y el operador confirmó funcionamiento correcto.
-
-Antes de cerrar definitivamente v0.1.0 se añadió una auditoría post-implementación read-only (46) y se reservó una prueba E2E de llamada física (47).
+La release `v0.1.0` ya está instalada y validada server-side, físicamente y mediante auditoría post-implementación read-only en producción. El J129 registró y el operador confirmó funcionamiento correcto.
 
 Arquitectura objetivo:
 
@@ -25,8 +23,6 @@ rama: release/j129-v0.1.0
 commit: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
 ```
 
-Alcance: integración J129 estándar, una cuenta SIP, provisioning Avaya, Apache e installer preflight/install/verify/rollback. No incluye firmware automático, español, UX experimental, cambio automático de Web Admin password ni reboot automático durante instalación.
-
 ## Producción
 
 ```text
@@ -34,7 +30,6 @@ Host:       cei-pbx02
 PBX:        10.3.40.2
 OS:         Rocky Linux 8.10
 Asterisk:   18.19
-Python:     3.6.8
 Runner:     cei-pbx02-j129-production
 Usuario:    github-runner-prod
 Labels:     self-hosted, Linux, X64, j129-production, cei-pbx02
@@ -60,56 +55,37 @@ PRODUCTION-PHYSICAL-PASS
 
 ```text
 46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
-workflow: .github/workflows/prod-j129-v010-end-to-end-audit.yml
+run: 33702529808
+resultado: PRODUCTION-END-TO-END-SERVER-AUDIT-PASS
 ```
 
-Primer run:
+Validó paquete congelado, DB, Apache, provisioning global, HTTP, verify oficial y provisioning per-MAC para `C8:1F:EA:C3:D6:B2`.
+
+## E2E físico — Test 47
+
+Workflow implementado:
 
 ```text
-run: 33701760211
-job: 100482362478
-resultado: HARNESS-FAIL
-```
-
-El guard de producción, checkout de `Audit` y verificación del helper pasaron. La auditoría abortó con `J129-PROD-VALIDATION-FAIL: release package missing` antes de auditar la PBX.
-
-Causa confirmada: el helper `/usr/local/sbin/avaya-j129-prod-validation` exige por diseño el paquete congelado bajo `_release_checkout/release/j129-v0.1.0`, pero la primera versión de workflow 46 no había hecho checkout de la release exacta en esa ruta.
-
-Esto se clasifica como fallo del harness, no fallo de la central ni de la release. No hubo mutaciones en producción.
-
-Corrección aplicada en rama `Audit`:
-
-```text
-commit: 6bdc195bd0f6d5ef396a78fc437f9145d7209c1b
-```
-
-El workflow 46 ahora hace checkout explícito del SHA congelado `74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3` hacia `_release_checkout` antes de invocar el helper.
-
-Siguiente ejecución recomendada:
-
-```text
-Branch: Audit
-confirm: AUDIT-PROD-J129
-mac: vacío
-```
-
-Primero se cerrará la auditoría general. Después se repetirá/expandirá la validación per-MAC con la MAC del J129 físico confirmado si hace falta.
-
-## E2E físico reservado
-
-```text
+.github/workflows/prod-j129-physical-call-e2e.yml
 47 | J129 Production | Physical Call | Controlled E2E
 ```
 
-La prueba 47 queda reservada para una llamada controlada Asterisk -> J129 y confirmación física de timbrado, answer y audio. No debe improvisarse mediante comandos genéricos ni ampliando sudo. Para automatizarla desde GitHub habrá que diseñar primero un helper privilegiado mínimo con validación estricta de peer/extensión y confirmación explícita.
+Tiene dos modos:
+
+```text
+preflight  -> no origina llamada; valida acceso del runner a Asterisk CLI y disponibilidad de logs
+call       -> valida peer, eleva verbose temporalmente, activa SIP debug específico, RTP debug por IP si se indica, origina SIP/<ext> con Playback hello-world, captura evidencia y siempre desactiva debug/restaura verbose mediante trap
+```
+
+El workflow no concede `sudo asterisk` genérico. Primero debe ejecutarse `preflight` en rama `Audit` con confirmación `PREFLIGHT-PROD-J129-CALL`. Si el runner no puede acceder directamente al socket CLI, la prueba debe fallar sin originar llamada y se decidirá un helper mínimo privilegiado.
+
+La fase `call` requiere confirmación `CALL-PROD-J129`, extensión numérica explícita y, opcionalmente, IP del J129 para RTP debug específico. Después del run sigue siendo obligatoria confirmación humana de timbrado, answer y audio.
 
 ## Discovery inter-VLAN — limitación confirmada
 
 El scanner stock `/usr/share/issabel/privileged/detect_endpoints` solo procesa endpoints cuando nmap entrega `MAC Address:`. En misma VLAN/L2 discovery funciona; inter-VLAN/L3 responde host pero no hay MAC L2. No es fallo v0.1.0. Sprint 1 de v0.2.0: `docs/j129-v0.2.0-sprint-1.md`.
 
 ## Seguridad de runners
-
-Regla obligatoria:
 
 ```yaml
 # LAB
@@ -128,8 +104,8 @@ Fuente autoritativa: `docs/j129-test-registry.md`.
 ```text
 00–44 pruebas históricas/workflows
 45 validación física de producción — PASS
-46 auditoría post-implementación read-only — primer run HARNESS-FAIL, workflow corregido
-47 llamada física controlada E2E — RESERVADA
+46 auditoría post-implementación read-only — PASS run 33702529808
+47 llamada física controlada E2E — IMPLEMENTADA / pendiente preflight
 ```
 
 Próximo ID disponible: `48`.
@@ -142,7 +118,6 @@ Próximo ID disponible: `48`.
 - Discovery inter-VLAN stock requiere MAC visible en L2.
 - Menú local e idioma español fuera de v0.1.0.
 - Completar normalización de nombres visibles y auditoría global de runners.
-- Reejecutar 46 corregida antes de diseñar/ejecutar 47.
 
 ## Reglas para agentes
 
@@ -153,11 +128,10 @@ Antes de terminar cualquier sesión actualizar `CONTEXT.md`, `docs/agent-log.md`
 ## Próxima secuencia
 
 ```text
-1. reejecutar workflow 46 corregido en rama Audit, sin MAC
-2. revisar marcadores reales del run 46
-3. si 46 queda verde, identificar/verificar la MAC física si se desea validación per-MAC
-4. diseñar helper mínimo para prueba 47
-5. ejecutar 47 solo con una persona físicamente junto al J129
-6. terminar normalización de workflows/runners
-7. cerrar v0.1.0 y luego iniciar v0.2.0
+1. ejecutar workflow 47 en rama Audit, mode=preflight, confirm=PREFLIGHT-PROD-J129-CALL
+2. revisar si github-runner-prod puede acceder a Asterisk CLI y al full log sin privilegios adicionales
+3. si preflight PASS, ejecutar 47 mode=call solo cuando haya alguien junto al J129
+4. confirmar físicamente ring/answer/audio y revisar artifact sanitizado
+5. terminar normalización de workflows/runners
+6. cerrar v0.1.0 y luego iniciar v0.2.0
 ```
