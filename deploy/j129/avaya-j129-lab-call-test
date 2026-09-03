@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ACTION="${1:-}"
-PHONE_IP="${2:-192.168.1.171}"
+REQUESTED_EXTENSION="${2:-}"
 AMPORTAL_CONF="/etc/amportal.conf"
 EXPECTED_RUNNER="github-runner"
 
@@ -10,8 +10,11 @@ fail() { echo "J129-LAB-CALL-FAIL=$1" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || fail "helper must run as root"
 [ "${SUDO_USER:-}" = "$EXPECTED_RUNNER" ] || fail "unexpected sudo caller"
-[[ "$PHONE_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail "invalid phone ip"
 command -v asterisk >/dev/null 2>&1 || fail "asterisk unavailable"
+
+if [ -n "$REQUESTED_EXTENSION" ]; then
+  [[ "$REQUESTED_EXTENSION" =~ ^[0-9]{2,8}$ ]] || fail "invalid extension"
+fi
 
 read_amportal_value() { sed -n "s/^${1}=//p" "$AMPORTAL_CONF" | head -n 1; }
 get_account() {
@@ -26,14 +29,30 @@ get_account() {
   account="$(mysql --defaults-extra-file="$f" --batch --skip-column-names endpointconfig -e "SELECT ea.account FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D' ORDER BY ea.priority LIMIT 1;" 2>/dev/null || true)"
   rm -f "$f"; trap - RETURN
   [[ "$account" =~ ^[0-9]{2,8}$ ]] || fail "J129 account unavailable or invalid"
+  if [ -n "$REQUESTED_EXTENSION" ] && [ "$REQUESTED_EXTENSION" != "$account" ]; then
+    fail "requested extension does not match Endpoint Configurator account"
+  fi
   printf '%s' "$account"
 }
 
+get_peer_ip() {
+  local account="$1" peer ip
+  peer="$(asterisk -rx "sip show peer $account" 2>/dev/null || true)"
+  ip="$(printf '%s\n' "$peer" | sed -nE 's/^[[:space:]]*Addr->IP[[:space:]]*:[[:space:]]*([^:[:space:]]+).*/\1/p' | head -n 1)"
+  if ! [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+    ip="$(asterisk -rx 'sip show peers' 2>/dev/null | awk -v a="$account" '$1 ~ ("^" a "(/|$)") {print $2; exit}')"
+  fi
+  [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail "peer has no registered IPv4 address"
+  printf '%s' "$ip"
+}
+
 peer_check() {
-  local account="$1" peers
-  peers="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
-  printf '%s\n' "$peers" | grep -E "(^|[[:space:]])${account}(/|[[:space:]])" | grep -F "$PHONE_IP" >/dev/null || fail "peer not ready at expected IP"
-  echo "J129-LAB-CALL-PEER-READY-PASS extension=$account ip=$PHONE_IP"
+  local account="$1" ip status
+  ip="$(get_peer_ip "$account")"
+  status="$(asterisk -rx 'sip show peers' 2>/dev/null | awk -v a="$account" '$1 ~ ("^" a "(/|$)") {for (i=1;i<=NF;i++) if ($i ~ /^(OK|UNKNOWN|UNREACHABLE)$/) {print $i; exit}}')"
+  [ "$status" = "OK" ] || fail "peer not ready"
+  echo "J129-LAB-CALL-PEER-READY-PASS extension=$account ip=$ip"
+  printf '%s' "$ip"
 }
 
 cleanup() {
@@ -47,17 +66,20 @@ case "$ACTION" in
   preflight)
     account="$(get_account)"
     asterisk -rx 'core show version' | head -n 1
-    peer_check "$account"
-    echo "J129-LAB-CALL-PREFLIGHT-PASS extension=$account ip=$PHONE_IP"
+    ip="$(peer_check "$account" | tee /dev/stderr | tail -n 1)"
+    echo "J129-LAB-CALL-PREFLIGHT-PASS extension=$account ip=$ip"
     ;;
   call)
     account="$(get_account)"
-    peer_check "$account"
+    peer_output="$(peer_check "$account")"
+    printf '%s\n' "$peer_output"
+    ip="$(printf '%s\n' "$peer_output" | sed -nE 's/.* ip=(([0-9]{1,3}\.){3}[0-9]{1,3}).*/\1/p' | tail -n 1)"
+    [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail "unable to resolve peer ip"
     trap cleanup EXIT INT TERM
     asterisk -rx 'core set verbose 10' >/dev/null
-    asterisk -rx "sip set debug ip $PHONE_IP" >/dev/null
-    asterisk -rx "rtp set debug ip $PHONE_IP" >/dev/null 2>&1 || true
-    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$PHONE_IP"
+    asterisk -rx "sip set debug ip $ip" >/dev/null
+    asterisk -rx "rtp set debug ip $ip" >/dev/null 2>&1 || true
+    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip"
     asterisk -rx "channel originate SIP/$account application Playback hello-world" >/dev/null || fail "originate command failed"
     echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS'
     sleep 3
@@ -70,7 +92,7 @@ case "$ACTION" in
     cleanup
     ;;
   *)
-    echo "Uso: $0 {preflight|call|cleanup} [phone_ip]" >&2
+    echo "Uso: $0 {preflight|call|cleanup} [extension]" >&2
     exit 2
     ;;
 esac
