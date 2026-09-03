@@ -63,7 +63,8 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 44 | `lab-j129-web-fingerprint-audit.yml` | `44 | Issabel Lab | J129 Web Fingerprint | Audit` | Fingerprint web |
 | 45 | `manual-production-physical` | `45 | Production | J129 Physical Validation | Registration & Operation` | `PRODUCTION-PHYSICAL-PASS`: J129 registró y operador confirmó funcionamiento correcto |
 | 46 | `prod-j129-v010-end-to-end-audit.yml` | `46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit` | `PRODUCTION-END-TO-END-SERVER-AUDIT-PASS`, run 33702529808; release/DB/provisioning/Apache/HTTP/per-MAC PASS |
-| 47 | `prod-j129-physical-call-e2e.yml` | `47 | J129 Production | Physical Call | Controlled E2E` | Preflight run 33703875115 confirmó que `github-runner-prod` no accede al socket Asterisk sin privilegio. Workflow actualizado para usar helper root-owned restringido `avaya-j129-prod-call-test`; pendiente instalación manual del helper+sudoers y re-preflight. |
+| 47 | `prod-j129-physical-call-e2e.yml` | `47 | J129 Production | Physical Call | Controlled E2E` | CERRADA para v0.1.0. Preflight PASS run 33710642058. Llamada automatizada PASS run 33711068591: peer 4455 READY, J129 `10.3.40.32` respondió `100 Trying` y `180 Ringing`, User-Agent/MAC confirmados, cleanup PASS. `answer/audio` físico no probado por ausencia de operador junto al teléfono; no se afirma nuevo `PRODUCTION-PHYSICAL-PASS` a partir de este run. |
+| 48 | `planned-v020-lab-remote-originated-call` | `48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe` | RESERVADA para v0.2.0. Investigar en LAB si el J129 puede originar/controlar remotamente una llamada real hacia otra extensión y distinguirla de una llamada originada por Asterisk. Repetir primero en LAB; producción solo después de evidencia y control de riesgos. `NOT-TESTED`. |
 
 ## Reglas de runners
 
@@ -95,4 +96,4 @@ No se permite un workflow LAB con selector genérico que también pueda ser sati
 
 La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y validaciones de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
 
-Próximo ID disponible: `48`.
+Próximo ID disponible: `49`.
