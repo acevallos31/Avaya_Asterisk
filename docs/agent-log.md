@@ -11,6 +11,7 @@ LAB-INTEGRATION-PASS
 LAB-FIX-PASS
 PHYSICAL-J129-PASS
 INFRA-BLOCKED
+HARNESS-FAIL
 RELEASE-PASS
 PRODUCTION-SERVER-PASS
 PRODUCTION-PHYSICAL-PASS
@@ -66,41 +67,51 @@ Evidencia del operador: el J129 registró y funciona correctamente.
 
 ## 2026-09-02 — OpenAI GPT-5.6 Sol — Auditoría post-implementación preparada
 
-### Objetivo
-
-El operador indicó que no tiene acceso interactivo a `cei-pbx02` en este momento y solicitó primero una auditoría remota de la central y después una prueba E2E física.
-
 ### 46 — End-to-End Read-Only Audit
 
-Creado workflow:
+Workflow:
 
 ```text
 .github/workflows/prod-j129-v010-end-to-end-audit.yml
 46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
 ```
 
-Se publicó en `main` para visibilidad de Actions y en `Audit` para ejecución. Guard obligatorio: rama `Audit`, runner `cei-pbx02-j129-production`, usuario `github-runner-prod`, confirmación `AUDIT-PROD-J129`.
+Guard obligatorio: rama `Audit`, runner `cei-pbx02-j129-production`, usuario `github-runner-prod`, confirmación `AUDIT-PROD-J129`.
 
-La prueba reutiliza el helper privilegiado restringido ya instalado, sin ampliar sudo, y valida read-only:
+La prueba reutiliza el helper privilegiado restringido ya instalado, sin ampliar sudo. No origina llamadas, no reinicia teléfonos y no modifica DB/configuración.
 
-```text
-paquete congelado
-contrato DB J129
-Apache syntax
-J100Supgrade.txt
-46xxsettings.txt
-<mac>.txt si se proporciona MAC
-HTTP provisioning
-verify oficial de release instalada
-```
-
-No origina llamadas, no reinicia teléfonos y no modifica DB/configuración.
-
-Estado actual:
+### Primer run — HARNESS-FAIL
 
 ```text
-46 PREPARADA / NOT-TESTED
+run: 33701760211
+job: 100482362478
+resultado: HARNESS-FAIL
 ```
+
+El guard de producción, checkout de `Audit` y verificación del helper pasaron. La primera auditoría real abortó con:
+
+```text
+J129-PROD-VALIDATION-FAIL: release package missing
+```
+
+Causa: el helper restringido valida deliberadamente el paquete congelado en `_release_checkout/release/j129-v0.1.0`, pero la primera versión del workflow 46 no hacía checkout de la release exacta a `_release_checkout`.
+
+Clasificación correcta: fallo de harness/workflow, no fallo de PBX ni de release. El helper abortó antes de ejecutar la auditoría de la central y no hubo mutaciones en producción.
+
+Corrección aplicada en `Audit`:
+
+```text
+commit: 6bdc195bd0f6d5ef396a78fc437f9145d7209c1b
+```
+
+Se añadió checkout explícito de la release congelada exacta:
+
+```text
+74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
+-> _release_checkout
+```
+
+Siguiente paso: lanzar un nuevo workflow 46 en rama `Audit`, con `confirm=AUDIT-PROD-J129`. Para aislar primero la auditoría general, dejar `mac` vacío; la validación per-MAC se ejecutará después con la MAC del J129 físico confirmado.
 
 ### 47 — Physical Call Controlled E2E
 
@@ -110,17 +121,4 @@ Reservada:
 47 | J129 Production | Physical Call | Controlled E2E
 ```
 
-No se implementó todavía porque el helper actual no expone una acción limitada para originar llamadas. No se ampliará sudo ni se usará un comando arbitrario. Después de que 46 pase, se diseñará un helper mínimo que solo permita la operación necesaria con validación estricta de peer/extensión y confirmación explícita. La ejecución 47 requiere además una persona físicamente junto al J129 para confirmar timbrado, contestación y audio.
-
-### Archivos actualizados
-
-```text
-.github/workflows/prod-j129-v010-end-to-end-audit.yml
-docs/j129-test-registry.md
-CONTEXT.md
-docs/agent-log.md
-```
-
-### Siguiente paso
-
-Ejecutar workflow 46 desde GitHub Actions en rama `Audit`, con confirmación `AUDIT-PROD-J129`; agregar MAC del J129 si está disponible. Revisar el run antes de diseñar 47.
+No se implementará hasta que 46 quede verde. Para automatizarla desde GitHub se diseñará un helper mínimo que solo permita la operación necesaria con validación estricta de peer/extensión y confirmación explícita.
