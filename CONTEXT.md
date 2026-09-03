@@ -63,27 +63,34 @@ Validó paquete congelado, DB, Apache, provisioning global, HTTP, verify oficial
 
 ## E2E físico — Test 47
 
-Workflow implementado:
+Workflow:
 
 ```text
 .github/workflows/prod-j129-physical-call-e2e.yml
 47 | J129 Production | Physical Call | Controlled E2E
 ```
 
-Tiene dos modos:
+Primer preflight:
 
 ```text
-preflight  -> no origina llamada; valida acceso del runner a Asterisk CLI y disponibilidad de logs
-call       -> valida peer, eleva verbose temporalmente, activa SIP debug específico, RTP debug por IP si se indica, origina SIP/<ext> con Playback hello-world, captura evidencia y siempre desactiva debug/restaura verbose mediante trap
+run: 33703875115
+resultado: INFRA-BLOCKED
+causa: github-runner-prod no puede abrir /var/run/asterisk/asterisk.ctl
 ```
 
-El workflow no concede `sudo asterisk` genérico. Primero debe ejecutarse `preflight` en rama `Audit` con confirmación `PREFLIGHT-PROD-J129-CALL`. Si el runner no puede acceder directamente al socket CLI, la prueba debe fallar sin originar llamada y se decidirá un helper mínimo privilegiado.
+El guard de producción pasó y no se originó ninguna llamada. El runner no tendrá `sudo asterisk` genérico.
 
-La fase `call` requiere confirmación `CALL-PROD-J129`, extensión numérica explícita y, opcionalmente, IP del J129 para RTP debug específico. Después del run sigue siendo obligatoria confirmación humana de timbrado, answer y audio.
+Se preparó un helper privilegiado mínimo y root-owned:
 
-## Discovery inter-VLAN — limitación confirmada
+```text
+deploy/j129/avaya-j129-prod-call-test
+deploy/j129/avaya-j129-prod-call-test.sudoers
+instalación destino: /usr/local/sbin/avaya-j129-prod-call-test
+```
 
-El scanner stock `/usr/share/issabel/privileged/detect_endpoints` solo procesa endpoints cuando nmap entrega `MAC Address:`. En misma VLAN/L2 discovery funciona; inter-VLAN/L3 responde host pero no hay MAC L2. No es fallo v0.1.0. Sprint 1 de v0.2.0: `docs/j129-v0.2.0-sprint-1.md`.
+El helper solo admite `preflight`, `peer EXT`, `call EXT [IP]` y `cleanup`; valida caller, host, extensión e IP. Durante `call` eleva verbose a 10, habilita SIP debug del peer y RTP debug por IP opcional, origina `SIP/<ext> -> Playback hello-world`, captura evidencia sanitizada y restaura SIP/RTP debug + verbose 3 aun ante fallo.
+
+El workflow 47 fue actualizado en `Audit` y `main` para invocar exclusivamente ese helper mediante sudo. No puede desplegarse desde el runner actual porque eso requeriría privilegios que deliberadamente no tiene. La instalación del helper y su sudoers requiere una intervención root única cuando haya acceso administrativo a `cei-pbx02`.
 
 ## Seguridad de runners
 
@@ -95,7 +102,11 @@ runs-on: [self-hosted, Linux, X64, issabel-lab]
 runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
 ```
 
-Los selectores genéricos previamente detectados en 06, 26 y 29 fueron corregidos. Falta auditoría final global de workflows.
+No se permite `sudo asterisk` ni shell root genérico. Las excepciones privilegiadas de producción deben ser helpers root-owned, allowlisted y con validación estricta de caller/host/argumentos.
+
+## Discovery inter-VLAN — limitación confirmada
+
+El scanner stock `/usr/share/issabel/privileged/detect_endpoints` solo procesa endpoints cuando nmap entrega `MAC Address:`. En misma VLAN/L2 discovery funciona; inter-VLAN/L3 responde host pero no hay MAC L2. No es fallo v0.1.0. Sprint 1 de v0.2.0: `docs/j129-v0.2.0-sprint-1.md`.
 
 ## Numeración
 
@@ -105,33 +116,18 @@ Fuente autoritativa: `docs/j129-test-registry.md`.
 00–44 pruebas históricas/workflows
 45 validación física de producción — PASS
 46 auditoría post-implementación read-only — PASS run 33702529808
-47 llamada física controlada E2E — IMPLEMENTADA / pendiente preflight
+47 llamada física controlada E2E — INFRA-BLOCKED hasta instalar helper mínimo
 ```
 
 Próximo ID disponible: `48`.
 
-## Bugs y deuda
-
-- `BUG-EC-001`: `Registered at` de GUI puede quedar stale; Asterisk es autoritativo.
-- `BUG-J129-002`: multicuenta no soportada en v1.
-- `BUG-J129-004`: identidad SIP puede persistir localmente al retirar provisioning.
-- Discovery inter-VLAN stock requiere MAC visible en L2.
-- Menú local e idioma español fuera de v0.1.0.
-- Completar normalización de nombres visibles y auditoría global de runners.
-
-## Reglas para agentes
-
-Leer antes de modificar: `AGENTS.md`, `CONTEXT.md`, `docs/j129-test-registry.md`, validaciones/research notes, `docs/agent-log.md`, README de release y runs/commits recientes.
-
-Antes de terminar cualquier sesión actualizar `CONTEXT.md`, `docs/agent-log.md`, el test registry si cambian pruebas/workflows y `AGENTS.md` si cambia gobernanza/arquitectura/seguridad. Registrar objetivo, cambios, archivos, pruebas/runs, resultado, riesgos, estado y siguiente paso. Nunca guardar secretos.
-
 ## Próxima secuencia
 
 ```text
-1. ejecutar workflow 47 en rama Audit, mode=preflight, confirm=PREFLIGHT-PROD-J129-CALL
-2. revisar si github-runner-prod puede acceder a Asterisk CLI y al full log sin privilegios adicionales
-3. si preflight PASS, ejecutar 47 mode=call solo cuando haya alguien junto al J129
-4. confirmar físicamente ring/answer/audio y revisar artifact sanitizado
-5. terminar normalización de workflows/runners
-6. cerrar v0.1.0 y luego iniciar v0.2.0
+1. con acceso root a cei-pbx02, instalar avaya-j129-prod-call-test como root:root 0755
+2. instalar sudoers mínimo como root:root 0440 y validar con visudo -cf
+3. reejecutar workflow 47 branch=Audit mode=preflight confirm=PREFLIGHT-PROD-J129-CALL
+4. si preflight PASS, ejecutar mode=call cuando haya alguien junto al J129
+5. confirmar físicamente ring/answer/audio y revisar artifact sanitizado
+6. terminar normalización de workflows/runners
 ```
