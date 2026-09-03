@@ -4,9 +4,18 @@
 
 ## Objetivo
 
-Integrar Avaya J129 al Endpoint Configurator estándar de Issabel 5 sin UI paralela para credenciales SIP y sin modificar el core de Issabel.
+Integrar teléfonos Avaya al Endpoint Configurator estándar de Issabel 5 sin UI paralela para credenciales SIP y sin modificar innecesariamente el core de Issabel.
+
+La primera implementación estable es Avaya J129 v0.1.0. La línea v0.2.x amplía discovery y capacidades configurables por modelo antes de incorporar otros modelos/fabricantes.
 
 Flujo esperado:
+
+```text
+Discovery -> fabricante/modelo -> capabilities -> Accounts estándar -> Apply Issabel
+-> Extension/setAccountList -> vendor -> provisioning -> SIP
+```
+
+Para J129 v0.1.0:
 
 ```text
 Discovery -> Avaya/J129 -> Accounts estándar -> Apply Issabel
@@ -19,8 +28,9 @@ Discovery -> Avaya/J129 -> Accounts estándar -> Apply Issabel
 - `main`: referencia y workflow definitions visibles en GitHub Actions. No usar para pruebas mutantes LAB.
 - `Audit`: trabajo, auditoría, harness, helpers, documentación y validaciones.
 - `release/j129-v0.1.0`: distribución limpia y congelada de v0.1.0.
+- Las ramas `feature/<fabricante>-<modelo>-<versión>` son temporales para nuevas líneas funcionales y deben integrarse después de validación; no mantener forks permanentes por modelo.
 - No hacer merge completo de `Audit` a `main` ni a release.
-- Todo workflow mutante LAB debe abortar si `GITHUB_REF_NAME != Audit`.
+- Todo workflow mutante LAB debe abortar si `GITHUB_REF_NAME != Audit` o la rama LAB autorizada correspondiente.
 
 ## Arquitectura obligatoria
 
@@ -35,7 +45,7 @@ Extension.py
 EndpointManager_Standard.class.php
 ```
 
-Overlay validado:
+Overlay validado J129 v0.1.0:
 
 ```text
 deploy/j129/usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
@@ -49,13 +59,19 @@ Release autocontenida:
 release/j129-v0.1.0/payload/
 ```
 
+### Regla para v0.2.x y modelos futuros
+
+Las diferencias de modelo deben concentrarse en capabilities/plantillas y lógica vendor reutilizable. Evitar duplicar lógica común por cada teléfono.
+
+El discovery inter-VLAN no se resuelve dentro de `Avaya.py`; debe ser una capacidad de inventario/discovery complementaria y reutilizable por otros fabricantes.
+
 ## Seguridad
 
 Nunca almacenar ni imprimir secretos SIP reales, contraseña Web Admin, cookies, XToken, nonce, hashes de autenticación, tokens, claves privadas o credenciales de DB.
 
 - `J129_WEB_PASSWORD` solo como GitHub Repository Secret.
-- No ampliar sudo del runner.
-- No subir Phone Reports brutos.
+- No ampliar sudo del runner de forma genérica.
+- No subir Phone Reports brutos ni trazas SIP con secretos.
 - No ejecutar jobs LAB sobre producción.
 - No usar selectores genéricos `runs-on: self-hosted` o `[self-hosted, Linux, X64]` para LAB.
 
@@ -71,7 +87,7 @@ runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
 
 El repositorio es público: cualquier workflow que pueda caer en un runner de producción se trata como riesgo crítico.
 
-## J129 v1
+## J129 v0.1.0
 
 ```text
 max_accounts=1
@@ -79,9 +95,7 @@ max_sip_accounts=1
 max_iax2_accounts=0
 ```
 
-Multicuenta queda fuera de v0.1.0.
-
-## Estado de release y producción — 2026-09-02
+Multicuenta queda fuera de v0.1.0 y no cambia hasta una release que lo declare explícitamente.
 
 Release exacta congelada:
 
@@ -89,40 +103,55 @@ Release exacta congelada:
 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
 ```
 
-Producción:
+Estado de producción:
 
 ```text
-Host: cei-pbx02
-PBX: 10.3.40.2
-Runner: cei-pbx02-j129-production
-Usuario runner: github-runner-prod
+15 | server validation                    PASS
+45 | physical registration/operation      PRODUCTION-PHYSICAL-PASS
+46 | read-only end-to-end server audit    PASS
+47 | controlled Asterisk -> J129 call     automated signalling PASS
 ```
 
-Validación automática de producción completada:
+En Test 47 se comprobó `100 Trying` y `180 Ringing`; answer/audio de ese run quedaron `NOT-TESTED` porque no había operador junto al teléfono. No reinterpretar esto como evidencia física adicional.
+
+## J129 v0.2.x — prioridad
+
+Fuente de planificación: `docs/j129-v0.2.0-sprint-1.md`.
+
+Sprint 1 incluye obligatoriamente:
+
+1. discovery/importación inter-VLAN mediante fuente confiable `IP + MAC`, sin reemplazar el discovery local stock;
+2. idempotencia y manejo de colisiones IP/MAC;
+3. diseño de capabilities por modelo;
+4. comenzar opciones configurables J129, priorizando idioma/locale y habilitar/deshabilitar Web UI;
+5. investigar/documentar softkeys/menú, conferencia tripartita, presencia/BLF, TLS/certificados, background/branding, 3PCC/Auto Answer, codecs/DTMF/QoS;
+6. mantener scripts reutilizables fuera de workflows cuando sirvan para operación futura.
+
+Test 48 está reservado para LAB:
 
 ```text
-15 / audit                PASS
-15 / preflight            PASS
-15 / verify               PASS
-15 / install-idempotency  PASS
+48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe
 ```
 
-Runs de cierre:
-
-```text
-audit:               33692817597
-preflight:           33694718272
-verify:              33695299816
-install-idempotency: 33695636455
-```
-
-La validación server-side no equivale a `PHYSICAL-J129-PASS`. Aún se requiere prueba física controlada del teléfono en producción.
+La prueba 48 se retomará después de cerrar la actualización documental y al volver al ambiente de laboratorio.
 
 ## Discovery inter-VLAN
 
-Limitación confirmada del scanner stock de Issabel: `detect_endpoints` usa `nmap -sP` y solo procesa hosts cuando nmap entrega `MAC Address:`. En otra VLAN/ruta L3 el PBX ve el host pero no la MAC.
+Limitación confirmada del scanner stock de Issabel: `detect_endpoints` usa Nmap y solo procesa hosts cuando Nmap entrega `MAC Address:`. En otra VLAN/ruta L3 la PBX puede ver el host pero no su MAC L2.
 
-No modificar core para resolverlo en v0.1.0. Sprint 1 de v0.2.0 documentado en `docs/j129-v0.2.0-sprint-1.md`.
+No modificar core para resolverlo. El diseño de v0.2.x debe aceptar inicialmente `IP + MAC` confiables y permitir fuentes futuras como ARP/DHCP/router/API.
+
+## Scripts operativos
+
+`scripts/` es catálogo permanente para automatización de bootstrap, deploy, diagnóstico, mantenimiento, seguridad y testing. No limitarlo a pruebas.
+
+Roadmap de gestión central de PBX:
+
+```text
+docs/pbx-fleet-control-roadmap.md
+```
+
+Ese proyecto queda después de optimizar Endpoint Configurator; los scripts reutilizables creados ahora deben favorecer esa evolución futura.
 
 ## Numeración obligatoria de pruebas
 
@@ -132,14 +161,6 @@ Todo workflow que sea prueba, auditoría, probe, smoke, preflight, deploy contro
 
 ```text
 NN | Entorno | Componente | Propósito
-```
-
-Ejemplos:
-
-```text
-07 | Issabel Lab | J129 Rescan | Idempotency Audit
-13 | Issabel Lab | J129 Release Package | Smoke Test
-15 | J129 Production | v0.1.0 Server Validation
 ```
 
 Reglas:
@@ -163,11 +184,12 @@ Leer en este orden:
 1. `AGENTS.md`
 2. `CONTEXT.md`
 3. `docs/j129-test-registry.md`
-4. `docs/j129-lab-validation.md`
-5. `docs/j129-research-notes.md`
-6. `docs/agent-log.md`
-7. README de release cuando aplique
-8. commits/runs recientes de la rama que se vaya a modificar
+4. `docs/j129-v0.2.0-sprint-1.md` cuando el trabajo sea v0.2.x
+5. `docs/j129-lab-validation.md`
+6. `docs/j129-research-notes.md`
+7. `docs/agent-log.md`
+8. README de release cuando aplique
+9. commits/runs recientes de la rama que se vaya a modificar
 
 ### Durante el trabajo
 
@@ -185,29 +207,11 @@ Actualizar como mínimo:
 3. `docs/j129-test-registry.md`: si creó, renombró, retiró o cambió una prueba/workflow.
 4. `AGENTS.md`: solo si cambió una regla de arquitectura, seguridad, proceso o gobernanza.
 
-El agente debe dejar una entrada de handoff con:
-
-```text
-fecha
-agente/modelo si se conoce
-objetivo recibido
-cambios realizados
-archivos tocados
-pruebas/runs y resultado
-riesgos o deuda
-estado final
-siguiente paso exacto
-```
-
 No escribir secretos en el log.
-
-### Regla de continuidad
-
-Si un agente encuentra `CONTEXT.md` o `docs/agent-log.md` desactualizados respecto al código/runs, debe corregirlos en el mismo trabajo antes de continuar con cambios no urgentes.
 
 ## Estados de evidencia
 
-Usar únicamente etiquetas claras:
+Usar etiquetas claras:
 
 ```text
 STATIC-PASS
@@ -216,28 +220,38 @@ LAB-INTEGRATION-PASS
 LAB-FIX-PASS
 PHYSICAL-J129-PASS
 INFRA-BLOCKED
+HARNESS-FAIL
 RELEASE-PASS
 PRODUCTION-SERVER-PASS
 PRODUCTION-PHYSICAL-PASS
+PRODUCTION-END-TO-END-SERVER-AUDIT-PASS
 NOT-TESTED
 ```
 
-No afirmar `PHYSICAL-J129-PASS` o `PRODUCTION-PHYSICAL-PASS` con evidencia únicamente server-side.
+No afirmar evidencia física con resultados únicamente server-side.
 
 ## Bugs / deuda abierta
 
 - `BUG-EC-001`: GUI `Registered at` puede quedar obsoleta; Asterisk es autoritativo.
-- `BUG-J129-002`: multicuenta no soportada en v1.
+- `BUG-J129-002`: multicuenta no soportada en v0.1.0.
 - `BUG-J129-004`: identidad SIP puede persistir localmente al retirar provisioning.
-- Discovery inter-VLAN stock requiere MAC L2 visible.
-- Menú local e idioma español fuera de v0.1.0.
-- Reducir hardcodes/helpers históricos después del cierre físico de producción.
+- Discovery inter-VLAN stock requiere MAC L2 visible; Sprint 1 v0.2.x debe resolver importación complementaria.
+- Idioma español/selección de locale pendiente.
+- Softkeys y menú local pendientes.
+- Toggle Web UI pendiente.
+- Conferencia tripartita pendiente de investigación/validación.
+- Presencia/BLF con Asterisk pendiente.
+- TLS/certificados pendiente.
+- Background/branding pendiente.
+- 3PCC/Auto Answer pendiente; Test 48 reservado.
+- Reducir hardcodes/helpers históricos y evolucionar a capabilities por modelo.
 - Mantener separación estricta LAB/producción en self-hosted runners.
 
 ## Próximo paso
 
-1. Terminar normalización de nombres/selectores de workflows según `docs/j129-test-registry.md`.
-2. Confirmar que ningún workflow LAB puede seleccionar el runner de producción.
-3. Ejecutar prueba física controlada de un J129 localizable en producción.
-4. Validar discovery -> account -> Apply -> HTTP provisioning -> SIP -> llamadas.
-5. Documentar cada resultado antes de iniciar el siguiente cambio funcional.
+1. Mantener v0.1.0 congelada.
+2. Preparar rama feature de J129 v0.2.x desde la línea de trabajo validada cuando se inicie implementación.
+3. Implementar primero discovery inter-VLAN + base de capabilities según Sprint 1.
+4. Continuar idioma/Web UI y luego el resto de capacidades avanzadas según evidencia.
+5. Retomar Test 48 de llamada remota en LAB después de esta planificación/documentación.
+6. Incorporar nuevos modelos Avaya mediante ramas feature temporales y luego otros fabricantes sin duplicar arquitectura.
