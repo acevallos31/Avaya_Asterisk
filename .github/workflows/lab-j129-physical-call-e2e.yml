@@ -48,14 +48,23 @@ jobs:
           fi
           echo 'J129-LAB-CALL-GUARD-PASS'
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sincronizar helpers restringidos
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-helper-sync' >/dev/null
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          grep -F 'HELPER-SYNC-ALL-PASS' <(sudo -n /usr/local/sbin/avaya-j129-helper-sync)
+
       - name: Verificar helper restringido
         shell: bash
         run: |
           set -euo pipefail
-          test -x /usr/local/sbin/avaya-j129-lab-call-test || {
-            echo 'J129-LAB-CALL-HELPER-NOT-INSTALLED'
-            exit 1
-          }
+          test -x /usr/local/sbin/avaya-j129-lab-call-test
           test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-lab-call-test)" = 'root:root:755'
           sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-lab-call-test' >/dev/null
           echo 'J129-LAB-CALL-HELPER-GUARD-PASS'
