@@ -99,6 +99,9 @@ jobs:
           set -euo pipefail
           sudo -n /usr/local/sbin/avaya-j129-lab-call-test call '${{ inputs.extension }}' '${{ inputs.mac }}' '${{ inputs.ip }}' \
             | tee -a "$RUNNER_TEMP/j129-lab-call-e2e.log"
+          grep -F 'J129-LAB-CALL-QUEUED-PASS' "$RUNNER_TEMP/j129-lab-call-e2e.log"
+          grep -F 'J129-LAB-CALL-ANSWER-PASS' "$RUNNER_TEMP/j129-lab-call-e2e.log"
+          grep -F 'J129-LAB-CALL-ECHO-ACTIVE-PASS' "$RUNNER_TEMP/j129-lab-call-e2e.log"
           grep -F 'J129-LAB-CALL-AUTOMATED-PHASE-PASS' "$RUNNER_TEMP/j129-lab-call-e2e.log"
           grep -F 'J129-LAB-CALL-DEBUG-CLEANUP-DONE' "$RUNNER_TEMP/j129-lab-call-e2e.log"
 
@@ -131,4 +134,4 @@ jobs:
         shell: bash
         run: |
           echo 'J129-LAB-CALL-E2E-AUTOMATED-PASS'
-          echo 'NOTE=Prueba SIP Echo: registrar manualmente timbrado, answer y retorno de audio.'
+          echo 'NOTE=Caller ID "Prueba J129" <9999>; answer detectado; Echo activo 15 s. Confirmar manualmente retorno de voz.'
