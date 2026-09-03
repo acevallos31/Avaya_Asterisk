@@ -77,12 +77,13 @@ case "$ACTION" in
     asterisk -rx 'core set verbose 10' >/dev/null
     asterisk -rx "sip set debug ip $ip" >/dev/null
     asterisk -rx "rtp set debug ip $ip" >/dev/null 2>&1 || true
-    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip"
-    asterisk -rx "channel originate SIP/$account application Playback hello-world" >/dev/null || fail "originate command failed"
-    echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS'
+    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip test=echo"
+    asterisk -rx "channel originate SIP/$account application Echo" >/dev/null || fail "originate command failed"
+    echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS mode=echo'
     sleep 3
     asterisk -rx 'core show channels concise' 2>/dev/null | grep -E "(^|!)SIP/${account}-" | head -n 3 || true
-    echo 'J129-LAB-CALL-AUTOMATED-PHASE-PASS'
+    echo 'J129-LAB-CALL-AUTOMATED-PHASE-PASS mode=echo'
+    echo 'NOTE=Answer the J129, speak, verify your voice returns through Echo, then hang up.'
     cleanup
     trap - EXIT INT TERM
     ;;
