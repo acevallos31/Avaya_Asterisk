@@ -8,42 +8,45 @@ set -euo pipefail
 
 RUNNER_USER="github-runner"
 WORKSPACE="/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk"
-SOURCE="$WORKSPACE/deploy/j129/avaya-j129-lab-deploy"
-DESTINATION="/usr/local/sbin/avaya-j129-lab-deploy"
 
 [ "$(id -u)" -eq 0 ] || {
   echo "ERROR: debe ejecutarse como root" >&2
   exit 1
 }
 
-[ -f "$SOURCE" ] || {
-  echo "ERROR: helper fuente no encontrado" >&2
-  exit 1
+sync_helper() {
+  local source="$1" destination="$2" name="$3" owner tmp
+
+  [ -f "$source" ] || {
+    echo "ERROR: helper fuente no encontrado: $name" >&2
+    exit 1
+  }
+
+  owner="$(stat -c '%U' "$source")"
+  [ "$owner" = "$RUNNER_USER" ] || {
+    echo "ERROR: propietario inesperado del helper fuente $name: $owner" >&2
+    exit 1
+  }
+
+  case "$source" in
+    "$WORKSPACE"/deploy/j129/avaya-j129-lab-deploy|"$WORKSPACE"/deploy/j129/avaya-j129-lab-call-test) ;;
+    *) echo "ERROR: ruta fuente fuera del workspace permitido: $name" >&2; exit 1 ;;
+  esac
+
+  bash -n "$source"
+  tmp="$(mktemp /usr/local/sbin/.${name}.XXXXXX)"
+  install -o root -g root -m 0755 "$source" "$tmp"
+  mv -f "$tmp" "$destination"
+
+  [ "$(stat -c '%U:%G:%a' "$destination")" = "root:root:755" ] || {
+    echo "ERROR: permisos finales inesperados: $name" >&2
+    exit 1
+  }
+  bash -n "$destination"
+  echo "HELPER-SYNC-PASS name=$name"
 }
 
-owner="$(stat -c '%U' "$SOURCE")"
-[ "$owner" = "$RUNNER_USER" ] || {
-  echo "ERROR: propietario inesperado del helper fuente: $owner" >&2
-  exit 1
-}
+sync_helper "$WORKSPACE/deploy/j129/avaya-j129-lab-deploy" "/usr/local/sbin/avaya-j129-lab-deploy" "avaya-j129-lab-deploy"
+sync_helper "$WORKSPACE/deploy/j129/avaya-j129-lab-call-test" "/usr/local/sbin/avaya-j129-lab-call-test" "avaya-j129-lab-call-test"
 
-case "$SOURCE" in
-  "$WORKSPACE"/deploy/j129/avaya-j129-lab-deploy) ;;
-  *) echo "ERROR: ruta fuente fuera del workspace permitido" >&2; exit 1 ;;
-esac
-
-bash -n "$SOURCE"
-
-tmp="$(mktemp /usr/local/sbin/.avaya-j129-lab-deploy.XXXXXX)"
-trap 'rm -f "$tmp"' EXIT
-install -o root -g root -m 0755 "$SOURCE" "$tmp"
-mv -f "$tmp" "$DESTINATION"
-trap - EXIT
-
-[ "$(stat -c '%U:%G:%a' "$DESTINATION")" = "root:root:755" ] || {
-  echo "ERROR: permisos finales inesperados" >&2
-  exit 1
-}
-
-bash -n "$DESTINATION"
-echo "HELPER-SYNC-PASS"
+echo "HELPER-SYNC-ALL-PASS"
