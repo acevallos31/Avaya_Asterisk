@@ -1,3 +1,3 @@
 Defaults:github-runner !requiretty
-Cmnd_Alias J129_LAB_CALL = /usr/local/sbin/avaya-j129-lab-call-test preflight, /usr/local/sbin/avaya-j129-lab-call-test preflight *, /usr/local/sbin/avaya-j129-lab-call-test call, /usr/local/sbin/avaya-j129-lab-call-test call *, /usr/local/sbin/avaya-j129-lab-call-test cleanup, /usr/local/sbin/avaya-j129-lab-call-test cleanup *
+Cmnd_Alias J129_LAB_CALL = /usr/local/sbin/avaya-j129-lab-call-test preflight, /usr/local/sbin/avaya-j129-lab-call-test preflight *, /usr/local/sbin/avaya-j129-lab-call-test call, /usr/local/sbin/avaya-j129-lab-call-test call *, /usr/local/sbin/avaya-j129-lab-call-test remote-preflight *, /usr/local/sbin/avaya-j129-lab-call-test remote-call *, /usr/local/sbin/avaya-j129-lab-call-test ivr-preflight *, /usr/local/sbin/avaya-j129-lab-call-test cleanup, /usr/local/sbin/avaya-j129-lab-call-test cleanup *
 github-runner ALL=(root) NOPASSWD: J129_LAB_CALL
