@@ -9,6 +9,7 @@ Esta carpeta concentra automatizaciones repetibles para preparar servidores Issa
 - Los scripts deben ser idempotentes cuando sea razonable.
 - Producción y LAB deben mantener runners y labels separados.
 - Revisar el contenido antes de ejecutar desde `curl` en producción.
+- Los scripts no serán solo para pruebas: también formarán el catálogo operativo reutilizable para futuras tareas de bootstrap, distribución, diagnóstico, mantenimiento y control de flota de PBX.
 
 ## Scripts disponibles
 
@@ -47,3 +48,33 @@ bash scripts/install-production-runner.sh
 ```
 
 > El token de registro se obtiene en GitHub: Settings -> Actions -> Runners -> New self-hosted runner. Es temporal; nunca debe quedar en documentación, historial o commits.
+
+## Evolución prevista
+
+A medida que crezca el catálogo, separar por propósito:
+
+```text
+scripts/bootstrap/     runners/agentes y preparación inicial
+scripts/deploy/        instalación/actualización de componentes
+scripts/diagnostics/   inventario y diagnóstico read-only
+scripts/maintenance/   backup, restore, limpieza y health checks
+scripts/security/      hardening, sudoers, permisos y runners
+scripts/testing/       utilidades exclusivas de pruebas/LAB
+```
+
+Scripts candidatos siguientes:
+
+```text
+install-lab-runner.sh
+uninstall-runner.sh
+update-runner.sh
+pbx-inventory.sh
+pbx-healthcheck.sh
+backup-before-change.sh
+verify-baseline.sh
+check-runner-security.sh
+install-j129-v010.sh
+rollback-j129-v010.sh
+```
+
+La arquitectura futura para usar estos scripts en toda la flota se documenta en `docs/pbx-fleet-control-roadmap.md`. La prioridad inmediata sigue siendo optimizar Endpoint Configurator antes de construir el controlador central.
