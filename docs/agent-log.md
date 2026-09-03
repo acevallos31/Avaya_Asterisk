@@ -121,7 +121,7 @@ cleanup PASS
 
 No había operador físicamente junto al J129; `answer` y audio quedaron `NOT-TESTED`. La prueba se cierra para v0.1.0 sin promover este run a evidencia física. La validación física previa 45 sigue siendo la evidencia de operación real en producción.
 
-## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 48 reservado para v0.2.0
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Test 48 reservado para v0.2.x
 
 Reservado:
 
@@ -131,6 +131,8 @@ NOT-TESTED
 ```
 
 Objetivo: investigar primero en LAB si el propio J129 puede iniciar/controlar remotamente una llamada hacia otra extensión, diferenciando ese flujo de un originate generado por Asterisk. No se hará en producción hasta tener evidencia LAB y un procedimiento controlado.
+
+Decisión de secuencia actual: después de actualizar documentación/roadmap de v0.2.x, continuar con esta prueba en el ambiente de laboratorio.
 
 ## 2026-09-02 — OpenAI GPT-5.6 Sol — Scripts operativos y roadmap de flota
 
@@ -146,24 +148,47 @@ Visión futura: servidor local de distribución/control para múltiples PBX Issa
 
 Decisión de prioridad: no iniciar todavía el PBX Fleet Controller. Primero continuar la optimización de Endpoint Configurator; mientras tanto, todo procedimiento repetitivo útil debe tender a convertirse en script seguro, versionado e idempotente.
 
-Archivos tocados en este cierre:
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Replanificación J129 v0.2.x Sprint 1
+
+Objetivo recibido: corregir la planificación porque el Sprint 1 ya tenía como requisito principal discovery inter-VLAN y además incorporar las capacidades avanzadas recientemente enumeradas para el J129.
+
+Se actualizó `docs/j129-v0.2.0-sprint-1.md` para dejar como prioridades explícitas:
 
 ```text
-docs/j129-test-registry.md
-docs/pbx-fleet-control-roadmap.md
-scripts/README.md
+discovery/importación inter-VLAN IP+MAC
+idempotencia y colisiones IP/MAC
+capabilities por modelo
+idioma/locale
+Web UI enable/disable
+softkeys/menú
+conferencia tripartita
+presencia/BLF con Asterisk
+SIP TLS/certificados
+background/branding
+Auto Answer/3PCC
+codecs/DTMF/QoS
+```
+
+También se actualizó `AGENTS.md` para que cualquier agente futuro conozca estas prioridades, no intente resolver discovery dentro de `Avaya.py`, y reutilice una arquitectura de capabilities/plantillas para nuevos modelos Avaya y fabricantes futuros.
+
+`CONTEXT.md` quedó alineado con esa secuencia y mantiene `release/j129-v0.1.0` congelada.
+
+Archivos modificados en esta replanificación:
+
+```text
+docs/j129-v0.2.0-sprint-1.md
+AGENTS.md
 CONTEXT.md
 docs/agent-log.md
 ```
 
+El registro de pruebas ya contenía Test 47 cerrado y Test 48 reservado, por lo que no fue necesario cambiar su semántica.
+
 Estado final:
 
 ```text
-v0.1.0 producción: suficientemente cerrada para continuar
-Test 47: CERRADA para v0.1.0
-Test 48: RESERVADA v0.2.0 LAB / NOT-TESTED
-PBX Fleet Controller: ROADMAP, no implementación todavía
-prioridad actual: optimización Endpoint Configurator
+v0.1.0: congelada
+v0.2.x Sprint 1: alcance ampliado y documentado
+Test 48: reservado / NOT-TESTED
+siguiente actividad acordada: prueba de llamada en LAB
 ```
-
-Siguiente paso exacto: retomar Endpoint Configurator y revisar qué deuda/optimización conviene cerrar antes de abrir cambios funcionales de v0.2.0.
