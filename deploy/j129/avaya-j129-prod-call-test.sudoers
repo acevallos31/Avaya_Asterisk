@@ -1,0 +1,5 @@
+# Install as /etc/sudoers.d/avaya-j129-prod-call-test with mode 0440.
+# The runner receives no generic asterisk/root shell access; all arguments are
+# validated inside the root-owned helper.
+Cmnd_Alias AVAYA_J129_PROD_CALL_TEST = /usr/local/sbin/avaya-j129-prod-call-test *
+github-runner-prod ALL=(root) NOPASSWD: AVAYA_J129_PROD_CALL_TEST
