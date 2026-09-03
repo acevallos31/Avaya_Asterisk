@@ -63,7 +63,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 44 | `lab-j129-web-fingerprint-audit.yml` | `44 | Issabel Lab | J129 Web Fingerprint | Audit` | Fingerprint web |
 | 45 | `manual-production-physical` | `45 | Production | J129 Physical Validation | Registration & Operation` | `PRODUCTION-PHYSICAL-PASS`: J129 registró y operador confirmó funcionamiento correcto |
 | 46 | `prod-j129-v010-end-to-end-audit.yml` | `46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit` | `PRODUCTION-END-TO-END-SERVER-AUDIT-PASS`, run 33702529808; release/DB/provisioning/Apache/HTTP/per-MAC PASS |
-| 47 | `prod-j129-physical-call-e2e.yml` | `47 | J129 Production | Physical Call | Controlled E2E` | Implementada; modo `preflight` no origina llamada y modo `call` hace originate controlado con verbose/SIP debug/RTP debug opcional y cleanup garantizado. Pendiente ejecución. |
+| 47 | `prod-j129-physical-call-e2e.yml` | `47 | J129 Production | Physical Call | Controlled E2E` | Preflight run 33703875115 confirmó que `github-runner-prod` no accede al socket Asterisk sin privilegio. Workflow actualizado para usar helper root-owned restringido `avaya-j129-prod-call-test`; pendiente instalación manual del helper+sudoers y re-preflight. |
 
 ## Reglas de runners
 
