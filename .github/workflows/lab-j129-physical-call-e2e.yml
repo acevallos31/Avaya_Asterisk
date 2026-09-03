@@ -1,0 +1,109 @@
+name: 49 | Issabel Lab | J129 Physical Call | Controlled E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Modo: preflight o call'
+        required: true
+        default: preflight
+        type: choice
+        options:
+          - preflight
+          - call
+      confirm:
+        description: 'preflight: PREFLIGHT-LAB-J129-CALL ; call: CALL-LAB-J129'
+        required: true
+        type: string
+      phone_ip:
+        description: 'IP del J129 LAB (default documentado: 192.168.1.171)'
+        required: false
+        default: '192.168.1.171'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  controlled-lab-call:
+    name: Validar llamada física controlada Asterisk LAB hacia J129
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+
+    steps:
+      - name: Guard LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "Audit"
+          test "$(id -un)" = 'github-runner'
+          case '${{ inputs.mode }}' in
+            preflight) test '${{ inputs.confirm }}' = 'PREFLIGHT-LAB-J129-CALL' ;;
+            call) test '${{ inputs.confirm }}' = 'CALL-LAB-J129' ;;
+            *) exit 2 ;;
+          esac
+          echo 'J129-LAB-CALL-GUARD-PASS'
+
+      - name: Verificar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-lab-call-test || {
+            echo 'J129-LAB-CALL-HELPER-NOT-INSTALLED'
+            exit 1
+          }
+          test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-lab-call-test)" = 'root:root:755'
+          sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-lab-call-test' >/dev/null
+          echo 'J129-LAB-CALL-HELPER-GUARD-PASS'
+
+      - name: Preflight J129 LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          IP='${{ inputs.phone_ip }}'
+          [[ "$IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo 'Invalid phone_ip'; exit 2; }
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test preflight "$IP" \
+            | tee "$RUNNER_TEMP/j129-lab-call-e2e.log"
+          grep -F 'J129-LAB-CALL-PREFLIGHT-PASS' "$RUNNER_TEMP/j129-lab-call-e2e.log"
+
+      - name: Originar llamada de prueba
+        if: ${{ inputs.mode == 'call' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          IP='${{ inputs.phone_ip }}'
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test call "$IP" \
+            | tee -a "$RUNNER_TEMP/j129-lab-call-e2e.log"
+          grep -F 'J129-LAB-CALL-AUTOMATED-PHASE-PASS' "$RUNNER_TEMP/j129-lab-call-e2e.log"
+          grep -F 'J129-LAB-CALL-DEBUG-CLEANUP-DONE' "$RUNNER_TEMP/j129-lab-call-e2e.log"
+
+      - name: Cleanup defensivo
+        if: always()
+        shell: bash
+        run: |
+          if [ -x /usr/local/sbin/avaya-j129-lab-call-test ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-call-test cleanup >>"$RUNNER_TEMP/j129-lab-call-e2e.log" 2>&1 || true
+          fi
+
+      - name: Guardar evidencia sanitizada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: j129-lab-call-e2e-${{ inputs.mode }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/j129-lab-call-e2e.log
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Resultado preflight
+        if: ${{ success() && inputs.mode == 'preflight' }}
+        shell: bash
+        run: |
+          echo 'J129-LAB-CALL-E2E-PREFLIGHT-PASS'
+          echo 'NOTE=No se originó ninguna llamada.'
+
+      - name: Resultado llamada automatizada
+        if: ${{ success() && inputs.mode == 'call' }}
+        shell: bash
+        run: |
+          echo 'J129-LAB-CALL-E2E-AUTOMATED-PASS'
+          echo 'NOTE=Registrar manualmente timbrado, answer y audio hello-world.'
