@@ -67,6 +67,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 48 | `planned-v020-lab-remote-originated-call` | `48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe` | RESERVADA para v0.2.x. Investigar en LAB si el J129 puede originar/controlar remotamente una llamada real hacia otra extensión. `NOT-TESTED`. |
 | 49 | `lab-j129-physical-call-e2e.yml` | `49 | Issabel Lab | J129 Physical Call | Controlled E2E` | `LAB-PHYSICAL-AUDIO-PASS`: selección reutilizable por extensión/MAC/IP, resolución dinámica del peer SIP, Caller ID de prueba, timbrado, answer y Echo RTP bidireccional confirmados físicamente por operador. Base reutilizable para pruebas posteriores de audio/DTMF. |
 | 50 | `planned-lab-j129-ivr-dtmf` | `50 | Issabel Lab | J129 IVR & DTMF | SIP/AGI Controlled Test` | RESERVADA. IVR bilingüe de laboratorio: `For English press 1 / Para español presione 2`, luego menú de pruebas. Debe validar DTMF y servir como framework reusable para otros teléfonos/fabricantes. Primera implementación: SIP + AGI/dialplan LAB; AMI/ARI quedan para fases posteriores. |
+| 51 | `lab-j129-dual-sip-peer-audit.yml` | `51 | Issabel Lab | Dual SIP Peers | Read-Only Audit` | PREPARADA. Auditoría sanitizada y de solo lectura para validar J129 origen y segundo endpoint SIP destino antes de prueba física 200→201: estado READY, IP registrada, User-Agent, contexto, transporte, DTMF, codecs, directmedia y qualify. No origina llamada. |
 
 ## Reglas de runners
 
@@ -98,4 +99,4 @@ No se permite un workflow LAB con selector genérico que también pueda ser sati
 
 La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y validaciones de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
 
-Próximo ID disponible: `51`.
+Próximo ID disponible: `52`.
