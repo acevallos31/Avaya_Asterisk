@@ -7,6 +7,8 @@ REQUESTED_MAC="${3:-}"
 REQUESTED_IP="${4:-}"
 AMPORTAL_CONF="/etc/amportal.conf"
 EXPECTED_RUNNER="github-runner"
+CALLERID_NAME="Prueba J129"
+CALLERID_NUM="9999"
 
 fail() { echo "J129-LAB-CALL-FAIL=$1" >&2; exit 1; }
 
@@ -82,6 +84,42 @@ peer_check() {
   echo "J129-LAB-CALL-PEER-READY-PASS extension=$account ip=$ip"
 }
 
+queue_echo_call() {
+  local account="$1" tmp outgoing
+  outgoing="/var/spool/asterisk/outgoing"
+  [ -d "$outgoing" ] || fail "asterisk outgoing spool unavailable"
+  tmp="$(mktemp /tmp/j129-lab-echo.XXXXXX.call)"
+  cat >"$tmp" <<EOF
+Channel: SIP/$account
+Callerid: $CALLERID_NAME <$CALLERID_NUM>
+MaxRetries: 0
+RetryTime: 5
+WaitTime: 30
+Application: Echo
+Archive: no
+EOF
+  chmod 0640 "$tmp"
+  chown asterisk:asterisk "$tmp" 2>/dev/null || true
+  mv "$tmp" "$outgoing/j129-lab-echo-${account}-$$.call"
+  echo "J129-LAB-CALL-QUEUED-PASS extension=$account callerid=$CALLERID_NUM"
+}
+
+wait_for_answer() {
+  local account="$1" i line state
+  for i in $(seq 1 45); do
+    line="$(asterisk -rx 'core show channels concise' 2>/dev/null | grep -E "(^|!)SIP/${account}-" | head -n 1 || true)"
+    if [ -n "$line" ]; then
+      state="$(printf '%s' "$line" | awk -F'!' '{print $5}')"
+      if [ "$state" = "Up" ]; then
+        echo "J129-LAB-CALL-ANSWER-PASS extension=$account"
+        return 0
+      fi
+    fi
+    sleep 1
+  done
+  fail "answer not observed within 45 seconds"
+}
+
 cleanup() {
   asterisk -rx 'sip set debug off' >/dev/null 2>&1 || true
   asterisk -rx 'rtp set debug off' >/dev/null 2>&1 || true
@@ -107,11 +145,11 @@ case "$ACTION" in
     asterisk -rx 'core set verbose 10' >/dev/null
     asterisk -rx "sip set debug ip $ip" >/dev/null
     asterisk -rx "rtp set debug ip $ip" >/dev/null 2>&1 || true
-    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip"
-    asterisk -rx "channel originate SIP/$account application Echo" >/dev/null || fail "originate command failed"
-    echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS'
-    sleep 8
-    asterisk -rx 'core show channels concise' 2>/dev/null | grep -E "(^|!)SIP/${account}-" | head -n 3 || true
+    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip callerid=\"$CALLERID_NAME\"<$CALLERID_NUM> application=Echo"
+    queue_echo_call "$account"
+    wait_for_answer "$account"
+    echo 'J129-LAB-CALL-ECHO-ACTIVE-PASS'
+    sleep 15
     echo 'J129-LAB-CALL-AUTOMATED-PHASE-PASS'
     cleanup
     trap - EXIT INT TERM
