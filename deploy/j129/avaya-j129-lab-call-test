@@ -124,6 +124,76 @@ cleanup() {
   echo 'J129-LAB-CALL-DEBUG-CLEANUP-DONE'
 }
 
+remote_preflight() {
+  local account mac source_ip destination_ip
+  [ -n "$PEER_EXTENSION" ] || fail "destination extension required"
+  read -r account mac <<<"$(resolve_target)"
+  [ "$account" != "$PEER_EXTENSION" ] || fail "source and destination must differ"
+  source_ip="$(get_peer_ip "$account")"
+  destination_ip="$(get_peer_ip "$PEER_EXTENSION")"
+  peer_check "$account"
+  [ "$(peer_status "$PEER_EXTENSION")" = "OK" ] || fail "destination peer not ready"
+  audit_peer_safe "$account"
+  audit_peer_safe "$PEER_EXTENSION"
+  echo "J129-LAB-REMOTE-PREFLIGHT-PASS source=$account source_ip=$source_ip destination=$PEER_EXTENSION destination_ip=$destination_ip mac=$mac"
+}
+
+remote_call() {
+  local account mac source_ip destination_ip seen
+  [ -n "$PEER_EXTENSION" ] || fail "destination extension required"
+  read -r account mac <<<"$(resolve_target)"
+  [ "$account" != "$PEER_EXTENSION" ] || fail "source and destination must differ"
+  source_ip="$(get_peer_ip "$account")"
+  destination_ip="$(get_peer_ip "$PEER_EXTENSION")"
+  peer_check "$account"
+  [ "$(peer_status "$PEER_EXTENSION")" = "OK" ] || fail "destination peer not ready"
+  trap cleanup EXIT INT TERM
+  asterisk -rx 'core set verbose 10' >/dev/null
+  asterisk -rx "sip set debug ip $source_ip" >/dev/null
+  echo "J129-LAB-REMOTE-REQUEST-START source=$account destination=$PEER_EXTENSION source_ip=$source_ip destination_ip=$destination_ip mechanism=SIP-REFER-via-Transfer"
+  echo 'J129-LAB-REMOTE-ACTION=Answer the J129 source phone; Asterisk will then request the remote SIP endpoint to transfer to the destination.'
+  asterisk -rx "channel originate SIP/$account application Transfer SIP/$PEER_EXTENSION" >/dev/null || fail "remote transfer originate command failed"
+  echo "J129-LAB-REMOTE-REFER-COMMAND-PASS source=$account destination=$PEER_EXTENSION"
+  seen=0
+  for _ in $(seq 1 30); do
+    if asterisk -rx 'core show channels concise' 2>/dev/null | awk -F'!' -v d="$PEER_EXTENSION" '$1 ~ ("^SIP/" d "-") {found=1} END{exit !found}'; then
+      seen=1
+      break
+    fi
+    sleep 1
+  done
+  [ "$seen" -eq 1 ] || fail "destination SIP channel not observed after remote transfer request"
+  echo "J129-LAB-REMOTE-DESTINATION-CHANNEL-PASS destination=$PEER_EXTENSION"
+  asterisk -rx 'core show channels concise' 2>/dev/null | awk -F'!' -v s="$account" -v d="$PEER_EXTENSION" '$1 ~ ("^SIP/(" s "|" d ")-") {print $1 " state=" $5 " app=" $6}' | head -n 6 || true
+  echo 'J129-LAB-REMOTE-AUTOMATED-PHASE-PASS'
+  cleanup
+  trap - EXIT INT TERM
+}
+
+ivr_preflight() {
+  local account mac ip agi_app sound_root en_dir es_dir en_count es_count
+  read -r account mac <<<"$(resolve_target)"
+  ip="$(get_peer_ip "$account")"
+  peer_check "$account"
+  agi_app="$(asterisk -rx 'core show application AGI' 2>/dev/null || true)"
+  printf '%s\n' "$agi_app" | grep -qi 'AGI' || fail "Asterisk AGI application unavailable"
+  sound_root="/var/lib/asterisk/sounds"
+  [ -d "$sound_root" ] || fail "Asterisk sounds directory unavailable"
+  en_dir=""; es_dir=""
+  for d in "$sound_root/en" "$sound_root/en_US" "$sound_root"; do [ -d "$d" ] && { en_dir="$d"; break; }; done
+  for d in "$sound_root/es" "$sound_root/es_ES" "$sound_root/es_MX"; do [ -d "$d" ] && { es_dir="$d"; break; }; done
+  en_count=0; es_count=0
+  [ -n "$en_dir" ] && en_count="$(find "$en_dir" -maxdepth 2 -type f \( -name '*.wav' -o -name '*.gsm' -o -name '*.ulaw' -o -name '*.alaw' \) 2>/dev/null | wc -l)"
+  [ -n "$es_dir" ] && es_count="$(find "$es_dir" -maxdepth 2 -type f \( -name '*.wav' -o -name '*.gsm' -o -name '*.ulaw' -o -name '*.alaw' \) 2>/dev/null | wc -l)"
+  echo "J129-LAB-IVR-AGI-PASS extension=$account ip=$ip"
+  echo "J129-LAB-IVR-SOUNDS language=en directory=${en_dir:-missing} files=$en_count"
+  echo "J129-LAB-IVR-SOUNDS language=es directory=${es_dir:-missing} files=$es_count"
+  echo 'J129-LAB-IVR-CANDIDATES-START'
+  find "$sound_root" -maxdepth 3 -type f 2>/dev/null | grep -Ei '/(en|es|en_US|es_ES|es_MX)?/?[^/]*(english|spanish|espan|press|presione|language|idioma|digits/1|digits/2)[^/]*\.(wav|gsm|ulaw|alaw)$' | sed "s#^$sound_root/##" | head -n 80 || true
+  echo 'J129-LAB-IVR-CANDIDATES-END'
+  echo "J129-LAB-IVR-PREFLIGHT-PASS extension=$account mac=$mac ip=$ip"
+}
+
 case "$ACTION" in
   preflight)
     read -r account mac <<<"$(resolve_target)"
@@ -166,11 +236,20 @@ case "$ACTION" in
     cleanup
     trap - EXIT INT TERM
     ;;
+  remote-preflight)
+    remote_preflight
+    ;;
+  remote-call)
+    remote_call
+    ;;
+  ivr-preflight)
+    ivr_preflight
+    ;;
   cleanup)
     cleanup
     ;;
   *)
-    echo "Uso: $0 {preflight|call|cleanup} [extension] [mac] [ip] [peer-extension]" >&2
+    echo "Uso: $0 {preflight|call|remote-preflight|remote-call|ivr-preflight|cleanup} [extension] [mac] [ip] [peer-extension]" >&2
     exit 2
     ;;
 esac
