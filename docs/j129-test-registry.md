@@ -62,8 +62,8 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 43 | `lab-j129-state-audit.yml` | `43 | Issabel Lab | J129 State | Audit` | Estado integral |
 | 44 | `lab-j129-web-fingerprint-audit.yml` | `44 | Issabel Lab | J129 Web Fingerprint | Audit` | Fingerprint web |
 | 45 | `manual-production-physical` | `45 | Production | J129 Physical Validation | Registration & Operation` | `PRODUCTION-PHYSICAL-PASS`: J129 registró y operador confirmó funcionamiento correcto |
-| 46 | `prod-j129-v010-end-to-end-audit.yml` | `46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit` | Preparada; audita release instalada, DB, provisioning, Apache y HTTP sin mutar producción |
-| 47 | `reserved-production-e2e-call` | `47 | J129 Production | Physical Call | Controlled E2E` | Reservada; futura llamada controlada Asterisk -> J129 con confirmación física de timbrado/answer/audio |
+| 46 | `prod-j129-v010-end-to-end-audit.yml` | `46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit` | `PRODUCTION-END-TO-END-SERVER-AUDIT-PASS`, run 33702529808; release/DB/provisioning/Apache/HTTP/per-MAC PASS |
+| 47 | `prod-j129-physical-call-e2e.yml` | `47 | J129 Production | Physical Call | Controlled E2E` | Implementada; modo `preflight` no origina llamada y modo `call` hace originate controlado con verbose/SIP debug/RTP debug opcional y cleanup garantizado. Pendiente ejecución. |
 
 ## Reglas de runners
 
