@@ -6,7 +6,9 @@ Este archivo resume el estado operativo vigente para retomar el proyecto sin rec
 
 ## Objetivo actual
 
-La release `v0.1.0` ya está instalada y validada server-side, físicamente y mediante auditoría post-implementación read-only en producción. El J129 registró y el operador confirmó funcionamiento correcto.
+La release `v0.1.0` ya está instalada y validada server-side y físicamente en producción. El J129 registró, el operador confirmó funcionamiento correcto y la señalización de llamada Asterisk -> J129 quedó comprobada automáticamente.
+
+La prioridad inmediata vuelve a ser optimizar Endpoint Configurator antes de iniciar trabajo funcional de v0.2.0 o construir infraestructura central de gestión de PBX.
 
 Arquitectura objetivo:
 
@@ -61,36 +63,62 @@ resultado: PRODUCTION-END-TO-END-SERVER-AUDIT-PASS
 
 Validó paquete congelado, DB, Apache, provisioning global, HTTP, verify oficial y provisioning per-MAC para `C8:1F:EA:C3:D6:B2`.
 
-## E2E físico — Test 47
-
-Workflow:
+## Cierre de llamada controlada — Test 47
 
 ```text
-.github/workflows/prod-j129-physical-call-e2e.yml
 47 | J129 Production | Physical Call | Controlled E2E
+workflow: .github/workflows/prod-j129-physical-call-e2e.yml
 ```
 
-Primer preflight:
+Historia relevante:
 
 ```text
-run: 33703875115
-resultado: INFRA-BLOCKED
-causa: github-runner-prod no puede abrir /var/run/asterisk/asterisk.ctl
+33703875115  INFRA-BLOCKED: runner sin acceso directo al socket CLI
+33710642058  preflight PASS usando helper privilegiado restringido
+33711068591  llamada automatizada PASS
 ```
 
-El guard de producción pasó y no se originó ninguna llamada. El runner no tendrá `sudo asterisk` genérico.
-
-Se preparó un helper privilegiado mínimo y root-owned:
+El helper root-owned instalado es:
 
 ```text
-deploy/j129/avaya-j129-prod-call-test
-deploy/j129/avaya-j129-prod-call-test.sudoers
-instalación destino: /usr/local/sbin/avaya-j129-prod-call-test
+/usr/local/sbin/avaya-j129-prod-call-test
 ```
 
-El helper solo admite `preflight`, `peer EXT`, `call EXT [IP]` y `cleanup`; valida caller, host, extensión e IP. Durante `call` eleva verbose a 10, habilita SIP debug del peer y RTP debug por IP opcional, origina `SIP/<ext> -> Playback hello-world`, captura evidencia sanitizada y restaura SIP/RTP debug + verbose 3 aun ante fallo.
+La llamada del run `33711068591` validó:
 
-El workflow 47 fue actualizado en `Audit` y `main` para invocar exclusivamente ese helper mediante sudo. No puede desplegarse desde el runner actual porque eso requeriría privilegios que deliberadamente no tiene. La instalación del helper y su sudoers requiere una intervención root única cuando haya acceso administrativo a `cei-pbx02`.
+```text
+peer SIP: 4455 READY
+J129 IP: 10.3.40.32
+MAC: C8:1F:EA:C3:D6:B2
+respuesta SIP: 100 Trying -> 180 Ringing
+Asterisk: SIP/4455 en Ringing
+cleanup de SIP/RTP debug y verbose: PASS
+```
+
+No había operador físicamente junto al teléfono, por lo que `answer` y audio de ese run quedaron `NOT-TESTED`. No se usa ese run para afirmar una nueva validación física. Para v0.1.0 se considera suficiente junto con la prueba física 45 ya cerrada.
+
+## Test 48 reservado para v0.2.0
+
+```text
+48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe
+estado: NOT-TESTED
+```
+
+Objetivo futuro: probar primero en Asterisk LAB si es posible hacer que el J129 origine o acepte control remoto de una llamada real hacia otra extensión, distinguiendo claramente una llamada iniciada por el teléfono de un originate hecho por Asterisk. Solo después de evidencia LAB se evaluará producción.
+
+## Scripts operativos y gestión futura de flota PBX
+
+Se creó `scripts/` como catálogo permanente, no solo de pruebas. Los scripts futuros cubrirán bootstrap, deploy, diagnóstico, mantenimiento, seguridad y testing.
+
+Visión futura documentada en:
+
+```text
+docs/pbx-fleet-control-roadmap.md
+```
+
+Objetivo de largo plazo: servidor local de distribución/control para múltiples PBX Issabel, con releases versionadas, preflight/deploy/verify/rollback, inventario, diagnóstico remoto y bootstrap de nuevas PBX, manteniendo trazabilidad parecida a GitHub Actions pero dentro de la infraestructura propia.
+
+Esto queda como roadmap; no desplaza el trabajo inmediato sobre Endpoint Configurator.
 
 ## Seguridad de runners
 
@@ -113,21 +141,20 @@ El scanner stock `/usr/share/issabel/privileged/detect_endpoints` solo procesa e
 Fuente autoritativa: `docs/j129-test-registry.md`.
 
 ```text
-00–44 pruebas históricas/workflows
 45 validación física de producción — PASS
-46 auditoría post-implementación read-only — PASS run 33702529808
-47 llamada física controlada E2E — INFRA-BLOCKED hasta instalar helper mínimo
+46 auditoría post-implementación read-only — PASS
+47 llamada controlada — CERRADA para v0.1.0; signalling PASS, answer/audio del run NOT-TESTED
+48 remote-originated call/3PCC — RESERVADA para v0.2.0 LAB
 ```
 
-Próximo ID disponible: `48`.
+Próximo ID disponible: `49`.
 
 ## Próxima secuencia
 
 ```text
-1. con acceso root a cei-pbx02, instalar avaya-j129-prod-call-test como root:root 0755
-2. instalar sudoers mínimo como root:root 0440 y validar con visudo -cf
-3. reejecutar workflow 47 branch=Audit mode=preflight confirm=PREFLIGHT-PROD-J129-CALL
-4. si preflight PASS, ejecutar mode=call cuando haya alguien junto al J129
-5. confirmar físicamente ring/answer/audio y revisar artifact sanitizado
-6. terminar normalización de workflows/runners
+1. volver al Endpoint Configurator y terminar su optimización
+2. identificar deuda funcional/técnica que realmente pertenezca a v0.1.x vs v0.2.0
+3. convertir procedimientos repetitivos útiles en scripts reutilizables
+4. mantener Test 48 reservado hasta iniciar v0.2.0 en LAB
+5. no iniciar todavía PBX Fleet Controller; solo conservar roadmap y scripts reutilizables
 ```
