@@ -1,0 +1,90 @@
+name: 46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba AUDIT-PROD-J129'
+        required: true
+        type: string
+      mac:
+        description: 'MAC J129 opcional (AA:BB:CC:DD:EE:FF) para validar provisioning por MAC'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  audit-production:
+    name: Auditar flujo J129 instalado en cei-pbx02
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - j129-production
+      - cei-pbx02
+    timeout-minutes: 10
+
+    steps:
+      - name: Guard de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "Audit"
+          test '${{ inputs.confirm }}' = 'AUDIT-PROD-J129'
+          test "$(hostname -s)" = 'cei-pbx02'
+          test "$(id -un)" = 'github-runner-prod'
+          echo 'J129-PROD-E2E-GUARD-PASS'
+
+      - name: Checkout harness Audit
+        uses: actions/checkout@v4
+        with:
+          ref: Audit
+          persist-credentials: false
+
+      - name: Verificar helper restringido
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-prod-validation
+          test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-prod-validation)" = 'root:root:755'
+          sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-prod-validation' >/dev/null
+          echo 'J129-PROD-E2E-HELPER-PASS'
+
+      - name: Auditoría integral read-only del servidor y provisioning
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAC='${{ inputs.mac }}'
+          if [ -n "$MAC" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-prod-validation audit "$MAC"
+          else
+            sudo -n /usr/local/sbin/avaya-j129-prod-validation audit
+          fi
+
+      - name: Verify oficial de la release instalada
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation verify
+          echo 'J129-PROD-E2E-RELEASE-VERIFY-PASS'
+
+      - name: Verificaciones read-only adicionales
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tftpboot/J100Supgrade.txt
+          test -s /tftpboot/46xxsettings.txt
+          curl -fsSI http://127.0.0.1/J100Supgrade.txt >/dev/null
+          curl -fsSI http://127.0.0.1/46xxsettings.txt >/dev/null
+          apachectl -t
+          echo 'J129-PROD-E2E-HTTP-PASS'
+          echo 'J129-PROD-E2E-APACHE-PASS'
+
+      - name: Resultado
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'PRODUCTION-END-TO-END-SERVER-AUDIT-PASS'
+          echo 'NOTE=Esta prueba es read-only. No origina llamadas ni reinicia telefonos.'
