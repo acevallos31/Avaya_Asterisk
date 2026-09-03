@@ -43,6 +43,13 @@ jobs:
           ref: Audit
           persist-credentials: false
 
+      - name: Checkout release congelada exacta
+        uses: actions/checkout@v4
+        with:
+          ref: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
+          path: _release_checkout
+          persist-credentials: false
+
       - name: Verificar helper restringido
         shell: bash
         run: |
