@@ -104,7 +104,7 @@ Unable to connect to remote asterisk (does /var/run/asterisk/asterisk.ctl exist?
 
 No se originó ninguna llamada. La evidencia del run se guardó como artifact.
 
-Se preparó, pero NO se instaló en producción, un helper privilegiado mínimo:
+Se preparó un helper privilegiado mínimo:
 
 ```text
 deploy/j129/avaya-j129-prod-call-test
@@ -113,13 +113,31 @@ deploy/j129/avaya-j129-prod-call-test.sudoers
 
 El helper valida `SUDO_USER=github-runner-prod`, host `cei-pbx02`, extensión e IP, y solo permite `preflight`, `peer`, `call` y `cleanup`. La fase `call` usa verbose 10, SIP debug específico y RTP debug opcional, origina `SIP/<ext> application Playback hello-world` y siempre restaura debug/verbose.
 
-El workflow 47 se actualizó en `Audit` y `main` para usar exclusivamente `/usr/local/sbin/avaya-j129-prod-call-test`; no se concede `sudo asterisk` ni shell root genérico.
+El workflow 47 usa exclusivamente `/usr/local/sbin/avaya-j129-prod-call-test`; no se concede `sudo asterisk` ni shell root genérico.
 
-Estado final:
+El operador instaló manualmente el helper y sudoers en `cei-pbx02`; `visudo -cf` devolvió `parsed OK`, con helper `root:root 0755` y sudoers `root:root 0440`.
+
+Estado actual:
 
 ```text
-47 INFRA-BLOCKED
-helper/sudoers STAGED, NOT-INSTALLED
+47 pendiente de reejecutar preflight
+helper/sudoers INSTALADOS
 ```
 
-Siguiente paso exacto: con acceso root a `cei-pbx02`, instalar el helper como `root:root 0755`, instalar la regla sudoers como `root:root 0440`, validar con `visudo -cf`, y reejecutar `47` en rama `Audit`, `mode=preflight`, `confirm=PREFLIGHT-PROD-J129-CALL`. Solo después de preflight PASS se ejecutará `mode=call` con una persona físicamente junto al J129.
+## 2026-09-02 — OpenAI GPT-5.6 Sol — Scripts operativos
+
+Se creó la sección `scripts/` para eliminar procedimientos manuales repetitivos.
+
+Archivos iniciales:
+
+```text
+scripts/README.md
+scripts/install-j129-prod-call-helper.sh
+scripts/install-production-runner.sh
+```
+
+`install-j129-prod-call-helper.sh` descarga, valida e instala automáticamente el helper/sudoers de Test 47.
+
+`install-production-runner.sh` automatiza la instalación del self-hosted runner de producción para `Avaya_Asterisk`: crea `github-runner-prod`, instala en `/opt/actions-runner-prod`, deriva el nombre desde el hostname y aplica labels `j129-production,<hostname>`. El único dato interactivo es el token temporal de registro, leído sin eco y no persistido por el script.
+
+Siguiente paso exacto: reejecutar Test 47 en rama `Audit`, `mode=preflight`, `confirm=PREFLIGHT-PROD-J129-CALL`. Si pasa, preparar la llamada controlada con la extensión/IP correctas y una persona físicamente junto al J129.
