@@ -1,0 +1,93 @@
+name: 50 | Issabel Lab | J129 IVR & DTMF | SIP/AGI Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Fase actual: preflight de AGI y prompts bilingües'
+        required: true
+        default: preflight
+        type: choice
+        options:
+          - preflight
+      confirm:
+        description: 'Escriba PREFLIGHT-LAB-J129-IVR'
+        required: true
+        type: string
+      extension:
+        description: 'J129 a validar.'
+        required: false
+        default: '200'
+        type: string
+      mac:
+        description: 'MAC J129 opcional.'
+        required: false
+        default: ''
+        type: string
+      ip:
+        description: 'IP SIP esperada opcional.'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  ivr-preflight:
+    name: Auditar AGI y sonidos disponibles para IVR bilingüe
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+
+    steps:
+      - name: Guard LAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test '${{ inputs.mode }}' = 'preflight'
+          test '${{ inputs.confirm }}' = 'PREFLIGHT-LAB-J129-IVR'
+          [[ '${{ inputs.extension }}' =~ ^[0-9]{2,8}$ ]]
+          echo 'J129-LAB-IVR-GUARD-PASS'
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sincronizar helper reutilizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -F 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Preflight AGI y prompts
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test \
+            preflight \
+            '${{ inputs.extension }}' \
+            '${{ inputs.mac }}' \
+            '${{ inputs.ip }}' \
+            'IVR-PREFLIGHT' \
+            | tee "$RUNNER_TEMP/j129-ivr-preflight.log"
+          grep -F 'J129-LAB-IVR-AGI-PASS' "$RUNNER_TEMP/j129-ivr-preflight.log"
+          grep -F 'J129-LAB-IVR-PREFLIGHT-PASS' "$RUNNER_TEMP/j129-ivr-preflight.log"
+
+      - name: Guardar evidencia sanitizada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: j129-ivr-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/j129-ivr-preflight.log
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Resultado
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          echo 'J129-LAB-IVR-PREFLIGHT-WORKFLOW-PASS'
+          echo 'NOTE=Este preflight determina qué prompts EN/ES ya existen antes de crear el AGI definitivo; no modifica dialplan ni origina llamadas.'
