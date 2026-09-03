@@ -3,6 +3,8 @@ set -euo pipefail
 
 ACTION="${1:-}"
 REQUESTED_EXTENSION="${2:-}"
+REQUESTED_MAC="${3:-}"
+REQUESTED_IP="${4:-}"
 AMPORTAL_CONF="/etc/amportal.conf"
 EXPECTED_RUNNER="github-runner"
 
@@ -15,24 +17,47 @@ command -v asterisk >/dev/null 2>&1 || fail "asterisk unavailable"
 if [ -n "$REQUESTED_EXTENSION" ]; then
   [[ "$REQUESTED_EXTENSION" =~ ^[0-9]{2,8}$ ]] || fail "invalid extension"
 fi
+if [ -n "$REQUESTED_MAC" ]; then
+  REQUESTED_MAC="$(printf '%s' "$REQUESTED_MAC" | tr '[:lower:]' '[:upper:]' | tr '-' ':')"
+  [[ "$REQUESTED_MAC" =~ ^([0-9A-F]{2}:){5}[0-9A-F]{2}$ ]] || fail "invalid mac"
+fi
+if [ -n "$REQUESTED_IP" ]; then
+  [[ "$REQUESTED_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail "invalid ip"
+fi
 
 read_amportal_value() { sed -n "s/^${1}=//p" "$AMPORTAL_CONF" | head -n 1; }
-get_account() {
+mysql_endpoint() {
   command -v mysql >/dev/null 2>&1 || fail "mysql unavailable"
   [ -r "$AMPORTAL_CONF" ] || fail "amportal config unreadable"
-  local u p h f account
+  local u p h f
   u="$(read_amportal_value AMPDBUSER)"; p="$(read_amportal_value AMPDBPASS)"; h="$(read_amportal_value AMPDBHOST)"; [ -n "$h" ] || h=localhost
   [ -n "$u" ] && [ -n "$p" ] || fail "database settings unavailable"
   f="$(mktemp /tmp/j129-lab-call-db.XXXXXX.cnf)"; chmod 0600 "$f"
   trap 'rm -f "$f"' RETURN
   { printf '[client]\nuser=%s\npassword=%s\nhost=%s\n' "$u" "$p" "$h"; } > "$f"
-  account="$(mysql --defaults-extra-file="$f" --batch --skip-column-names endpointconfig -e "SELECT ea.account FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' AND e.mac_address='C8:1F:EA:9B:65:0D' ORDER BY ea.priority LIMIT 1;" 2>/dev/null || true)"
+  mysql --defaults-extra-file="$f" --batch --skip-column-names endpointconfig -e "$1" 2>/dev/null
   rm -f "$f"; trap - RETURN
-  [[ "$account" =~ ^[0-9]{2,8}$ ]] || fail "J129 account unavailable or invalid"
-  if [ -n "$REQUESTED_EXTENSION" ] && [ "$REQUESTED_EXTENSION" != "$account" ]; then
-    fail "requested extension does not match Endpoint Configurator account"
+}
+
+resolve_target() {
+  local rows count account mac
+  if [ -n "$REQUESTED_MAC" ]; then
+    rows="$(mysql_endpoint "SELECT ea.account, e.mac_address FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' AND UPPER(REPLACE(e.mac_address,'-',':'))='$REQUESTED_MAC' ORDER BY ea.priority LIMIT 1;" || true)"
+  elif [ -n "$REQUESTED_EXTENSION" ]; then
+    rows="$(mysql_endpoint "SELECT ea.account, e.mac_address FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' AND ea.account='$REQUESTED_EXTENSION' ORDER BY ea.priority LIMIT 1;" || true)"
+  else
+    rows="$(mysql_endpoint "SELECT ea.account, e.mac_address FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model JOIN endpoint_account ea ON ea.id_endpoint=e.id WHERE mf.name='Avaya' AND m.name='J129' ORDER BY e.id, ea.priority;" || true)"
+    count="$(printf '%s\n' "$rows" | sed '/^$/d' | wc -l)"
+    [ "$count" -eq 1 ] || fail "multiple or zero J129 endpoints; specify extension or mac"
   fi
-  printf '%s' "$account"
+  account="$(printf '%s\n' "$rows" | awk 'NF{print $1; exit}')"
+  mac="$(printf '%s\n' "$rows" | awk 'NF{print $2; exit}' | tr '[:lower:]' '[:upper:]' | tr '-' ':')"
+  [[ "$account" =~ ^[0-9]{2,8}$ ]] || fail "J129 account unavailable or invalid"
+  [[ "$mac" =~ ^([0-9A-F]{2}:){5}[0-9A-F]{2}$ ]] || fail "J129 mac unavailable or invalid"
+  if [ -n "$REQUESTED_EXTENSION" ] && [ "$REQUESTED_EXTENSION" != "$account" ]; then
+    fail "requested extension does not match selected endpoint"
+  fi
+  printf '%s %s\n' "$account" "$mac"
 }
 
 get_peer_ip() {
@@ -43,6 +68,9 @@ get_peer_ip() {
     ip="$(asterisk -rx 'sip show peers' 2>/dev/null | awk -v a="$account" '$1 ~ ("^" a "(/|$)") {print $2; exit}')"
   fi
   [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail "peer has no registered IPv4 address"
+  if [ -n "$REQUESTED_IP" ] && [ "$REQUESTED_IP" != "$ip" ]; then
+    fail "registered ip does not match requested ip"
+  fi
   printf '%s' "$ip"
 }
 
@@ -63,27 +91,28 @@ cleanup() {
 
 case "$ACTION" in
   preflight)
-    account="$(get_account)"
+    read -r account mac <<<"$(resolve_target)"
     asterisk -rx 'core show version' | head -n 1
     ip="$(get_peer_ip "$account")"
+    echo "J129-LAB-CALL-TARGET-PASS extension=$account mac=$mac ip=$ip"
     peer_check "$account"
-    echo "J129-LAB-CALL-PREFLIGHT-PASS extension=$account ip=$ip"
+    echo "J129-LAB-CALL-PREFLIGHT-PASS extension=$account mac=$mac ip=$ip"
     ;;
   call)
-    account="$(get_account)"
+    read -r account mac <<<"$(resolve_target)"
     ip="$(get_peer_ip "$account")"
+    echo "J129-LAB-CALL-TARGET-PASS extension=$account mac=$mac ip=$ip"
     peer_check "$account"
     trap cleanup EXIT INT TERM
     asterisk -rx 'core set verbose 10' >/dev/null
     asterisk -rx "sip set debug ip $ip" >/dev/null
     asterisk -rx "rtp set debug ip $ip" >/dev/null 2>&1 || true
-    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip test=echo"
+    echo "J129-LAB-CALL-ORIGINATE-START extension=$account ip=$ip"
     asterisk -rx "channel originate SIP/$account application Echo" >/dev/null || fail "originate command failed"
-    echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS mode=echo'
-    sleep 3
+    echo 'J129-LAB-CALL-ORIGINATE-COMMAND-PASS'
+    sleep 8
     asterisk -rx 'core show channels concise' 2>/dev/null | grep -E "(^|!)SIP/${account}-" | head -n 3 || true
-    echo 'J129-LAB-CALL-AUTOMATED-PHASE-PASS mode=echo'
-    echo 'NOTE=Answer the J129, speak, verify your voice returns through Echo, then hang up.'
+    echo 'J129-LAB-CALL-AUTOMATED-PHASE-PASS'
     cleanup
     trap - EXIT INT TERM
     ;;
@@ -91,7 +120,7 @@ case "$ACTION" in
     cleanup
     ;;
   *)
-    echo "Uso: $0 {preflight|call|cleanup} [extension]" >&2
+    echo "Uso: $0 {preflight|call|cleanup} [extension] [mac] [ip]" >&2
     exit 2
     ;;
 esac
