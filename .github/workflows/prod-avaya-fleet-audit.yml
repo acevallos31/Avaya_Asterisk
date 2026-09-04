@@ -112,6 +112,7 @@ jobs:
           echo 'CEIBA-AVAYA-FLEET-STRICT-CRITERIA-PASS'
 
       - name: Subir evidencia sanitizada TXT JSON PDF
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: ceiba-avaya-fleet-audit-${{ github.run_id }}
