@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       fail_on_issues:
-        description: 'Marcar rojo si hay Avaya configurados sin registro o sin provisioning'
+        description: 'Marcar rojo si hay Avaya configurados sin registro, sin provisioning, con credenciales distintas o sin descarga del archivo'
         required: true
         default: false
         type: boolean
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           bash -n deploy/j129/avaya-j129-prod-validation
-          grep -F 'fleet-audit)' deploy/j129/avaya-j129-prod-validation >/dev/null
+          grep -F 'J129-PROD-FLEET-SCHEMA=2' deploy/j129/avaya-j129-prod-validation >/dev/null
           echo 'CEIBA-AVAYA-FLEET-REPO-HELPER-PASS'
 
       - name: Verificar helper instalado en producción
@@ -62,9 +62,9 @@ jobs:
           test -x /usr/local/sbin/avaya-j129-prod-validation
           test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-prod-validation)" = 'root:root:755'
           sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-prod-validation' >/dev/null
-          if ! grep -F 'fleet-audit)' /usr/local/sbin/avaya-j129-prod-validation >/dev/null; then
+          if ! grep -F 'J129-PROD-FLEET-SCHEMA=2' /usr/local/sbin/avaya-j129-prod-validation >/dev/null; then
             echo 'CEIBA-AVAYA-FLEET-HELPER-UPDATE-REQUIRED'
-            echo 'El helper instalado todavía no contiene la acción fleet-audit.'
+            echo 'El helper instalado todavía no contiene el esquema 2 de fleet-audit.'
             echo 'Actualice únicamente /usr/local/sbin/avaya-j129-prod-validation con la versión de la rama Audit y vuelva a ejecutar.'
             exit 2
           fi
@@ -88,7 +88,7 @@ jobs:
           {
             echo '## Ceiba - Avaya Fleet Audit'
             echo
-            echo 'La prueba es **solo lectura**. Grandstream/Fanvil aparecen únicamente en el resumen de fabricantes; la clasificación detallada se limita a Avaya.'
+            echo 'La prueba es **solo lectura**. No publica contraseñas SIP: compara usuario/secret internamente y solo reporta MATCH/MISMATCH/UNKNOWN. También revisa el access log de Apache para comprobar si cada J129 configurado solicitó su archivo MAC.txt.'
             echo
             echo '```text'
             grep -E '^(AVAYA-ENDPOINT|J129-PROD-FLEET-SUMMARY)' "$LOG"
@@ -99,8 +99,12 @@ jobs:
             summary="$(grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" | tail -n1)"
             not_registered="$(printf '%s\n' "$summary" | sed -n -E 's/.*not_registered=([0-9]+).*/\1/p')"
             prov_missing="$(printf '%s\n' "$summary" | sed -n -E 's/.*provisioning_missing=([0-9]+).*/\1/p')"
+            cred_mismatch="$(printf '%s\n' "$summary" | sed -n -E 's/.*credentials_mismatch=([0-9]+).*/\1/p')"
+            not_requested="$(printf '%s\n' "$summary" | sed -n -E 's/.*config_not_requested=([0-9]+).*/\1/p')"
             test "${not_registered:-0}" -eq 0
             test "${prov_missing:-0}" -eq 0
+            test "${cred_mismatch:-0}" -eq 0
+            test "${not_requested:-0}" -eq 0
           fi
           echo 'CEIBA-AVAYA-FLEET-AUDIT-COMPLETE'
 
