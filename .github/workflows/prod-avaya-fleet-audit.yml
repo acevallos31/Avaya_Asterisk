@@ -80,20 +80,170 @@ jobs:
           grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" >/dev/null
           cp "$LOG" ./ceiba-avaya-fleet-audit.txt
 
-      - name: Resumen de auditoría
+      - name: Resumen visual de auditoría
         shell: bash
         run: |
           set -euo pipefail
           LOG='./ceiba-avaya-fleet-audit.txt'
-          {
-            echo '## Ceiba - Avaya Fleet Audit'
-            echo
-            echo 'La prueba es **solo lectura**. No publica contraseñas SIP: compara usuario/secret internamente y solo reporta MATCH/MISMATCH/UNKNOWN. También revisa el access log de Apache para comprobar si cada J129 configurado solicitó su archivo MAC.txt.'
-            echo
-            echo '```text'
-            grep -E '^(AVAYA-ENDPOINT|J129-PROD-FLEET-SUMMARY)' "$LOG"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+
+          python3 - "$LOG" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import shlex
+          import sys
+
+          log_path, summary_path = sys.argv[1:3]
+
+          def parse_kv(line):
+              data = {}
+              try:
+                  parts = shlex.split(line, posix=True)
+              except ValueError:
+                  parts = line.split()
+              for token in parts[1:]:
+                  if '=' in token:
+                      key, value = token.split('=', 1)
+                      data[key] = value
+              return data
+
+          endpoints = []
+          fleet = {}
+          manufacturers = []
+
+          with open(log_path, 'r', encoding='utf-8', errors='replace') as fh:
+              for raw in fh:
+                  line = raw.rstrip('\n')
+                  if line.startswith('AVAYA-ENDPOINT '):
+                      endpoints.append(parse_kv(line))
+                  elif line.startswith('J129-PROD-FLEET-SUMMARY '):
+                      fleet = parse_kv(line)
+                  elif line.startswith('MANUFACTURER '):
+                      manufacturers.append(parse_kv(line))
+
+          def n(key):
+              try:
+                  return int(fleet.get(key, '0'))
+              except ValueError:
+                  return 0
+
+          def esc(value):
+              return str(value or 'NONE').replace('|', '\\|').replace('\n', ' ')
+
+          def cred_status(ep):
+              user = ep.get('credential_user', 'UNKNOWN')
+              secret = ep.get('credential_secret', 'UNKNOWN')
+              if user == 'MATCH' and secret == 'MATCH':
+                  return '✅ MATCH'
+              if user == 'MISMATCH' or secret == 'MISMATCH':
+                  return '❌ MISMATCH'
+              return '⚠️ UNKNOWN'
+
+          def download_status(ep):
+              if ep.get('config_request') == 'YES':
+                  code = ep.get('request_http', 'UNKNOWN')
+                  icon = '✅' if code.startswith('2') else '⚠️'
+                  return '{} YES ({})'.format(icon, code)
+              return '⚠️ NO EVIDENCE'
+
+          def sip_status(ep):
+              if ep.get('state') == 'CONFIGURED_REGISTERED':
+                  return '✅ REGISTERED'
+              return '❌ NOT REGISTERED'
+
+          configured = [e for e in endpoints if e.get('account', 'NONE') != 'NONE']
+          detected = [e for e in endpoints if e.get('account', 'NONE') == 'NONE']
+          issues = [e for e in configured if e.get('state') != 'CONFIGURED_REGISTERED']
+
+          lines = []
+          lines += [
+              '# 📞 Ceiba - Avaya Fleet Audit',
+              '',
+              '> Auditoría **solo lectura**. Las contraseñas SIP nunca se muestran; únicamente se informa MATCH/MISMATCH/UNKNOWN.',
+              '',
+              '## Estado general',
+              '',
+              '| Indicador | Resultado |',
+              '|---|---:|',
+              '| 🔎 Avaya detectados | **{}** |'.format(n('total')),
+              '| ⚙️ Configurados | **{}** |'.format(n('configured')),
+              '| ✅ Registrados | **{}** |'.format(n('registered')),
+              '| ❌ Configurados sin registro | **{}** |'.format(n('not_registered')),
+              '| 💤 Solo detectados | **{}** |'.format(n('detected_only')),
+              '| 🔐 Credenciales coinciden | **{}** |'.format(n('credentials_match')),
+              '| 🚨 Credenciales distintas | **{}** |'.format(n('credentials_mismatch')),
+              '| ❓ Credenciales no verificables | **{}** |'.format(n('credentials_unknown')),
+              '| 📥 Archivo solicitado | **{}** |'.format(n('config_requested')),
+              '| ⚠️ Sin evidencia de descarga | **{}** |'.format(n('config_not_requested')),
+              '',
+          ]
+
+          if issues:
+              lines += ['## 🚨 Requieren atención', '']
+              for ep in issues:
+                  lines.append('- **Ext. {}** · {} · MAC `{}` · última IP `{}`'.format(
+                      esc(ep.get('account')), esc(ep.get('state')), esc(ep.get('mac')), esc(ep.get('last_ip'))))
+              lines.append('')
+          else:
+              lines += ['## ✅ Sin incidencias en los Avaya configurados', '']
+
+          lines += [
+              '## Teléfonos Avaya configurados',
+              '',
+              '| Ext. | Modelo | MAC | Última IP | Provisioning | Credenciales | Descarga config | SIP |',
+              '|---:|---|---|---|---|---|---|---|',
+          ]
+          for ep in configured:
+              prov = '✅ PRESENT' if ep.get('provisioning') == 'PRESENT' else '❌ MISSING'
+              lines.append('| {} | {} | `{}` | `{}` | {} | {} | {} | {} |'.format(
+                  esc(ep.get('account')), esc(ep.get('model')), esc(ep.get('mac')), esc(ep.get('last_ip')),
+                  prov, cred_status(ep), download_status(ep), sip_status(ep)))
+
+          lines += ['', '## Detalle de configuración y registro', '']
+          for ep in configured:
+              lines += [
+                  '<details>',
+                  '<summary><strong>Ext. {}</strong> · {} · {}</summary>'.format(
+                      esc(ep.get('account')), esc(ep.get('model')), sip_status(ep)),
+                  '',
+                  '- MAC: `{}`'.format(esc(ep.get('mac'))),
+                  '- Última IP detectada: `{}`'.format(esc(ep.get('last_ip'))),
+                  '- IP SIP registrada: `{}`'.format(esc(ep.get('sip_ip'))),
+                  '- User-Agent: `{}`'.format(esc(ep.get('useragent'))),
+                  '- Usuario provisioning vs Asterisk: **{}**'.format(esc(ep.get('credential_user', 'UNKNOWN'))),
+                  '- Secret provisioning vs Asterisk: **{}**'.format(esc(ep.get('credential_secret', 'UNKNOWN'))),
+                  '- Solicitud de configuración: **{}**'.format(esc(ep.get('config_request', 'NO'))),
+                  '- IP que solicitó archivo: `{}`'.format(esc(ep.get('request_ip'))),
+                  '- HTTP: `{}`'.format(esc(ep.get('request_http'))),
+                  '- Última solicitud encontrada: `{}`'.format(esc(ep.get('request_time'))),
+                  '- Estado final: **{}**'.format(esc(ep.get('state'))),
+                  '',
+                  '</details>',
+                  '',
+              ]
+
+          lines += [
+              '## Avaya detectados sin extensión',
+              '',
+              '| Modelo | MAC | Última IP | Estado |',
+              '|---|---|---|---|',
+          ]
+          for ep in detected:
+              lines.append('| {} | `{}` | `{}` | 💤 DETECTED_ONLY |'.format(
+                  esc(ep.get('model')), esc(ep.get('mac')), esc(ep.get('last_ip'))))
+
+          lines += ['', '## Fabricantes vistos por Endpoint Configurator', '']
+          for mf in manufacturers:
+              lines.append('- **{}**: {} endpoint(s)'.format(esc(mf.get('name')), esc(mf.get('endpoints'))))
+
+          lines += [
+              '',
+              '---',
+              'Leyenda: ✅ correcto · ❌ requiere atención · ⚠️ revisar evidencia · 💤 detectado pero no configurado.',
+              '',
+              'El artefacto `ceiba-avaya-fleet-audit` conserva la evidencia sanitizada de esta ejecución.',
+          ]
+
+          with open(summary_path, 'a', encoding='utf-8') as out:
+              out.write('\n'.join(lines) + '\n')
+          PY
 
           if [ "$FAIL_ON_ISSUES" = 'true' ]; then
             summary="$(grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" | tail -n1)"
