@@ -6,6 +6,7 @@ RUNNER_USER="github-runner-prod"
 EXPECTED_HOST="cei-pbx02"
 EXPECTED_PKG="/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_release_checkout/release/j129-v0.1.0"
 AMPORTAL_CONF="/etc/amportal.conf"
+ASTERISK_BIN="/usr/sbin/asterisk"
 
 fail(){ echo "J129-PROD-VALIDATION-FAIL: $*" >&2; exit 1; }
 pass(){ echo "$1"; }
@@ -62,6 +63,7 @@ make_defaults(){
   printf '%s' "$f"
 }
 scalar(){ mysql --defaults-extra-file="$1" --batch --skip-column-names endpointconfig -e "$2"; }
+ax(){ "$ASTERISK_BIN" -rx "$1"; }
 
 server_audit(){
   echo "J129-PROD-HOST=$(hostname -f 2>/dev/null || hostname)"
@@ -112,6 +114,106 @@ provisioning_audit(){
   pass "J129-PROD-PROVISIONING-AUDIT-PASS"
 }
 
+fleet_audit(){
+  local df rows row id model mac ip account macfile prov_user peers peer_token peer_name peer_host peer_status ua state
+  local total=0 configured=0 registered=0 detected_only=0 not_registered=0 prov_missing=0
+
+  [ -x "$ASTERISK_BIN" ] || fail "asterisk binary missing"
+  df="$(make_defaults)"; trap 'rm -f "$df"' RETURN EXIT
+
+  echo 'J129-PROD-FLEET-SCOPE=AVAYA-ONLY'
+  echo 'J129-PROD-FLEET-MANUFACTURER-SUMMARY-BEGIN'
+  mysql --defaults-extra-file="$df" --batch --skip-column-names endpointconfig -e "
+    SELECT mf.name, COUNT(*)
+    FROM endpoint e
+    JOIN manufacturer mf ON mf.id=e.id_manufacturer
+    GROUP BY mf.name
+    ORDER BY mf.name;
+  " | while IFS=$'\t' read -r mf_name mf_count; do
+    printf 'MANUFACTURER name=%q endpoints=%s\n' "$mf_name" "$mf_count"
+  done
+  echo 'J129-PROD-FLEET-MANUFACTURER-SUMMARY-END'
+
+  rows="$(mysql --defaults-extra-file="$df" --batch --skip-column-names endpointconfig -e "
+    SELECT e.id,
+           COALESCE(m.name,'UNKNOWN'),
+           e.mac_address,
+           COALESCE(e.last_known_ipv4,''),
+           COALESCE(GROUP_CONCAT(ea.account ORDER BY ea.priority SEPARATOR ','),'')
+    FROM endpoint e
+    JOIN manufacturer mf ON mf.id=e.id_manufacturer
+    LEFT JOIN model m ON m.id=e.id_model
+    LEFT JOIN endpoint_account ea ON ea.id_endpoint=e.id
+    WHERE mf.name='Avaya'
+    GROUP BY e.id, m.name, e.mac_address, e.last_known_ipv4
+    ORDER BY e.id;
+  ")"
+
+  peers="$(ax 'sip show peers' 2>/dev/null || true)"
+  echo 'J129-PROD-FLEET-AVAYA-BEGIN'
+
+  while IFS=$'\t' read -r id model mac ip account; do
+    [ -n "$id" ] || continue
+    total=$((total + 1))
+    state='DETECTED_ONLY'
+    prov_user=''
+    peer_name=''
+    peer_host=''
+    peer_status='UNKNOWN'
+    ua=''
+
+    macfile="$(printf '%s' "$mac" | tr '[:upper:]' '[:lower:]' | tr -d ':.-')"
+    macfile="/tftpboot/${macfile}.txt"
+
+    if [ -n "$account" ]; then
+      configured=$((configured + 1))
+      state='CONFIGURED_NOT_PROVISIONED'
+
+      if [ -s "$macfile" ]; then
+        state='PROVISIONED_NOT_REGISTERED'
+        prov_user="$(sed -n -E 's/^[[:space:]]*SET[[:space:]]+SIPUSERNAME[[:space:]]+([^[:space:]]+).*/\1/p' "$macfile" | head -n1)"
+
+        peer_token="$(printf '%s\n' "$peers" | awk -v acct="$account" '
+          $1 ~ /^[0-9]+\/[0-9]+$/ {
+            split($1,a,"/"); if (a[2]==acct) { print $1; exit }
+          }
+          $1 == acct { print $1; exit }
+        ')"
+
+        if [ -n "$peer_token" ]; then
+          peer_name="${peer_token%%/*}"
+          row="$(ax "sip show peer $peer_name" 2>/dev/null || true)"
+          peer_host="$(printf '%s\n' "$row" | sed -n -E 's/^[[:space:]]*Addr->IP[[:space:]]*:[[:space:]]*([^[:space:]]+).*/\1/p' | head -n1)"
+          peer_status="$(printf '%s\n' "$row" | sed -n -E 's/^[[:space:]]*Status[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1)"
+          ua="$(printf '%s\n' "$row" | sed -n -E 's/^[[:space:]]*Useragent[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1)"
+          if printf '%s' "$peer_status" | grep -Eq '^(OK|Reachable)'; then
+            state='CONFIGURED_REGISTERED'
+            registered=$((registered + 1))
+          else
+            not_registered=$((not_registered + 1))
+          fi
+        else
+          not_registered=$((not_registered + 1))
+        fi
+      else
+        prov_missing=$((prov_missing + 1))
+      fi
+    else
+      detected_only=$((detected_only + 1))
+    fi
+
+    printf 'AVAYA-ENDPOINT id=%s model=%q mac=%s last_ip=%s account=%s provisioning=%s prov_user=%s peer=%s sip_ip=%s sip_status=%q useragent=%q state=%s\n' \
+      "$id" "$model" "$mac" "${ip:-NONE}" "${account:-NONE}" \
+      "$([ -s "$macfile" ] && echo PRESENT || echo MISSING)" "${prov_user:-NONE}" \
+      "${peer_name:-NONE}" "${peer_host:-NONE}" "${peer_status:-UNKNOWN}" "${ua:-UNKNOWN}" "$state"
+  done <<< "$rows"
+
+  rm -f "$df"; trap - RETURN EXIT
+  echo 'J129-PROD-FLEET-AVAYA-END'
+  echo "J129-PROD-FLEET-SUMMARY total=$total configured=$configured registered=$registered detected_only=$detected_only not_registered=$not_registered provisioning_missing=$prov_missing"
+  pass 'J129-PROD-FLEET-AUDIT-PASS'
+}
+
 run_release(){
   local action="$1"
   verify_package
@@ -133,6 +235,10 @@ main(){
       server_audit
       provisioning_audit "${2:-}"
       ;;
+    fleet-audit)
+      [ "$#" -eq 1 ] || fail "unexpected arguments"
+      fleet_audit
+      ;;
     preflight)
       run_release preflight
       ;;
@@ -144,7 +250,7 @@ main(){
       run_release install
       ;;
     *)
-      echo "usage: $0 {audit [mac]|preflight|verify|install INSTALL-PROD-V010}" >&2
+      echo "usage: $0 {audit [mac]|fleet-audit|preflight|verify|install INSTALL-PROD-V010}" >&2
       exit 2
       ;;
   esac
