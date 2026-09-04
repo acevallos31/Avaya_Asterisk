@@ -1,0 +1,113 @@
+name: 53 | Ceiba Production | Avaya Fleet | Read-Only Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba AUDIT-CEIBA-AVAYA-FLEET'
+        required: true
+        type: string
+      fail_on_issues:
+        description: 'Marcar rojo si hay Avaya configurados sin registro o sin provisioning'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  audit-avaya-fleet:
+    name: Inventariar Avaya detectados/configurados en cei-pbx02
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - j129-production
+      - cei-pbx02
+    timeout-minutes: 10
+    env:
+      CONFIRM: ${{ inputs.confirm }}
+      FAIL_ON_ISSUES: ${{ inputs.fail_on_issues }}
+
+    steps:
+      - name: Guard de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "Audit"
+          test "$CONFIRM" = 'AUDIT-CEIBA-AVAYA-FLEET'
+          test "$(hostname -s)" = 'cei-pbx02'
+          test "$(id -un)" = 'github-runner-prod'
+          echo 'CEIBA-AVAYA-FLEET-GUARD-PASS'
+
+      - name: Checkout harness Audit
+        uses: actions/checkout@v4
+        with:
+          ref: Audit
+          persist-credentials: false
+
+      - name: Validar helper del repositorio
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n deploy/j129/avaya-j129-prod-validation
+          grep -F 'fleet-audit)' deploy/j129/avaya-j129-prod-validation >/dev/null
+          echo 'CEIBA-AVAYA-FLEET-REPO-HELPER-PASS'
+
+      - name: Verificar helper instalado en producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-prod-validation
+          test "$(stat -c '%U:%G:%a' /usr/local/sbin/avaya-j129-prod-validation)" = 'root:root:755'
+          sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-prod-validation' >/dev/null
+          if ! grep -F 'fleet-audit)' /usr/local/sbin/avaya-j129-prod-validation >/dev/null; then
+            echo 'CEIBA-AVAYA-FLEET-HELPER-UPDATE-REQUIRED'
+            echo 'El helper instalado todavía no contiene la acción fleet-audit.'
+            echo 'Actualice únicamente /usr/local/sbin/avaya-j129-prod-validation con la versión de la rama Audit y vuelva a ejecutar.'
+            exit 2
+          fi
+          echo 'CEIBA-AVAYA-FLEET-INSTALLED-HELPER-PASS'
+
+      - name: Auditar flota Avaya read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/ceiba-avaya-fleet-audit.txt"
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation fleet-audit | tee "$LOG"
+          grep -F 'J129-PROD-FLEET-AUDIT-PASS' "$LOG" >/dev/null
+          grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" >/dev/null
+          cp "$LOG" ./ceiba-avaya-fleet-audit.txt
+
+      - name: Resumen de auditoría
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG='./ceiba-avaya-fleet-audit.txt'
+          {
+            echo '## Ceiba - Avaya Fleet Audit'
+            echo
+            echo 'La prueba es **solo lectura**. Grandstream/Fanvil aparecen únicamente en el resumen de fabricantes; la clasificación detallada se limita a Avaya.'
+            echo
+            echo '```text'
+            grep -E '^(AVAYA-ENDPOINT|J129-PROD-FLEET-SUMMARY)' "$LOG"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$FAIL_ON_ISSUES" = 'true' ]; then
+            summary="$(grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" | tail -n1)"
+            not_registered="$(printf '%s\n' "$summary" | sed -n -E 's/.*not_registered=([0-9]+).*/\1/p')"
+            prov_missing="$(printf '%s\n' "$summary" | sed -n -E 's/.*provisioning_missing=([0-9]+).*/\1/p')"
+            test "${not_registered:-0}" -eq 0
+            test "${prov_missing:-0}" -eq 0
+          fi
+          echo 'CEIBA-AVAYA-FLEET-AUDIT-COMPLETE'
+
+      - name: Subir evidencia sanitizada
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceiba-avaya-fleet-audit-${{ github.run_id }}
+          path: ceiba-avaya-fleet-audit.txt
+          if-no-files-found: error
+          retention-days: 14
