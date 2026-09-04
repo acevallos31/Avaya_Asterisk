@@ -47,13 +47,14 @@ jobs:
           ref: Audit
           persist-credentials: false
 
-      - name: Validar helper del repositorio
+      - name: Validar harness y helper del repositorio
         shell: bash
         run: |
           set -euo pipefail
           bash -n deploy/j129/avaya-j129-prod-validation
           grep -F 'J129-PROD-FLEET-SCHEMA=3' deploy/j129/avaya-j129-prod-validation >/dev/null
-          echo 'CEIBA-AVAYA-FLEET-REPO-HELPER-PASS'
+          python3 -m py_compile .github/scripts/avaya_fleet_report.py
+          echo 'CEIBA-AVAYA-FLEET-REPO-HARNESS-PASS'
 
       - name: Verificar helper instalado en producción
         shell: bash
@@ -65,7 +66,6 @@ jobs:
           if ! grep -F 'J129-PROD-FLEET-SCHEMA=3' /usr/local/sbin/avaya-j129-prod-validation >/dev/null; then
             echo 'CEIBA-AVAYA-FLEET-HELPER-UPDATE-REQUIRED'
             echo 'El helper instalado todavía no contiene el esquema 3 de fleet-audit.'
-            echo 'Actualice únicamente /usr/local/sbin/avaya-j129-prod-validation con la versión de la rama Audit y vuelva a ejecutar.'
             exit 2
           fi
           echo 'CEIBA-AVAYA-FLEET-INSTALLED-HELPER-PASS'
@@ -80,216 +80,44 @@ jobs:
           grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" >/dev/null
           cp "$LOG" ./ceiba-avaya-fleet-audit.txt
 
-      - name: Resumen visual de auditoría
+      - name: Generar resumen visual, JSON y PDF
         shell: bash
         run: |
           set -euo pipefail
-          LOG='./ceiba-avaya-fleet-audit.txt'
+          python3 .github/scripts/avaya_fleet_report.py \
+            ./ceiba-avaya-fleet-audit.txt \
+            --json ./ceiba-avaya-fleet-audit.json \
+            --pdf ./ceiba-avaya-fleet-audit.pdf \
+            --summary "$GITHUB_STEP_SUMMARY"
 
-          python3 - "$LOG" "$GITHUB_STEP_SUMMARY" <<'PY'
-          import shlex
-          import sys
+          python3 -m json.tool ./ceiba-avaya-fleet-audit.json >/dev/null
+          test "$(head -c 5 ./ceiba-avaya-fleet-audit.pdf)" = '%PDF-'
+          test -s ./ceiba-avaya-fleet-audit.txt
+          test -s ./ceiba-avaya-fleet-audit.json
+          test -s ./ceiba-avaya-fleet-audit.pdf
+          echo 'CEIBA-AVAYA-FLEET-REPORTS-PASS formats=TXT,JSON,PDF'
 
-          log_path, summary_path = sys.argv[1:3]
+      - name: Aplicar criterio fail_on_issues
+        if: ${{ inputs.fail_on_issues }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          summary="$(grep -F 'J129-PROD-FLEET-SUMMARY ' ./ceiba-avaya-fleet-audit.txt | tail -n1)"
+          get_count() { printf '%s\n' "$summary" | sed -n -E "s/.*$1=([0-9]+).*/\\1/p"; }
+          test "$(get_count not_registered)" -eq 0
+          test "$(get_count provisioning_missing)" -eq 0
+          test "$(get_count credentials_mismatch)" -eq 0
+          test "$(get_count config_not_requested)" -eq 0
+          test "$(get_count live_mac_mismatch)" -eq 0
+          echo 'CEIBA-AVAYA-FLEET-STRICT-CRITERIA-PASS'
 
-          def parse_kv(line):
-              data = {}
-              try:
-                  parts = shlex.split(line, posix=True)
-              except ValueError:
-                  parts = line.split()
-              for token in parts[1:]:
-                  if '=' in token:
-                      key, value = token.split('=', 1)
-                      data[key] = value
-              return data
-
-          endpoints = []
-          fleet = {}
-          manufacturers = []
-
-          with open(log_path, 'r', encoding='utf-8', errors='replace') as fh:
-              for raw in fh:
-                  line = raw.rstrip('\n')
-                  if line.startswith('AVAYA-ENDPOINT '):
-                      endpoints.append(parse_kv(line))
-                  elif line.startswith('J129-PROD-FLEET-SUMMARY '):
-                      fleet = parse_kv(line)
-                  elif line.startswith('MANUFACTURER '):
-                      manufacturers.append(parse_kv(line))
-
-          def n(key):
-              try:
-                  return int(fleet.get(key, '0'))
-              except ValueError:
-                  return 0
-
-          def esc(value):
-              return str(value or 'NONE').replace('|', '\\|').replace('\n', ' ')
-
-          def cred_status(ep):
-              user = ep.get('credential_user', 'UNKNOWN')
-              secret = ep.get('credential_secret', 'UNKNOWN')
-              if user == 'MATCH' and secret == 'MATCH':
-                  return '✅ MATCH'
-              if user == 'MISMATCH' or secret == 'MISMATCH':
-                  return '❌ MISMATCH'
-              return '⚠️ UNKNOWN'
-
-          def download_status(ep):
-              if ep.get('config_request') == 'YES':
-                  code = ep.get('request_http', 'UNKNOWN')
-                  icon = '✅' if code.startswith('2') else '⚠️'
-                  return '{} YES ({})'.format(icon, code)
-              return '⚠️ NO EVIDENCE'
-
-          def sip_status(ep):
-              if ep.get('state') == 'CONFIGURED_REGISTERED':
-                  return '✅ REGISTERED'
-              return '❌ NOT REGISTERED'
-
-          def live_status(ep):
-              state = ep.get('live_state', 'UNKNOWN')
-              if state == 'LIVE_CONFIRMED':
-                  return '✅ LIVE + MAC MATCH'
-              if state == 'LIVE_IP_MAC_MISMATCH':
-                  return '🚨 MAC MISMATCH'
-              if state == 'LIVE_IP_ONLY':
-                  return '⚠️ LIVE IP / MAC UNKNOWN'
-              if state == 'UNREACHABLE_OR_FILTERED':
-                  return '⚠️ NO ICMP'
-              return '❓ UNKNOWN'
-
-          configured = [e for e in endpoints if e.get('account', 'NONE') != 'NONE']
-          detected = [e for e in endpoints if e.get('account', 'NONE') == 'NONE']
-          issues = [e for e in configured if e.get('state') != 'CONFIGURED_REGISTERED' or e.get('live_mac_match') == 'MISMATCH']
-
-          lines = []
-          lines += [
-              '# 📞 Ceiba - Avaya Fleet Audit',
-              '',
-              '> Auditoría de diagnóstico **sin cambios de configuración**. La prueba envía un ping corto para refrescar presencia/neighbor y nunca muestra contraseñas SIP.',
-              '',
-              '## Estado general',
-              '',
-              '| Indicador | Resultado |',
-              '|---|---:|',
-              '| 🔎 Avaya detectados | **{}** |'.format(n('total')),
-              '| ⚙️ Configurados | **{}** |'.format(n('configured')),
-              '| ✅ Registrados | **{}** |'.format(n('registered')),
-              '| ❌ Configurados sin registro | **{}** |'.format(n('not_registered')),
-              '| 💤 Solo detectados | **{}** |'.format(n('detected_only')),
-              '| 🟢 Presencia IP + MAC confirmada | **{}** |'.format(n('live_confirmed')),
-              '| 🟡 IP responde pero MAC no verificable | **{}** |'.format(n('live_ip_only')),
-              '| 🚨 MAC viva distinta a Endpoint Configurator | **{}** |'.format(n('live_mac_mismatch')),
-              '| ⚠️ Sin respuesta ICMP / filtrado | **{}** |'.format(n('live_unreachable')),
-              '| 🔐 Credenciales coinciden | **{}** |'.format(n('credentials_match')),
-              '| 🚨 Credenciales distintas | **{}** |'.format(n('credentials_mismatch')),
-              '| ❓ Credenciales no verificables | **{}** |'.format(n('credentials_unknown')),
-              '| 📥 Archivo solicitado | **{}** |'.format(n('config_requested')),
-              '| ⚠️ Sin evidencia de descarga | **{}** |'.format(n('config_not_requested')),
-              '',
-          ]
-
-          if issues:
-              lines += ['## 🚨 Requieren atención', '']
-              for ep in issues:
-                  lines.append('- **Ext. {}** · {} · {} · MAC `{}` · última IP `{}`'.format(
-                      esc(ep.get('account')), esc(ep.get('state')), live_status(ep), esc(ep.get('mac')), esc(ep.get('last_ip'))))
-              lines.append('')
-          else:
-              lines += ['## ✅ Sin incidencias en los Avaya configurados', '']
-
-          lines += [
-              '## Teléfonos Avaya configurados',
-              '',
-              '| Ext. | Modelo | MAC DB | Última IP | Presencia actual | Provisioning | Credenciales | Descarga config | SIP |',
-              '|---:|---|---|---|---|---|---|---|---|',
-          ]
-          for ep in configured:
-              prov = '✅ PRESENT' if ep.get('provisioning') == 'PRESENT' else '❌ MISSING'
-              lines.append('| {} | {} | `{}` | `{}` | {} | {} | {} | {} | {} |'.format(
-                  esc(ep.get('account')), esc(ep.get('model')), esc(ep.get('mac')), esc(ep.get('last_ip')),
-                  live_status(ep), prov, cred_status(ep), download_status(ep), sip_status(ep)))
-
-          lines += ['', '## Detalle de configuración, presencia y registro', '']
-          for ep in configured:
-              lines += [
-                  '<details>',
-                  '<summary><strong>Ext. {}</strong> · {} · {} · {}</summary>'.format(
-                      esc(ep.get('account')), esc(ep.get('model')), live_status(ep), sip_status(ep)),
-                  '',
-                  '- MAC guardada en Endpoint Configurator: `{}`'.format(esc(ep.get('mac'))),
-                  '- Última IP detectada: `{}`'.format(esc(ep.get('last_ip'))),
-                  '- Último scan de Endpoint Configurator: `{}`'.format(esc(ep.get('last_scanned'))),
-                  '- Última modificación: `{}`'.format(esc(ep.get('last_modified'))),
-                  '- Ping actual: **{}**'.format(esc(ep.get('ping'))),
-                  '- MAC observada en neighbor/ARP: `{}`'.format(esc(ep.get('live_mac'))),
-                  '- MAC viva vs MAC DB: **{}**'.format(esc(ep.get('live_mac_match'))),
-                  '- Estado neighbor: `{}`'.format(esc(ep.get('neighbor_state'))),
-                  '- Presencia actual: **{}**'.format(esc(ep.get('live_state'))),
-                  '- IP SIP registrada: `{}`'.format(esc(ep.get('sip_ip'))),
-                  '- User-Agent: `{}`'.format(esc(ep.get('useragent'))),
-                  '- Usuario provisioning vs Asterisk: **{}**'.format(esc(ep.get('credential_user', 'UNKNOWN'))),
-                  '- Secret provisioning vs Asterisk: **{}**'.format(esc(ep.get('credential_secret', 'UNKNOWN'))),
-                  '- Solicitud de configuración: **{}**'.format(esc(ep.get('config_request', 'NO'))),
-                  '- IP que solicitó archivo: `{}`'.format(esc(ep.get('request_ip'))),
-                  '- HTTP: `{}`'.format(esc(ep.get('request_http'))),
-                  '- Última solicitud encontrada: `{}`'.format(esc(ep.get('request_time'))),
-                  '- Estado final SIP/provisioning: **{}**'.format(esc(ep.get('state'))),
-                  '',
-                  '</details>',
-                  '',
-              ]
-
-          lines += [
-              '## Avaya detectados sin extensión',
-              '',
-              '| Modelo | MAC DB | Última IP | Último scan | Presencia actual | MAC viva | Coincidencia |',
-              '|---|---|---|---|---|---|---|',
-          ]
-          for ep in detected:
-              lines.append('| {} | `{}` | `{}` | `{}` | {} | `{}` | **{}** |'.format(
-                  esc(ep.get('model')), esc(ep.get('mac')), esc(ep.get('last_ip')), esc(ep.get('last_scanned')),
-                  live_status(ep), esc(ep.get('live_mac')), esc(ep.get('live_mac_match'))))
-
-          lines += ['', '## Fabricantes vistos por Endpoint Configurator', '']
-          for mf in manufacturers:
-              lines.append('- **{}**: {} endpoint(s)'.format(esc(mf.get('name')), esc(mf.get('endpoints'))))
-
-          lines += [
-              '',
-              '---',
-              'Interpretación: `LIVE_CONFIRMED` exige que la IP responda y que la MAC observada coincida con la MAC de Endpoint Configurator. `UNREACHABLE_OR_FILTERED` no demuestra que el teléfono esté apagado: ICMP puede estar filtrado. En redes enrutadas, la MAC de neighbor puede no ser la del teléfono y se debe interpretar con cautela.',
-              '',
-              'Leyenda: ✅ correcto · ❌ requiere atención · 🚨 inconsistencia fuerte · ⚠️ revisar evidencia · 💤 detectado pero no configurado.',
-              '',
-              'El artefacto `ceiba-avaya-fleet-audit` conserva la evidencia sanitizada de esta ejecución.',
-          ]
-
-          with open(summary_path, 'a', encoding='utf-8') as out:
-              out.write('\n'.join(lines) + '\n')
-          PY
-
-          if [ "$FAIL_ON_ISSUES" = 'true' ]; then
-            summary="$(grep -F 'J129-PROD-FLEET-SUMMARY ' "$LOG" | tail -n1)"
-            not_registered="$(printf '%s\n' "$summary" | sed -n -E 's/.*not_registered=([0-9]+).*/\1/p')"
-            prov_missing="$(printf '%s\n' "$summary" | sed -n -E 's/.*provisioning_missing=([0-9]+).*/\1/p')"
-            cred_mismatch="$(printf '%s\n' "$summary" | sed -n -E 's/.*credentials_mismatch=([0-9]+).*/\1/p')"
-            not_requested="$(printf '%s\n' "$summary" | sed -n -E 's/.*config_not_requested=([0-9]+).*/\1/p')"
-            live_mismatch="$(printf '%s\n' "$summary" | sed -n -E 's/.*live_mac_mismatch=([0-9]+).*/\1/p')"
-            test "${not_registered:-0}" -eq 0
-            test "${prov_missing:-0}" -eq 0
-            test "${cred_mismatch:-0}" -eq 0
-            test "${not_requested:-0}" -eq 0
-            test "${live_mismatch:-0}" -eq 0
-          fi
-          echo 'CEIBA-AVAYA-FLEET-AUDIT-COMPLETE'
-
-      - name: Subir evidencia sanitizada
+      - name: Subir evidencia sanitizada TXT JSON PDF
         uses: actions/upload-artifact@v4
         with:
           name: ceiba-avaya-fleet-audit-${{ github.run_id }}
-          path: ceiba-avaya-fleet-audit.txt
+          path: |
+            ceiba-avaya-fleet-audit.txt
+            ceiba-avaya-fleet-audit.json
+            ceiba-avaya-fleet-audit.pdf
           if-no-files-found: error
           retention-days: 14
