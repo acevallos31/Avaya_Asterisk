@@ -1,0 +1,125 @@
+name: 21 | Issabel Lab | Grandstream GXP1630 | Probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/grandstream-endpoint-models
+    paths:
+      - '.github/workflows/lab-grandstream-gxp1630-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  gxp1630-probe:
+    name: Probe de detección Grandstream GXP1630 en LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    env:
+      TARGET_IP: 192.168.1.168
+      EXPECTED_MAC: c0:74:ad:e8:66:09
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          ip -br addr
+          ip route
+
+      - name: Confirmar presencia y MAC del candidato
+        shell: bash
+        run: |
+          set -euo pipefail
+          ping -c 2 -W 1 "$TARGET_IP" || true
+          echo '=== IP NEIGH ==='
+          ip neigh show "$TARGET_IP" || true
+          echo '=== ARP ==='
+          arp -an 2>/dev/null | grep -F "($TARGET_IP)" || true
+          ACTUAL_MAC="$(ip neigh show "$TARGET_IP" | awk '/lladdr/ {print tolower($5); exit}')"
+          echo "MAC observada: ${ACTUAL_MAC:-NO-DETECTADA}"
+          echo "MAC esperada: $EXPECTED_MAC"
+          if [ -n "$ACTUAL_MAC" ] && [ "$ACTUAL_MAC" != "$EXPECTED_MAC" ]; then
+            echo 'ADVERTENCIA: la IP responde con una MAC distinta a la candidata original.'
+          fi
+
+      - name: Auditar puertos del teléfono
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v nmap >/dev/null 2>&1; then
+            nmap -n -Pn -sT -sV --version-light -p 23,80,443,5060,5061,161 "$TARGET_IP" || true
+          else
+            for p in 23 80 443 5060 5061 161; do
+              timeout 2 bash -c "</dev/tcp/$TARGET_IP/$p" >/dev/null 2>&1 \
+                && echo "$p/tcp OPEN" || echo "$p/tcp closed-or-filtered"
+            done
+          fi
+
+      - name: Reproducir detección HTTP de Grandstream.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== GET /manager?action=product&time=0 ==='
+          if command -v curl >/dev/null 2>&1; then
+            BODY="$(curl -fsS --max-time 5 "http://$TARGET_IP/manager?action=product&time=0" 2>/dev/null || true)"
+            printf '%s\n' "$BODY" | head -c 4000
+            echo
+            PRODUCT="$(printf '%s' "$BODY" | sed -n 's/.*Product=\([A-Za-z0-9_-]*\).*/\1/p' | head -n1)"
+            echo "Modelo extraído con patrón Product=: ${PRODUCT:-NO-DETECTADO}"
+          else
+            echo 'curl no disponible'
+          fi
+
+      - name: Auditar HTTP sin autenticación
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v curl >/dev/null 2>&1; then
+            for url in \
+              "http://$TARGET_IP/" \
+              "http://$TARGET_IP/manager?action=product&time=0" \
+              "http://$TARGET_IP/cgi-bin/api.values.get?request=phone_model:1395"; do
+              echo "=== $url ==="
+              curl -sS -D - --max-time 5 -o /tmp/gxp-body "$url" 2>&1 | head -n 40 || true
+              echo '--- BODY ---'
+              head -c 2000 /tmp/gxp-body 2>/dev/null || true
+              echo
+            done
+          fi
+
+      - name: Capturar banner Telnet si existe
+        shell: bash
+        run: |
+          set -euo pipefail
+          if timeout 2 bash -c "</dev/tcp/$TARGET_IP/23" >/dev/null 2>&1; then
+            echo '=== TELNET BANNER ==='
+            timeout 5 bash -c "exec 3<>/dev/tcp/$TARGET_IP/23; cat <&3" 2>/dev/null | head -c 4000 || true
+            echo
+          else
+            echo 'Puerto 23 no accesible; Grandstream.py debería caer al método HTTP.'
+          fi
+
+      - name: Revisar lógica instalada de probeModel
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE=/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py
+          if [ -r "$FILE" ]; then
+            echo "=== $FILE ==="
+            grep -nE 'def probeModel|manager.action=product|Product=|telnet|phone_model' "$FILE" | head -n 120 || true
+          else
+            echo 'Grandstream.py no es legible por el runner.'
+          fi
+
+      - name: Resultado
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'GXP1630-PROBE-PASS'
