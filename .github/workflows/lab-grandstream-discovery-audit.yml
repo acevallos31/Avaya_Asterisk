@@ -1,0 +1,123 @@
+name: 20 | Issabel Lab | Grandstream Discovery | Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/grandstream-endpoint-models
+    paths:
+      - '.github/workflows/lab-grandstream-discovery-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  grandstream-discovery-audit:
+    name: Auditoría de descubrimiento Grandstream en LAB
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verificar identidad y red del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner: $(id -un)@$(hostname)"
+          test "$(id -un)" = "github-runner"
+          echo '=== DIRECCIONES ==='
+          ip -br addr
+          echo '=== RUTAS ==='
+          ip route
+          echo '=== VECINOS ==='
+          ip neigh show || true
+          echo '=== ARP ==='
+          arp -an 2>/dev/null || true
+
+      - name: Determinar interfaz y subred local
+        id: net
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFACE="$(ip route show default | awk 'NR==1 {print $5}')"
+          if [ -z "$IFACE" ]; then
+            echo 'No se pudo determinar la interfaz de ruta por defecto'
+            exit 1
+          fi
+          CIDR="$(ip -o -f inet addr show dev "$IFACE" scope global | awk 'NR==1 {print $4}')"
+          if [ -z "$CIDR" ]; then
+            echo "No se encontró IPv4 global en $IFACE"
+            exit 1
+          fi
+          echo "iface=$IFACE" >> "$GITHUB_OUTPUT"
+          echo "cidr=$CIDR" >> "$GITHUB_OUTPUT"
+          echo "Interfaz: $IFACE"
+          echo "CIDR local: $CIDR"
+
+      - name: Descubrir hosts de la LAN
+        shell: bash
+        env:
+          IFACE: ${{ steps.net.outputs.iface }}
+          CIDR: ${{ steps.net.outputs.cidr }}
+        run: |
+          set -euo pipefail
+          echo '=== HERRAMIENTAS DISPONIBLES ==='
+          command -v arp-scan || true
+          command -v nmap || true
+
+          if command -v arp-scan >/dev/null 2>&1; then
+            echo '=== ARP-SCAN LOCALNET ==='
+            arp-scan --interface="$IFACE" --localnet 2>&1 || true
+          elif command -v nmap >/dev/null 2>&1; then
+            echo "=== NMAP HOST DISCOVERY $CIDR ==="
+            nmap -sn "$CIDR" || true
+          else
+            echo 'Ni arp-scan ni nmap están instalados; se conserva evidencia de ip neigh/arp.'
+          fi
+
+          echo '=== VECINOS DESPUÉS DEL DESCUBRIMIENTO ==='
+          ip neigh show || true
+          arp -an 2>/dev/null || true
+
+      - name: Identificar candidatos de telefonía IP
+        shell: bash
+        env:
+          CIDR: ${{ steps.net.outputs.cidr }}
+        run: |
+          set -euo pipefail
+          if command -v nmap >/dev/null 2>&1; then
+            echo '=== PUERTOS TÍPICOS HTTP/HTTPS/SIP ==='
+            nmap -n -sT --open -p 80,443,5060,5061,8080 "$CIDR" || true
+          else
+            echo 'nmap no disponible; omitiendo identificación por puertos.'
+          fi
+
+      - name: Buscar evidencia Grandstream en servicios y logs legibles
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== ENDPOINT CONFIGURATOR ==='
+          rpm -q issabel-endpointconfig2 || true
+          echo '=== REFERENCIAS GRANDSTREAM INSTALADAS ==='
+          for root in /usr/bin /usr/sbin /var/www/html /usr/share; do
+            [ -d "$root" ] || continue
+            grep -RniE --include='*.php' --include='*.py' --include='*.inc' --include='*.conf' \
+              'Grandstream|GXP1630' "$root" 2>/dev/null | head -n 250 || true
+          done
+
+          pattern='Grandstream|GXP1630|endpoint|detect_endpoints'
+          for f in /var/log/httpd/access_log /var/log/httpd/error_log /var/log/asterisk/full /var/log/messages; do
+            echo "=== LOG: $f ==="
+            if [ -r "$f" ]; then
+              tail -n 4000 "$f" | grep -Ei "$pattern" | tail -n 250 || true
+            else
+              echo 'NO-LEGIBLE-POR-RUNNER'
+            fi
+          done
+
+      - name: Resultado
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'GRANDSTREAM-DISCOVERY-AUDIT-PASS'
