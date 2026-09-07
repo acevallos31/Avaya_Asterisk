@@ -68,6 +68,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 49 | `lab-j129-physical-call-e2e.yml` | `49 | Issabel Lab | J129 Physical Call | Controlled E2E` | `LAB-PHYSICAL-AUDIO-PASS`: selección reutilizable por extensión/MAC/IP, resolución dinámica del peer SIP, Caller ID de prueba, timbrado, answer y Echo RTP bidireccional confirmados físicamente por operador. Base reutilizable para pruebas posteriores de audio/DTMF. |
 | 50 | `lab-j129-ivr-dtmf.yml` | `50 | Issabel Lab | J129 IVR & DTMF | SIP/AGI Controlled Test` | EN IMPLEMENTACIÓN. Preflight reutiliza helper Test 49 para comprobar peer J129, aplicación AGI y catálogo de sonidos EN/ES de la PBX. Con ese inventario se construirá el AGI bilingüe `For English press 1 / Para español presione 2` y la fase física DTMF. |
 | 51 | `lab-j129-dual-sip-peer-audit.yml` | `51 | Issabel Lab | Dual SIP Peers | Read-Only Audit` | `J129-LAB-DUAL-SIP-AUDIT-PASS`, run 33722813111. 200=Avaya J129 `192.168.1.168` READY; 201=Grandstream GXP1625 `192.168.1.173` READY; ambos `from-internal`, RFC2833 y DirectMedia=No. Reutiliza helper Test 49. |
+| 52 | `lab-pbx-runner-baseline-audit.yml` | `52 | Issabel Lab | PBX & Runner Baseline | Read-Only Audit` | Auditoría integral read-only para iniciar desarrollos, validar/recrear runners y comprobar salud base de PBX, red, servicios, Asterisk, Endpoint Configurator, tooling y permisos. |
 
 ## Reglas de runners
 
@@ -99,4 +100,6 @@ No se permite un workflow LAB con selector genérico que también pueda ser sati
 
 La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y validaciones de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
 
-Próximo ID disponible: `52`.
+Nota: `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. Para no romper evidencia ni reutilizar IDs, la auditoría integral PBX/runner se registró como `52`.
+
+Próximo ID disponible: `53`.
