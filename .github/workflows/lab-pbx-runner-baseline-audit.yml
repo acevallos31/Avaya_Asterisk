@@ -1,189 +1,79 @@
-name: 52 | Issabel Lab | PBX & Runner Baseline | Read-Only Audit
+name: 52 | PBX & Runner Baseline | Read-Only Audit
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'PBX / runner a auditar'
+        required: true
+        default: lab
+        type: choice
+        options:
+          - lab
+          - ceiba-production
+      confirm:
+        description: 'Solo producción: escriba AUDIT-PROD. En LAB puede dejarse vacío.'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  baseline-audit:
-    name: Auditoría base integral PBX y self-hosted runner
+  audit-lab:
+    if: ${{ inputs.target == 'lab' }}
+    name: Baseline LAB
     runs-on: [self-hosted, Linux, X64, issabel-lab]
-
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          clean: true
 
-      - name: Identidad del runner y host
+      - name: Guard LAB
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== HOST ==='
-          echo "hostname=$(hostname -f 2>/dev/null || hostname)"
-          echo "kernel=$(uname -srmo)"
-          echo "uptime=$(uptime -p 2>/dev/null || true)"
-          echo '=== RUNNER ==='
-          echo "user=$(id -un)"
-          echo "uid=$(id -u)"
-          echo "groups=$(id -Gn)"
-          echo "runner_name=${RUNNER_NAME:-unknown}"
-          echo "runner_os=${RUNNER_OS:-unknown}"
-          echo "runner_arch=${RUNNER_ARCH:-unknown}"
           test "$(id -un)" = "github-runner"
+          echo "BASELINE-TARGET=lab"
 
-      - name: Sistema operativo y recursos
+      - name: Ejecutar auditoría común read-only
+        shell: bash
+        env:
+          TARGET: lab
+          EXPECTED_USER: github-runner
+        run: |
+          set -euo pipefail
+          bash scripts/pbx-runner-baseline-audit.sh
+
+  audit-ceiba-production:
+    if: ${{ inputs.target == 'ceiba-production' }}
+    name: Baseline Ceiba Production
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 15
+    steps:
+      - name: Guard estricto de producción
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== OS RELEASE ==='
-          cat /etc/os-release 2>/dev/null || true
-          echo '=== CPU ==='
-          lscpu 2>/dev/null | grep -E '^(Architecture|CPU\(s\)|Model name|Virtualization):' || true
-          echo '=== MEMORY ==='
-          free -h || true
-          echo '=== FILESYSTEM ==='
-          df -hT / /var /tmp 2>/dev/null || df -hT || true
+          test "$GITHUB_REF_NAME" = "Audit"
+          test '${{ inputs.confirm }}' = 'AUDIT-PROD'
+          test "$(id -un)" = "github-runner-prod"
+          test "$(hostname -s)" = "cei-pbx02"
+          echo 'PRODUCTION-BASELINE-RUNNER-GUARD-PASS'
 
-      - name: Red y resolución
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Ejecutar auditoría común read-only
         shell: bash
+        env:
+          TARGET: ceiba-production
+          EXPECTED_USER: github-runner-prod
+          EXPECTED_HOST: cei-pbx02
         run: |
           set -euo pipefail
-          echo '=== ADDRESSES ==='
-          ip -br addr || true
-          echo '=== ROUTES ==='
-          ip route || true
-          echo '=== NEIGHBORS ==='
-          ip neigh show || true
-          echo '=== DNS ==='
-          grep -Ev '^\s*(#|$)' /etc/resolv.conf 2>/dev/null || true
-          echo '=== LISTENING PORTS (NO PIDS) ==='
-          ss -lntupH 2>/dev/null | awk '{print $1,$5}' | sort -u | head -n 200 || true
-
-      - name: Versiones PBX y paquetes principales
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== ISSABEL PACKAGES ==='
-          rpm -qa 2>/dev/null | grep -Ei '^(issabel|asterisk|freepbx|httpd|mariadb|mysql|php)' | sort | head -n 300 || true
-          echo '=== ASTERISK VERSION ==='
-          asterisk -V 2>/dev/null || true
-          echo '=== ENDPOINT CONFIGURATOR ==='
-          rpm -q issabel-endpointconfig2 2>/dev/null || true
-          echo '=== RUNTIME TOOLS ==='
-          for cmd in python3 python php mysql mariadb curl wget nmap arp arp-scan git openssl jq; do
-            printf '%-12s ' "$cmd"
-            command -v "$cmd" 2>/dev/null || echo 'NOT-INSTALLED'
-          done
-          python3 --version 2>/dev/null || true
-          php -v 2>/dev/null | head -n 2 || true
-          mysql --version 2>/dev/null || mariadb --version 2>/dev/null || true
-          git --version 2>/dev/null || true
-
-      - name: Estado de servicios relevantes
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== SERVICES ==='
-          for svc in asterisk httpd mariadb mysqld fail2ban firewalld chronyd crond; do
-            if systemctl list-unit-files "$svc.service" >/dev/null 2>&1; then
-              printf '%-12s enabled=' "$svc"
-              systemctl is-enabled "$svc" 2>/dev/null || true
-              printf '%-12s active=' "$svc"
-              systemctl is-active "$svc" 2>/dev/null || true
-            fi
-          done
-          echo '=== FAILED UNITS ==='
-          systemctl --failed --no-pager 2>/dev/null || true
-
-      - name: Asterisk estado seguro
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== ASTERISK CLI READ-ONLY ==='
-          if asterisk -rx 'core show version' >/tmp/audit-asterisk-version.txt 2>/dev/null; then
-            cat /tmp/audit-asterisk-version.txt
-            asterisk -rx 'core show uptime' 2>/dev/null || true
-            echo '=== CHANNEL DRIVERS ==='
-            asterisk -rx 'module show like chan_sip' 2>/dev/null || true
-            asterisk -rx 'module show like res_pjsip' 2>/dev/null || true
-            echo '=== SIP PEER SUMMARY ==='
-            asterisk -rx 'sip show peers' 2>/dev/null | tail -n 5 || true
-            echo '=== PJSIP ENDPOINT SUMMARY ==='
-            asterisk -rx 'pjsip show endpoints' 2>/dev/null | tail -n 8 || true
-          else
-            echo 'WARN: github-runner no tiene acceso directo al CLI de Asterisk; no se amplían privilegios.'
-          fi
-          rm -f /tmp/audit-asterisk-version.txt
-
-      - name: Endpoint Configurator instalado
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== ENDPOINT CLASSES ==='
-          base='/usr/share/issabel/endpoint-classes/class/issabel/vendor'
-          if [ -d "$base" ]; then
-            find "$base" -maxdepth 1 -type f -name '*.py' -printf '%f\n' | sort
-          else
-            echo 'WARN: vendor class directory not found'
-          fi
-          echo '=== LEGACY PHONE SERVER VENDORS ==='
-          legacy='/var/www/html/modules/endpoint_configurator/phonesrv/vendor'
-          if [ -d "$legacy" ]; then
-            find "$legacy" -maxdepth 1 -type f -name '*.class.php' -printf '%f\n' | sort
-          else
-            echo 'WARN: legacy vendor directory not found'
-          fi
-          echo '=== DETECTION COMPONENTS ==='
-          for f in /usr/bin/issabel-endpointconfig /usr/bin/detect_endpoints /usr/sbin/detect_endpoints /usr/share/issabel/privileged/detect_endpoints; do
-            [ -e "$f" ] && ls -l "$f"
-          done
-
-      - name: Endpoint DB baseline mediante helper autorizado
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== ENDPOINTCONFIG DB BASELINE ==='
-          if [ -x /usr/local/sbin/avaya-j129-lab-deploy ] && sudo -n -l 2>/dev/null | grep -Fq '/usr/local/sbin/avaya-j129-lab-deploy'; then
-            sudo /usr/local/sbin/avaya-j129-lab-deploy inspect-db || true
-          else
-            echo 'WARN: helper restringido de inspección DB no disponible para este runner.'
-          fi
-          echo 'NOTE: este helper histórico muestra actualmente Avaya/J129; el registro completo de fabricantes requiere un helper genérico read-only separado.'
-
-      - name: Permisos sudo del runner
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== SUDO ALLOWLIST ==='
-          sudo -n -l 2>&1 | sed -E 's/(password|passwd|secret|token|key)[^, ]*/[REDACTED]/Ig' || true
-          echo 'NOTE: la auditoría no solicita ni amplía privilegios.'
-
-      - name: Herramientas de descubrimiento y salud local
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== DISCOVERY TOOLING ==='
-          for cmd in nmap arp-scan arp ip ss curl; do
-            if command -v "$cmd" >/dev/null 2>&1; then
-              echo "PASS: $cmd"
-            else
-              echo "WARN: $cmd no instalado"
-            fi
-          done
-          echo '=== LOCAL HTTP HEALTH ==='
-          curl -kfsS --max-time 5 -o /dev/null -w 'http://127.0.0.1 status=%{http_code}\n' http://127.0.0.1/ 2>/dev/null || echo 'WARN: HTTP local no respondió'
-          curl -kfsS --max-time 5 -o /dev/null -w 'https://127.0.0.1 status=%{http_code}\n' https://127.0.0.1/ 2>/dev/null || echo 'WARN: HTTPS local no respondió'
-
-      - name: Resumen baseline
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== BASELINE SUMMARY ==='
-          echo "timestamp_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "host=$(hostname -f 2>/dev/null || hostname)"
-          echo "runner_user=$(id -un)"
-          echo "endpointconfig=$(rpm -q issabel-endpointconfig2 2>/dev/null || echo NOT-INSTALLED)"
-          echo "asterisk=$(asterisk -V 2>/dev/null || echo UNKNOWN)"
-          echo 'BASELINE-STATUS: PASS-WITH-WARNINGS-IF-ANY'
-          echo 'PBX-RUNNER-BASELINE-AUDIT-PASS'
+          bash scripts/pbx-runner-baseline-audit.sh
