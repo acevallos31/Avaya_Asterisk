@@ -68,8 +68,8 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 49 | `lab-j129-physical-call-e2e.yml` | `49 | Issabel Lab | J129 Physical Call | Controlled E2E` | `LAB-PHYSICAL-AUDIO-PASS`: selección reutilizable por extensión/MAC/IP, resolución dinámica del peer SIP, Caller ID de prueba, timbrado, answer y Echo RTP bidireccional confirmados físicamente por operador. Base reutilizable para pruebas posteriores de audio/DTMF. |
 | 50 | `lab-j129-ivr-dtmf.yml` | `50 | Issabel Lab | J129 IVR & DTMF | SIP/AGI Controlled Test` | EN IMPLEMENTACIÓN. Preflight reutiliza helper Test 49 para comprobar peer J129, aplicación AGI y catálogo de sonidos EN/ES de la PBX. Con ese inventario se construirá el AGI bilingüe `For English press 1 / Para español presione 2` y la fase física DTMF. |
 | 51 | `lab-j129-dual-sip-peer-audit.yml` | `51 | Issabel Lab | Dual SIP Peers | Read-Only Audit` | `J129-LAB-DUAL-SIP-AUDIT-PASS`, run 33722813111. 200=Avaya J129 `192.168.1.168` READY; 201=Grandstream GXP1625 `192.168.1.173` READY; ambos `from-internal`, RFC2833 y DirectMedia=No. Reutiliza helper Test 49. |
-| 52 | `lab-pbx-runner-baseline-audit.yml` | `52 | Issabel Lab | PBX & Runner Baseline | Read-Only Audit` | Auditoría integral read-only para iniciar desarrollos, validar/recrear runners y comprobar salud base de PBX, red, servicios, Asterisk, Endpoint Configurator, tooling y permisos. Run 34165728592: PASS con advertencias. |
-| 53 | `prod-pbx-runner-baseline-audit.yml` | `53 | Ceiba Production | PBX & Runner Baseline | Read-Only Audit` | Comparación read-only de la PBX/runner de Ceiba contra el baseline LAB. Guard estricto: `github-runner-prod`, host `cei-pbx02`, rama `Audit`, confirmación `AUDIT-PROD`. No modifica PBX. |
+| 52 | `lab-pbx-runner-baseline-audit.yml` | `52 | PBX & Runner Baseline | Read-Only Audit` | Auditoría genérica parametrizada por `target`. Targets actuales: `lab` y `ceiba-production`. Comparte `scripts/pbx-runner-baseline-audit.sh`; mantiene guard estricto para producción. Run histórico LAB 34165728592: PASS con advertencias. |
+| 53 | `prod-pbx-runner-baseline-audit.yml` | `53 | Ceiba Production | PBX & Runner Baseline | Read-Only Audit` | RETIRADA/SUPERSEDED antes de ejecución. Su semántica quedó absorbida por Test 52 parametrizada; el workflow duplicado fue eliminado sin reutilizar el ID 53. |
 
 ## Reglas de runners
 
@@ -91,16 +91,18 @@ No se permite un workflow LAB con selector genérico que también pueda ser sati
 
 1. Revisar este registro.
 2. Reservar el siguiente ID disponible.
-3. Si es workflow, crear/renombrar usando el formato normalizado.
-4. Si es prueba manual/física, registrar explícitamente el tipo y la evidencia disponible.
-5. Verificar selector de runner y trigger cuando aplique.
-6. Ejecutar la prueba.
-7. Registrar run/resultado/evidencia en `docs/agent-log.md` y `CONTEXT.md` si cambia el estado del proyecto.
+3. Antes de crear un workflow nuevo, comprobar si la semántica ya existe y puede parametrizarse.
+4. Si cambia solo el target, modelo, IP, MAC o runner y el procedimiento es el mismo, ampliar la prueba existente en lugar de duplicarla.
+5. Si es workflow, crear/renombrar usando el formato normalizado.
+6. Si es prueba manual/física, registrar explícitamente el tipo y la evidencia disponible.
+7. Verificar selector de runner, guards y trigger cuando aplique.
+8. Ejecutar la prueba.
+9. Registrar run/resultado/evidencia en `docs/agent-log.md` y `CONTEXT.md` si cambia el estado del proyecto.
 
 ## Estado de normalización
 
 La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formalizan workflows históricos/auxiliares y validaciones de producción. La normalización de los `name:` visibles y selectores de runner debe seguir este registro sin cambiar la semántica de las pruebas.
 
-Nota: `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. Para no romper evidencia ni reutilizar IDs, la auditoría integral PBX/runner se registró como `52`; la variante equivalente de producción Ceiba se registró como `53`.
+`00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
 Próximo ID disponible: `54`.
