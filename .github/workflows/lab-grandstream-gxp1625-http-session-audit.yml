@@ -1,0 +1,68 @@
+name: G10-10 | Issabel Lab | GXP1625 HTTP Session | Read-Only Compatibility Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Grandstream GXP1625 HTTP session compatibility audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Verify protected credential exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'protected_credential=AVAILABLE'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Audit HTTP session shape
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-http-session-audit.sh
+          REPORT="$RUNNER_TEMP/g10-10-grandstream-http-session.txt"
+          scripts/grandstream-gxp1625-http-session-audit.sh "$REPORT"
+          grep -Fq 'G10-10-PASS' "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-10-grandstream-http-session.txt"
+          {
+            echo '## G10-10 Grandstream GXP1625 HTTP session compatibility'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` |'
+            echo '| Firmware Prog | `1.0.7.70` |'
+            echo '| Credentials printed | `NO` |'
+            echo '| Configuration writes | `NONE` |'
+            echo '| api.values.post | `NOT CALLED` |'
+            echo
+            grep -E '^(login_http|login_content_type|login_location|set_cookie_names|cookie_jar_count|cookie_names|login_body_has_sid_token|login_body_has_success_token|followup_root_http|G10-10-PASS)=' "$REPORT" | sed 's/^/`/; s/$/`  /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-10-grandstream-http-session-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-10-grandstream-http-session.txt
+          if-no-files-found: error
+          retention-days: 30
