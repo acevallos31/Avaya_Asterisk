@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ACTION="${1:-}"
+MANUFACTURER='Grandstream'
+PREFIX='C0:74:AD'
+DESCRIPTION='Grandstream C0:74:AD'
+AMPORTAL_CONF='/etc/amportal.conf'
+STATE_DIR='/var/lib/grandstream-lab'
+STATE_FILE="$STATE_DIR/c074ad-prefix.state"
+
+usage() {
+  echo "Uso: $0 {inspect|apply|rollback}" >&2
+  exit 2
+}
+
+read_amportal_value() {
+  local key="$1"
+  sed -n "s/^${key}=//p" "$AMPORTAL_CONF" | head -n 1
+}
+
+escape_mysql_option_value() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  printf '%s' "$value"
+}
+
+make_db_defaults_file() {
+  command -v mysql >/dev/null 2>&1 || { echo 'ERROR: cliente mysql no disponible' >&2; exit 1; }
+  [ -r "$AMPORTAL_CONF" ] || { echo "ERROR: no se puede leer $AMPORTAL_CONF" >&2; exit 1; }
+  local db_user db_pass db_host defaults_file
+  db_user="$(read_amportal_value AMPDBUSER)"
+  db_pass="$(read_amportal_value AMPDBPASS)"
+  db_host="$(read_amportal_value AMPDBHOST)"
+  [ -n "$db_user" ] || { echo 'ERROR: AMPDBUSER no definido' >&2; exit 1; }
+  [ -n "$db_pass" ] || { echo 'ERROR: AMPDBPASS no definido' >&2; exit 1; }
+  [ -n "$db_host" ] || db_host='localhost'
+  defaults_file="$(mktemp /tmp/grandstream-db.XXXXXX.cnf)"
+  chmod 0600 "$defaults_file"
+  {
+    echo '[client]'
+    printf 'user="%s"\n' "$(escape_mysql_option_value "$db_user")"
+    printf 'password="%s"\n' "$(escape_mysql_option_value "$db_pass")"
+    printf 'host="%s"\n' "$(escape_mysql_option_value "$db_host")"
+  } > "$defaults_file"
+  printf '%s' "$defaults_file"
+}
+
+mysql_scalar() {
+  local defaults_file="$1" sql="$2"
+  mysql --defaults-extra-file="$defaults_file" --batch --skip-column-names endpointconfig -e "$sql"
+}
+
+inspect_prefix() {
+  local defaults_file
+  defaults_file="$(make_db_defaults_file)"
+  trap 'rm -f "$defaults_file"' RETURN EXIT
+  echo '=== GRANDSTREAM OUI CONTROLLED AUDIT ==='
+  echo "Host: $(hostname)"
+  echo "Manufacturer: $MANUFACTURER"
+  echo "Prefix: $PREFIX"
+  echo 'DB auth: configuración local de Issabel (credenciales ocultas)'
+  mysql --defaults-extra-file="$defaults_file" --batch --raw endpointconfig <<'SQL'
+SET SESSION TRANSACTION READ ONLY;
+SELECT '=== MANUFACTURER ===';
+SELECT id,name,description FROM manufacturer WHERE name='Grandstream';
+SELECT '=== PREFIX LOOKUP ===';
+SELECT mp.id,mp.id_manufacturer,mp.mac_prefix,mp.description,mf.name AS manufacturer
+FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+WHERE UPPER(mp.mac_prefix)='C0:74:AD';
+SELECT '=== GXP1625 MODEL ===';
+SELECT m.id,m.id_manufacturer,m.name,m.max_accounts,m.static_prov_supported
+FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer
+WHERE mf.name='Grandstream' AND m.name='GXP1625';
+SELECT '=== MATCHING ENDPOINTS ===';
+SELECT COUNT(*) AS total
+FROM endpoint e
+WHERE UPPER(REPLACE(e.mac_address,'-',':')) LIKE 'C0:74:AD:%';
+ROLLBACK;
+SQL
+  rm -f "$defaults_file"
+  trap - RETURN EXIT
+  echo 'GRANDSTREAM-OUI-INSPECT-PASS'
+}
+
+apply_prefix() {
+  local defaults_file manufacturer_count prefix_count prefix_other
+  defaults_file="$(make_db_defaults_file)"
+  trap 'rm -f "$defaults_file"' RETURN EXIT
+  manufacturer_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM manufacturer WHERE name='Grandstream';")"
+  [ "$manufacturer_count" -eq 1 ] || { echo "ERROR: se esperaba exactamente un fabricante Grandstream; encontrados=$manufacturer_count" >&2; exit 1; }
+  prefix_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE UPPER(mp.mac_prefix)='C0:74:AD' AND COALESCE(mf.name,'') <> 'Grandstream';")"
+  [ "$prefix_other" -eq 0 ] || { echo 'ERROR: C0:74:AD ya pertenece a otro fabricante; no se modifica la DB.' >&2; exit 1; }
+  prefix_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Grandstream' AND UPPER(mp.mac_prefix)='C0:74:AD';")"
+  install -d -o root -g root -m 0700 "$STATE_DIR"
+  if [ "$prefix_count" -eq 1 ]; then
+    printf 'inserted_by_helper=0\n' > "$STATE_FILE"
+    chmod 0600 "$STATE_FILE"
+    echo 'GRANDSTREAM-OUI-ALREADY-PRESENT'
+  elif [ "$prefix_count" -eq 0 ]; then
+    mysql --defaults-extra-file="$defaults_file" endpointconfig <<'SQL'
+START TRANSACTION;
+SET @grandstream_id := (SELECT id FROM manufacturer WHERE name='Grandstream' LIMIT 1);
+INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description)
+SELECT @grandstream_id, 'C0:74:AD', 'Grandstream C0:74:AD'
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM mac_prefix WHERE UPPER(mac_prefix)='C0:74:AD');
+COMMIT;
+SQL
+    printf 'inserted_by_helper=1\n' > "$STATE_FILE"
+    chmod 0600 "$STATE_FILE"
+    echo 'GRANDSTREAM-OUI-APPLY-PASS'
+  else
+    echo "ERROR: prefijo Grandstream duplicado; encontrados=$prefix_count" >&2
+    exit 1
+  fi
+  rm -f "$defaults_file"
+  trap - RETURN EXIT
+}
+
+rollback_prefix() {
+  local defaults_file matching_endpoints inserted_by_helper=0
+  [ -f "$STATE_FILE" ] || { echo 'ERROR: no existe estado controlado para rollback.' >&2; exit 1; }
+  # shellcheck disable=SC1090
+  . "$STATE_FILE"
+  [ "${inserted_by_helper:-0}" = '1' ] || { echo 'ERROR: el helper no creó este prefijo; rollback cancelado.' >&2; exit 1; }
+  defaults_file="$(make_db_defaults_file)"
+  trap 'rm -f "$defaults_file"' RETURN EXIT
+  matching_endpoints="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint WHERE UPPER(REPLACE(mac_address,'-',':')) LIKE 'C0:74:AD:%';")"
+  [ "$matching_endpoints" -eq 0 ] || { echo "ERROR: existen endpoints C0:74:AD en Endpoint Configurator; rollback cancelado. total=$matching_endpoints" >&2; exit 1; }
+  mysql --defaults-extra-file="$defaults_file" endpointconfig <<'SQL'
+START TRANSACTION;
+DELETE mp FROM mac_prefix mp
+JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+WHERE mf.name='Grandstream' AND UPPER(mp.mac_prefix)='C0:74:AD';
+COMMIT;
+SQL
+  rm -f "$STATE_FILE" "$defaults_file"
+  trap - RETURN EXIT
+  echo 'GRANDSTREAM-OUI-ROLLBACK-PASS'
+}
+
+case "$ACTION" in
+  inspect) inspect_prefix ;;
+  apply) apply_prefix ;;
+  rollback) rollback_prefix ;;
+  *) usage ;;
+esac
