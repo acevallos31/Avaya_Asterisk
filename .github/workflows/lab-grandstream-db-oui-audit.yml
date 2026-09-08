@@ -1,4 +1,4 @@
-name: G-TMP-02 | Issabel Lab | Grandstream DB & OUI | Read-Only Audit
+name: 'G-TMP-02 | Issabel Lab | Grandstream DB & OUI | Read-Only Audit'
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   grandstream-db-oui-audit:
-    name: Auditoría Grandstream DB/OUI en LAB
+    name: 'Auditoría Grandstream DB/OUI en LAB'
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 10
 
@@ -162,7 +162,7 @@ SQL
           LIVE='NO'
           grep -Fq 'LIVE-GRANDSTREAM-DB-QUERY-PASS' "$REPORT" && LIVE='SI'
           PREFIX_FOUND='NO'
-          grep -Eqi "${PREFIX//:/[:]}" "$REPORT" && PREFIX_FOUND='SI'
+          grep -Fqi "$PREFIX" "$REPORT" && PREFIX_FOUND='SI'
           {
             echo '## Grandstream DB & OUI Audit'
             echo
