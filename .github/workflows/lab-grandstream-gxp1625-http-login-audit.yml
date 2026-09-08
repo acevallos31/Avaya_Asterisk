@@ -1,0 +1,60 @@
+name: G10-07 | Issabel Lab | GXP1625 HTTP Login Compatibility | Read-Only Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  http-login-audit:
+    name: Grandstream GXP1625 HTTP login compatibility audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Run HTTP login compatibility audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-http-login-audit.sh
+          scripts/grandstream-gxp1625-http-login-audit.sh "$RUNNER_TEMP/g10-07-grandstream-http-login.txt"
+          grep -Fq 'model_api_detected=GXP1625' "$RUNNER_TEMP/g10-07-grandstream-http-login.txt"
+          grep -Fq 'G10-07-PASS' "$RUNNER_TEMP/g10-07-grandstream-http-login.txt"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-07-grandstream-http-login.txt"
+          {
+            echo '## G10-07 Grandstream GXP1625 HTTP login compatibility'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` |'
+            echo '| Credentials used | `NO` |'
+            echo '| Configuration changes | `NONE` |'
+            echo '| Goal | Compare phone HTTP login shape vs Issabel GXP140x handler |'
+            if [ -f "$REPORT" ]; then
+              grep -E '^(model_api_detected|probe=dologin_get|probe=api_values_post_get|credential_validity|next_decision)=' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-07-grandstream-http-login-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-07-grandstream-http-login.txt
+          if-no-files-found: error
+          retention-days: 30
