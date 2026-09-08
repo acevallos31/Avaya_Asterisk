@@ -12,12 +12,13 @@ STATE_DIR="/var/lib/avaya-j129-lab"
 BACKUP_DIR="$STATE_DIR/backup"
 STAMP_FILE="$STATE_DIR/installed.sha256"
 DB_STATE_FILE="$STATE_DIR/db-j129.state"
+GRANDSTREAM_OUI_STATE_FILE="$STATE_DIR/grandstream-c074ad.state"
 HTTP_STATE_DIR="$STATE_DIR/httpd"
 HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db} | inspect-manufacturer <manufacturer> [model] [mac-prefix]" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui} | inspect-manufacturer <manufacturer> [model] [mac-prefix]" >&2
   exit 2
 }
 
@@ -44,7 +45,7 @@ SELECT '=== AVAYA MANUFACTURER ==='; SELECT id, name, description FROM manufactu
 SELECT '=== AVAYA/J129 MODEL ==='; SELECT m.id, m.id_manufacturer, m.name, m.description, m.max_accounts, m.static_ip_supported, m.dynamic_ip_supported, m.static_prov_supported FROM model m JOIN manufacturer mf ON mf.id = m.id_manufacturer WHERE mf.name = 'Avaya' AND m.name = 'J129';
 SELECT '=== J129 MODEL PROPERTIES ==='; SELECT mp.id, mp.property_key, CASE WHEN LOWER(mp.property_key) LIKE '%password%' THEN '***OCULTO***' ELSE mp.property_value END AS property_value FROM model_properties mp JOIN model m ON m.id = mp.id_model JOIN manufacturer mf ON mf.id = m.id_manufacturer WHERE mf.name = 'Avaya' AND m.name = 'J129' ORDER BY mp.property_key, mp.id;
 SELECT '=== AVAYA C8:1F:EA PREFIX ==='; SELECT mp.id, mp.id_manufacturer, mp.mac_prefix, mp.description, mf.name AS manufacturer FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id = mp.id_manufacturer WHERE mp.mac_prefix = 'C8:1F:EA';
-SELECT '=== AVAYA ENDPOINT COUNT ==='; SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id = e.id_manufacturer WHERE mf.name = 'Avaya'; ROLLBACK;
+SELECT '=== AVAYA ENDPOINT COUNT ==='; SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE mf.name='Avaya'; ROLLBACK;
 SQL
   rm -f "$defaults_file"; trap - RETURN EXIT; echo "DB-READONLY-PASS"
 }
@@ -158,6 +159,91 @@ install_http_j129() {
 }
 rollback_http_j129() { local backup marker; backup="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.backup"; marker="$HTTP_STATE_DIR/avaya-j129-provisioning.conf.absent"; if [ -f "$backup" ]; then cp -a "$backup" "$HTTP_CONF_DST"; elif [ -f "$marker" ]; then rm -f "$HTTP_CONF_DST"; else echo "ERROR: no existe estado previo HTTP para rollback" >&2; exit 1; fi; apachectl -t; systemctl reload httpd; rm -f "$backup" "$marker"; echo 'HTTP-J129-ROLLBACK-PASS'; }
 
+apply_grandstream_oui() {
+  local defaults_file manufacturer_count manufacturer_id model_count prefix_total prefix_other prefix_grandstream final_count
+  defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
+  install -d -m 0755 "$STATE_DIR"
+
+  manufacturer_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM manufacturer WHERE name='Grandstream';")"
+  [ "$manufacturer_count" -eq 1 ] || { echo "ERROR: se esperaba exactamente un fabricante Grandstream y se encontraron $manufacturer_count" >&2; exit 1; }
+  manufacturer_id="$(mysql_scalar "$defaults_file" "SELECT id FROM manufacturer WHERE name='Grandstream' LIMIT 1;")"
+  [ "$manufacturer_id" = '10' ] || { echo "ERROR: manufacturer_id Grandstream inesperado: $manufacturer_id" >&2; exit 1; }
+  model_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model WHERE id_manufacturer=$manufacturer_id AND name='GXP1625';")"
+  [ "$model_count" -eq 1 ] || { echo "ERROR: GXP1625 no existe de forma única para Grandstream" >&2; exit 1; }
+
+  prefix_total="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix WHERE UPPER(mac_prefix)='C0:74:AD';")"
+  prefix_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE UPPER(mp.mac_prefix)='C0:74:AD' AND COALESCE(mf.name,'')<>'Grandstream';")"
+  prefix_grandstream="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE UPPER(mp.mac_prefix)='C0:74:AD' AND mf.name='Grandstream';")"
+
+  [ "$prefix_other" -eq 0 ] || { echo 'ERROR: C0:74:AD ya pertenece a otro fabricante; apply cancelado' >&2; exit 1; }
+  [ "$prefix_total" -le 1 ] || { echo 'ERROR: C0:74:AD aparece duplicado en mac_prefix; apply cancelado' >&2; exit 1; }
+
+  if [ "$prefix_grandstream" -eq 1 ]; then
+    echo "GRANDSTREAM-OUI-ALREADY-PRESENT manufacturer_id=$manufacturer_id oui=C0:74:AD"
+    rm -f "$defaults_file"; trap - RETURN EXIT
+    return 0
+  fi
+
+  [ "$prefix_total" -eq 0 ] || { echo 'ERROR: estado inconsistente de C0:74:AD; apply cancelado' >&2; exit 1; }
+  [ ! -e "$GRANDSTREAM_OUI_STATE_FILE" ] || { echo "ERROR: existe estado previo pendiente: $GRANDSTREAM_OUI_STATE_FILE" >&2; exit 1; }
+
+  {
+    echo 'created_by_helper=1'
+    echo "manufacturer_id=$manufacturer_id"
+    echo 'mac_prefix=C0:74:AD'
+  } > "$GRANDSTREAM_OUI_STATE_FILE"
+  chmod 0600 "$GRANDSTREAM_OUI_STATE_FILE"
+
+  if ! mysql --defaults-extra-file="$defaults_file" endpointconfig <<SQL
+START TRANSACTION;
+INSERT INTO mac_prefix (id_manufacturer, mac_prefix, description)
+SELECT ${manufacturer_id}, 'C0:74:AD', 'Grandstream'
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM mac_prefix WHERE UPPER(mac_prefix)='C0:74:AD');
+COMMIT;
+SQL
+  then
+    rm -f "$GRANDSTREAM_OUI_STATE_FILE"
+    exit 1
+  fi
+
+  final_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE UPPER(mp.mac_prefix)='C0:74:AD' AND mf.name='Grandstream' AND mp.id_manufacturer=$manufacturer_id;")"
+  [ "$final_count" -eq 1 ] || { echo 'ERROR: verificación post-apply falló; estado conservado para investigación/rollback' >&2; exit 1; }
+
+  rm -f "$defaults_file"; trap - RETURN EXIT
+  echo "GRANDSTREAM-OUI-APPLY-PASS manufacturer_id=$manufacturer_id oui=C0:74:AD"
+}
+
+rollback_grandstream_oui() {
+  local defaults_file created_by_helper manufacturer_id mac_prefix endpoint_count prefix_count final_count
+  [ -f "$GRANDSTREAM_OUI_STATE_FILE" ] || { echo 'ERROR: no existe estado de apply creado por este helper; rollback cancelado' >&2; exit 1; }
+  . "$GRANDSTREAM_OUI_STATE_FILE"
+  [ "${created_by_helper:-0}" = '1' ] || { echo 'ERROR: estado de rollback inválido' >&2; exit 1; }
+  [ "${manufacturer_id:-}" = '10' ] || { echo 'ERROR: manufacturer_id del estado no es 10' >&2; exit 1; }
+  [ "${mac_prefix:-}" = 'C0:74:AD' ] || { echo 'ERROR: mac_prefix del estado no es C0:74:AD' >&2; exit 1; }
+
+  defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
+  endpoint_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint WHERE UPPER(mac_address) LIKE 'C0:74:AD:%';")"
+  [ "$endpoint_count" -eq 0 ] || { echo "ERROR: existen $endpoint_count endpoint(s) C0:74:AD:*; rollback cancelado para no romper discovery" >&2; exit 1; }
+
+  prefix_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE UPPER(mp.mac_prefix)='C0:74:AD' AND mp.id_manufacturer=10 AND mf.name='Grandstream';")"
+  [ "$prefix_count" -eq 1 ] || { echo "ERROR: estado live inesperado para C0:74:AD (count=$prefix_count); rollback cancelado" >&2; exit 1; }
+
+  mysql --defaults-extra-file="$defaults_file" endpointconfig <<'SQL'
+START TRANSACTION;
+DELETE mp FROM mac_prefix mp
+JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+WHERE UPPER(mp.mac_prefix)='C0:74:AD' AND mp.id_manufacturer=10 AND mf.name='Grandstream';
+COMMIT;
+SQL
+
+  final_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix WHERE UPPER(mac_prefix)='C0:74:AD';")"
+  [ "$final_count" -eq 0 ] || { echo 'ERROR: C0:74:AD sigue presente después del rollback; estado conservado' >&2; exit 1; }
+
+  rm -f "$GRANDSTREAM_OUI_STATE_FILE" "$defaults_file"; trap - RETURN EXIT
+  echo 'GRANDSTREAM-OUI-ROLLBACK-PASS oui=C0:74:AD'
+}
+
 install_db_j129() {
   local defaults_file avaya_count j129_count prefix_other prop_sip prop_iax; defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT; install -d -m 0755 "$STATE_DIR"; avaya_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM manufacturer WHERE name='Avaya';")"; [ "$avaya_count" -le 1 ] || { echo "ERROR: fabricante Avaya duplicado" >&2; exit 1; }; if [ "$avaya_count" -eq 1 ]; then j129_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; [ "$j129_count" -le 1 ] || { echo "ERROR: modelo J129 duplicado" >&2; exit 1; }; fi; prefix_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mp.mac_prefix='C8:1F:EA' AND COALESCE(mf.name,'') <> 'Avaya';")"; [ "$prefix_other" -eq 0 ] || { echo "ERROR: C8:1F:EA ya pertenece a otro fabricante" >&2; exit 1; }; prop_sip="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts' AND mp.property_value <> '2';")"; prop_iax="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts' AND mp.property_value <> '0';")"; [ "$prop_sip" -eq 0 ] || exit 1; [ "$prop_iax" -eq 0 ] || exit 1
   if [ ! -f "$DB_STATE_FILE" ]; then { echo "manufacturer_preexisting=$avaya_count"; if [ "$avaya_count" -eq 1 ]; then echo "model_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; else echo "model_preexisting=0"; fi; echo "prefix_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Avaya' AND mp.mac_prefix='C8:1F:EA';")"; echo "sip_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts';")"; echo "iax_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts';")"; } > "$DB_STATE_FILE"; chmod 0600 "$DB_STATE_FILE"; fi
@@ -184,6 +270,8 @@ case "$ACTION" in
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;
   inspect-sip-registration) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_registration_inspection ;;
+  apply-grandstream-oui) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_oui ;;
+  rollback-grandstream-oui) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_oui ;;
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
   install-http) install_http_j129 ;;
