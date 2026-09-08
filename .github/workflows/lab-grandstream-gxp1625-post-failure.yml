@@ -1,0 +1,112 @@
+name: G10-06 | Issabel Lab | GXP1625 Native Configure Failure | Post-Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  post-failure-audit:
+    name: Grandstream GXP1625 post-configure failure audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Sync authorized DB helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Audit state after failed native Configure
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-06-grandstream-post-failure.txt"
+          CFG='/tftpboot/cfgc074ade86609'
+          {
+            echo '=== G10-06 GXP1625 POST-FAILURE AUDIT ==='
+            echo 'phone_ip=192.168.1.167'
+            echo 'phone_mac=C0:74:AD:E8:66:09'
+            echo 'manual_sip_account=201'
+            echo 'endpointconfig_target_account=202'
+            echo 'observed_configure_result=FAILED-GXP140x-DOLOGIN-CONTENT-TYPE'
+            echo
+            echo '=== LIVE ENDPOINTCONFIG STATE ==='
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream GXP1625 C0:74:AD
+            echo
+            echo '=== NATIVE CFG STATE AFTER FAILED CONFIGURE ==='
+            if [ -e "$CFG" ]; then
+              echo 'cfg_file_state=PRESENT-AFTER-FAILED-CONFIGURE'
+              stat -c 'cfg_file=%n owner=%U group=%G mode=%a size=%s mtime=%y' "$CFG"
+              sha256sum "$CFG" | sed 's#  .*#  cfgc074ade86609#'
+            else
+              echo 'cfg_file_state=ABSENT-AFTER-FAILED-CONFIGURE'
+              echo "expected_cfg_file=$CFG"
+            fi
+            echo
+            echo '=== PHONE MODEL API ==='
+            BODY="$(mktemp)"
+            trap 'rm -f "$BODY"' EXIT
+            CODE="$(curl -sS --connect-timeout 5 --max-time 8 -o "$BODY" -w '%{http_code}' 'http://192.168.1.167/cgi-bin/api.values.get?request=phone_model:1395' || true)"
+            echo "model_api_http=$CODE"
+            if grep -Fq 'GXP1625' "$BODY"; then echo 'model_api_detected=GXP1625'; else echo 'model_api_detected=UNKNOWN'; fi
+            echo
+            echo '=== LOGIN ENDPOINT READ-ONLY SHAPE ==='
+            HDR="$(mktemp)"
+            trap 'rm -f "$BODY" "$HDR"' EXIT
+            curl -sS --connect-timeout 5 --max-time 8 -D "$HDR" -o /dev/null 'http://192.168.1.167/cgi-bin/dologin' || true
+            awk 'BEGIN{IGNORECASE=1} /^HTTP\// || /^Content-Type:/ || /^Location:/ {gsub("\r",""); print "dologin_get_header=" $0}' "$HDR"
+            echo
+            echo 'sip_registration_baseline=MANUAL-201'
+            echo 'endpointconfig_target_account=202'
+            echo 'phone_config_write_attempt=ISSABEL-NATIVE-FAILED-BEFORE-STATIC-PROVISIONING-COMPLETE'
+            echo 'G10-06-PASS'
+          } | tee "$REPORT"
+
+          grep -Fq 'MANUFACTURER-DB-READONLY-PASS' "$REPORT"
+          grep -Fq 'model_api_detected=GXP1625' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-06-grandstream-post-failure.txt"
+          CFG='UNKNOWN'
+          [ -f "$REPORT" ] && grep -Fq 'cfg_file_state=PRESENT-AFTER-FAILED-CONFIGURE' "$REPORT" && CFG='PRESENT' || true
+          [ -f "$REPORT" ] && grep -Fq 'cfg_file_state=ABSENT-AFTER-FAILED-CONFIGURE' "$REPORT" && CFG='ABSENT' || true
+          {
+            echo '## G10-06 Grandstream GXP1625 post-failure audit'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Native Configure result | `FAILED` |'
+            echo '| Failure point | `GXP140x dologin Content-Type mismatch` |'
+            echo "| cfgc074ade86609 after failure | \`$CFG\` |"
+            echo '| Manual SIP baseline | `201` |'
+            echo '| Endpoint Configurator target | `202` |'
+            echo '| Phone changes by this audit | `NONE` |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-06-grandstream-post-failure-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-06-grandstream-post-failure.txt
+          if-no-files-found: error
+          retention-days: 30
