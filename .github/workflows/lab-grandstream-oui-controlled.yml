@@ -1,0 +1,150 @@
+name: G-TMP-03 | Issabel Lab | Grandstream OUI | Controlled Change
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Acción controlada sobre C0:74:AD
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - apply
+          - rollback
+      confirmation:
+        description: Para apply escriba APPLY-GRANDSTREAM-OUI; para rollback ROLLBACK-GRANDSTREAM-OUI
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  controlled-oui:
+    name: Grandstream C0:74:AD controlled change
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "Audit"
+          test "$(id -un)" = "github-runner"
+
+      - name: Validate requested action
+        shell: bash
+        env:
+          ACTION: ${{ inputs.action }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          case "$ACTION" in
+            validate) ;;
+            apply)
+              test "$CONFIRMATION" = 'APPLY-GRANDSTREAM-OUI' || {
+                echo 'ERROR: confirmación requerida: APPLY-GRANDSTREAM-OUI' >&2
+                exit 1
+              }
+              ;;
+            rollback)
+              test "$CONFIRMATION" = 'ROLLBACK-GRANDSTREAM-OUI' || {
+                echo 'ERROR: confirmación requerida: ROLLBACK-GRANDSTREAM-OUI' >&2
+                exit 1
+              }
+              ;;
+            *) exit 2 ;;
+          esac
+
+      - name: Sync restricted helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/grandstream-lab-db-prefix'
+
+      - name: Pre-change read-only audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/grandstream-oui-controlled.txt"
+          {
+            echo '=== PRE-CHANGE ==='
+            sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect
+          } | tee "$REPORT"
+
+      - name: Apply controlled OUI
+        if: ${{ inputs.action == 'apply' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/grandstream-lab-db-prefix apply | tee -a "$RUNNER_TEMP/grandstream-oui-controlled.txt"
+
+      - name: Roll back controlled OUI
+        if: ${{ inputs.action == 'rollback' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/grandstream-lab-db-prefix rollback | tee -a "$RUNNER_TEMP/grandstream-oui-controlled.txt"
+
+      - name: Post-change read-only audit
+        if: always()
+        shell: bash
+        env:
+          ACTION: ${{ inputs.action }}
+        run: |
+          set -u
+          REPORT="$RUNNER_TEMP/grandstream-oui-controlled.txt"
+          {
+            echo
+            echo '=== POST-CHANGE ==='
+            echo "requested_action=$ACTION"
+            sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect || true
+          } | tee -a "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        env:
+          ACTION: ${{ inputs.action }}
+        run: |
+          REPORT="$RUNNER_TEMP/grandstream-oui-controlled.txt"
+          PREFIX_STATE='ABSENT'
+          APPLY_STATE='NOT-RUN'
+          ROLLBACK_STATE='NOT-RUN'
+          [ -f "$REPORT" ] && grep -Fq $'C0:74:AD\t' "$REPORT" && PREFIX_STATE='PRESENT' || true
+          [ -f "$REPORT" ] && grep -Fq 'GRANDSTREAM-OUI-APPLY-PASS' "$REPORT" && APPLY_STATE='PASS' || true
+          [ -f "$REPORT" ] && grep -Fq 'GRANDSTREAM-OUI-ALREADY-PRESENT' "$REPORT" && APPLY_STATE='ALREADY-PRESENT' || true
+          [ -f "$REPORT" ] && grep -Fq 'GRANDSTREAM-OUI-ROLLBACK-PASS' "$REPORT" && ROLLBACK_STATE='PASS' || true
+          {
+            echo '## Grandstream OUI Controlled Change'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo "| Requested action | \`$ACTION\` |"
+            echo '| Manufacturer | `Grandstream` |'
+            echo '| Manufacturer ID | `10` (validated in G-TMP-02) |'
+            echo '| OUI | `C0:74:AD` |'
+            echo "| Final OUI state | \`$PREFIX_STATE\` |"
+            echo "| Apply result | \`$APPLY_STATE\` |"
+            echo "| Rollback result | \`$ROLLBACK_STATE\` |"
+            echo
+            echo '> Apply is idempotent and aborts if the OUI belongs to another manufacturer. Rollback only removes an OUI created by this helper and refuses while matching endpoints exist.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grandstream-oui-controlled-${{ github.run_id }}
+          path: ${{ runner.temp }}/grandstream-oui-controlled.txt
+          if-no-files-found: error
+          retention-days: 30
