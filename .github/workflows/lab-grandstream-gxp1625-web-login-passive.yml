@@ -1,0 +1,62 @@
+name: G10-12 | Issabel Lab | GXP1625 Web Login Frontend | Passive Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  passive-web-login-audit:
+    name: Grandstream GXP1625 passive web login audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Run passive frontend audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-web-login-passive-audit.sh
+          REPORT="$RUNNER_TEMP/g10-12-grandstream-web-login-passive.txt"
+          scripts/grandstream-gxp1625-web-login-passive-audit.sh "$REPORT"
+          grep -Fq 'G10-12-PASS' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-12-grandstream-web-login-passive.txt"
+          {
+            echo '## G10-12 Grandstream GXP1625 passive web login audit'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` |'
+            echo '| Firmware Prog | `1.0.7.70` |'
+            echo '| Authentication attempts | `NONE` |'
+            echo '| Credentials used | `NO` |'
+            echo '| Configuration writes | `NONE` |'
+            echo '| api.values.post | `NOT CALLED` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(root_http|root_content_type|public_script_refs|public_scripts_fetched|keyword_|cgi_bin_path_count|path=|G10-12-PASS)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-12-grandstream-web-login-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-12-grandstream-web-login-passive.txt
+          if-no-files-found: error
+          retention-days: 30
