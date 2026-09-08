@@ -27,17 +27,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify runner
+      - name: Verify Audit branch and runner
         shell: bash
         run: |
           set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "Audit"
           test "$(id -un)" = "github-runner"
 
-      - name: Run read-only Grandstream DB OUI audit
+      - name: Sync restricted helper
         shell: bash
         run: |
           set -euo pipefail
-          bash scripts/grandstream-db-oui-audit.sh "${{ inputs.mac_prefix }}" "${{ inputs.model }}" "$RUNNER_TEMP/grandstream-db-oui-audit.txt"
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Query live endpointconfig DB read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/grandstream-db-oui-audit.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream "${{ inputs.model }}" "${{ inputs.mac_prefix }}" | tee "$REPORT"
 
       - name: Job summary
         if: always()
@@ -46,17 +57,33 @@ jobs:
           REPORT="$RUNNER_TEMP/grandstream-db-oui-audit.txt"
           LIVE=NO
           PREFIX=NO
-          [ -f "$REPORT" ] && grep -Fq 'LIVE-GRANDSTREAM-DB-QUERY-PASS' "$REPORT" && LIVE=YES || true
-          [ -f "$REPORT" ] && grep -Fqi '${{ inputs.mac_prefix }}' "$REPORT" && PREFIX=YES || true
+          MODEL=NO
+          MANUFACTURER_ID='N/D'
+          MODEL_ID='N/D'
+          if [ -f "$REPORT" ]; then
+            grep -Fq 'MANUFACTURER-DB-READONLY-PASS' "$REPORT" && LIVE=YES || true
+            grep -Fqi $'\t${{ inputs.mac_prefix }}\t' "$REPORT" && PREFIX=YES || true
+            grep -Fqi $'\t${{ inputs.model }}\t' "$REPORT" && MODEL=YES || true
+            MANUFACTURER_ID="$(awk '/=== MANUFACTURER ===/{f=1;next}/=== MODELS ===/{f=0} f && $1 ~ /^[0-9]+$/ {print $1; exit}' "$REPORT")"
+            MODEL_ID="$(awk '/=== MODELS ===/{f=1;next}/=== MODEL PROPERTIES ===/{f=0} f && $1 ~ /^[0-9]+$/ {print $1; exit}' "$REPORT")"
+            [ -n "$MANUFACTURER_ID" ] || MANUFACTURER_ID='N/D'
+            [ -n "$MODEL_ID" ] || MODEL_ID='N/D'
+          fi
           {
             echo '## Grandstream DB OUI Audit'
             echo
             echo '| Field | Value |'
             echo '|---|---|'
-            echo '| Model | `${{ inputs.model }}` |'
-            echo '| OUI | `${{ inputs.mac_prefix }}` |'
+            echo '| Manufacturer | `Grandstream` |'
+            echo "| Manufacturer ID | \`$MANUFACTURER_ID\` |"
+            echo '| Model requested | `${{ inputs.model }}` |'
+            echo "| Model ID | \`$MODEL_ID\` |"
+            echo '| OUI requested | `${{ inputs.mac_prefix }}` |'
             echo "| Live DB query | \`$LIVE\` |"
-            echo "| Prefix evidence | \`$PREFIX\` |"
+            echo "| Model present in live DB | \`$MODEL\` |"
+            echo "| Requested OUI present in live DB | \`$PREFIX\` |"
+            echo
+            echo '> Consulta ejecutada mediante helper restringido y transacción READ ONLY. No se muestran credenciales.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload report
