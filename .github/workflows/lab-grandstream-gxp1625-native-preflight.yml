@@ -1,0 +1,80 @@
+name: 'G10-04 | Issabel Lab | Grandstream GXP1625 Native Provisioning | Preflight Audit'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-preflight:
+    name: 'Grandstream GXP1625 native provisioning preflight'
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Sync authorized DB helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Run native Grandstream preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-native-preflight.sh
+          scripts/grandstream-gxp1625-native-preflight.sh "$RUNNER_TEMP/grandstream-gxp1625-native-preflight.txt"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/grandstream-gxp1625-native-preflight.txt"
+          DISCOVERY='UNKNOWN'
+          CFG='UNKNOWN'
+          MODEL='UNKNOWN'
+          [ -f "$REPORT" ] && grep -Fq 'endpoint_discovery_state=PRESENT' "$REPORT" && DISCOVERY='PRESENT' || true
+          [ -f "$REPORT" ] && grep -Fq 'cfg_file_state=ABSENT' "$REPORT" && CFG='ABSENT' || true
+          [ -f "$REPORT" ] && grep -Fq 'cfg_file_state=PREEXISTING' "$REPORT" && CFG='PREEXISTING' || true
+          [ -f "$REPORT" ] && grep -Fq 'model_api=PASS' "$REPORT" && MODEL='GXP1625' || true
+          {
+            echo '## G10-04 Grandstream GXP1625 native provisioning preflight'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` / `C0:74:AD:E8:66:09` |'
+            echo '| Manufacturer | `Grandstream` / ID `10` |'
+            echo '| Model | `GXP1625` / ID `134` |'
+            echo "| Endpoint Configurator discovery | \`$DISCOVERY\` |"
+            echo "| Native cfg before Configure | \`$CFG\` |"
+            echo "| Model API | \`$MODEL\` |"
+            echo '| Existing SIP registration | `MANUAL - not Endpoint Configurator evidence` |'
+            echo '| DB operations | `READ ONLY` |'
+            echo '| Phone operations | `HTTP GET only` |'
+            echo '| Configure action | `NOT EXECUTED` |'
+            echo
+            echo '> This test intentionally separates the phone existing manual SIP registration from Issabel native Grandstream provisioning.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-04-grandstream-native-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/grandstream-gxp1625-native-preflight.txt
+          if-no-files-found: error
+          retention-days: 30
