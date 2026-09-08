@@ -29,7 +29,9 @@ sync_helper() {
   }
 
   case "$source" in
-    "$WORKSPACE"/deploy/j129/avaya-j129-lab-deploy|"$WORKSPACE"/deploy/j129/avaya-j129-lab-call-test) ;;
+    "$WORKSPACE"/deploy/j129/avaya-j129-lab-deploy|\
+    "$WORKSPACE"/deploy/j129/avaya-j129-lab-call-test|\
+    "$WORKSPACE"/deploy/grandstream/grandstream-lab-db-prefix) ;;
     *) echo "ERROR: ruta fuente fuera del workspace permitido: $name" >&2; exit 1 ;;
   esac
 
@@ -48,5 +50,11 @@ sync_helper() {
 
 sync_helper "$WORKSPACE/deploy/j129/avaya-j129-lab-deploy" "/usr/local/sbin/avaya-j129-lab-deploy" "avaya-j129-lab-deploy"
 sync_helper "$WORKSPACE/deploy/j129/avaya-j129-lab-call-test" "/usr/local/sbin/avaya-j129-lab-call-test" "avaya-j129-lab-call-test"
+sync_helper "$WORKSPACE/deploy/grandstream/grandstream-lab-db-prefix" "/usr/local/sbin/grandstream-lab-db-prefix" "grandstream-lab-db-prefix"
+
+SUDOERS_FILE='/etc/sudoers.d/grandstream-lab-db-prefix'
+printf '%s\n' 'github-runner ALL=(root) NOPASSWD: /usr/local/sbin/grandstream-lab-db-prefix *' > "$SUDOERS_FILE"
+chmod 0440 "$SUDOERS_FILE"
+visudo -cf "$SUDOERS_FILE" >/dev/null
 
 echo "HELPER-SYNC-ALL-PASS"
