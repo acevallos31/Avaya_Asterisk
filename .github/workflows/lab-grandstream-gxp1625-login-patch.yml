@@ -1,0 +1,129 @@
+name: G10-14 | Issabel Lab | GXP1625 HTTP Login Patch | Controlled Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Acción controlada'
+        required: true
+        type: choice
+        options:
+          - inspect
+          - apply
+          - rollback
+        default: inspect
+      confirmation:
+        description: 'apply: APPLY-G10-14 | rollback: ROLLBACK-G10-14 | inspect: dejar vacío'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  grandstream-login-patch:
+    name: Grandstream GXP1625 controlled HTTP login patch
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Validate helper source
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n deploy/grandstream/grandstream-lab-db-prefix
+          grep -Fq 'apply-login-patch' deploy/grandstream/grandstream-lab-db-prefix
+          grep -Fq "'username': self._http_username" deploy/grandstream/grandstream-lab-db-prefix
+
+      - name: Sync restricted Grandstream helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/grandstream-lab-db-prefix'
+
+      - name: Run controlled action
+        id: controlled
+        shell: bash
+        env:
+          ACTION: ${{ inputs.action }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-14-grandstream-login-patch.txt"
+          {
+            echo '=== G10-14 GRANDSTREAM GXP1625 HTTP LOGIN PATCH ==='
+            echo "requested_action=$ACTION"
+            echo 'target=/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+            echo 'db_write=NO'
+            echo 'phone_configuration_write=NO'
+            echo
+            case "$ACTION" in
+              inspect)
+                sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect-login-patch
+                ;;
+              apply)
+                test "$CONFIRMATION" = 'APPLY-G10-14' || {
+                  echo 'ERROR: confirmación requerida: APPLY-G10-14' >&2
+                  exit 2
+                }
+                sudo -n /usr/local/sbin/grandstream-lab-db-prefix apply-login-patch
+                sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect-login-patch
+                ;;
+              rollback)
+                test "$CONFIRMATION" = 'ROLLBACK-G10-14' || {
+                  echo 'ERROR: confirmación requerida: ROLLBACK-G10-14' >&2
+                  exit 2
+                }
+                sudo -n /usr/local/sbin/grandstream-lab-db-prefix rollback-login-patch
+                sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect-login-patch
+                ;;
+              *)
+                echo "ERROR: acción no soportada: $ACTION" >&2
+                exit 2
+                ;;
+            esac
+            echo
+            echo 'G10-14-PASS'
+          } | tee "$REPORT"
+          grep -Fq 'G10-14-PASS' "$REPORT"
+          echo "report=$REPORT" >> "$GITHUB_OUTPUT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-14-grandstream-login-patch.txt"
+          {
+            echo '## G10-14 Grandstream GXP1625 HTTP login patch'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Phone writes | `NONE` |'
+            echo '| Live code target | `Grandstream.py` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(requested_action|grandstream_py_sha256|legacy_password_only_line_count|username_payload_line_count|backup_present|login_patch_state|before_sha256|after_sha256|restored_sha256|GRANDSTREAM-LOGIN-PATCH-|G10-14-PASS)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-14-grandstream-login-patch-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-14-grandstream-login-patch.txt
+          if-no-files-found: warn
+          retention-days: 30
