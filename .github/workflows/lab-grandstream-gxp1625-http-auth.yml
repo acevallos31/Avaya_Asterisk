@@ -1,0 +1,55 @@
+name: 'G10-08 | Issabel Lab | GXP1625 HTTP Auth | Controlled Compatibility Test'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g10-08:
+    name: 'Grandstream GXP1625 HTTP auth compatibility'
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Run controlled HTTP auth compatibility test
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-http-auth-compat.sh
+          scripts/grandstream-gxp1625-http-auth-compat.sh "$RUNNER_TEMP/g10-08-grandstream-http-auth.txt"
+          grep -Fq 'G10-08-PASS' "$RUNNER_TEMP/g10-08-grandstream-http-auth.txt"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-08-grandstream-http-auth.txt"
+          {
+            echo '## G10-08 Grandstream GXP1625 HTTP auth compatibility'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` |'
+            echo '| Credential candidate | `Grandstream model default admin/admin` |'
+            echo '| Configuration writes | `NONE` |'
+            echo '| api.values.post | `NOT CALLED` |'
+            echo
+            grep -E '^(auth_probe|credentials_logged|G10-08-PASS)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-08-grandstream-http-auth-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-08-grandstream-http-auth.txt
+          if-no-files-found: error
+          retention-days: 30
