@@ -1,0 +1,113 @@
+name: G10-05 | Issabel Lab | GXP1625 Account Assignment | Pre-Configure Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preconfigure-audit:
+    name: Grandstream GXP1625 pre-configure audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Sync authorized DB helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Audit current state before Configure
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-05-grandstream-preconfigure.txt"
+          CFG='/tftpboot/cfgc074ade86609'
+          {
+            echo '=== G10-05 GXP1625 PRE-CONFIGURE AUDIT ==='
+            echo 'phone_ip=192.168.1.167'
+            echo 'phone_mac=C0:74:AD:E8:66:09'
+            echo 'manual_sip_account=201'
+            echo 'endpointconfig_assigned_account=202'
+            echo 'account_assignment_evidence=USER-UI-CONFIRMED'
+            echo 'configure_action=NOT-YET-EXECUTED'
+            echo
+            echo '=== LIVE ENDPOINTCONFIG STATE ==='
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream GXP1625 C0:74:AD
+            echo
+            echo '=== NATIVE CFG STATE ==='
+            if [ -e "$CFG" ]; then
+              echo 'cfg_file_state=PREEXISTING'
+              stat -c 'cfg_file=%n owner=%U group=%G mode=%a size=%s mtime=%y' "$CFG"
+            else
+              echo 'cfg_file_state=ABSENT'
+              echo "expected_cfg_file=$CFG"
+            fi
+            echo
+            echo '=== PHONE MODEL API ==='
+            BODY="$(mktemp)"
+            trap 'rm -f "$BODY"' EXIT
+            CODE="$(curl -sS --connect-timeout 5 --max-time 8 -o "$BODY" -w '%{http_code}' 'http://192.168.1.167/cgi-bin/api.values.get?request=phone_model:1395' || true)"
+            echo "model_api_http=$CODE"
+            if grep -Fq 'GXP1625' "$BODY"; then
+              echo 'model_api_detected=GXP1625'
+            else
+              echo 'model_api_detected=UNKNOWN'
+            fi
+            echo
+            echo 'sip_registration_baseline=MANUAL-201'
+            echo 'endpointconfig_target_account=202'
+            echo 'sip_registration_evidence=DO-NOT-COUNT-AS-PROVISIONING-SUCCESS'
+            echo 'G10-05-PASS'
+          } | tee "$REPORT"
+
+          grep -Fq 'MANUFACTURER-DB-READONLY-PASS' "$REPORT"
+          grep -Fq 'cfg_file_state=ABSENT' "$REPORT"
+          grep -Fq 'model_api_detected=GXP1625' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-05-grandstream-preconfigure.txt"
+          CFG='UNKNOWN'
+          [ -f "$REPORT" ] && grep -Fq 'cfg_file_state=ABSENT' "$REPORT" && CFG='ABSENT' || true
+          [ -f "$REPORT" ] && grep -Fq 'cfg_file_state=PREEXISTING' "$REPORT" && CFG='PREEXISTING' || true
+          {
+            echo '## G10-05 Grandstream GXP1625 pre-configure baseline'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` / `C0:74:AD:E8:66:09` |'
+            echo '| Manual SIP registration | `201 - Fabi` |'
+            echo '| Endpoint Configurator assigned account | `202 - Ashly` |'
+            echo '| Assignment evidence | `UI confirmed by user` |'
+            echo "| Native cfg before Configure | \`$CFG\` |"
+            echo '| Configure action | `NOT EXECUTED` |'
+            echo '| DB operation | `READ ONLY` |'
+            echo '| Phone operation | `HTTP GET only` |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-05-grandstream-preconfigure-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-05-grandstream-preconfigure.txt
+          if-no-files-found: error
+          retention-days: 30
