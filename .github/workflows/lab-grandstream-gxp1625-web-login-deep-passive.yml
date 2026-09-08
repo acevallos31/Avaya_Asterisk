@@ -1,0 +1,60 @@
+name: G10-13 | Issabel Lab | GXP1625 Web Login Deep | Passive Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  passive-deep-web-audit:
+    name: Grandstream GXP1625 deep passive web login audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Run deep passive frontend audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-web-login-deep-passive-audit.sh
+          REPORT="$RUNNER_TEMP/g10-13-grandstream-web-login-deep-passive.txt"
+          scripts/grandstream-gxp1625-web-login-deep-passive-audit.sh "$REPORT"
+          grep -Fq 'G10-13-PASS' "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-13-grandstream-web-login-deep-passive.txt"
+          {
+            echo '## G10-13 Grandstream GXP1625 deep passive web login audit'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` |'
+            echo '| Firmware Prog | `1.0.7.70` |'
+            echo '| Authentication attempts | `NONE` |'
+            echo '| Credentials used | `NO` |'
+            echo '| Configuration writes | `NONE` |'
+            echo '| api.values.post | `NOT CALLED` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(resources_fetched|discovery_rounds|gwt_cache_js_seen|gwt_nocache_js_seen|keyword_|cgi_bin_path_count|path=|G10-13-PASS)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-13-grandstream-web-login-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-13-grandstream-web-login-deep-passive.txt
+          if-no-files-found: error
+          retention-days: 30
