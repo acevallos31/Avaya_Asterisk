@@ -17,7 +17,7 @@ HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db} | inspect-manufacturer <manufacturer> [model] [mac-prefix]" >&2
   exit 2
 }
 
@@ -47,6 +47,52 @@ SELECT '=== AVAYA C8:1F:EA PREFIX ==='; SELECT mp.id, mp.id_manufacturer, mp.mac
 SELECT '=== AVAYA ENDPOINT COUNT ==='; SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id = e.id_manufacturer WHERE mf.name = 'Avaya'; ROLLBACK;
 SQL
   rm -f "$defaults_file"; trap - RETURN EXIT; echo "DB-READONLY-PASS"
+}
+
+run_manufacturer_inspection() {
+  local manufacturer="${1:-}" model="${2:-}" prefix="${3:-}" defaults_file model_norm prefix_norm
+  [ -n "$manufacturer" ] || usage
+  [[ "$manufacturer" =~ ^[A-Za-z0-9._\ -]+$ ]] || { echo 'ERROR: manufacturer contiene caracteres no permitidos' >&2; exit 2; }
+  [[ -z "$model" || "$model" =~ ^[A-Za-z0-9._\ -]+$ ]] || { echo 'ERROR: model contiene caracteres no permitidos' >&2; exit 2; }
+  [[ -z "$prefix" || "$prefix" =~ ^[0-9A-Fa-f:.-]+$ ]] || { echo 'ERROR: mac-prefix contiene caracteres no permitidos' >&2; exit 2; }
+  model_norm="$(printf '%s' "$model" | tr -d ' ' | tr '[:lower:]' '[:upper:]')"
+  prefix_norm="$(printf '%s' "$prefix" | tr '[:lower:]' '[:upper:]')"
+  defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT
+  echo '=== ENDPOINTCONFIG MANUFACTURER AUDIT (SOLO LECTURA) ==='
+  echo "Host: $(hostname)"
+  echo "Manufacturer: $manufacturer"
+  echo "Model: ${model:-<todos>}"
+  echo "MAC prefix: ${prefix:-<todos>}"
+  echo 'DB auth: configuración local de Issabel (credenciales ocultas)'
+  mysql --defaults-extra-file="$defaults_file" --batch --raw endpointconfig <<SQL
+SET SESSION TRANSACTION READ ONLY;
+SELECT '=== MANUFACTURER ===';
+SELECT id,name,description FROM manufacturer WHERE name='${manufacturer}';
+SELECT '=== MODELS ===';
+SELECT m.id,m.id_manufacturer,m.name,m.description,m.max_accounts,m.static_ip_supported,m.dynamic_ip_supported,m.static_prov_supported
+FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer
+WHERE mf.name='${manufacturer}' AND ('${model_norm}'='' OR UPPER(REPLACE(m.name,' ',''))='${model_norm}')
+ORDER BY m.name;
+SELECT '=== MODEL PROPERTIES ===';
+SELECT m.name AS model,mp.id,mp.property_key,
+CASE WHEN LOWER(mp.property_key) LIKE '%password%' THEN '***OCULTO***' ELSE mp.property_value END AS property_value
+FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer
+WHERE mf.name='${manufacturer}' AND ('${model_norm}'='' OR UPPER(REPLACE(m.name,' ',''))='${model_norm}')
+ORDER BY m.name,mp.property_key,mp.id;
+SELECT '=== MAC PREFIXES ===';
+SELECT mp.id,mp.id_manufacturer,mp.mac_prefix,mp.description,mf.name AS manufacturer
+FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+WHERE mf.name='${manufacturer}'
+ORDER BY mp.mac_prefix;
+SELECT '=== REQUESTED PREFIX LOOKUP ===';
+SELECT mp.id,mp.id_manufacturer,mp.mac_prefix,mp.description,mf.name AS manufacturer
+FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+WHERE '${prefix_norm}'<>'' AND UPPER(mp.mac_prefix)='${prefix_norm}';
+SELECT '=== ENDPOINT COUNT ===';
+SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE mf.name='${manufacturer}';
+ROLLBACK;
+SQL
+  rm -f "$defaults_file"; trap - RETURN EXIT; echo 'MANUFACTURER-DB-READONLY-PASS'
 }
 
 run_provisioning_inspection() {
@@ -134,6 +180,7 @@ SQL
 [ -n "$ACTION" ] || usage
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
+  inspect-manufacturer) run_manufacturer_inspection "${2:-}" "${3:-}" "${4:-}" ;;
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;
   inspect-sip-registration) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_registration_inspection ;;
