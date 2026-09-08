@@ -1,0 +1,10 @@
+--- Grandstream.py.orig
++++ Grandstream.py
+@@
+-            payload = urlencode({'password': self._http_password})
++            # Modern GXP16xx firmware requires both fields. BaseEndpoint already
++            # loads http_username/http_password from model or endpoint properties.
++            payload = urlencode({
++                'username': self._http_username,
++                'password': self._http_password,
++            })
