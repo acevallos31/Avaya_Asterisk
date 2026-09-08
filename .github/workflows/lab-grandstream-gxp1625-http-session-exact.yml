@@ -1,0 +1,73 @@
+name: G10-11 | Issabel Lab | GXP1625 Exact HTTP Session | Read-Only Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Grandstream GXP1625 exact HTTP session audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Verify protected credential exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'protected_credential=AVAILABLE'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Audit exact G10-09 HTTP session shape
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/grandstream-gxp1625-http-session-exact.sh
+          REPORT="$RUNNER_TEMP/g10-11-grandstream-http-session-exact.txt"
+          scripts/grandstream-gxp1625-http-session-exact.sh "$REPORT"
+          grep -Fq 'G10-11-PASS' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-11-grandstream-http-session-exact.txt"
+          {
+            echo '## G10-11 Grandstream GXP1625 exact HTTP session audit'
+            echo
+            echo '| Field | Value |'
+            echo '|---|---|'
+            echo '| Phone | `192.168.1.167` |'
+            echo '| Firmware Prog | `1.0.7.70` |'
+            echo '| Payload | `Exact G10-09 username+password shape` |'
+            echo '| Credentials printed | `NO` |'
+            echo '| Configuration writes | `NONE` |'
+            echo '| api.values.post | `NOT CALLED` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(login_http|login_content_type|login_location|set_cookie_names|cookie_jar_count|cookie_names|login_body_has_sid_token|login_body_has_success_token|followup_model_http|followup_model_content_type|G10-11-PASS)=' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-11-grandstream-http-session-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-11-grandstream-http-session-exact.txt
+          if-no-files-found: error
+          retention-days: 30
