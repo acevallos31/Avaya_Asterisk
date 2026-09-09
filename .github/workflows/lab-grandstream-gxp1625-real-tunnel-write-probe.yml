@@ -1,0 +1,23 @@
+name: G10-17G | Issabel Lab | GXP1625 Real HTTPS Tunnel Write Probe | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Run this workflow from branch Audit and type RUN-G10-17G'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard branch
+        shell: bash
+        run: |
+          echo 'This workflow is operational only from branch Audit.'
+          echo 'Select branch Audit, then confirmation RUN-G10-17G.'
+          test "${GITHUB_REF_NAME}" = 'Audit'
