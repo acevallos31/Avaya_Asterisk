@@ -1,0 +1,81 @@
+name: G10-17K | Issabel Lab | GXP1625 Browser Sequence Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-17K to allow same-value P208 sequence matrix'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17k:
+    name: Grandstream GXP1625 browser-sequence controlled matrix
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch, runner and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test "$CONFIRMATION" = 'RUN-G10-17K'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+          echo "runner_name=${RUNNER_NAME}"
+
+      - name: Validate sequence matrix script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-browser-sequence-matrix.py
+          grep -Fq 'sequence_source=OBSERVED_UI_ENDPOINTS_ONLY' scripts/grandstream-gxp1625-browser-sequence-matrix.py
+          grep -Fq 'phone_write=SAME-VALUE-P208-ONLY' scripts/grandstream-gxp1625-browser-sequence-matrix.py
+
+      - name: Run G10-17K browser sequence matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17k-grandstream-browser-sequence-matrix.txt"
+          python3 scripts/grandstream-gxp1625-browser-sequence-matrix.py "$REPORT"
+          grep -Fq 'G10-17K-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17k-grandstream-browser-sequence-matrix.txt"
+          {
+            echo '## G10-17K Grandstream GXP1625 browser sequence matrix'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone writes | `P208 same-current-value only` |'
+            echo '| Secret/session values logged | `NO` |'
+            echo
+            grep -E '^(case_count|accepted_case|diagnostic|G10-17K-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            echo
+            grep -E '^case_[0-9]+=(WRITE_ACCEPTED|WRITE_REJECTED_OTHER|READ_FAILED|LOGIN_FAILED|PRESEQ_FAILED)' "$REPORT" | head -50 | sed 's/^/`/; s/$/`  /' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17k-grandstream-browser-sequence-matrix-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17k-grandstream-browser-sequence-matrix.txt
+          retention-days: 30
