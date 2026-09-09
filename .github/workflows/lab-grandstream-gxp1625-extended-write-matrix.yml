@@ -14,7 +14,7 @@ permissions:
 jobs:
   g10_17j:
     name: Grandstream GXP1625 extended controlled write matrix
-    runs-on: [self-hosted, linux]
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
     env:
       GRANDSTREAM_HTTP_USERNAME: admin
       GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
@@ -33,6 +33,7 @@ jobs:
           test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
           echo 'credential_source=GITHUB-ACTIONS-SECRET'
           echo 'credential_value=NOT-PRINTED'
+          echo "runner_name=${RUNNER_NAME}"
 
       - name: Validate matrix script
         shell: bash
