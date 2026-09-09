@@ -1,0 +1,21 @@
+name: G10-17I | Issabel Lab | GXP1625 POST Payload Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Run from branch Audit and type RUN-G10-17I'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    if: github.ref_name != 'Audit'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo 'This workflow is operational only from branch Audit.'
+          exit 1
