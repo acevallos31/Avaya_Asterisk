@@ -1,0 +1,69 @@
+name: G10-18D | Endpoint Lab | GXP1625 Read Shape Diagnostic | Read-Only Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-18D to run read-only response-shape tests'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_18d:
+    name: GXP1625 endpoint-lab read-shape diagnostic
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify runner and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$CONFIRMATION" = 'RUN-G10-18D'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo "runner_name=${RUNNER_NAME}"
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Run G10-18D read-shape diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-18d-read-shape-diagnostic.txt"
+          chmod +x endpoint-lab/grandstream/g10-18d-read-shape-diagnostic.sh
+          endpoint-lab/grandstream/g10-18d-read-shape-diagnostic.sh "$REPORT"
+          grep -Fq 'G10-18D-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-18d-read-shape-diagnostic.txt"
+          {
+            echo '## G10-18D GXP1625 Read Shape Diagnostic'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| Runner | `endpoint-lab-debian` |'
+            echo '| DB writes | `NONE` |'
+            echo '| PBX live-code writes | `NONE` |'
+            echo '| Phone writes | `NONE` |'
+            echo '| Secret/session/response values logged | `NO` |'
+            echo
+            grep -E '^(lan_|tunnel_|G10-18D-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-18d-gxp1625-read-shape-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-18d-read-shape-diagnostic.txt
+          retention-days: 30
