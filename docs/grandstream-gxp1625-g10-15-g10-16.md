@@ -8,14 +8,7 @@ This document intentionally omits SIP secrets, HTTP passwords, SID values, cooki
 
 ## G10-15 — Host/Referer compatibility patch
 
-G10-14 had already changed the GXP140x JSON login payload from password-only to username+password.
-
-Direct HTTP tests established that this firmware accepts `/cgi-bin/dologin` when the request includes a Host/Referer pair coherent with the endpoint IP:
-
-```text
-Host: 192.168.1.167
-Referer: http://192.168.1.167/
-```
+G10-14 had already changed the GXP140x JSON login payload from password-only to username+password. Direct HTTP tests established that this firmware accepts `/cgi-bin/dologin` when the request includes a Host/Referer pair coherent with the endpoint IP.
 
 After G10-15, a real Endpoint Configurator Configure no longer failed at the dologin content-type check and advanced to the configuration API POST.
 
@@ -27,20 +20,7 @@ G10-15  Host + matching Referer    PASS / APPLIED
 
 ## G10-16 — Cookie propagation hypothesis
 
-The next request to `/cgi-bin/api.values.post` returned:
-
-```json
-{
-  "response": "error",
-  "body": {
-    "status": "session-expired"
-  }
-}
-```
-
-G10-16 propagated Set-Cookie values from successful dologin to the subsequent API POST while retaining the SID in the form body.
-
-The code-level patch applied successfully, but a real Endpoint Configurator Configure still returned `session-expired`. Therefore cookie propagation alone was not sufficient. G10-16 was rolled back.
+The subsequent `/cgi-bin/api.values.post` returned `session-expired`. G10-16 propagated Set-Cookie values from successful dologin to the API POST while retaining SID in the form body. A real Endpoint Configurator Configure still returned `session-expired`, so cookie propagation alone was not sufficient. G10-16 was rolled back.
 
 Current live baseline:
 
@@ -52,28 +32,7 @@ G10-16  cookie propagation         ROLLED BACK
 
 ## G10-17 — Browser/API comparison
 
-### Successful browser read
-
-The authenticated browser performs:
-
-```text
-POST /cgi-bin/api.values.get
-HTTP 200
-SID present in form body
-```
-
-The phone returns the requested values successfully. This proves a SID returned by dologin can be valid for a subsequent API request.
-
-### Successful browser write
-
-A browser Apply action generated:
-
-```text
-POST /cgi-bin/api.values.post
-HTTP 200
-```
-
-The form body contains both a configuration parameter and `sid`. The observed harmless test parameter was `P208=2`.
+Browser evidence confirmed successful authenticated calls to both `/cgi-bin/api.values.get` and `/cgi-bin/api.values.post`. The successful browser POST includes Host/authority, Origin, Referer, Content-Type form-urlencoded, Cookie, and SID in the form body. The observed POST carried `P208=2`, which on GXP16xx corresponds to Syslog Level = INFO; it must not be treated as a generic session marker.
 
 The phone returned:
 
@@ -86,59 +45,58 @@ The phone returned:
 }
 ```
 
-Request metadata confirmed the successful browser POST includes:
+The clearest remaining browser-vs-Issabel request-shape difference was Origin, but no live Grandstream.py patch is justified until the PBX-side session behavior is isolated.
+
+## G10-17A — Controlled Origin/session probe result
+
+G10-17A authenticated successfully and established the expected request metadata:
 
 ```text
-Host / authority    PRESENT
-Origin              PRESENT
-Referer             PRESENT
-Content-Type        application/x-www-form-urlencoded
-Cookie              PRESENT
-sid in form body    PRESENT
+origin_sent=YES
+host_sent=YES
+referer_sent=YES
+login_http=200
+login_json_success=YES
+sid_present=YES
+cookie_present=YES
 ```
 
-This corrects the earlier provisional observation that SID might be absent from the browser write payload.
-
-### Diagnostic significance
-
-Issabel already sends SID in the form body. G10-16 proved that adding cookies without Origin did not resolve `session-expired`. The clearest remaining request-shape difference observed between the successful browser POST and the Issabel path is `Origin`.
-
-No live Grandstream.py patch is justified yet. First reproduce the browser request shape directly from the PBX.
-
-## G10-17A — Controlled Origin/session probe
-
-Workflow:
+The read-only precondition request returned HTTP 200 but did not expose a `P208` value, so the guarded POST was skipped:
 
 ```text
-G10-17A | Issabel Lab | GXP1625 Origin Session Probe | Controlled Test
+read_p208_http=200
+read_p208_value=EMPTY
+post_http=SKIPPED
+probe_result=PRECONDITION_FAILED
 ```
 
-Purpose:
+This was a safe failure: no phone write was performed. The result also showed that HTTP 200 alone is insufficient evidence of an accepted authenticated API read; the application-level JSON response/status must be recorded.
 
-1. authenticate through `/cgi-bin/dologin` using username + password;
-2. send coherent Host + Origin + Referer headers;
-3. retain SID and cookies without logging their values;
-4. read `P208` first and require its current value to be exactly `2`;
-5. only then POST the same `P208=2` value plus SID to `/cgi-bin/api.values.post`;
-6. record only sanitized HTTP/application status.
+## G10-17B — Read-only session diagnostic
 
-Guardrails:
-
-- LAB / Audit branch only;
-- no DB writes;
-- no live code modification;
-- only an idempotent same-value phone write after a precondition read;
-- GitHub Actions secret used for the HTTP password;
-- SID, cookies and password values are never written to the report.
-
-Possible outcomes:
+G10-17B replaces the ambiguous P208 write precondition with a strictly read-only diagnostic. It authenticates with username/password, sends Host + Origin + Referer, retains SID and cookies without logging their values, and requests two known P-values through `/cgi-bin/api.values.get`:
 
 ```text
-ORIGIN_BROWSER_SHAPE_ACCEPTED
-ORIGIN_NOT_SUFFICIENT_SESSION_EXPIRED
-ORIGIN_BROWSER_SHAPE_REJECTED
+request=P35:P208
+```
+
+The workflow records only sanitized metadata:
+
+- login HTTP/application response;
+- SID/cookie presence only;
+- API read HTTP response;
+- API read application `response` and `status`;
+- whether `P35` and `P208` are present;
+- no DB, live-code, or phone writes.
+
+Possible diagnostic outcomes:
+
+```text
+READ_SESSION_ACCEPTED
+READ_SESSION_EXPIRED
+READ_HTTP_FAILED
+READ_REJECTED_OTHER
 LOGIN_FAILED
-PRECONDITION_FAILED
 ```
 
-If `ORIGIN_BROWSER_SHAPE_ACCEPTED` is observed, the next controlled change can add Origin to the Issabel Grandstream GXP140x JSON session flow and then retest Endpoint Configurator with account 202 Ashly.
+If the read itself reports `session-expired`, the missing requirement exists before any configuration POST and the next work should focus on reproducing the browser session establishment sequence rather than patching Origin into Grandstream.py prematurely.
