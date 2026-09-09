@@ -36,20 +36,22 @@ jobs:
           test "${GITHUB_REF_NAME}" = 'Audit'
           test "$(id -un)" = 'github-runner'
 
-      - name: Validate helper source
+      - name: Validate authorized helper source
         shell: bash
         run: |
           set -euo pipefail
-          bash -n deploy/grandstream/grandstream-lab-db-prefix
-          grep -Fq 'apply-login-patch' deploy/grandstream/grandstream-lab-db-prefix
-          grep -Fq "'username': self._http_username" deploy/grandstream/grandstream-lab-db-prefix
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          grep -Fq 'apply-login-patch' deploy/j129/avaya-j129-lab-deploy
+          grep -Fq "'username': self._http_username" deploy/j129/avaya-j129-lab-deploy
 
-      - name: Sync restricted Grandstream helper
+      - name: Sync authorized lab helper
         shell: bash
         run: |
           set -euo pipefail
-          sudo -n /usr/local/sbin/avaya-j129-helper-sync
-          sudo -n -l | grep -F '/usr/local/sbin/grandstream-lab-db-prefix'
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-PASS name=avaya-j129-lab-deploy' <<<"$OUT"
+          sudo -n -l 2>&1 | grep -F '/usr/local/sbin/avaya-j129-lab-deploy' >/dev/null
 
       - name: Run controlled action
         id: controlled
@@ -69,23 +71,23 @@ jobs:
             echo
             case "$ACTION" in
               inspect)
-                sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect-login-patch
+                sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-login-patch
                 ;;
               apply)
                 test "$CONFIRMATION" = 'APPLY-G10-14' || {
                   echo 'ERROR: confirmación requerida: APPLY-G10-14' >&2
                   exit 2
                 }
-                sudo -n /usr/local/sbin/grandstream-lab-db-prefix apply-login-patch
-                sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect-login-patch
+                sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-login-patch
+                sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-login-patch
                 ;;
               rollback)
                 test "$CONFIRMATION" = 'ROLLBACK-G10-14' || {
                   echo 'ERROR: confirmación requerida: ROLLBACK-G10-14' >&2
                   exit 2
                 }
-                sudo -n /usr/local/sbin/grandstream-lab-db-prefix rollback-login-patch
-                sudo -n /usr/local/sbin/grandstream-lab-db-prefix inspect-login-patch
+                sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-login-patch
+                sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-login-patch
                 ;;
               *)
                 echo "ERROR: acción no soportada: $ACTION" >&2
@@ -113,6 +115,7 @@ jobs:
             echo '| DB writes | `NONE` |'
             echo '| Phone writes | `NONE` |'
             echo '| Live code target | `Grandstream.py` |'
+            echo '| Privileged path | `avaya-j129-lab-deploy` (existing authorized helper) |'
             echo
             if [ -f "$REPORT" ]; then
               grep -E '^(requested_action|grandstream_py_sha256|legacy_password_only_line_count|username_payload_line_count|backup_present|login_patch_state|before_sha256|after_sha256|restored_sha256|GRANDSTREAM-LOGIN-PATCH-|G10-14-PASS)' "$REPORT" | sed 's/^/`/; s/$/`  /'
