@@ -1,0 +1,69 @@
+name: G10-18E | Endpoint Lab | GXP1625 Two-Path Write Proof | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-18E to allow same-value P208 write proof'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_18e:
+    name: GXP1625 endpoint-lab two-path write proof
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify runner and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$CONFIRMATION" = 'RUN-G10-18E'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo "runner_name=${RUNNER_NAME}"
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Run G10-18E two-path write proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-18e-two-path-write-proof.txt"
+          chmod +x endpoint-lab/grandstream/g10-18e-two-path-write-proof.sh
+          endpoint-lab/grandstream/g10-18e-two-path-write-proof.sh "$REPORT"
+          grep -Fq 'G10-18E-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-18e-two-path-write-proof.txt"
+          {
+            echo '## G10-18E GXP1625 Two-Path Write Proof'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| Runner | `endpoint-lab-debian` |'
+            echo '| DB writes | `NONE` |'
+            echo '| PBX live-code writes | `NONE` |'
+            echo '| Phone writes | `P208 same current value only after successful P35:P208 read` |'
+            echo '| Credentials / SID / cookie / P208 value logged | `NO` |'
+            echo
+            grep -E '^(lan_|tunnel_|G10-18E-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-18e-gxp1625-two-path-write-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-18e-two-path-write-proof.txt
+          retention-days: 30
