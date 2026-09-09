@@ -1,0 +1,23 @@
+name: G10-17H | Issabel Lab | GXP1625 Cookie Lifecycle Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Run this workflow from branch Audit and type RUN-G10-17H'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    name: Select Audit branch for G10-17H
+    if: github.ref_name != 'Audit'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stop on non-Audit branch
+        run: |
+          echo 'G10-17H is operational only from branch Audit.'
+          exit 1
