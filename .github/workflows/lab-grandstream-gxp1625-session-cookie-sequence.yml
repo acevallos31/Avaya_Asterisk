@@ -1,0 +1,78 @@
+name: G10-17D | Issabel Lab | GXP1625 Session Cookie Sequence | Read-Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17d:
+    name: Grandstream GXP1625 read-only session cookie sequence
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Validate diagnostic script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-session-cookie-sequence-diagnostic.py
+          grep -Fq 'phone_write=NO' scripts/grandstream-gxp1625-session-cookie-sequence-diagnostic.py
+          grep -Fq 'api-get_phone_status' scripts/grandstream-gxp1625-session-cookie-sequence-diagnostic.py
+
+      - name: Run G10-17D read-only sequence
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17d-grandstream-session-cookie-sequence.txt"
+          python3 scripts/grandstream-gxp1625-session-cookie-sequence-diagnostic.py "$REPORT"
+          grep -Fq 'G10-17D-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17d-grandstream-session-cookie-sequence.txt"
+          {
+            echo '## G10-17D Grandstream GXP1625 session cookie sequence'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone writes | `NONE` |'
+            echo '| SID/cookie/password values logged | `NO` |'
+            echo '| Purpose | `Find when session cookies appear during browser-like read sequence` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(origin_sent|host_sent|referer_sent|login_http|login_response|sid_present|login_set_cookie_count|values_get_1_|phone_status_|values_get_2_|final_cookie_present|final_cookie_count|diagnostic|G10-17D-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17d-grandstream-session-cookie-sequence-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17d-grandstream-session-cookie-sequence.txt
+          if-no-files-found: warn
+          retention-days: 30
