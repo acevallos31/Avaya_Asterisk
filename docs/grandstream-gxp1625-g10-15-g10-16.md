@@ -72,31 +72,49 @@ probe_result=PRECONDITION_FAILED
 
 This was a safe failure: no phone write was performed. The result also showed that HTTP 200 alone is insufficient evidence of an accepted authenticated API read; the application-level JSON response/status must be recorded.
 
-## G10-17B — Read-only session diagnostic
+## G10-17B — Read-only session diagnostic result
 
-G10-17B replaces the ambiguous P208 write precondition with a strictly read-only diagnostic. It authenticates with username/password, sends Host + Origin + Referer, retains SID and cookies without logging their values, and requests two known P-values through `/cgi-bin/api.values.get`:
+G10-17B authenticated with the browser-shaped headers/session and then performed:
 
 ```text
+POST /cgi-bin/api.values.get
 request=P35:P208
 ```
 
-The workflow records only sanitized metadata:
-
-- login HTTP/application response;
-- SID/cookie presence only;
-- API read HTTP response;
-- API read application `response` and `status`;
-- whether `P35` and `P208` are present;
-- no DB, live-code, or phone writes.
-
-Possible diagnostic outcomes:
+Observed sanitized result:
 
 ```text
-READ_SESSION_ACCEPTED
-READ_SESSION_EXPIRED
-READ_HTTP_FAILED
-READ_REJECTED_OTHER
-LOGIN_FAILED
+login_http=200
+login_response=success
+sid_present=YES
+cookie_present=YES
+read_http=200
+read_response=success
+read_p35_present=YES
+read_p208_present=YES
+diagnostic=READ_SESSION_ACCEPTED
 ```
 
-If the read itself reports `session-expired`, the missing requirement exists before any configuration POST and the next work should focus on reproducing the browser session establishment sequence rather than patching Origin into Grandstream.py prematurely.
+This proves the PBX can establish and reuse a valid authenticated session when Host + Origin + Referer + Cookie + SID are all present.
+
+## G10-17C — Controlled same-value write diagnostic
+
+G10-17C reuses the proven G10-17B session shape and adds one guarded write test. It first reads `P208`; only if that value is present does it POST the exact same current value back to `/cgi-bin/api.values.post` together with SID and the same session headers.
+
+Guardrails:
+
+- LAB / Audit only;
+- no DB writes;
+- no live code modification;
+- phone write limited to `P208=<same current value>`;
+- no password, SID, or cookie values are logged.
+
+Expected decisive outcomes:
+
+```text
+WRITE_SESSION_ACCEPTED
+WRITE_SESSION_EXPIRED
+WRITE_REJECTED_OTHER
+```
+
+If `WRITE_SESSION_ACCEPTED` is observed, the evidence supports a final Grandstream.py compatibility patch that combines the session elements proven in G10-17B/G10-17C, followed by a real Endpoint Configurator retest for account 202 Ashly.
