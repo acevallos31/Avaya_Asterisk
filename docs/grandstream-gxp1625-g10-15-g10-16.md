@@ -1,14 +1,12 @@
-# Grandstream GXP1625 — G10-15 result and G10-16 session propagation
+# Grandstream GXP1625 — G10-15 to G10-17 session diagnostics
 
 ## Scope
 
 LAB only. Physical Grandstream GXP1625 at `192.168.1.167`, Endpoint Configurator target account `202 Ashly`.
 
-This document intentionally omits SIP secrets, HTTP passwords, SID values, cookies, and binary cfg contents.
+This document intentionally omits SIP secrets, HTTP passwords, SID values, cookie values, and binary cfg contents.
 
 ## G10-15 — Host/Referer compatibility patch
-
-### Prior condition
 
 G10-14 had already changed the GXP140x JSON login payload from password-only to username+password.
 
@@ -19,23 +17,17 @@ Host: 192.168.1.167
 Referer: http://192.168.1.167/
 ```
 
-The generic implementation therefore uses `self._ip`; no site-specific tunnel hostname is hardcoded.
-
-### Result after G10-15 apply
-
-A real Configure action from Issabel Endpoint Configurator no longer failed at the `dologin` content-type check. The log advanced through successful JSON authentication and reached the configuration API POST.
-
-This validates the cumulative login compatibility changes:
+After G10-15, a real Endpoint Configurator Configure no longer failed at the dologin content-type check and advanced to the configuration API POST.
 
 ```text
-G10-14  username + password        PASS
-G10-15  Host + matching Referer    PASS
+G10-14  username + password        PASS / APPLIED
+G10-15  Host + matching Referer    PASS / APPLIED
 /login   JSON session established   PASS
 ```
 
-## New failure observed after G10-15
+## G10-16 — Cookie propagation hypothesis
 
-The next request to the Grandstream JSON API returned an application-level session error:
+The next request to `/cgi-bin/api.values.post` returned:
 
 ```json
 {
@@ -46,40 +38,11 @@ The next request to the Grandstream JSON API returned an application-level sessi
 }
 ```
 
-The failure occurs after successful `/cgi-bin/dologin` and during the subsequent `/cgi-bin/api.values.post` step.
+G10-16 propagated Set-Cookie values from successful dologin to the subsequent API POST while retaining the SID in the form body.
 
-The original implementation carries the returned SID in the form payload but does not explicitly propagate the `Set-Cookie` session information from the login response to the next POST. Python `http.client.HTTPConnection` maintains a TCP connection but is not a browser cookie jar.
+The code-level patch applied successfully, but a real Endpoint Configurator Configure still returned `session-expired`. Therefore cookie propagation alone was not sufficient. G10-16 was rolled back.
 
-## G10-16 — Session propagation patch
-
-### Hypothesis
-
-Some GXP16xx firmware requires both:
-
-- the SID returned by `/cgi-bin/dologin` (already handled by Issabel), and
-- the cookies returned by the login response to be sent with `/cgi-bin/api.values.post`.
-
-Without cookie propagation, the phone can reject the configuration POST as `session-expired`.
-
-### Controlled change
-
-G10-16 collected only `Set-Cookie` response headers from the successful login response, converted each to its cookie pair, and added a `Cookie` request header for the subsequent API POST.
-
-No SID or cookie value was printed by the workflow or helper.
-
-### Functional result
-
-G10-16 applied successfully at the code level, but a real Endpoint Configurator Configure still returned:
-
-```text
-session-expired
-```
-
-from `/cgi-bin/api.values.post`.
-
-Therefore the hypothesis that cookie propagation alone was the missing requirement was not validated. G10-16 was rolled back, restoring the known-good cumulative baseline of G10-14 + G10-15.
-
-Current baseline:
+Current live baseline:
 
 ```text
 G10-14  username + password        APPLIED
@@ -89,22 +52,19 @@ G10-16  cookie propagation         ROLLED BACK
 
 ## G10-17 — Browser/API comparison
 
-### Browser session evidence
+### Successful browser read
 
-A browser login to the GXP1625 succeeds and subsequent authenticated API calls are accepted.
-
-Observed successful read request:
+The authenticated browser performs:
 
 ```text
 POST /cgi-bin/api.values.get
 HTTP 200
 SID present in form body
-response accepted
 ```
 
-This demonstrates that the SID returned by login can be valid for a subsequent JSON API request.
+The phone returns the requested values successfully. This proves a SID returned by dologin can be valid for a subsequent API request.
 
-### Successful browser write request
+### Successful browser write
 
 A browser Apply action generated:
 
@@ -113,7 +73,7 @@ POST /cgi-bin/api.values.post
 HTTP 200
 ```
 
-Observed form payload contained a normal configuration parameter (`P208`) and did not show an explicit `sid` field in the captured payload.
+The form body contains both a configuration parameter and `sid`. The observed harmless test parameter was `P208=2`.
 
 The phone returned:
 
@@ -126,25 +86,59 @@ The phone returned:
 }
 ```
 
-This is the first successful browser request directly comparable to Issabel's failing `/cgi-bin/api.values.post` call.
+Request metadata confirmed the successful browser POST includes:
 
-### Current diagnostic significance
+```text
+Host / authority    PRESENT
+Origin              PRESENT
+Referer             PRESENT
+Content-Type        application/x-www-form-urlencoded
+Cookie              PRESENT
+sid in form body    PRESENT
+```
 
-Issabel currently sends its configuration variables plus `sid` in the form body and receives `session-expired`. The browser's successful `/cgi-bin/api.values.post` capture showed the configuration parameter but no explicit SID field in the visible form payload.
+This corrects the earlier provisional observation that SID might be absent from the browser write payload.
 
-This raises a new, narrower hypothesis: the write endpoint may authenticate through browser session state and may reject, ignore, or conflict with an explicit `sid` field in this firmware path. This is not yet proven because the successful browser request headers still need to be compared before changing code.
+### Diagnostic significance
 
-### Next evidence required before G10-17 patch
+Issabel already sends SID in the form body. G10-16 proved that adding cookies without Origin did not resolve `session-expired`. The clearest remaining request-shape difference observed between the successful browser POST and the Issabel path is `Origin`.
 
-Capture only the non-secret metadata from the successful browser `/cgi-bin/api.values.post` request:
+No live Grandstream.py patch is justified yet. First reproduce the browser request shape directly from the PBX.
 
-- `Host`
-- `Origin`
-- `Referer`
-- `Content-Type`
-- whether a `Cookie` request header is present
-- confirmation whether `sid` is absent from the form body
+## G10-17A — Controlled Origin/session probe
 
-Do not record cookie values, SID values, passwords, SIP secrets, or full configuration payloads.
+Workflow:
 
-No G10-17 code patch should be applied until this header/body comparison is complete.
+```text
+G10-17A | Issabel Lab | GXP1625 Origin Session Probe | Controlled Test
+```
+
+Purpose:
+
+1. authenticate through `/cgi-bin/dologin` using username + password;
+2. send coherent Host + Origin + Referer headers;
+3. retain SID and cookies without logging their values;
+4. read `P208` first and require its current value to be exactly `2`;
+5. only then POST the same `P208=2` value plus SID to `/cgi-bin/api.values.post`;
+6. record only sanitized HTTP/application status.
+
+Guardrails:
+
+- LAB / Audit branch only;
+- no DB writes;
+- no live code modification;
+- only an idempotent same-value phone write after a precondition read;
+- GitHub Actions secret used for the HTTP password;
+- SID, cookies and password values are never written to the report.
+
+Possible outcomes:
+
+```text
+ORIGIN_BROWSER_SHAPE_ACCEPTED
+ORIGIN_NOT_SUFFICIENT_SESSION_EXPIRED
+ORIGIN_BROWSER_SHAPE_REJECTED
+LOGIN_FAILED
+PRECONDITION_FAILED
+```
+
+If `ORIGIN_BROWSER_SHAPE_ACCEPTED` is observed, the next controlled change can add Origin to the Issabel Grandstream GXP140x JSON session flow and then retest Endpoint Configurator with account 202 Ashly.
