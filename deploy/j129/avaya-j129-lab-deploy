@@ -13,12 +13,14 @@ BACKUP_DIR="$STATE_DIR/backup"
 STAMP_FILE="$STATE_DIR/installed.sha256"
 DB_STATE_FILE="$STATE_DIR/db-j129.state"
 GRANDSTREAM_OUI_STATE_FILE="$STATE_DIR/grandstream-c074ad.state"
+GRANDSTREAM_PY="$BASE/class/issabel/vendor/Grandstream.py"
+GRANDSTREAM_LOGIN_PATCH_BACKUP="$STATE_DIR/Grandstream.py.pre-g10-14"
 HTTP_STATE_DIR="$STATE_DIR/httpd"
 HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui} | inspect-manufacturer <manufacturer> [model] [mac-prefix]" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix]" >&2
   exit 2
 }
 
@@ -244,6 +246,90 @@ SQL
   echo 'GRANDSTREAM-OUI-ROLLBACK-PASS oui=C0:74:AD'
 }
 
+inspect_grandstream_login_patch() {
+  [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
+  local old_count new_count file_sha
+  old_count="$(grep -Fxc "            payload = urlencode({'password': self._http_password})" "$GRANDSTREAM_PY" || true)"
+  new_count="$(grep -Fxc "                'username': self._http_username," "$GRANDSTREAM_PY" || true)"
+  file_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  echo '=== GRANDSTREAM GXP140x LOGIN PATCH AUDIT ==='
+  echo "grandstream_py_sha256=$file_sha"
+  echo "legacy_password_only_line_count=$old_count"
+  echo "username_payload_line_count=$new_count"
+  if [ -f "$GRANDSTREAM_LOGIN_PATCH_BACKUP" ]; then
+    echo 'backup_present=YES'
+    echo "backup_sha256=$(sha256sum "$GRANDSTREAM_LOGIN_PATCH_BACKUP" | awk '{print $1}')"
+  else
+    echo 'backup_present=NO'
+  fi
+  if [ "$old_count" -eq 1 ] && [ "$new_count" -eq 0 ]; then
+    echo 'login_patch_state=UNPATCHED'
+  elif [ "$old_count" -eq 0 ] && [ "$new_count" -eq 1 ]; then
+    echo 'login_patch_state=PATCHED'
+  else
+    echo 'login_patch_state=UNEXPECTED'
+    exit 1
+  fi
+  echo 'GRANDSTREAM-LOGIN-PATCH-INSPECT-PASS'
+}
+
+apply_grandstream_login_patch() {
+  [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
+  install -d -o root -g root -m 0700 "$STATE_DIR"
+  local old_count new_count before_sha after_sha tmp
+  old_count="$(grep -Fxc "            payload = urlencode({'password': self._http_password})" "$GRANDSTREAM_PY" || true)"
+  new_count="$(grep -Fxc "                'username': self._http_username," "$GRANDSTREAM_PY" || true)"
+  if [ "$old_count" -eq 0 ] && [ "$new_count" -eq 1 ]; then
+    echo 'GRANDSTREAM-LOGIN-PATCH-ALREADY-PRESENT'
+    return 0
+  fi
+  [ "$old_count" -eq 1 ] && [ "$new_count" -eq 0 ] || { echo 'ERROR: Grandstream.py no coincide con el baseline esperado; apply cancelado.' >&2; exit 1; }
+  [ ! -e "$GRANDSTREAM_LOGIN_PATCH_BACKUP" ] || { echo "ERROR: ya existe backup pendiente: $GRANDSTREAM_LOGIN_PATCH_BACKUP" >&2; exit 1; }
+  before_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  cp -a "$GRANDSTREAM_PY" "$GRANDSTREAM_LOGIN_PATCH_BACKUP"
+  chmod 0600 "$GRANDSTREAM_LOGIN_PATCH_BACKUP"
+  tmp="$(mktemp "$STATE_DIR/Grandstream.py.XXXXXX")"
+  python3 - "$GRANDSTREAM_PY" "$tmp" <<'PY'
+import sys
+src, dst = sys.argv[1], sys.argv[2]
+text = open(src, 'r', encoding='utf-8').read()
+old = "            payload = urlencode({'password': self._http_password})"
+new = """            # GXP16xx firmware requires both HTTP credential fields.
+            payload = urlencode({
+                'username': self._http_username,
+                'password': self._http_password,
+            })"""
+if text.count(old) != 1:
+    raise SystemExit('expected exactly one legacy password-only payload line')
+text = text.replace(old, new, 1)
+open(dst, 'w', encoding='utf-8').write(text)
+PY
+  python3 -m py_compile "$tmp"
+  install -o root -g root -m 0644 "$tmp" "$GRANDSTREAM_PY"
+  rm -f "$tmp" "${GRANDSTREAM_PY}c" 2>/dev/null || true
+  after_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  [ "$before_sha" != "$after_sha" ] || { echo 'ERROR: el SHA no cambió después del apply.' >&2; exit 1; }
+  grep -Fq "                'username': self._http_username," "$GRANDSTREAM_PY"
+  echo "before_sha256=$before_sha"
+  echo "after_sha256=$after_sha"
+  echo 'GRANDSTREAM-LOGIN-PATCH-APPLY-PASS'
+}
+
+rollback_grandstream_login_patch() {
+  [ -f "$GRANDSTREAM_LOGIN_PATCH_BACKUP" ] || { echo 'ERROR: no existe backup controlado del patch.' >&2; exit 1; }
+  [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
+  local current_new_count restored_sha
+  current_new_count="$(grep -Fxc "                'username': self._http_username," "$GRANDSTREAM_PY" || true)"
+  [ "$current_new_count" -eq 1 ] || { echo 'ERROR: el archivo live no contiene el patch esperado; rollback cancelado.' >&2; exit 1; }
+  python3 -m py_compile "$GRANDSTREAM_LOGIN_PATCH_BACKUP"
+  install -o root -g root -m 0644 "$GRANDSTREAM_LOGIN_PATCH_BACKUP" "$GRANDSTREAM_PY"
+  rm -f "$GRANDSTREAM_LOGIN_PATCH_BACKUP" "${GRANDSTREAM_PY}c" 2>/dev/null || true
+  grep -Fq "            payload = urlencode({'password': self._http_password})" "$GRANDSTREAM_PY"
+  restored_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  echo "restored_sha256=$restored_sha"
+  echo 'GRANDSTREAM-LOGIN-PATCH-ROLLBACK-PASS'
+}
+
 install_db_j129() {
   local defaults_file avaya_count j129_count prefix_other prop_sip prop_iax; defaults_file="$(make_db_defaults_file)"; trap 'rm -f "$defaults_file"' RETURN EXIT; install -d -m 0755 "$STATE_DIR"; avaya_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM manufacturer WHERE name='Avaya';")"; [ "$avaya_count" -le 1 ] || { echo "ERROR: fabricante Avaya duplicado" >&2; exit 1; }; if [ "$avaya_count" -eq 1 ]; then j129_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; [ "$j129_count" -le 1 ] || { echo "ERROR: modelo J129 duplicado" >&2; exit 1; }; fi; prefix_other="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mp.mac_prefix='C8:1F:EA' AND COALESCE(mf.name,'') <> 'Avaya';")"; [ "$prefix_other" -eq 0 ] || { echo "ERROR: C8:1F:EA ya pertenece a otro fabricante" >&2; exit 1; }; prop_sip="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts' AND mp.property_value <> '2';")"; prop_iax="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts' AND mp.property_value <> '0';")"; [ "$prop_sip" -eq 0 ] || exit 1; [ "$prop_iax" -eq 0 ] || exit 1
   if [ ! -f "$DB_STATE_FILE" ]; then { echo "manufacturer_preexisting=$avaya_count"; if [ "$avaya_count" -eq 1 ]; then echo "model_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129';")"; else echo "model_preexisting=0"; fi; echo "prefix_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Avaya' AND mp.mac_prefix='C8:1F:EA';")"; echo "sip_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_sip_accounts';")"; echo "iax_property_preexisting=$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM model_properties mp JOIN model m ON m.id=mp.id_model JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Avaya' AND m.name='J129' AND mp.property_key='max_iax2_accounts';")"; } > "$DB_STATE_FILE"; chmod 0600 "$DB_STATE_FILE"; fi
@@ -272,6 +358,9 @@ case "$ACTION" in
   inspect-sip-registration) [ -z "$OVERLAY_ROOT" ] || usage; run_sip_registration_inspection ;;
   apply-grandstream-oui) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_oui ;;
   rollback-grandstream-oui) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_oui ;;
+  inspect-login-patch) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_login_patch ;;
+  apply-login-patch) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_login_patch ;;
+  rollback-login-patch) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_login_patch ;;
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
   install-http) install_http_j129 ;;
