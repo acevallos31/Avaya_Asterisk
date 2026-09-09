@@ -45,43 +45,13 @@ The phone returned:
 }
 ```
 
-The clearest remaining browser-vs-Issabel request-shape difference was Origin, but no live Grandstream.py patch is justified until the PBX-side session behavior is isolated.
-
 ## G10-17A — Controlled Origin/session probe result
 
-G10-17A authenticated successfully and established the expected request metadata:
-
-```text
-origin_sent=YES
-host_sent=YES
-referer_sent=YES
-login_http=200
-login_json_success=YES
-sid_present=YES
-cookie_present=YES
-```
-
-The read-only precondition request returned HTTP 200 but did not expose a `P208` value, so the guarded POST was skipped:
-
-```text
-read_p208_http=200
-read_p208_value=EMPTY
-post_http=SKIPPED
-probe_result=PRECONDITION_FAILED
-```
-
-This was a safe failure: no phone write was performed. The result also showed that HTTP 200 alone is insufficient evidence of an accepted authenticated API read; the application-level JSON response/status must be recorded.
+G10-17A authenticated successfully with Host + Origin + Referer and SID, but its original P208 precondition was ambiguous and the write was skipped safely.
 
 ## G10-17B — Read-only session diagnostic result
 
-G10-17B authenticated with the browser-shaped headers/session and then performed:
-
-```text
-POST /cgi-bin/api.values.get
-request=P35:P208
-```
-
-Observed sanitized result:
+G10-17B proved a valid PBX-side authenticated read session:
 
 ```text
 login_http=200
@@ -95,26 +65,58 @@ read_p208_present=YES
 diagnostic=READ_SESSION_ACCEPTED
 ```
 
-This proves the PBX can establish and reuse a valid authenticated session when Host + Origin + Referer + Cookie + SID are all present.
+## G10-17C — Controlled same-value write diagnostic result
 
-## G10-17C — Controlled same-value write diagnostic
+The latest G10-17C run authenticated and read P208 successfully, then attempted to POST the exact same value back.
 
-G10-17C reuses the proven G10-17B session shape and adds one guarded write test. It first reads `P208`; only if that value is present does it POST the exact same current value back to `/cgi-bin/api.values.post` together with SID and the same session headers.
-
-Guardrails:
-
-- LAB / Audit only;
-- no DB writes;
-- no live code modification;
-- phone write limited to `P208=<same current value>`;
-- no password, SID, or cookie values are logged.
-
-Expected decisive outcomes:
+Observed sanitized result:
 
 ```text
-WRITE_SESSION_ACCEPTED
-WRITE_SESSION_EXPIRED
-WRITE_REJECTED_OTHER
+login_http=200
+login_response=success
+sid_present=YES
+cookie_present=NO
+cookie_pair_count=0
+read_http=200
+read_response=success
+read_p208_present=YES
+same_value_write_precondition=PASS
+post_http=200
+post_response=error
+post_status=session-expired
+diagnostic=WRITE_SESSION_EXPIRED
 ```
 
-If `WRITE_SESSION_ACCEPTED` is observed, the evidence supports a final Grandstream.py compatibility patch that combines the session elements proven in G10-17B/G10-17C, followed by a real Endpoint Configurator retest for account 202 Ashly.
+The workflow itself completed successfully because `session-expired` is a diagnostic outcome, not an infrastructure failure.
+
+The decisive difference in this run is that no usable cookie was present when the write was attempted. The read endpoint accepted SID alone, but the write endpoint did not.
+
+## G10-17D — Read-only session cookie sequence diagnostic
+
+G10-17D is strictly read-only and focuses on when a usable session cookie appears. It reproduces a browser-like sequence without calling `/cgi-bin/api.values.post`:
+
+```text
+dologin
+  -> api.values.get (P35:P208)
+  -> api-get_phone_status
+  -> api.values.get (P35:P208)
+```
+
+At each step the diagnostic records only:
+
+- HTTP/application response;
+- count of new `Set-Cookie` response headers;
+- cumulative cookie count;
+- whether a final cookie is available.
+
+It never records cookie values, SID, or password and performs no DB, live-code, or phone writes.
+
+Possible decisive outcomes:
+
+```text
+COOKIE_AVAILABLE_AFTER_SEQUENCE
+NO_COOKIE_AFTER_SEQUENCE
+LOGIN_FAILED
+```
+
+If a cookie appears only after one of the post-login read/status calls, the next controlled write test should reproduce that exact pre-write sequence before attempting `api.values.post`.
