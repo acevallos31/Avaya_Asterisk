@@ -1,0 +1,17 @@
+name: G10-18F | Endpoint Lab | GXP1625 P208 Key-Aware Write Proof | Controlled Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Audit branch required
+        run: |
+          echo 'This controlled endpoint-lab workflow must be run from branch Audit.'
+          echo 'Select branch Audit in Actions before running G10-18F.'
+          exit 1
