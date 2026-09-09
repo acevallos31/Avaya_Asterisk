@@ -61,53 +61,90 @@ Some GXP16xx firmware requires both:
 
 Without cookie propagation, the phone can reject the configuration POST as `session-expired`.
 
-### Planned change
+### Controlled change
 
-G10-16 collects only `Set-Cookie` response headers from the successful login response, converts each to its cookie pair, and adds a `Cookie` request header for the subsequent API POST.
+G10-16 collected only `Set-Cookie` response headers from the successful login response, converted each to its cookie pair, and added a `Cookie` request header for the subsequent API POST.
 
-No SID or cookie value is printed by the workflow or helper.
+No SID or cookie value was printed by the workflow or helper.
 
-Conceptual flow:
+### Functional result
+
+G10-16 applied successfully at the code level, but a real Endpoint Configurator Configure still returned:
 
 ```text
-POST /cgi-bin/dologin
-  username + password
-  Host + Referer
-        |
-        v
-200 application/json
-  SID + Set-Cookie
-        |
-        v
-retain SID in payload
-propagate Cookie header
-        |
-        v
-POST /cgi-bin/api.values.post
+session-expired
 ```
 
-### Guardrails
+from `/cgi-bin/api.values.post`.
 
-G10-16:
+Therefore the hypothesis that cookie propagation alone was the missing requirement was not validated. G10-16 was rolled back, restoring the known-good cumulative baseline of G10-14 + G10-15.
 
-- runs only on the `Audit` branch and `issabel-lab` self-hosted runner;
-- modifies only the live Grandstream vendor Python file;
-- does not write Endpoint Configurator DB data;
-- does not itself configure the phone;
-- requires G10-14 and G10-15 to be present;
-- creates a separate `pre-g10-16` backup;
-- validates the candidate with `python3 -m py_compile` before installation;
-- supports `inspect`, `apply`, and `rollback`;
-- does not log cookies, SID values, passwords, SIP secrets, or cfg contents.
+Current baseline:
 
-## Next functional test after G10-16 apply
+```text
+G10-14  username + password        APPLIED
+G10-15  Host + matching Referer    APPLIED
+G10-16  cookie propagation         ROLLED BACK
+```
 
-After G10-16 reaches `session_patch_state=PATCHED`, perform one manual Configure from Issabel for the GXP1625 with target account `202 Ashly`.
+## G10-17 — Browser/API comparison
 
-Expected success criterion for this stage:
+### Browser session evidence
 
-1. no `dologin answered not application/json` error;
-2. no `session-expired` response from `/cgi-bin/api.values.post`;
-3. Endpoint Configurator advances beyond the JSON API configuration POST.
+A browser login to the GXP1625 succeeds and subsequent authenticated API calls are accepted.
 
-If a new error appears after the API POST, record only the non-secret status/error text and treat it as the next isolated stage. Do not publish SID, cookie, password, SIP secret, or the binary cfg payload.
+Observed successful read request:
+
+```text
+POST /cgi-bin/api.values.get
+HTTP 200
+SID present in form body
+response accepted
+```
+
+This demonstrates that the SID returned by login can be valid for a subsequent JSON API request.
+
+### Successful browser write request
+
+A browser Apply action generated:
+
+```text
+POST /cgi-bin/api.values.post
+HTTP 200
+```
+
+Observed form payload contained a normal configuration parameter (`P208`) and did not show an explicit `sid` field in the captured payload.
+
+The phone returned:
+
+```json
+{
+  "response": "success",
+  "body": {
+    "status": "right"
+  }
+}
+```
+
+This is the first successful browser request directly comparable to Issabel's failing `/cgi-bin/api.values.post` call.
+
+### Current diagnostic significance
+
+Issabel currently sends its configuration variables plus `sid` in the form body and receives `session-expired`. The browser's successful `/cgi-bin/api.values.post` capture showed the configuration parameter but no explicit SID field in the visible form payload.
+
+This raises a new, narrower hypothesis: the write endpoint may authenticate through browser session state and may reject, ignore, or conflict with an explicit `sid` field in this firmware path. This is not yet proven because the successful browser request headers still need to be compared before changing code.
+
+### Next evidence required before G10-17 patch
+
+Capture only the non-secret metadata from the successful browser `/cgi-bin/api.values.post` request:
+
+- `Host`
+- `Origin`
+- `Referer`
+- `Content-Type`
+- whether a `Cookie` request header is present
+- confirmation whether `sid` is absent from the form body
+
+Do not record cookie values, SID values, passwords, SIP secrets, or full configuration payloads.
+
+No G10-17 code patch should be applied until this header/body comparison is complete.
