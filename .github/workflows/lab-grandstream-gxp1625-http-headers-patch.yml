@@ -1,0 +1,33 @@
+name: G10-15 | Issabel Lab | GXP1625 HTTP Host-Referer Patch | Controlled Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Acción controlada'
+        required: true
+        type: choice
+        options:
+          - inspect
+          - apply
+          - rollback
+        default: inspect
+      confirmation:
+        description: 'apply: APPLY-G10-15 | rollback: ROLLBACK-G10-15 | inspect: dejar vacío'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  select-audit-branch:
+    name: G10-15 must run from Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Audit ref
+        shell: bash
+        run: |
+          echo 'Este workflow operativo vive en la rama Audit.'
+          echo 'En Run workflow selecciona Branch: Audit y vuelve a ejecutarlo.'
+          exit 1
