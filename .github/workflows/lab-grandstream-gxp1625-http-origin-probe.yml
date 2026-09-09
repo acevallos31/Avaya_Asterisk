@@ -1,0 +1,86 @@
+name: G10-17A | Issabel Lab | GXP1625 Origin Session Probe | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe RUN-G10-17A para ejecutar el POST idempotente P208=2'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17a:
+    name: Grandstream GXP1625 Origin/session controlled probe
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch, runner and confirmation
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test "$CONFIRMATION" = 'RUN-G10-17A'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Validate probe script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-origin-session-probe.py
+          grep -Fq 'Origin' scripts/grandstream-gxp1625-origin-session-probe.py
+          grep -Fq 'P208' scripts/grandstream-gxp1625-origin-session-probe.py
+
+      - name: Run G10-17A controlled browser-shape probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17a-grandstream-origin-session-probe.txt"
+          python3 scripts/grandstream-gxp1625-origin-session-probe.py "$REPORT"
+          grep -Fq 'G10-17A-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17a-grandstream-origin-session-probe.txt"
+          {
+            echo '## G10-17A Grandstream GXP1625 Origin/session probe'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone write | `P208 same-value only, after precondition read` |'
+            echo '| SID/cookie/password values logged | `NO` |'
+            echo '| Purpose | `Reproduce successful browser request shape before patching Grandstream.py` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(login_http|login_json_success|sid_present|cookie_present|cookie_name_count|origin_sent|host_sent|referer_sent|read_p208_http|read_p208_value|precondition_p208_expected|post_http|post_response|post_status|probe_result|G10-17A-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17a-grandstream-origin-session-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17a-grandstream-origin-session-probe.txt
+          if-no-files-found: warn
+          retention-days: 30
