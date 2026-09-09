@@ -1,0 +1,17 @@
+name: G10-18D | Endpoint Lab | GXP1625 Read Shape Diagnostic | Read-Only Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Audit branch required
+        run: |
+          echo 'This read-only endpoint-lab workflow must be run from branch Audit.'
+          echo 'Select branch Audit in Actions before running G10-18D.'
+          exit 1
