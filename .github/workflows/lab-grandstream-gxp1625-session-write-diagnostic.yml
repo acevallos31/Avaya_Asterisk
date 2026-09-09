@@ -1,0 +1,24 @@
+name: G10-17C | Issabel Lab | GXP1625 Session Write Diagnostic | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe RUN-G10-17C para ejecutar el write idempotente P208=same-value'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  select-audit-branch:
+    name: G10-17C must run from Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Audit ref
+        shell: bash
+        run: |
+          echo 'Este workflow operativo vive en la rama Audit.'
+          echo 'En Run workflow selecciona Branch: Audit y vuelve a ejecutarlo.'
+          exit 1
