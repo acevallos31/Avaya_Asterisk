@@ -1,0 +1,81 @@
+name: G10-17J | Issabel Lab | GXP1625 Extended Write Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-17J to allow same-value P208 write matrix'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17j:
+    name: Grandstream GXP1625 extended controlled write matrix
+    runs-on: [self-hosted, linux]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch, runner and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test "$CONFIRMATION" = 'RUN-G10-17J'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Validate matrix script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-extended-write-matrix.py
+          grep -Fq 'case_count=' scripts/grandstream-gxp1625-extended-write-matrix.py
+          grep -Fq 'phone_write=SAME-VALUE-P208-ONLY' scripts/grandstream-gxp1625-extended-write-matrix.py
+
+      - name: Run G10-17J extended matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17j-grandstream-extended-write-matrix.txt"
+          python3 scripts/grandstream-gxp1625-extended-write-matrix.py "$REPORT"
+          grep -Fq 'G10-17J-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17j-grandstream-extended-write-matrix.txt"
+          {
+            echo '## G10-17J Grandstream GXP1625 extended write matrix'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone writes | `P208 same-current-value only` |'
+            echo '| Secret/session values logged | `NO` |'
+            echo
+            grep -E '^(case_count|accepted_case|diagnostic|G10-17J-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            echo
+            echo '### Accepted / non-session-expired cases'
+            grep -E '^case_[0-9]+=(WRITE_ACCEPTED|WRITE_REJECTED_OTHER|READ_FAILED|LOGIN_FAILED)' "$REPORT" | head -50 | sed 's/^/`/; s/$/`  /' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17j-grandstream-extended-write-matrix-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17j-grandstream-extended-write-matrix.txt
+          retention-days: 30
