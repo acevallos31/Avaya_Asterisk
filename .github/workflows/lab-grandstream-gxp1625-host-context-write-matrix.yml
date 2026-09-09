@@ -1,0 +1,83 @@
+name: G10-17E | Issabel Lab | GXP1625 Host Context Write Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe RUN-G10-17E para ejecutar dos writes idempotentes P208=<valor actual>'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17e:
+    name: Grandstream GXP1625 host context write matrix
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch, runner and confirmation
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test "$CONFIRMATION" = 'RUN-G10-17E'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+
+      - name: Validate matrix script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-host-context-write-matrix.py
+          grep -Fq 'phone1.nocpbx.com' scripts/grandstream-gxp1625-host-context-write-matrix.py
+          grep -Fq 'phone_write=SAME-VALUE-P208-ONLY' scripts/grandstream-gxp1625-host-context-write-matrix.py
+
+      - name: Run G10-17E controlled matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17e-host-context-write-matrix.txt"
+          python3 scripts/grandstream-gxp1625-host-context-write-matrix.py "$REPORT"
+          grep -Fq 'G10-17E-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17e-host-context-write-matrix.txt"
+          {
+            echo '## G10-17E Grandstream GXP1625 host context write matrix'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone writes | `Two same-value P208 writes, each after authenticated read` |'
+            echo '| Session/password values logged | `NO` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(ip_context_|tunnel_host_context_|diagnostic=|G10-17E-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17e-host-context-write-matrix-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17e-host-context-write-matrix.txt
+          if-no-files-found: warn
+          retention-days: 30
