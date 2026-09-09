@@ -1,0 +1,17 @@
+name: G10-19A | Issabel Lab | Grandstream Native Provisioning Inventory | Read-Only Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Audit branch required
+        run: |
+          echo 'This read-only lab workflow must be run from branch Audit.'
+          echo 'Select branch Audit in Actions before running G10-19A.'
+          exit 1
