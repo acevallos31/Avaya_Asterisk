@@ -1,0 +1,25 @@
+name: G10-17F | Issabel Lab | GXP1625 Browser Header Write Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe RUN-G10-17F y selecciona Branch: Audit para ejecutar la prueba operativa'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  select-audit-branch:
+    name: G10-17F must run from Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Audit ref
+        shell: bash
+        run: |
+          echo 'Este workflow operativo vive en la rama Audit.'
+          echo 'En Run workflow selecciona Branch: Audit y vuelve a ejecutarlo.'
+          echo 'Confirmation requerida en Audit: RUN-G10-17F'
+          exit 1
