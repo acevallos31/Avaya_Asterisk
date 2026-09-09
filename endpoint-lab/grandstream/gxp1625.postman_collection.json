@@ -1,0 +1,101 @@
+{
+  "info": {
+    "name": "Grandstream GXP1625 Endpoint Lab",
+    "description": "LAB diagnostic collection. Reads P208 and only writes the exact same current value back. SID/password are never printed by test scripts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({key:'Accept', value:'*/*'});",
+          "pm.request.headers.upsert({key:'Content-Type', value:'application/x-www-form-urlencoded'});",
+          "pm.request.headers.upsert({key:'Origin', value:pm.environment.get('origin')});",
+          "pm.request.headers.upsert({key:'Referer', value:pm.environment.get('referer')});",
+          "pm.request.headers.upsert({key:'User-Agent', value:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36'});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {"key":"username","value":"{{http_username}}","type":"text"},
+            {"key":"password","value":"{{http_password}}","type":"text"}
+          ]
+        },
+        "url": "{{base_url}}/cgi-bin/dologin"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {"type":"text/javascript","exec":[
+          "let j={}; try{j=pm.response.json();}catch(e){}",
+          "pm.test('login HTTP 200',()=>pm.response.to.have.status(200));",
+          "pm.test('login response success',()=>pm.expect(j.response).to.eql('success'));",
+          "const sid=(j.body&&j.body.sid)?String(j.body.sid):'';",
+          "pm.environment.set('sid',sid);",
+          "pm.test('SID present',()=>pm.expect(sid.length).to.be.above(0));"
+        ]}
+      }]
+    },
+    {
+      "name": "02 Read P208",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {"key":"request","value":"P208","type":"text"},
+            {"key":"sid","value":"{{sid}}","type":"text"}
+          ]
+        },
+        "url": "{{base_url}}/cgi-bin/api.values.get"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {"type":"text/javascript","exec":[
+          "let j={}; try{j=pm.response.json();}catch(e){}",
+          "pm.test('read HTTP 200',()=>pm.response.to.have.status(200));",
+          "pm.test('read response success',()=>pm.expect(j.response).to.eql('success'));",
+          "const p=(j.body&&Object.prototype.hasOwnProperty.call(j.body,'P208'))?String(j.body.P208):'';",
+          "pm.environment.set('p208_current',p);",
+          "pm.test('P208 present',()=>pm.expect(p.length).to.be.above(0));"
+        ]}
+      }]
+    },
+    {
+      "name": "03 Same-value Write P208",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {"key":"P208","value":"{{p208_current}}","type":"text"},
+            {"key":"sid","value":"{{sid}}","type":"text"}
+          ]
+        },
+        "url": "{{base_url}}/cgi-bin/api.values.post"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {"type":"text/javascript","exec":[
+          "let j={}; try{j=pm.response.json();}catch(e){}",
+          "pm.test('write HTTP 200',()=>pm.response.to.have.status(200));",
+          "pm.test('write accepted',()=>pm.expect(j.response).to.eql('success'));",
+          "const status=(j.body&&j.body.status)?String(j.body.status):'';",
+          "pm.environment.set('write_status',status);"
+        ]}
+      }]
+    }
+  ]
+}
