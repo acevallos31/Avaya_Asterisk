@@ -1,0 +1,76 @@
+name: G10-19A | Issabel Lab | Grandstream Native Provisioning Inventory | Read-Only Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g10_19a:
+    name: GXP1625 native provisioning inventory
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Sync authorized helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+
+      - name: Run G10-19A read-only inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19a-native-provisioning-inventory.txt"
+          chmod +x scripts/grandstream-g10-19a-native-provisioning-inventory.sh
+          scripts/grandstream-g10-19a-native-provisioning-inventory.sh "$REPORT"
+          grep -Fq 'G10-19A-COMPLETE' "$REPORT"
+          grep -Fq 'db_write=NO' "$REPORT"
+          grep -Fq 'live_pbx_code_write=NO' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+          grep -Fq 'cfg_payload_dumped=NO' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19a-native-provisioning-inventory.txt"
+          {
+            echo '## G10-19A Grandstream Native Provisioning Inventory'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| DB writes | `NONE` |'
+            echo '| PBX live-code writes | `NONE` |'
+            echo '| Phone writes | `NONE` |'
+            echo '| cfg payload dumped | `NO` |'
+            echo '| Target | `GXP1625 / firmware 1.0.7.70 / account 202` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(existing_|stock_py_mentions_|udp69_listener=|cfg_file=.*state=|next_activity=|G10-19A-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19a-grandstream-native-provisioning-inventory-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19a-native-provisioning-inventory.txt
+          if-no-files-found: error
+          retention-days: 30
