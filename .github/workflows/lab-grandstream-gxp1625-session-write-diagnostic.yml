@@ -1,0 +1,85 @@
+name: G10-17C | Issabel Lab | GXP1625 Session Write Diagnostic | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe RUN-G10-17C para ejecutar el write idempotente P208=same-value'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17c:
+    name: Grandstream GXP1625 controlled same-value write diagnostic
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch, runner and confirmation
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test "$CONFIRMATION" = 'RUN-G10-17C'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Validate diagnostic script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-session-write-diagnostic.py
+          grep -Fq 'phone_write=SAME-VALUE-P208-ONLY' scripts/grandstream-gxp1625-session-write-diagnostic.py
+          grep -Fq 'Origin' scripts/grandstream-gxp1625-session-write-diagnostic.py
+
+      - name: Run G10-17C controlled write diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17c-grandstream-session-write-diagnostic.txt"
+          python3 scripts/grandstream-gxp1625-session-write-diagnostic.py "$REPORT"
+          grep -Fq 'G10-17C-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17c-grandstream-session-write-diagnostic.txt"
+          {
+            echo '## G10-17C Grandstream GXP1625 session write diagnostic'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone write | `P208 same-value only, after authenticated read` |'
+            echo '| SID/cookie/password values logged | `NO` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(origin_sent|host_sent|referer_sent|login_http|login_response|sid_present|cookie_present|cookie_pair_count|read_request|read_http|read_response|read_p208_present|same_value_write_precondition|post_http|post_response|post_status|diagnostic|G10-17C-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17c-grandstream-session-write-diagnostic-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17c-grandstream-session-write-diagnostic.txt
+          if-no-files-found: warn
+          retention-days: 30
