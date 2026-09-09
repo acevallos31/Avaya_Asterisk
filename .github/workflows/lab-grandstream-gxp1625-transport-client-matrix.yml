@@ -1,0 +1,17 @@
+name: G10-18A | Endpoint Lab | GXP1625 Transport & Client Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Audit branch required
+        run: |
+          echo 'This controlled endpoint-lab workflow must be run from branch Audit.'
+          echo 'Select branch Audit in Actions before running G10-18A.'
+          exit 1
