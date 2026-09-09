@@ -1,0 +1,78 @@
+name: G10-17B | Issabel Lab | GXP1625 Session Read Diagnostic | Read-Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17b:
+    name: Grandstream GXP1625 read-only session diagnostic
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Validate diagnostic script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-session-read-diagnostic.py
+          grep -Fq 'phone_write=NO' scripts/grandstream-gxp1625-session-read-diagnostic.py
+          grep -Fq 'P35:P208' scripts/grandstream-gxp1625-session-read-diagnostic.py
+
+      - name: Run G10-17B read-only diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17b-grandstream-session-read-diagnostic.txt"
+          python3 scripts/grandstream-gxp1625-session-read-diagnostic.py "$REPORT"
+          grep -Fq 'G10-17B-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17b-grandstream-session-read-diagnostic.txt"
+          {
+            echo '## G10-17B Grandstream GXP1625 session read diagnostic'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone writes | `NONE` |'
+            echo '| Request | `api.values.get P35:P208` |'
+            echo '| SID/cookie/password values logged | `NO` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(origin_sent|host_sent|referer_sent|login_http|login_response|sid_present|cookie_present|cookie_pair_count|read_request|read_http|read_response|read_status|read_p35_present|read_p208_present|diagnostic|G10-17B-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17b-grandstream-session-read-diagnostic-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17b-grandstream-session-read-diagnostic.txt
+          if-no-files-found: warn
+          retention-days: 30
