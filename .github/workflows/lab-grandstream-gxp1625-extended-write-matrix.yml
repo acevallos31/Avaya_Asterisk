@@ -1,0 +1,21 @@
+name: G10-17J | Issabel Lab | GXP1625 Extended Write Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Run this workflow from branch Audit and type RUN-G10-17J'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  visibility_only:
+    if: ${{ github.ref_name != 'Audit' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo 'This workflow is a visibility stub on main.'
+          echo 'Run the full workflow from branch Audit with confirmation RUN-G10-17J.'
