@@ -1,0 +1,87 @@
+name: G10-18A | Endpoint Lab | GXP1625 Transport & Client Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-18A to allow same-value P208 write only after successful read'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_18a:
+    name: GXP1625 dedicated endpoint-lab transport/client matrix
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify dedicated runner and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$CONFIRMATION" = 'RUN-G10-18A'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo "runner_name=${RUNNER_NAME}"
+          echo "runner_os=${RUNNER_OS}"
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Verify endpoint lab toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -v
+          newman -v
+          python3 --version
+          curl --version | head -n 2
+          jq --version
+          curl --version | grep -q 'HTTP2'
+          curl --version | grep -q 'HTTP3'
+
+      - name: Run G10-18A transport/client matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-18a-transport-client-matrix.txt"
+          chmod +x endpoint-lab/grandstream/g10-18a-transport-client-matrix.sh
+          endpoint-lab/grandstream/g10-18a-transport-client-matrix.sh "$REPORT"
+          grep -Fq 'G10-18A-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-18a-transport-client-matrix.txt"
+          if [ -f "$REPORT" ]; then
+            {
+              echo '## G10-18A GXP1625 Transport & Client Matrix'
+              echo
+              echo '| Guardrail | Value |'
+              echo '|---|---|'
+              echo '| Runner | `endpoint-lab-debian` |'
+              echo '| DB writes | `NONE` |'
+              echo '| PBX live-code writes | `NONE` |'
+              echo '| Phone writes | `P208 same current value only after successful read` |'
+              echo '| Credentials / SID logged | `NO` |'
+              echo
+              grep -E '^(curl_|newman_|G10-18A-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-18a-gxp1625-transport-client-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-18a-transport-client-matrix.txt
+          retention-days: 30
+          if-no-files-found: warn
