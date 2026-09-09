@@ -1,0 +1,24 @@
+name: G10-17E | Issabel Lab | GXP1625 Host Context Write Matrix | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Escribe RUN-G10-17E; selecciona Branch: Audit para la versión operativa'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  select-audit-branch:
+    name: G10-17E must run from Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Audit ref
+        shell: bash
+        run: |
+          echo 'Este workflow operativo vive en la rama Audit.'
+          echo 'En Run workflow selecciona Branch: Audit y vuelve a ejecutarlo.'
+          exit 1
