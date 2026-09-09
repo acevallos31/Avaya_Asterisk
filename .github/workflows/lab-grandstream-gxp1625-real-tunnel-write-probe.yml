@@ -1,0 +1,78 @@
+name: G10-17G | Issabel Lab | GXP1625 Real HTTPS Tunnel Write Probe | Controlled Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-17G to allow the same-value P208 write probe'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  g10_17g:
+    name: Grandstream GXP1625 real HTTPS tunnel controlled write probe
+    runs-on: [self-hosted, linux]
+    env:
+      GRANDSTREAM_HTTP_USERNAME: admin
+      GRANDSTREAM_HTTP_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch, runner and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test "$CONFIRMATION" = 'RUN-G10-17G'
+          test -n "${GRANDSTREAM_HTTP_PASSWORD:-}"
+          echo 'credential_source=GITHUB-ACTIONS-SECRET'
+          echo 'credential_value=NOT-PRINTED'
+
+      - name: Validate diagnostic script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/grandstream-gxp1625-real-tunnel-write-probe.py
+          grep -Fq 'HTTPSConnection' scripts/grandstream-gxp1625-real-tunnel-write-probe.py
+          grep -Fq 'phone_write=SAME-VALUE-P208-ONLY' scripts/grandstream-gxp1625-real-tunnel-write-probe.py
+
+      - name: Run G10-17G controlled real tunnel probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-17g-grandstream-real-tunnel-write-probe.txt"
+          python3 scripts/grandstream-gxp1625-real-tunnel-write-probe.py "$REPORT"
+          grep -Fq 'G10-17G-COMPLETE' "$REPORT"
+          ! grep -Fq "$GRANDSTREAM_HTTP_PASSWORD" "$REPORT"
+
+      - name: Job summary
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-17g-grandstream-real-tunnel-write-probe.txt"
+          {
+            echo '## G10-17G Grandstream GXP1625 real HTTPS tunnel write probe'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| PBX | `Issabel LAB` |'
+            echo '| Branch | `Audit` |'
+            echo '| DB writes | `NONE` |'
+            echo '| Live code writes | `NONE` |'
+            echo '| Phone write | `P208 same-current-value only` |'
+            echo '| SID/cookie/password values logged | `NO` |'
+            echo
+            grep -E '^(transport|target_host|login_http|login_response|sid_present|cookie_present|cookie_count|read_http|read_response|read_p208_present|post_http|post_response|post_status|diagnostic|G10-17G-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-17g-grandstream-real-tunnel-write-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-17g-grandstream-real-tunnel-write-probe.txt
+          retention-days: 30
