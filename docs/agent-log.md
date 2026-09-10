@@ -21,6 +21,24 @@ NOT-TESTED
 
 ---
 
+## 2026-09-10 — Codex — cierre nativo Grandstream GXP1625
+
+Se ejecutó H8L run `34506170492` en modo read-only. El login fue aceptado sin
+User-Agent explícito y con User-Agent genérico; ambos casos devolvieron HTTP
+200, JSON success y SID sin publicar valores sensibles.
+
+H8M run `34506766259` probó el contrato mínimo: el primer ciclo E2E pasó y el
+segundo, separado 60 s, falló en activación aunque regeneró XML. El rollback
+automático restauró H8J y limpió la selección.
+
+H8M run `34507118291` repitió con 300 s: ambos ciclos terminaron
+`grandstream_finished_seen=YES`, `grandstream_failed_seen=NO`, XML 202/Ashly
+correcto, `selected_after_applyconfig=0`, SIP 202 `OK` desde `192.168.1.167` y
+201 liberada. Se retuvo el parche mínimo sin User-Agent fijo.
+
+Estado: `LAB-INTEGRATION-PASS`. Próximo paso: paquete reproducible, smoke test
+exacto en LAB y preflight read-only de la PBX productiva seleccionada.
+
 ## 2026-08-31 — OpenAI GPT-5.6 Sol
 
 Se consolidó el contrato de arquitectura J129: core Issabel stock, Accounts estándar, Avaya consume `_accounts`, provisioning global -> `GET $MACADDR.txt` -> archivo por MAC, sin consultas directas de secretos desde vendor.
