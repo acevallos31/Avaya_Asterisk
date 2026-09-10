@@ -1,0 +1,105 @@
+name: G10-19H8F1 | Issabel Lab | Live Grandstream XML Codepath Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8f1-live-xml-codepath-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Validate live integrated XML method and updateLocalConfig placement
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit live code path without phone write
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8f1.txt"
+          python3 - "$REPORT" <<'PY'
+          from pathlib import Path
+          import ast, os, sys, xml.etree.ElementTree as ET
+
+          path=Path('/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py')
+          s=path.read_text(encoding='utf-8')
+          tree=ast.parse(s)
+          endpoint=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='Endpoint')
+          methods={n.name:n for n in endpoint.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))}
+          upd=methods.get('updateLocalConfig')
+          enc=methods.get('_encodeGrandstreamXmlConfig')
+          lines=[]
+          def log(k,v): lines.append(f'{k}={v}')
+          log('scope','READ_ONLY_LIVE_XML_CODEPATH_AUDIT')
+          log('phone_write','NO'); log('pbx_write','NO'); log('db_write','NO'); log('secrets_logged','NO')
+          log('updateLocalConfig_present','YES' if upd else 'NO')
+          log('xml_encoder_present','YES' if enc else 'NO')
+          log('et_import_present','YES' if 'import xml.etree.ElementTree as ET' in s else 'NO')
+          binary="self._writeContent(sConfigPath, self._encodeGrandstreamConfig(vars))"
+          xml="self._writeContent(sConfigPath + '.xml', self._encodeGrandstreamXmlConfig(vars))"
+          log('binary_write_count',str(s.count(binary)))
+          log('xml_write_count',str(s.count(xml)))
+          log('xml_write_after_binary','YES' if s.find(xml)>s.find(binary)>=0 else 'NO')
+          log('safe_logging_marker_count',str(s.count('# G10-19H8F0-SAFE-ERROR-LOGGING')))
+
+          # Extract only AST metadata, never runtime configuration values.
+          if upd:
+              call_names=[]
+              for n in ast.walk(upd):
+                  if isinstance(n,ast.Call):
+                      try: call_names.append(ast.unparse(n.func))
+                      except Exception: pass
+              log('update_calls_xml_encoder','YES' if any('_encodeGrandstreamXmlConfig' in x for x in call_names) else 'NO')
+
+          # Runtime encoder unit probe with synthetic non-secret data only.
+          sys.path.insert(0,'/usr/share/issabel/endpoint-classes/class')
+          try:
+              from issabel.vendor.Grandstream import Endpoint
+              dummy=object.__new__(Endpoint)
+              dummy._mac='C0:74:AD:E8:66:09'
+              out=dummy._encodeGrandstreamXmlConfig({'P35':'TEST202','P47':'192.0.2.10','gnkey':'TEST'})
+              root=ET.fromstring(out)
+              cfg=root.find('config')
+              vals={c.tag:(c.text or '') for c in cfg} if cfg is not None else {}
+              log('encoder_runtime_call','PASS')
+              log('encoder_returns_bytes','YES' if isinstance(out,(bytes,bytearray)) else 'NO')
+              log('encoder_root_valid','YES' if root.tag=='gs_provision' else 'NO')
+              log('encoder_excludes_non_p','YES' if 'gnkey' not in vals else 'NO')
+              log('encoder_test_p35','YES' if vals.get('P35')=='TEST202' else 'NO')
+          except Exception as e:
+              log('encoder_runtime_call','FAIL')
+              log('encoder_error_class',type(e).__name__)
+
+          ok=(upd is not None and enc is not None and s.count(binary)==1 and s.count(xml)==1 and s.find(xml)>s.find(binary)>=0 and 'encoder_runtime_call=PASS' in lines)
+          log('diagnostic','LIVE_XML_CODEPATH_VALID' if ok else 'LIVE_XML_CODEPATH_PROBLEM')
+          log('G10-19H8F1-COMPLETE','YES')
+          Path(sys.argv[1]).write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          os.chmod(sys.argv[1],0o600)
+          print('\n'.join(lines))
+          if not ok: raise SystemExit(1)
+          PY
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8F1 — Live XML codepath audit'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8f1.txt" ] && cat "$RUNNER_TEMP/g10-19h8f1.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8f1-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8f1.txt
+          if-no-files-found: warn
+          retention-days: 30
