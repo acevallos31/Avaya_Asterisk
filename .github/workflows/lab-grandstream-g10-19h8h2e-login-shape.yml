@@ -1,0 +1,93 @@
+name: G10-19H8H2E | Issabel Lab | Native Login Response Shape
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8h2e-login-shape-helper.py'
+      - 'deploy/grandstream/prepare-g10-19h8h2e-output-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8h2e-login-shape.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    name: Classify native dologin JSON without exposing session values
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted classifier helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 -B deploy/grandstream/prepare-g10-19h8h2e-login-shape-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2e-output-helper.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Apply temporary safe login classifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8h2e-login-shape \
+            | tee "$RUNNER_TEMP/g10-19h8h2e-apply.txt"
+          grep -Fq 'GRANDSTREAM-H8H2E-LOGIN-SHAPE-APPLY-PASS' "$RUNNER_TEMP/g10-19h8h2e-apply.txt"
+
+      - name: Run one native Endpoint Configurator attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8h2e-native.txt"
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          HELPER_RC=${PIPESTATUS[0]}
+          set -e
+          echo "integrated_helper_rc=$HELPER_RC" >> "$REPORT"
+          grep -Fq 'h8h2e_login_class_seen=YES' "$REPORT"
+          grep -Eq '^G10-19H8H2E-LOGIN-CLASS response_success=(YES|NO) body_dict=(YES|NO) sid_present=(YES|NO)$' "$REPORT"
+          echo 'G10-19H8H2E-CAPTURE=PASS' >> "$REPORT"
+
+      - name: Roll back temporary classifier
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8h2e-login-shape \
+            | tee "$RUNNER_TEMP/g10-19h8h2e-rollback.txt"
+
+      - name: Publish sanitized result
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h8h2e-native.txt"
+          {
+            echo '## G10-19H8H2E — Native login response shape'
+            echo 'phone_password_logged=NO'
+            echo 'sid_or_cookie_value_logged=NO'
+            echo 'submitted_pvalue_payload_logged=NO'
+            [ -f "$REPORT" ] && grep -E '^(applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|h8h2e_login_class_seen=|G10-19H8H2E-LOGIN-CLASS|integrated_helper_rc=|G10-19H8H2E-CAPTURE=)' "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8h2e-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8h2e-native.txt
+            ${{ runner.temp }}/g10-19h8h2e-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
