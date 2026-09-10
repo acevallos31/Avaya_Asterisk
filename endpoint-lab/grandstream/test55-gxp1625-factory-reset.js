@@ -28,6 +28,12 @@ log('secrets_logged','NO');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const getJson=url=>new Promise((resolve,reject)=>http.get(url,res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{resolve(JSON.parse(d))}catch(e){reject(e)}})}).on('error',reject));
 const phoneReachable=()=>new Promise(resolve=>{const u=new URL(phoneBase+'/');const q=http.get({host:u.hostname,port:u.port||80,path:'/',timeout:2500},res=>{res.resume();resolve(true)});q.on('timeout',()=>q.destroy());q.on('error',()=>resolve(false));});
+const nativeLogin=()=>new Promise(resolve=>{
+  const u=new URL(phoneBase);
+  const body=new URLSearchParams({username,password}).toString();
+  const q=http.request({host:u.hostname,port:u.port||80,path:'/cgi-bin/dologin',method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body),'Accept':'*/*','Host':u.host,'Referer':phoneBase+'/'}},res=>{let raw='';res.on('data',c=>raw+=c);res.on('end',()=>{let j={};try{j=JSON.parse(raw)}catch(_){}const sid=j&&j.body&&j.body.sid||'';resolve({http:res.statusCode||0,success:res.statusCode===200&&j.response==='success'&&!!sid,sid});});});
+  q.setTimeout(10000,()=>q.destroy());q.on('error',()=>resolve({http:0,success:false,sid:''}));q.end(body);
+});
 
 (async()=>{
   let target;
@@ -55,12 +61,13 @@ const phoneReachable=()=>new Promise(resolve=>{const u=new URL(phoneBase+'/');co
   let cookies=await cmd('Network.getAllCookies');
   let cookieNames=[...new Set((cookies.cookies||[]).map(c=>c.name))];
   if(!cookieNames.includes('session-identity')){
-    const native=await cmd('Runtime.evaluate',{expression:`(async()=>{try{const body=new URLSearchParams({username:${JSON.stringify(username)},password:${JSON.stringify(password)}}).toString();const r=await fetch('/cgi-bin/dologin',{method:'POST',credentials:'include',headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'*/*'},body});const j=await r.json();const sid=j&&j.body&&j.body.sid||'';if(r.status===200&&j&&j.response==='success'&&sid){document.cookie='session-identity='+encodeURIComponent(sid)+'; path=/';return {http:r.status,success:true,sidPresent:true};}return {http:r.status,success:false,sidPresent:!!sid};}catch(e){return {http:0,success:false,sidPresent:false};}})()`,awaitPromise:true,returnByValue:true});
-    const nv=native?.result?.value||{};
+    const nv=await nativeLogin();
     log('native_login_http',String(nv.http||0));
     log('native_login_success',nv.success?'YES':'NO');
-    log('native_login_sid_present',nv.sidPresent?'YES':'NO');
+    log('native_login_sid_present',nv.sid?'YES':'NO');
     if(!nv.success) throw new Error('AUTHENTICATED_SESSION_NOT_ESTABLISHED');
+    const setCookie=await cmd('Network.setCookie',{name:'session-identity',value:nv.sid,url:phoneBase+'/',path:'/'});
+    if(!setCookie.success) throw new Error('SESSION_COOKIE_INJECTION_FAILED');
     await cmd('Page.navigate',{url:phoneBase+'/'}); await sleep(3500);
     cookies=await cmd('Network.getAllCookies');
     cookieNames=[...new Set((cookies.cookies||[]).map(c=>c.name))];
