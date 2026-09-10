@@ -1,0 +1,59 @@
+name: G10-19H8H2G | Issabel Lab | Known-Good Native Login
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8h2g-known-good-native-login-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8h2g-known-good-native-login.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+
+jobs:
+  prove:
+    name: Prove stock native HTTP request works with the known-good phone password
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted read-only native login action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          python3 -B deploy/grandstream/prepare-g10-19h8h2g-known-good-native-login-helper.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Run known-good password login without phone writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8h2g.txt"
+          printf '%s\n' "$PHONE_PASSWORD" \
+            | sudo -n /usr/local/sbin/avaya-j129-lab-deploy prove-grandstream-known-good-native-login \
+            | tee "$REPORT"
+          grep -Fq 'G10-19H8H2G-COMPLETE=YES' "$REPORT"
+          ! grep -Fq "$PHONE_PASSWORD" "$REPORT"
+          {
+            echo '## G10-19H8H2G — Known-good native login proof'
+            grep -E '^(scope=|phone_write=|db_write=|secret_values_logged=|http_status_200=|content_type_json=|response_success=|body_dict=|sid_present=|diagnostic=|G10-19H8H2G-COMPLETE=)' "$REPORT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8h2g-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8h2g.txt
+          if-no-files-found: warn
+          retention-days: 30
