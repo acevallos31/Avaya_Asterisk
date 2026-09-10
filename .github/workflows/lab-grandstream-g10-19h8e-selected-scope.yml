@@ -1,0 +1,63 @@
+name: G10-19H8E | Issabel Lab | Selected Endpoint Scope Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8e-selected-scope.yml'
+      - 'deploy/j129/prepare-endpointconfig-selected-audit.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Verify applyconfig selection scope before integrated Configure
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare read-only selected endpoint helper action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/j129/prepare-endpointconfig-selected-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Audit selected endpoint rows
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8e.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-endpointconfig-selected | tee "$REPORT"
+          grep -Fq 'ENDPOINTCONFIG-SELECTED-AUDIT-PASS' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8E — Selected endpoint scope'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8e.txt" ] && cat "$RUNNER_TEMP/g10-19h8e.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8e-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8e.txt
+          if-no-files-found: warn
+          retention-days: 30
