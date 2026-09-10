@@ -1,0 +1,58 @@
+name: G10-19E | Endpoint Lab | GXP1625 Provisioning State Preflight | Read-Only Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e-provisioning-state-preflight.py'
+      - '.github/workflows/lab-grandstream-g10-19e-provisioning-state-preflight.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  g10_19e:
+    name: Read GXP1625 native provisioning state
+    runs-on: [self-hosted, Linux, X64, endpoint-lab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and endpoint runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Read provisioning state without writes
+        shell: bash
+        env:
+          PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+          PHONE_USERNAME: admin
+          PHONE_IP: 192.168.1.167
+          PBX_IP: 192.168.1.10
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e-provisioning-state-preflight.txt"
+          python3 endpoint-lab/grandstream/g10-19e-provisioning-state-preflight.py
+          grep -Fq 'G10-19E-COMPLETE' "$REPORT_PATH"
+          grep -Fq 'phone_write=NO' "$REPORT_PATH"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19e-provisioning-state-preflight.txt"
+          [ -f "$REPORT" ] && grep -E '^(login=|read=|p212_|p237_|config_|authenticate_|xml_|firmware_|diagnostic=|next_activity=|G10-19E-COMPLETE)' "$REPORT" >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19e-provisioning-state-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e-provisioning-state-preflight.txt
+          if-no-files-found: error
+          retention-days: 30
