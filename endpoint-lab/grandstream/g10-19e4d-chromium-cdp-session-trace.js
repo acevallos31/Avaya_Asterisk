@@ -42,6 +42,7 @@ function setCookieNames(headers){
   for(const v of vals){ for(const part of v.split(/\n|,(?=[^;,]+=)/)){ const n=part.trim().split('=',1)[0]; if(n) out.push(n); } }
   return out;
 }
+function finishMarkers(){ log('G10-19E4D-COMPLETE','YES'); log('G10-19E4-COMPLETE','YES'); }
 
 (async()=>{
   let target;
@@ -63,30 +64,22 @@ function setCookieNames(headers){
       setTimeout(()=>{ if(pending.has(id)){pending.delete(id); reject(new Error('CDP_TIMEOUT_'+method));}},5000);
     });
   }
-  let firstIdentityPath='NONE';
-  let identitySeen=false;
-  let roleSeen=false;
-  let setIdentitySeen=false;
-  let requestCount=0;
+  let firstIdentityPath='NONE', identitySeen=false, roleSeen=false, setIdentitySeen=false, requestCount=0;
   ws.onmessage=(ev)=>{
     let m; try{m=JSON.parse(ev.data)}catch(_){return}
     if(m.id && pending.has(m.id)){ const p=pending.get(m.id); pending.delete(m.id); m.error?p.reject(new Error(m.error.message)):p.resolve(m.result); return; }
     if(m.method==='Network.requestWillBeSentExtraInfo'){
       requestCount++;
       const h=m.params&&m.params.headers?m.params.headers:{};
-      const ck=h.Cookie||h.cookie||'';
-      const names=cookieNamesFromHeader(ck);
+      const names=cookieNamesFromHeader(h.Cookie||h.cookie||'');
       if(names.includes('session-role')) roleSeen=true;
       if(names.includes('session-identity')) identitySeen=true;
     }
     if(m.method==='Network.requestWillBeSent'){
       const req=m.params&&m.params.request?m.params.request:{};
-      const h=req.headers||{}; const names=cookieNamesFromHeader(h.Cookie||h.cookie||'');
+      const names=cookieNamesFromHeader((req.headers||{}).Cookie||(req.headers||{}).cookie||'');
       if(names.includes('session-role')) roleSeen=true;
-      if(names.includes('session-identity')){
-        identitySeen=true;
-        if(firstIdentityPath==='NONE') firstIdentityPath=safePath(req.url||'');
-      }
+      if(names.includes('session-identity')){ identitySeen=true; if(firstIdentityPath==='NONE') firstIdentityPath=safePath(req.url||''); }
     }
     if(m.method==='Network.responseReceivedExtraInfo'){
       const names=setCookieNames((m.params&&m.params.headers)||{});
@@ -103,11 +96,13 @@ function setCookieNames(headers){
     const r=await cmd('Runtime.evaluate',{expression:`(()=>{
       const p=document.querySelector('input[type=password]');
       if(!p) return 'NO_PASSWORD_INPUT';
-      const u=document.querySelector('input[type=text],input[name*=user i],input[id*=user i]');
+      const all=[...document.querySelectorAll('input')];
+      const u=all.find(x=>x!==p && (x.type==='text'||/user/i.test(x.name||'')||/user/i.test(x.id||'')));
       if(u){u.focus();u.value=${JSON.stringify(username)};u.dispatchEvent(new Event('input',{bubbles:true}));u.dispatchEvent(new Event('change',{bubbles:true}));}
       p.focus();p.value=${JSON.stringify(password)};p.dispatchEvent(new Event('input',{bubbles:true}));p.dispatchEvent(new Event('change',{bubbles:true}));
       const f=p.closest('form');
-      const b=(f&&f.querySelector('button,input[type=submit]'))||[...document.querySelectorAll('button,input[type=button],input[type=submit]')].find(x=>/login|log in|sign in|entrar/i.test(x.innerText||x.value||''));
+      const controls=[...document.querySelectorAll('button,input[type=button],input[type=submit]')];
+      const b=(f&&f.querySelector('button,input[type=submit]'))||controls.find(x=>/login|log in|sign in|entrar/i.test(x.innerText||x.value||''));
       if(b){b.click();return 'CLICKED';}
       if(f){if(f.requestSubmit)f.requestSubmit();else f.submit();return 'FORM_SUBMITTED';}
       return 'NO_SUBMIT_CONTROL';
@@ -135,11 +130,11 @@ function setCookieNames(headers){
     log('diagnostic','SESSION_IDENTITY_NOT_CREATED_BY_AUTOMATED_LOGIN_UI');
     log('next_activity','G10-19E4E_INSPECT_LOGIN_FLOW_EVENTS');
   }
-  log('G10-19E4D-COMPLETE','YES');
+  finishMarkers();
   fs.writeFileSync(reportPath,lines.join('\n')+'\n',{mode:0o600});
   console.log(lines.join('\n'));
   try{ws.close();}catch(_){ }
 })().catch(err=>{
-  log('diagnostic','G10-19E4D_RUNTIME_ERROR'); log('error_class',err&&err.message?String(err.message).replace(/[^A-Za-z0-9_.-]/g,'_').slice(0,120):'NODE_ERROR'); log('G10-19E4D-COMPLETE','YES');
+  log('diagnostic','G10-19E4D_RUNTIME_ERROR'); log('error_class',err&&err.message?String(err.message).replace(/[^A-Za-z0-9_.-]/g,'_').slice(0,120):'NODE_ERROR'); finishMarkers();
   fs.writeFileSync(reportPath,lines.join('\n')+'\n',{mode:0o600}); console.log(lines.join('\n')); process.exitCode=1;
 }).finally(async()=>{ try{chrome.kill('SIGTERM')}catch(_){ } await sleep(300); try{fs.rmSync(profile,{recursive:true,force:true})}catch(_){ } });
