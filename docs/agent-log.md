@@ -21,6 +21,42 @@ NOT-TESTED
 
 ---
 
+## 2026-09-10 — Codex — Test 55 post-Configure corroborado en servidor
+
+El operador ejecutó Configure sobre la única fila `C0:74:AD:E8:66:09` en
+`192.168.1.168`; la UI informó que todos los endpoints fueron configurados y
+registró respuesta Grandstream `success`.
+
+Run `34543757258` ejecutó solo el modo read-only post-Configure (los jobs de
+remoción y factory reset quedaron `skipped`) y terminó
+`TEST55-POST-CONFIG-AUDIT=PASS`:
+
+```text
+endpoint_rows=1
+endpoint_ip=192.168.1.168
+manufacturer=Grandstream
+model=GXP1625
+selected=0
+account_count=1
+target_account_202_sip_count=1
+binary_cfg_present=YES
+xml_cfg_present=YES
+xml_root_valid=YES
+xml_mac_binding=YES
+xml_p35_target_202=YES
+xml_p36_target_202=YES
+xml_p47_target_pbx=YES
+xml_p270_target_ashly=YES
+target_ip=192.168.1.168
+target_registration_match=YES
+previous_ip=(Unspecified)
+phone_http_status=200
+```
+
+La auditoría estática general del repositorio pasó en `34543757263`. Pendiente
+solo la validación física de registro estable y una llamada/audio; producción no
+fue tocada.
+
 ## 2026-09-10 — Codex — Test 55 factory reset y baseline post-reset
 
 Después de eliminar manualmente el endpoint, la IP `192.168.1.167` apareció
