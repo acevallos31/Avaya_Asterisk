@@ -1,0 +1,99 @@
+name: G10-19D2 | Issabel Lab | Grandstream TFTP Privileged Repair | Controlled Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19d2-tftp-privileged-repair.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  g10_19d2:
+    name: GXP1625 privileged TFTP repair and proof
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify lab branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-helper-sync'
+
+      - name: Extend existing restricted helper in workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          HELPER='deploy/j129/avaya-j129-lab-deploy'
+          python3 -c 'from pathlib import Path; p=Path("deploy/j129/avaya-j129-lab-deploy"); s=p.read_text(); marker="[ -n \"$ACTION\" ] || usage\n"; fn="""restart_tftp_xinetd() {\n  echo \"=== G10-19D2 TFTP XINETD REPAIR ===\"\n  echo \"service_change=XINETD_RESTART_ONLY\"\n  systemctl restart xinetd\n  systemctl is-active --quiet xinetd\n  echo \"xinetd_restart=SUCCESS\"\n  if ss -lun 2>/dev/null | awk '\''{print $5}'\'' | grep -Eq '\''(^|:)69$'\''; then echo \"udp69_after=YES\"; else echo \"udp69_after=NO\"; fi\n}\n\n"""; case="  restart-tftp-xinetd) [ -z \"$OVERLAY_ROOT\" ] || usage; restart_tftp_xinetd ;;\n"; assert marker in s; s=s.replace(marker,fn+marker,1); s=s.replace("case \"$ACTION\" in\n","case \"$ACTION\" in\n"+case,1); p.write_text(s)'
+          bash -n "$HELPER"
+          grep -Fq 'restart-tftp-xinetd)' "$HELPER"
+
+      - name: Sync restricted helper and repair TFTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          SYNC_OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$SYNC_OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$SYNC_OUT"
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy restart-tftp-xinetd | tee "$RUNNER_TEMP/g10-19d2-helper.txt"
+
+      - name: Prove UDP 69 and cfg delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19d2-tftp-proof.txt"
+          CFG='/tftpboot/cfgc074ade86609'
+          : > "$REPORT"
+          chmod 600 "$REPORT"
+          echo 'scope=LAB_CONTROLLED' >> "$REPORT"
+          echo 'db_write=NO' >> "$REPORT"
+          echo 'live_pbx_code_write=NO' >> "$REPORT"
+          echo 'phone_write=NO' >> "$REPORT"
+          echo 'firewall_change=NO' >> "$REPORT"
+          echo 'selinux_change=NO' >> "$REPORT"
+          if ss -lun 2>/dev/null | awk '{print $5}' | grep -Eq '(^|:)69$'; then
+            echo 'udp69_listener=YES' >> "$REPORT"
+          else
+            echo 'udp69_listener=NO' >> "$REPORT"
+          fi
+          test -r "$CFG"
+          python3 scripts/grandstream-g10-19d-tftp-proof.py "$REPORT" "$CFG"
+          if grep -Fq 'udp69_listener=YES' "$REPORT" && grep -Fq 'tftp_rrq=SUCCESS' "$REPORT" && grep -Fq 'tftp_sha_match=YES' "$REPORT"; then
+            echo 'diagnostic=TFTP_READY_AND_CFG_PROVEN' >> "$REPORT"
+            echo 'next_activity=G10-19E_BOOTSTRAP_CONTROLLED' >> "$REPORT"
+          else
+            echo 'diagnostic=TFTP_REPAIR_INCOMPLETE' >> "$REPORT"
+            echo 'next_activity=G10-19D3_BIND_DIAGNOSTIC' >> "$REPORT"
+          fi
+          echo 'G10-19D2-COMPLETE' >> "$REPORT"
+          cat "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          for f in "$RUNNER_TEMP/g10-19d2-helper.txt" "$RUNNER_TEMP/g10-19d2-tftp-proof.txt"; do
+            [ -f "$f" ] && grep -E '^(xinetd_|udp69_|tftp_|diagnostic=|next_activity=|G10-19D2-COMPLETE)' "$f" >> "$GITHUB_STEP_SUMMARY" || true
+          done
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19d2-grandstream-tftp-proof-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19d2-helper.txt
+            ${{ runner.temp }}/g10-19d2-tftp-proof.txt
+          if-no-files-found: warn
+          retention-days: 30
