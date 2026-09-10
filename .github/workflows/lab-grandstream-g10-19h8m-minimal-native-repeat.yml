@@ -1,0 +1,153 @@
+name: G10-19H8M | Issabel Lab | Minimal Native Repeatability Gate
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8j-final-native-helper.py'
+      - 'deploy/grandstream/prepare-g10-19h8m-user-agent-removal-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8m-minimal-native-repeat.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+
+jobs:
+  repeatability:
+    name: Prove two minimal native GXP1625 cycles with controlled spacing
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted reversible helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          python3 -B deploy/grandstream/prepare-g10-19h8m-user-agent-removal-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8j-select-endpoint-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2f-http-password-match-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          python3 -B deploy/j129/prepare-grandstream-sip-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Verify credential and apply minimal native patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$PHONE_PASSWORD" \
+            | sudo -n /usr/local/sbin/avaya-j129-lab-deploy compare-grandstream-http-password \
+            | tee "$RUNNER_TEMP/g10-19h8m-credential.txt"
+          grep -Fq 'effective_http_password_matches_lab_secret=YES' "$RUNNER_TEMP/g10-19h8m-credential.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8m-user-agent \
+            | tee "$RUNNER_TEMP/g10-19h8m-apply.txt"
+          grep -Fq 'h8m_state=PATCHED' "$RUNNER_TEMP/g10-19h8m-apply.txt"
+          grep -Fq 'curl_user_agent_count=0' "$RUNNER_TEMP/g10-19h8m-apply.txt"
+          touch "$RUNNER_TEMP/g10-19h8m-patch-active"
+
+      - name: Run two controlled native cycles
+        shell: bash
+        run: |
+          set -euo pipefail
+          for cycle in 1 2; do
+            SELECT="$RUNNER_TEMP/g10-19h8m-select-${cycle}.txt"
+            REPORT="$RUNNER_TEMP/g10-19h8m-native-${cycle}.txt"
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy select-grandstream-gxp1625-202 | tee "$SELECT"
+            grep -Fq 'selected_now=YES' "$SELECT"
+            touch "$RUNNER_TEMP/g10-19h8m-selection-active"
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+            grep -Fq 'applyconfig_rc=0' "$REPORT"
+            grep -Fq 'grandstream_finished_seen=YES' "$REPORT"
+            grep -Fq 'grandstream_failed_seen=NO' "$REPORT"
+            grep -Fq 'xml_recreated=YES' "$REPORT"
+            grep -Fq 'xml_p35_target_202=YES' "$REPORT"
+            grep -Fq 'xml_p36_target_202=YES' "$REPORT"
+            grep -Fq 'xml_p47_target_pbx=YES' "$REPORT"
+            grep -Fq 'xml_p270_target_ashly=YES' "$REPORT"
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-gxp1625-selection \
+              | tee "$RUNNER_TEMP/g10-19h8m-select-final-${cycle}.txt"
+            rm -f "$RUNNER_TEMP/g10-19h8m-selection-active"
+            if [ "$cycle" -eq 1 ]; then sleep 60; fi
+          done
+          touch "$RUNNER_TEMP/g10-19h8m-native-success"
+
+      - name: Verify SIP registration after repetition
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8m-sip.txt"
+          OK=0
+          for n in 1 2 3 4 5 6; do
+            if sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sip-registration > "$REPORT" 2>&1 \
+               && grep -Fq 'target_registration_match=YES' "$REPORT" \
+               && grep -Fq 'previous_extension_still_on_phone_ip=NO' "$REPORT"; then
+              OK=1
+              break
+            fi
+            sleep 15
+          done
+          cat "$REPORT"
+          [ "$OK" -eq 1 ]
+          touch "$RUNNER_TEMP/g10-19h8m-e2e-success"
+
+      - name: Finalize reversible state
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          FINAL="$RUNNER_TEMP/g10-19h8m-finalize.txt"
+          : > "$FINAL"
+          SELECT_RC=0; PATCH_RC=0
+          if [ -f "$RUNNER_TEMP/g10-19h8m-selection-active" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-gxp1625-selection \
+              | tee -a "$FINAL" || SELECT_RC=$?
+          fi
+          if [ -f "$RUNNER_TEMP/g10-19h8m-e2e-success" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-h8m-user-agent \
+              | tee -a "$FINAL" || PATCH_RC=$?
+          elif [ -f "$RUNNER_TEMP/g10-19h8m-patch-active" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8m-user-agent \
+              | tee -a "$FINAL" || PATCH_RC=$?
+          fi
+          echo "selection_finalize_rc=$SELECT_RC" >> "$FINAL"
+          echo "patch_finalize_rc=$PATCH_RC" >> "$FINAL"
+          if [ "$SELECT_RC" -ne 0 ] || [ "$PATCH_RC" -ne 0 ]; then exit 1; fi
+
+      - name: Publish sanitized evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8M — Minimal native repeatability gate'
+            echo 'explicit_user_agent=NONE'
+            echo 'controlled_spacing_seconds=60'
+            echo 'phone_password_logged=NO'
+            echo 'sid_or_cookie_value_logged=NO'
+            echo 'submitted_pvalue_payload_logged=NO'
+            echo 'factory_reset=NO'
+            for f in "$RUNNER_TEMP"/g10-19h8m-*.txt; do
+              [ -f "$f" ] && grep -E '^(h8m_state=|curl_user_agent_count=|effective_http_password_source=|effective_http_password_matches_lab_secret=|selected_now=|selected_after_applyconfig=|applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|xml_recreated=|xml_p35_target_202=|xml_p36_target_202=|xml_p47_target_pbx=|xml_p270_target_ashly=|target_extension=|target_ip=|target_status=|target_registration_match=|previous_extension_still_on_phone_ip=|minimal_native_patch_retained=|G10-19H8M-|selection_finalize_rc=|patch_finalize_rc=)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8m-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8m-*.txt
+          if-no-files-found: warn
+          retention-days: 30
