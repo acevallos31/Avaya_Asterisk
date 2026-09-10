@@ -1,13 +1,12 @@
 name: 55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test
 
 on:
-  push:
-    branches: [Audit]
-    paths:
-      - 'deploy/grandstream/prepare-test55-removal-verifier.py'
-      - 'endpoint-lab/grandstream/test55-gxp1625-factory-reset.js'
-      - '.github/workflows/lab-grandstream-test55-factory-reset.yml'
   workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type FACTORY-RESET-C074ADE86609'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -64,6 +63,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REF_NAME" = Audit
+          test "${{ inputs.confirmation }}" = FACTORY-RESET-C074ADE86609
           test "$PHONE_IP" = 192.168.1.168
           test "$PHONE_MAC" = C0:74:AD:E8:66:09
           test -n "$PHONE_PASSWORD"
