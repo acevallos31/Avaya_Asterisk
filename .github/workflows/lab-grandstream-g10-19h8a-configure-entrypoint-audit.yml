@@ -1,0 +1,104 @@
+name: G10-19H8A | Issabel Lab | Endpoint Configurator Configure Entrypoint Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8a-configure-entrypoint-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Discover supported configure invocation without changing phone or PBX
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect Endpoint Configurator entrypoints read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8a.txt"
+          python3 - "$REPORT" <<'PY'
+          from pathlib import Path
+          import os, re, sys
+
+          report = Path(sys.argv[1])
+          roots = [
+              Path('/var/www/html/modules/endpoint_configurator'),
+              Path('/usr/share/issabel/endpoint-classes'),
+          ]
+          pats = re.compile(r'(updateLocalConfig|configureEndpoint|configure_endpoint|endpoint[_ -]?config|issabel-helper|detect_endpoints|setConfigured|action[^A-Za-z0-9]{0,5}configure)', re.I)
+          lines = [
+              'scope=READ_ONLY_ENDPOINT_CONFIGURATOR_ENTRYPOINT_AUDIT',
+              'phone_write=NO',
+              'pbx_write=NO',
+              'db_write=NO',
+              'secrets_logged=NO',
+          ]
+          hits = []
+          for root in roots:
+              if not root.exists():
+                  continue
+              for p in root.rglob('*'):
+                  if not p.is_file() or p.suffix.lower() not in {'.php','.py','.inc','.class'}:
+                      continue
+                  try:
+                      txt = p.read_text(encoding='utf-8', errors='ignore')
+                  except Exception:
+                      continue
+                  for n, line in enumerate(txt.splitlines(), 1):
+                      if pats.search(line):
+                          safe = re.sub(r'(?i)(password|passwd|secret|token)\s*[=:]\s*[^\s,;]+', r'\1=***', line.strip())
+                          safe = safe[:260]
+                          hits.append(f'hit={p}:{n}:{safe}')
+                          if len(hits) >= 120:
+                              break
+                  if len(hits) >= 120:
+                      break
+              if len(hits) >= 120:
+                  break
+          lines.append(f'hit_count={len(hits)}')
+          lines.extend(hits)
+
+          helper = Path('/usr/bin/issabel-helper')
+          lines.append('issabel_helper_present=' + ('YES' if helper.exists() else 'NO'))
+          if helper.exists():
+              try:
+                  data = helper.read_bytes()[:500000]
+                  for key in [b'detect_endpoints', b'configure', b'endpoint']:
+                      lines.append(f'issabel_helper_contains_{key.decode()}=' + ('YES' if key in data else 'NO'))
+              except Exception:
+                  lines.append('issabel_helper_scan=UNREADABLE')
+
+          lines.append('diagnostic=' + ('CONFIGURE_ENTRYPOINT_CANDIDATES_FOUND' if hits else 'NO_CONFIGURE_ENTRYPOINT_FOUND'))
+          lines.append('G10-19H8A-COMPLETE=YES')
+          report.write_text('\n'.join(lines)+'\n', encoding='utf-8')
+          os.chmod(report, 0o600)
+          print('\n'.join(lines))
+          PY
+          grep -Fq 'G10-19H8A-COMPLETE=YES' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h8a.txt"
+          {
+            echo '## G10-19H8A — Configure entrypoint audit'
+            echo
+            [ -f "$REPORT" ] && cat "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8a-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8a.txt
+          if-no-files-found: warn
+          retention-days: 30
