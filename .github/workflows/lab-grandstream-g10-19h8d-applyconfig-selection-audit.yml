@@ -1,0 +1,57 @@
+name: G10-19H8D | Issabel Lab | applyconfig Selection Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8d-applyconfig-selection-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Inspect how issabel-endpointconfig selects endpoint rows
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect selection code read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8d.txt"
+          {
+            echo 'scope=READ_ONLY_APPLYCONFIG_SELECTION_AUDIT'
+            echo 'phone_write=NO'
+            echo 'pbx_write=NO'
+            echo 'db_write=NO'
+            echo 'secrets_logged=NO'
+            echo '--- ENDPOINT SELECTION CONTROL FLOW ---'
+            sed -n '175,232p' /usr/bin/issabel-endpointconfig
+            echo '--- DATABASE SELECTION HELPERS ---'
+            grep -n -C 8 -E 'endpointList|SELECT.*endpoint|FROM endpoint|configured|id_endpoint|load.*endpoint|get.*endpoint' /usr/bin/issabel-endpointconfig | head -n 240 || true
+            echo 'G10-19H8D-COMPLETE=YES'
+          } | tee "$REPORT"
+          grep -Fq 'G10-19H8D-COMPLETE=YES' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8D — applyconfig selection audit'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8d.txt" ] && cat "$RUNNER_TEMP/g10-19h8d.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8d-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8d.txt
+          if-no-files-found: warn
+          retention-days: 30
