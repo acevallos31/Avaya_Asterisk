@@ -1,5 +1,32 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Test 55 GXP1625 — factory reset y baseline limpio — 2026-09-10
+
+La IP anterior `192.168.1.167` fue reasignada por DHCP a un DVR Hikvision; el
+GXP1625 exacto `C0:74:AD:E8:66:09` fue redescubierto en `192.168.1.168` por el
+run read-only `34541156644`.
+
+El run `34541419730` confirmó físicamente el factory reset del teléfono: control
+exacto localizado, confirmación enviada, HTTP cayó y volvió. Su job final quedó
+rojo porque Endpoint Configurator volvió a descubrir automáticamente una fila,
+no porque fallara el reset.
+
+El run read-only `34542431592` cerró el baseline post-reset con
+`TEST55-POST-RESET-AUDIT=PASS`: una fila Grandstream/GXP1625 en `.168`,
+`selected=0`, cero cuentas, cero override `http_password`, ambos archivos cfg
+ausentes, extensiones 201/202 conservadas y HTTP 200. Asterisk aún conserva
+`.168` como dirección del peer 202 con estado sanitizado `UNKNOWN`; se trata
+como binding posiblemente cacheado y no como evidencia de registro activo.
+
+El workflow de Test 55 quedó protegido: los pushes solo ejecutan la auditoría
+read-only; el factory reset requiere dispatch manual, operación `factory-reset`
+y confirmación exacta por MAC. Producción no fue tocada.
+
+Siguiente paso manual: en Endpoint Configurator seleccionar únicamente la fila
+`C0:74:AD:E8:66:09` / `192.168.1.168`, asignar `202 / Ashly` y ejecutar
+Configure. Luego verificar generación cfg, activación HTTP, registro SIP y
+prueba física de llamada antes de cerrar Test 55.
+
 ## Actualización Grandstream GXP1625 — 2026-09-10
 
 El GXP1625 físico con firmware `1.0.7.70` alcanzó cierre E2E nativo en Issabel

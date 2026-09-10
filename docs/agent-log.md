@@ -21,6 +21,49 @@ NOT-TESTED
 
 ---
 
+## 2026-09-10 — Codex — Test 55 factory reset y baseline post-reset
+
+Después de eliminar manualmente el endpoint, la IP `192.168.1.167` apareció
+como DVR Hikvision. El discovery read-only run `34541156644` encontró una única
+coincidencia de la MAC GXP1625 `C0:74:AD:E8:66:09` en `192.168.1.168`.
+
+El run `34541419730` pasó la etapa destructiva controlada: guard exacto de MAC,
+login autenticado, un único control factory reset, caída HTTP y retorno HTTP.
+Marcadores: `factory_reset_observed=YES` y
+`TEST55-FACTORY-RESET=PASS`. El job posterior falló porque el endpoint fue
+redescubierto automáticamente y la expectativa histórica de cero filas dejó de
+ser válida.
+
+Se protegió el workflow en commits `f7141d1`, `315d372` y `52a1c06`. El reset
+ya no puede ejecutarse por push: exige dispatch manual, operación explícita y
+confirmación `FACTORY-RESET-C074ADE86609`. El modo push es exclusivamente una
+auditoría read-only.
+
+Run `34542431592`: `LAB-READ-PASS` y
+`TEST55-POST-RESET-AUDIT=PASS`:
+
+```text
+endpoint_rows=1
+endpoint_ip=192.168.1.168
+manufacturer=Grandstream
+model=GXP1625
+selected=0
+account_count=0
+http_password_override_count=0
+binary_cfg_absent=YES
+xml_cfg_absent=YES
+extension_201_exists=YES
+extension_202_exists=YES
+extension_202_registered_at_target_ip=YES
+extension_202_status=UNKNOWN
+phone_http_status=200
+```
+
+Los jobs de remoción y factory reset quedaron `skipped` en ese run. La dirección
+del peer 202 puede ser un binding cacheado; `UNKNOWN` no se promueve a evidencia
+de registro activo. Producción no fue modificada. Pendiente: asignar manualmente
+`202 / Ashly` desde Endpoint Configurator y validar provisioning/SIP/llamada.
+
 ## 2026-09-10 — Codex — cierre nativo Grandstream GXP1625
 
 Se ejecutó H8L run `34506170492` en modo read-only. El login fue aceptado sin
