@@ -3,9 +3,17 @@ name: 55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test
 on:
   workflow_dispatch:
     inputs:
-      confirmation:
-        description: 'Type FACTORY-RESET-C074ADE86609'
+      operation:
+        description: 'Read-only audit or destructive factory reset'
         required: true
+        default: post-reset-audit
+        type: choice
+        options:
+          - post-reset-audit
+          - factory-reset
+      confirmation:
+        description: 'For factory-reset only: type FACTORY-RESET-C074ADE86609'
+        required: false
         type: string
 
 permissions:
@@ -21,6 +29,7 @@ env:
 jobs:
   verify-removal:
     name: Verify exact Endpoint Configurator removal
+    if: ${{ inputs.operation == 'factory-reset' }}
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 5
     steps:
@@ -54,6 +63,7 @@ jobs:
   factory-reset:
     name: Send controlled factory reset to exact GXP1625
     needs: verify-removal
+    if: ${{ inputs.operation == 'factory-reset' }}
     runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
     timeout-minutes: 10
     steps:
@@ -88,8 +98,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   verify-post-reset:
-    name: Verify account detached after factory reset
+    name: Audit rediscovered factory-clean endpoint
     needs: factory-reset
+    if: ${{ always() && (inputs.operation == 'post-reset-audit' || needs.factory-reset.result == 'success') }}
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 7
     steps:
@@ -104,22 +115,14 @@ jobs:
           OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
           printf '%s\n' "$OUT"
           grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
-      - name: Wait for SIP registration to detach
+      - name: Inspect exact rediscovered endpoint without mutation
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test55-post-reset.txt"
-          PASS=0
-          for n in $(seq 1 18); do
-            if sudo -n /usr/local/sbin/avaya-j129-lab-deploy verify-grandstream-test55-post-reset >"$REPORT" 2>&1; then
-              PASS=1
-              break
-            fi
-            sleep 15
-          done
-          cat "$REPORT"
-          test "$PASS" -eq 1
-          grep -Fq 'TEST55-POST-RESET-VERIFY=PASS' "$REPORT"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-test55-rediscovered \
+            | tee "$REPORT"
+          grep -Fq 'TEST55-POST-RESET-AUDIT=PASS' "$REPORT"
       - name: Publish sanitized post-reset evidence
         if: always()
         shell: bash

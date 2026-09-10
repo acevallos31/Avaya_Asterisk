@@ -46,6 +46,79 @@ verify_grandstream_test55_post_reset() {
   [ "$phone_ip_seen" = NO ]
   echo 'TEST55-POST-RESET-VERIFY=PASS'
 }
+
+inspect_grandstream_test55_rediscovered() {
+  local defaults_file endpoint_count endpoint_id endpoint_ip manufacturer model
+  local selected account_count override_count cfg_bin cfg_xml peer_201 peer_202
+  local peer_202_target_ip peer_202_status phone_http_status
+  defaults_file="$(make_db_defaults_file)"
+  trap 'rm -f "$defaults_file"' RETURN EXIT
+  endpoint_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint WHERE UPPER(REPLACE(REPLACE(REPLACE(mac_address,':',''),'-',''),'.',''))='C074ADE86609';")"
+
+  endpoint_id=''
+  endpoint_ip=''
+  manufacturer=''
+  model=''
+  selected=''
+  account_count=''
+  override_count=''
+  if [ "$endpoint_count" -eq 1 ]; then
+    endpoint_id="$(mysql_scalar "$defaults_file" "SELECT id FROM endpoint WHERE UPPER(REPLACE(REPLACE(REPLACE(mac_address,':',''),'-',''),'.',''))='C074ADE86609' LIMIT 1;")"
+    endpoint_ip="$(mysql_scalar "$defaults_file" "SELECT last_known_ipv4 FROM endpoint WHERE id=${endpoint_id};")"
+    manufacturer="$(mysql_scalar "$defaults_file" "SELECT mf.name FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE e.id=${endpoint_id};")"
+    model="$(mysql_scalar "$defaults_file" "SELECT COALESCE(m.name,'') FROM endpoint e LEFT JOIN model m ON m.id=e.id_model WHERE e.id=${endpoint_id};")"
+    selected="$(mysql_scalar "$defaults_file" "SELECT selected FROM endpoint WHERE id=${endpoint_id};")"
+    account_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=${endpoint_id};")"
+    override_count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM endpoint_properties WHERE id_endpoint=${endpoint_id} AND property_key='http_password';")"
+  fi
+
+  cfg_bin='/tftpboot/cfgc074ade86609'
+  cfg_xml='/tftpboot/cfgc074ade86609.xml'
+  peer_201="$(asterisk -rx 'sip show peer 201' 2>/dev/null || true)"
+  peer_202="$(asterisk -rx 'sip show peer 202' 2>/dev/null || true)"
+  if grep -Fq '192.168.1.168' <<<"$peer_202"; then peer_202_target_ip=YES; else peer_202_target_ip=NO; fi
+  if grep -Eq 'Status[[:space:]]*:[[:space:]]*OK' <<<"$peer_202"; then
+    peer_202_status=OK
+  elif grep -Eq 'Status[[:space:]]*:[[:space:]]*UNREACHABLE' <<<"$peer_202"; then
+    peer_202_status=UNREACHABLE
+  else
+    peer_202_status=UNKNOWN
+  fi
+  phone_http_status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 http://192.168.1.168/ || true)"
+
+  echo 'scope=TEST55_GXP1625_POST_RESET_AUDIT'
+  echo 'target_mac=C0:74:AD:E8:66:09'
+  echo "endpoint_rows=$endpoint_count"
+  echo "endpoint_ip=${endpoint_ip:-NONE}"
+  echo "manufacturer=${manufacturer:-NONE}"
+  echo "model=${model:-NONE}"
+  echo "selected=${selected:-NONE}"
+  echo "account_count=${account_count:-NONE}"
+  echo "http_password_override_count=${override_count:-NONE}"
+  [ -e "$cfg_bin" ] && echo 'binary_cfg_absent=NO' || echo 'binary_cfg_absent=YES'
+  [ -e "$cfg_xml" ] && echo 'xml_cfg_absent=NO' || echo 'xml_cfg_absent=YES'
+  grep -Eq 'Name[[:space:]]*:[[:space:]]*201([[:space:]]|$)' <<<"$peer_201" && echo 'extension_201_exists=YES' || echo 'extension_201_exists=NO'
+  grep -Eq 'Name[[:space:]]*:[[:space:]]*202([[:space:]]|$)' <<<"$peer_202" && echo 'extension_202_exists=YES' || echo 'extension_202_exists=NO'
+  echo "extension_202_registered_at_target_ip=$peer_202_target_ip"
+  echo "extension_202_status=$peer_202_status"
+  echo "phone_http_status=${phone_http_status:-000}"
+
+  [ "$endpoint_count" -eq 1 ]
+  [ "$endpoint_ip" = '192.168.1.168' ]
+  [ "$manufacturer" = 'Grandstream' ]
+  [ "$model" = 'GXP1625' ]
+  [ "$selected" -eq 0 ]
+  [ "$account_count" -eq 0 ]
+  [ "$override_count" -eq 0 ]
+  [ ! -e "$cfg_bin" ]
+  [ ! -e "$cfg_xml" ]
+  grep -Eq 'Name[[:space:]]*:[[:space:]]*201([[:space:]]|$)' <<<"$peer_201"
+  grep -Eq 'Name[[:space:]]*:[[:space:]]*202([[:space:]]|$)' <<<"$peer_202"
+  [ "$phone_http_status" = 200 ]
+  rm -f "$defaults_file"
+  trap - RETURN EXIT
+  echo 'TEST55-POST-RESET-AUDIT=PASS'
+}
 '''
 
 anchor = '\n[ -n "$ACTION" ] || usage\n'
@@ -62,7 +135,8 @@ if "verify-grandstream-test55-removal)" not in s:
         case_anchor,
         case_anchor
         + '\n  verify-grandstream-test55-removal) [ -z "$OVERLAY_ROOT" ] || usage; verify_grandstream_test55_removal ;;'
-        + '\n  verify-grandstream-test55-post-reset) [ -z "$OVERLAY_ROOT" ] || usage; verify_grandstream_test55_post_reset ;;',
+        + '\n  verify-grandstream-test55-post-reset) [ -z "$OVERLAY_ROOT" ] || usage; verify_grandstream_test55_post_reset ;;'
+        + '\n  inspect-grandstream-test55-rediscovered) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_test55_rediscovered ;;',
         1,
     )
 
