@@ -1,0 +1,80 @@
+name: G10-19F | Issabel Lab | GXP1625 Phone CFG Request Proof
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19f-phone-cfg-request-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    name: Verify GXP1625 requested its cfg over TFTP
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only TFTP request evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHONE_IP='192.168.1.167'
+          CFG='cfgc074ade86609'
+          FILE="/tftpboot/$CFG"
+          REPORT="$RUNNER_TEMP/g10-19f.txt"
+          : > "$REPORT"
+          log(){ printf '%s\n' "$1" | tee -a "$REPORT"; }
+          log 'scope=READ_ONLY_PHONE_CFG_REQUEST_PROOF'
+          log 'phone_write=NO'
+          log 'db_write=NO'
+          log 'pbx_live_code_write=NO'
+          log 'cfg_content_logged=NO'
+          if [ -f "$FILE" ]; then
+            log 'cfg_present=YES'
+            log "cfg_size=$(stat -c %s "$FILE")"
+            log "cfg_atime_epoch=$(stat -c %X "$FILE")"
+            log "cfg_mtime_epoch=$(stat -c %Y "$FILE")"
+          else
+            log 'cfg_present=NO'
+          fi
+          TMP="$RUNNER_TEMP/g10-19f-source.log"
+          : > "$TMP"
+          if journalctl -u xinetd --since '30 minutes ago' --no-pager > "$TMP" 2>/dev/null; then
+            log 'journal_read=YES'
+          elif [ -r /var/log/messages ]; then
+            tail -n 4000 /var/log/messages > "$TMP"
+            log 'messages_read=YES'
+          else
+            log 'tftp_log_read=NO_PERMISSION'
+          fi
+          PHONE_HIT=NO
+          CFG_HIT=NO
+          BOTH_HIT=NO
+          if grep -F "$PHONE_IP" "$TMP" >/dev/null 2>&1; then PHONE_HIT=YES; fi
+          if grep -Fi "$CFG" "$TMP" >/dev/null 2>&1; then CFG_HIT=YES; fi
+          if grep -F "$PHONE_IP" "$TMP" 2>/dev/null | grep -Fi "$CFG" >/dev/null 2>&1; then BOTH_HIT=YES; fi
+          log "phone_ip_log_hit=$PHONE_HIT"
+          log "cfg_filename_log_hit=$CFG_HIT"
+          log "phone_cfg_same_line_hit=$BOTH_HIT"
+          if [ "$BOTH_HIT" = YES ]; then
+            log 'diagnostic=PHONE_CFG_TFTP_REQUEST_PROVEN'
+            log 'next_activity=G10-19G_ENDPOINT_CONFIGURATOR_202'
+          elif [ "$CFG_HIT" = YES ]; then
+            log 'diagnostic=CFG_TFTP_REQUEST_OBSERVED_SOURCE_NOT_CORRELATED'
+            log 'next_activity=G10-19F2_CORRELATE_OR_TRIGGER_PROVISION'
+          else
+            log 'diagnostic=PHONE_CFG_TFTP_REQUEST_NOT_YET_PROVEN'
+            log 'next_activity=G10-19F2_TRIGGER_PROVISION_AND_CAPTURE'
+          fi
+          log 'G10-19F-COMPLETE=YES'
+          grep -E '^(scope=|cfg_present=|cfg_size=|journal_read=|messages_read=|tftp_log_read=|phone_ip_log_hit=|cfg_filename_log_hit=|phone_cfg_same_line_hit=|diagnostic=|next_activity=|G10-19F-COMPLETE=)' "$REPORT" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19f-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19f.txt
+          if-no-files-found: warn
+          retention-days: 30
