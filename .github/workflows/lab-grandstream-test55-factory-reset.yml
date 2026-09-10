@@ -1,6 +1,11 @@
 name: 55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test
 
 on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-test55-removal-verifier.py'
+      - '.github/workflows/lab-grandstream-test55-factory-reset.yml'
   workflow_dispatch:
     inputs:
       operation:
@@ -29,7 +34,7 @@ env:
 jobs:
   verify-removal:
     name: Verify exact Endpoint Configurator removal
-    if: ${{ inputs.operation == 'factory-reset' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.operation == 'factory-reset' }}
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 5
     steps:
@@ -63,7 +68,7 @@ jobs:
   factory-reset:
     name: Send controlled factory reset to exact GXP1625
     needs: verify-removal
-    if: ${{ inputs.operation == 'factory-reset' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.operation == 'factory-reset' }}
     runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
     timeout-minutes: 10
     steps:
@@ -100,7 +105,7 @@ jobs:
   verify-post-reset:
     name: Audit rediscovered factory-clean endpoint
     needs: factory-reset
-    if: ${{ always() && (inputs.operation == 'post-reset-audit' || needs.factory-reset.result == 'success') }}
+    if: ${{ always() && (github.event_name == 'push' || inputs.operation == 'post-reset-audit' || needs.factory-reset.result == 'success') }}
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 7
     steps:
