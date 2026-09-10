@@ -36,6 +36,7 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19E4B | FAIL controlado | Parsear cookies legacy del firmware | Cliente obtiene `session-role`, no `session-identity`; write sigue `session-expired` | `session-identity` no viene del login HTTP directo observado |
 | G10-19E4C | PASS diagnóstico | Buscar origen estático de `session-identity` | `webapp.nocache.js` no contiene literal relevante | Pasar a traza runtime con navegador real |
 | G10-19E4D | PASS diagnóstico | Traza runtime con Chromium/CDP | Login UI real crea `session-identity` y `session-role`; no se observó como Set-Cookie directo; 38 eventos de red | Reproducir secuencia real del navegador, no inventar valor de cookie |
+| G10-19G2 | PASS diagnóstico | Leer estado real de Account 1 después de las pruebas de provisioning | Login UI real y lectura HTTP 200; cuenta habilitada; SIP server apunta a la PBX; User ID/Auth ID siguen en `201`; nombre de cuenta no corresponde a 202 | El teléfono todavía conserva la cuenta rollback 201; 202 aún no está aplicada en Account 1 |
 
 ## Hallazgo actual
 
@@ -43,25 +44,27 @@ La diferencia crítica entre el cliente automatizado directo y Chrome es que el 
 
 La prueba G10-19E4D confirmó que `session-identity` aparece durante el flujo real de la webapp ejecutada en Chromium, pero no se detectó como un `Set-Cookie` HTTP convencional. Esto sugiere que la identidad de sesión se establece o transforma dentro del flujo de la aplicación web.
 
-## Próxima prueba
+El checkpoint G10-19G2 confirma que Account 1 sigue funcionando con la extensión rollback `201` y que el SIP server ya apunta a la PBX. Por tanto, no debe declararse éxito de provisioning de `202 Ashly` hasta que una lectura posterior muestre 202 en el teléfono y Asterisk confirme su registro.
 
-`G10-19E4E` debe observar la secuencia runtime alrededor del momento en que aparece `session-identity`, registrando solamente:
+## Próximas pruebas
 
-- ruta del request,
-- método HTTP,
-- orden relativo de eventos,
-- nombres de cookies presentes,
-- iniciador/script cuando sea posible,
-- resultado sanitizado.
+Las pruebas posteriores deben conservar la secuencia de evidencia y no saltarse la verificación de estado real del teléfono:
 
-No registrar valores de SID, cookies, contraseña ni secretos SIP.
+1. probar/aplicar el mecanismo de provisioning sin exponer secretos,
+2. confirmar solicitud/descarga del `cfg<MAC>`,
+3. releer Account 1,
+4. exigir `202` como User ID/Auth ID antes de marcar provisioning exitoso,
+5. comprobar registro SIP de 202 en Issabel,
+6. mantener 201 documentado como rollback hasta cerrar la validación.
 
 ## Regla de documentación
 
-Desde G10-19E4E en adelante, cada prueba debe dejar tres evidencias:
+Cada prueba operativa Grandstream debe dejar tres evidencias:
 
-1. `GITHUB_STEP_SUMMARY` legible desde el run.
-2. Artifact sanitizado retenido por GitHub Actions.
+1. `GITHUB_STEP_SUMMARY` legible dentro del run específico de la prueba.
+2. Artifact sanitizado, usando `if: always()` cuando sea viable para conservar evidencia aun si una validación falla.
 3. Entrada persistente en este ledger con hipótesis, resultado, decisión y siguiente actividad.
+
+El workflow general `Avaya Issabel Audit Tests` es un validador de contratos del repositorio, no una prueba física del teléfono. A partir de este punto también debe publicar un resumen visible de sus unit tests para evitar runs aparentemente vacíos.
 
 Los workflows de diagnóstico deben evitar matrices ciegas. Cada prueba necesita hipótesis, criterio de éxito y condición de parada.
