@@ -1,0 +1,139 @@
+name: G10-19H1 | Endpoint Lab | GXP1625 HTTP Mirror Provisioning Proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h1-http-mirror-prov.yml'
+      - 'endpoint-lab/grandstream/g10-19h1-http-mirror-prov.js'
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    name: Mirror Issabel cfg over HTTP and observe phone fetch
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 12
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+      PROV_SERVER: 192.168.1.171:8080
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch current cfg from Issabel TFTP without displaying payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          WORK="$RUNNER_TEMP/g10-19h1-web"
+          mkdir -p "$WORK"
+          CFG="$WORK/cfgc074ade86609"
+          curl -fsS --max-time 15 "tftp://$PBX_IP/cfgc074ade86609" -o "$CFG"
+          test -s "$CFG"
+          chmod 600 "$CFG"
+          echo "mirror_cfg_size=$(stat -c %s "$CFG")" >> "$GITHUB_STEP_SUMMARY"
+          echo "mirror_cfg_sha256=$(sha256sum "$CFG" | awk '{print $1}')" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Start isolated HTTP mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORK="$RUNNER_TEMP/g10-19h1-web"
+          LOG="$RUNNER_TEMP/g10-19h1-http.log"
+          nohup python3 -m http.server 8080 --bind 0.0.0.0 --directory "$WORK" >"$LOG" 2>&1 &
+          echo $! > "$RUNNER_TEMP/g10-19h1-http.pid"
+          sleep 2
+          curl -fsS --max-time 3 http://127.0.0.1:8080/cfgc074ade86609 -o /dev/null
+
+      - name: Point phone to HTTP mirror and trigger native PROV
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h1-prov.txt"
+          node endpoint-lab/grandstream/g10-19h1-http-mirror-prov.js
+          grep -Fq 'G10-19H1-COMPLETE=YES' "$REPORT_PATH"
+
+      - name: Wait for provisioning requests
+        shell: bash
+        run: sleep 20
+
+      - name: Classify HTTP fetch evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/g10-19h1-http.log"
+          REPORT="$RUNNER_TEMP/g10-19h1-fetch.txt"
+          {
+            echo 'scope=HTTP_MIRROR_FETCH_OBSERVATION'
+            echo 'cfg_payload_logged=NO'
+            if grep -F '192.168.1.167' "$LOG" | grep -F 'GET /cfgc074ade86609 ' >/dev/null 2>&1; then
+              echo 'phone_requested_cfg_binary=YES'
+            else
+              echo 'phone_requested_cfg_binary=NO'
+            fi
+            if grep -F '192.168.1.167' "$LOG" | grep -F 'GET /cfgc074ade86609.xml ' >/dev/null 2>&1; then
+              echo 'phone_requested_cfg_xml=YES'
+            else
+              echo 'phone_requested_cfg_xml=NO'
+            fi
+            COUNT=$(grep -F '192.168.1.167' "$LOG" | grep ' GET /' | wc -l | tr -d ' ' || true)
+            echo "phone_http_request_count=${COUNT:-0}"
+            echo 'G10-19H1-FETCH-COMPLETE=YES'
+          } | tee "$REPORT"
+
+      - name: Read Account 1 after HTTP provisioning attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h1-account.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+
+      - name: Restore runtime provisioning target to Issabel TFTP
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          export PBX_IP=192.168.1.10
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h1-restore.txt"
+          node endpoint-lab/grandstream/g10-19e4f4-ui-persist-bootstrap.js
+          exit 0
+
+      - name: Stop HTTP mirror
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/g10-19h1-http.pid" ]; then kill "$(cat "$RUNNER_TEMP/g10-19h1-http.pid")" 2>/dev/null || true; fi
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H1 — HTTP mirror provisioning proof'
+            echo
+            for f in "$RUNNER_TEMP/g10-19h1-prov.txt" "$RUNNER_TEMP/g10-19h1-fetch.txt" "$RUNNER_TEMP/g10-19h1-account.txt" "$RUNNER_TEMP/g10-19h1-restore.txt"; do
+              [ -f "$f" ] && grep -E '^(scope=|phone_write=|sip_account_direct_write=|p212_http_radio_found=|p237_input_found=|save_and_apply_clicked=|http_bootstrap_verify=|prov_request=|diagnostic=|phone_requested_cfg_binary=|phone_requested_cfg_xml=|phone_http_request_count=|account_name_target_202=|sip_user_id=|auth_id=|p212_target_match=|p237_target_match=|G10-19)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h1-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h1-prov.txt
+            ${{ runner.temp }}/g10-19h1-fetch.txt
+            ${{ runner.temp }}/g10-19h1-account.txt
+            ${{ runner.temp }}/g10-19h1-restore.txt
+          if-no-files-found: warn
+          retention-days: 30
