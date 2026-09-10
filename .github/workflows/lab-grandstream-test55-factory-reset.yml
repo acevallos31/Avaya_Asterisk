@@ -125,9 +125,18 @@ jobs:
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test55-post-reset.txt"
-          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-test55-rediscovered \
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            ACTION=inspect-grandstream-test55-configured
+          else
+            ACTION=inspect-grandstream-test55-rediscovered
+          fi
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy "$ACTION" \
             | tee "$REPORT"
-          grep -Fq 'TEST55-POST-RESET-AUDIT=PASS' "$REPORT"
+          if [ "$ACTION" = inspect-grandstream-test55-configured ]; then
+            grep -Fq 'TEST55-POST-CONFIG-AUDIT=PASS' "$REPORT"
+          else
+            grep -Fq 'TEST55-POST-RESET-AUDIT=PASS' "$REPORT"
+          fi
       - name: Publish sanitized post-reset evidence
         if: always()
         shell: bash
