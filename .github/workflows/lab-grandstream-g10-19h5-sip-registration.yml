@@ -5,7 +5,7 @@ on:
     branches: [Audit]
     paths:
       - '.github/workflows/lab-grandstream-g10-19h5-sip-registration.yml'
-      - 'deploy/j129/prepare-grandstream-peer-audit.py'
+      - 'deploy/j129/prepare-grandstream-sip-registration-audit.py'
   workflow_dispatch:
 
 permissions:
@@ -19,13 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare restricted generic peer audit action
+      - name: Prepare restricted Grandstream SIP registration action
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_REF_NAME" = 'Audit'
-          python3 deploy/j129/prepare-grandstream-peer-audit.py
-          bash -n deploy/j129/avaya-j129-lab-call-test
+          python3 deploy/j129/prepare-grandstream-sip-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
 
       - name: Sync restricted helper
         shell: bash
@@ -40,12 +40,11 @@ jobs:
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/g10-19h5.txt"
-          sudo -n /usr/local/sbin/avaya-j129-lab-call-test \
-            peer-audit 202 '' 192.168.1.167 201 \
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sip-registration \
             | tee "$REPORT"
           grep -Fq 'target_registration_match=YES' "$REPORT"
           grep -Fq 'previous_extension_still_on_phone_ip=NO' "$REPORT"
-          grep -Fq 'GENERIC-SIP-PEER-AUDIT-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-SIP-REGISTRATION-PASS' "$REPORT"
 
       - name: Publish sanitized summary
         if: always()
