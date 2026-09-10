@@ -1,0 +1,133 @@
+name: G10-19H8K2 | Issabel Lab | Repeat Native Stage Diagnostic
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8k2-final-stage-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8k2-repeat-stage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose_repeat:
+    name: Classify persisted native login/POST on repeated Configure
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          python3 -B deploy/grandstream/prepare-g10-19h8j-final-native-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8j-select-endpoint-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2f-http-password-match-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8k2-final-stage-helper.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Verify persisted final patch and credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8j-final-native \
+            | tee "$RUNNER_TEMP/g10-19h8k2-patch.txt"
+          grep -Fq 'h8j_state=PATCHED' "$RUNNER_TEMP/g10-19h8k2-patch.txt"
+          printf '%s\n' "$PHONE_PASSWORD" \
+            | sudo -n /usr/local/sbin/avaya-j129-lab-deploy compare-grandstream-http-password \
+            | tee "$RUNNER_TEMP/g10-19h8k2-credential.txt"
+          grep -Fq 'effective_http_password_matches_lab_secret=YES' "$RUNNER_TEMP/g10-19h8k2-credential.txt"
+
+      - name: Select exact GXP1625 202 endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy select-grandstream-gxp1625-202 \
+            | tee "$RUNNER_TEMP/g10-19h8k2-selection.txt"
+          touch "$RUNNER_TEMP/g10-19h8k2-selection-active"
+
+      - name: Apply temporary safe stage classifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8k2-final-stage-trace \
+            | tee "$RUNNER_TEMP/g10-19h8k2-trace-apply.txt"
+          grep -Fq 'G10-19H8K2-STAGE-TRACE-APPLY-PASS' "$RUNNER_TEMP/g10-19h8k2-trace-apply.txt"
+          touch "$RUNNER_TEMP/g10-19h8k2-trace-active"
+
+      - name: Run one repeated native applyconfig and capture safe class
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8k2-native.txt"
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          HELPER_RC=${PIPESTATUS[0]}
+          set -e
+          echo "integrated_helper_rc=$HELPER_RC" >> "$REPORT"
+          grep -Fq 'h8k2_stage_trace_seen=YES' "$REPORT"
+          echo 'G10-19H8K2-DIAGNOSTIC-CAPTURE=PASS' >> "$REPORT"
+
+      - name: Roll back trace and selection state
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          TRACE_RC=0; SELECT_RC=0
+          if [ -f "$RUNNER_TEMP/g10-19h8k2-trace-active" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8k2-final-stage-trace \
+              | tee "$RUNNER_TEMP/g10-19h8k2-trace-rollback.txt" || TRACE_RC=$?
+          fi
+          if [ -f "$RUNNER_TEMP/g10-19h8k2-selection-active" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-gxp1625-selection \
+              | tee "$RUNNER_TEMP/g10-19h8k2-selection-rollback.txt" || SELECT_RC=$?
+          fi
+          echo "trace_rollback_rc=$TRACE_RC" >> "$GITHUB_STEP_SUMMARY"
+          echo "selection_rollback_rc=$SELECT_RC" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$TRACE_RC" -ne 0 ] || [ "$SELECT_RC" -ne 0 ]; then exit 1; fi
+
+      - name: Publish sanitized diagnostic
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h8k2-native.txt"
+          {
+            echo '## G10-19H8K2 — Repeated native stage diagnostic'
+            echo 'chromium_used=NO'
+            echo 'phone_password_logged=NO'
+            echo 'sid_or_cookie_value_logged=NO'
+            echo 'response_body_logged=NO'
+            echo 'submitted_pvalue_payload_logged=NO'
+            [ -f "$REPORT" ] && grep -E '^(applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|h8k2_stage_trace_seen=|h8k2_post_class_seen=|G10-19H8K2-STAGE=|G10-19H8K2-POST-CLASS|integrated_helper_rc=|G10-19H8K2-DIAGNOSTIC-CAPTURE=)' "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8k2-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8k2-patch.txt
+            ${{ runner.temp }}/g10-19h8k2-credential.txt
+            ${{ runner.temp }}/g10-19h8k2-selection.txt
+            ${{ runner.temp }}/g10-19h8k2-native.txt
+            ${{ runner.temp }}/g10-19h8k2-trace-rollback.txt
+            ${{ runner.temp }}/g10-19h8k2-selection-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
