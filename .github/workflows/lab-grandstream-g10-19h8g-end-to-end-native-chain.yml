@@ -15,10 +15,6 @@ jobs:
     name: Regenerate target config through Endpoint Configurator
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 8
-    outputs:
-      baseline_epoch: ${{ steps.evidence.outputs.baseline_epoch }}
-      xml_atime_before: ${{ steps.evidence.outputs.xml_atime_before }}
-      bin_atime_before: ${{ steps.evidence.outputs.bin_atime_before }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,22 +52,6 @@ jobs:
           grep -Fq 'xml_p47_target_pbx=YES' "$REPORT"
           grep -Fq 'xml_p270_target_ashly=YES' "$REPORT"
           grep -Fq 'G10-19H8F-INTEGRATED-APPLYCONFIG-PASS' "$REPORT"
-
-      - name: Record post-generation fetch baseline
-        id: evidence
-        shell: bash
-        run: |
-          set -euo pipefail
-          XML='/tftpboot/cfgc074ade86609.xml'
-          BIN='/tftpboot/cfgc074ade86609'
-          test -f "$XML"
-          test -f "$BIN"
-          NOW="$(date +%s)"
-          XML_A="$(stat -c %X "$XML")"
-          BIN_A="$(stat -c %X "$BIN")"
-          echo "baseline_epoch=$NOW" >> "$GITHUB_OUTPUT"
-          echo "xml_atime_before=$XML_A" >> "$GITHUB_OUTPUT"
-          echo "bin_atime_before=$BIN_A" >> "$GITHUB_OUTPUT"
           {
             echo '## G10-19H8G — Stage 1'
             echo 'endpointconfig_regeneration=PASS'
@@ -117,7 +97,6 @@ jobs:
           grep -Fq 'diagnostic=LIVE_BOOTSTRAP_PROV_ACCEPTED' "$REPORT_PATH"
 
       - name: Wait for phone to apply provisioning
-        id: wait
         shell: bash
         run: |
           set -euo pipefail
@@ -127,7 +106,6 @@ jobs:
             if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then READY=YES; break; fi
             sleep 5
           done
-          echo "ready=$READY" >> "$GITHUB_OUTPUT"
           echo "phone_http_returned=$READY" >> "$GITHUB_STEP_SUMMARY"
           test "$READY" = YES
 
@@ -162,67 +140,35 @@ jobs:
           retention-days: 30
 
   verify:
-    name: Prove config fetch and Asterisk registration
+    name: Prove TFTP request and Asterisk registration
     needs: [regenerate, bootstrap_prov]
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 7
-    env:
-      FETCH_BASELINE_EPOCH: ${{ needs.regenerate.outputs.baseline_epoch }}
-      XML_ATIME_BEFORE: ${{ needs.regenerate.outputs.xml_atime_before }}
-      BIN_ATIME_BEFORE: ${{ needs.regenerate.outputs.bin_atime_before }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prove phone fetched a freshly generated config
+      - name: Prepare restricted read-only TFTP and SIP audits
         shell: bash
         run: |
           set -euo pipefail
-          PHONE_IP='192.168.1.167'
-          XML_NAME='cfgc074ade86609.xml'
-          BIN_NAME='cfgc074ade86609'
-          XML="/tftpboot/$XML_NAME"
-          BIN="/tftpboot/$BIN_NAME"
-          REPORT="$RUNNER_TEMP/g10-19h8g-fetch.txt"
-          : > "$REPORT"
-          log(){ printf '%s\n' "$1" | tee -a "$REPORT"; }
-          XML_AFTER="$(stat -c %X "$XML")"
-          BIN_AFTER="$(stat -c %X "$BIN")"
-          XML_ADV=NO; BIN_ADV=NO
-          [ "$XML_AFTER" -gt "$XML_ATIME_BEFORE" ] && XML_ADV=YES || true
-          [ "$BIN_AFTER" -gt "$BIN_ATIME_BEFORE" ] && BIN_ADV=YES || true
-          TMP="$RUNNER_TEMP/g10-19h8g-tftp.log"
-          : > "$TMP"
-          LOG_READ=NO
-          if journalctl -u xinetd --since "@$FETCH_BASELINE_EPOCH" --no-pager > "$TMP" 2>/dev/null; then LOG_READ=YES; fi
-          XML_HIT=NO; BIN_HIT=NO
-          if grep -F "$PHONE_IP" "$TMP" 2>/dev/null | grep -Fi "$XML_NAME" >/dev/null 2>&1; then XML_HIT=YES; fi
-          if grep -F "$PHONE_IP" "$TMP" 2>/dev/null | grep -Fi "$BIN_NAME" >/dev/null 2>&1; then BIN_HIT=YES; fi
-          FETCH=NO
-          if [ "$XML_ADV" = YES ] || [ "$BIN_ADV" = YES ] || [ "$XML_HIT" = YES ] || [ "$BIN_HIT" = YES ]; then FETCH=YES; fi
-          FORMAT=NONE
-          if [ "$XML_ADV" = YES ] || [ "$XML_HIT" = YES ]; then FORMAT=XML; fi
-          if [ "$BIN_ADV" = YES ] || [ "$BIN_HIT" = YES ]; then
-            [ "$FORMAT" = XML ] && FORMAT=BOTH || FORMAT=BINARY
-          fi
-          log 'scope=POST_PROV_CONFIG_FETCH_PROOF'
-          log "journal_read=$LOG_READ"
-          log "xml_atime_advanced=$XML_ADV"
-          log "binary_atime_advanced=$BIN_ADV"
-          log "phone_xml_log_hit=$XML_HIT"
-          log "phone_binary_log_hit=$BIN_HIT"
-          log "requested_format=$FORMAT"
-          log "fresh_config_fetch_proven=$FETCH"
-          [ "$FETCH" = YES ]
-
-      - name: Prepare restricted SIP registration audit
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 deploy/j129/prepare-grandstream-sip-registration-audit.py
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 -B deploy/j129/prepare-grandstream-tftp-request-audit.py
+          python3 -B deploy/j129/prepare-grandstream-sip-registration-audit.py
           bash -n deploy/j129/avaya-j129-lab-deploy
           OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
           printf '%s\n' "$OUT"
           grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Prove phone requested its Grandstream config over TFTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8g-tftp.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-tftp-requests | tee "$REPORT"
+          grep -Fq 'phone_ip_hit=YES' "$REPORT"
+          grep -Fq 'expected_cfg_hit=YES' "$REPORT"
+          grep -Fq 'phone_expected_cfg_correlated=YES' "$REPORT"
+          grep -Fq 'GRANDSTREAM-TFTP-REQUEST-AUDIT-PASS' "$REPORT"
 
       - name: Verify 202 registration and 201 release
         shell: bash
@@ -235,7 +181,7 @@ jobs:
           grep -Fq 'GRANDSTREAM-SIP-REGISTRATION-PASS' "$REPORT"
           {
             echo '## G10-19H8G — Stage 3 / Final'
-            cat "$RUNNER_TEMP/g10-19h8g-fetch.txt"
+            grep -E '^(source=|phone_ip_hit=|expected_cfg_hit=|phone_expected_cfg_correlated=|GRANDSTREAM-TFTP)' "$RUNNER_TEMP/g10-19h8g-tftp.txt" || true
             cat "$REPORT"
             echo 'G10-19H8G-END-TO-END-PASS=YES'
           } >> "$GITHUB_STEP_SUMMARY"
@@ -246,7 +192,7 @@ jobs:
         with:
           name: g10-19h8g-final-${{ github.run_id }}
           path: |
-            ${{ runner.temp }}/g10-19h8g-fetch.txt
+            ${{ runner.temp }}/g10-19h8g-tftp.txt
             ${{ runner.temp }}/g10-19h8g-sip.txt
           if-no-files-found: warn
           retention-days: 30
