@@ -1,0 +1,80 @@
+name: G10-19F4 | Endpoint Lab | GXP1625 Reboot Persistence Check
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19f4-reboot-persistence-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reboot-and-check:
+    name: Reboot then verify provisioning persistence
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 8
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Controlled reboot after persistent UI save
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f4-reboot.txt"
+          node endpoint-lab/grandstream/g10-19f2-chromium-reboot-for-provision.js
+          grep -Fq 'reboot_request=ACCEPTED' "$REPORT_PATH"
+      - name: Wait for phone boot
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 18); do
+            if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then
+              echo "phone_http_returned=YES" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "phone_http_returned=NO" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+      - name: Read P212/P237 after reboot
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f4-provisioning.txt"
+          python3 endpoint-lab/grandstream/g10-19e-provisioning-state-preflight.py
+          grep -Fq 'G10-19E-COMPLETE' "$REPORT_PATH"
+          {
+            echo '## G10-19F4 — Post-reboot provisioning state'
+            grep -E '^(login=|read=|p212_value=|p237_target=|diagnostic=|next_activity=)' "$REPORT_PATH" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Read Account 1 after reboot
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f4-account.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+          {
+            echo
+            echo '## G10-19F4 — Account 1 state'
+            grep -E '^(account_enabled=|account_name_target_202=|sip_server_target_pbx=|sip_user_id=|auth_id=|diagnostic=)' "$REPORT_PATH" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19f4-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19f4-reboot.txt
+            ${{ runner.temp }}/g10-19f4-provisioning.txt
+            ${{ runner.temp }}/g10-19f4-account.txt
+          if-no-files-found: warn
+          retention-days: 30
