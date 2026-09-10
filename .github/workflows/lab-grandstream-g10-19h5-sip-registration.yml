@@ -1,0 +1,68 @@
+name: G10-19H5 | Issabel Lab | GXP1625 SIP Registration Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h5-sip-registration.yml'
+      - 'deploy/j129/prepare-grandstream-peer-audit.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Verify 202 registration and 201 release from GXP1625 IP
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted generic peer audit action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/j129/prepare-grandstream-peer-audit.py
+          bash -n deploy/j129/avaya-j129-lab-call-test
+
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Audit Asterisk registration
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h5.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-call-test \
+            peer-audit 202 '' 192.168.1.167 201 \
+            | tee "$REPORT"
+          grep -Fq 'target_registration_match=YES' "$REPORT"
+          grep -Fq 'previous_extension_still_on_phone_ip=NO' "$REPORT"
+          grep -Fq 'GENERIC-SIP-PEER-AUDIT-PASS' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h5.txt"
+          {
+            echo '## G10-19H5 — Asterisk SIP registration'
+            echo
+            [ -f "$REPORT" ] && cat "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h5-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h5.txt
+          if-no-files-found: warn
+          retention-days: 30
