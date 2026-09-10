@@ -1,0 +1,39 @@
+name: G10-19E4B | Endpoint Lab | GXP1625 Legacy Cookie Bootstrap
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e4b-legacy-cookie-parser-bootstrap.js'
+      - '.github/workflows/lab-grandstream-g10-19e4b-legacy-cookie-bootstrap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Parse legacy cookies and apply P212/P237
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Controlled legacy-cookie bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e4b.txt"
+          node endpoint-lab/grandstream/g10-19e4b-legacy-cookie-parser-bootstrap.js
+          grep -Fq 'G10-19E4B-COMPLETE=YES' "$REPORT_PATH"
+          grep -E '^(transport=|login=|cookie_names=|session_identity_|session_role_|pre_read=|phone_write=|bootstrap_post_|verify_read=|p212_target_match=|p237_target_match=|diagnostic=|next_activity=|G10-19E4B-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: g10-19e4b-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e4b.txt
+          if-no-files-found: error
+          retention-days: 30
