@@ -18,13 +18,12 @@ log 'secrets_logged=NO'
 curl -fsS --max-time 8 "$PHONE_BASE/" -o "$WORKDIR/root.html"
 log 'root_fetch=SUCCESS'
 
-python3 - "$WORKDIR/root.html" "$WORKDIR/assets.txt" <<'PY'
+python3 - "$WORKDIR/root.html" <<'PY' > "$WORKDIR/assets.txt"
 import re,sys
 html=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
 assets=set()
 for pat in [r'<script[^>]+src=["\']([^"\']+)', r'<link[^>]+href=["\']([^"\']+\.js(?:\?[^"\']*)?)']:
     assets.update(re.findall(pat,html,re.I))
-# Known filename observed in browser initiator; probe it even if dynamically loaded.
 assets.update(['/webapp-0.js','webapp-0.js'])
 for a in sorted(assets):
     print(a)
