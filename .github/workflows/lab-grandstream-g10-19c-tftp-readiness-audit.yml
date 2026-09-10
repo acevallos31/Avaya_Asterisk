@@ -1,0 +1,73 @@
+name: G10-19C | Issabel Lab | Grandstream TFTP Readiness | Read-Only Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - 'scripts/grandstream-g10-19c-tftp-readiness-audit.sh'
+      - '.github/workflows/lab-grandstream-g10-19c-tftp-readiness-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  g10_19c:
+    name: GXP1625 TFTP readiness audit
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Run G10-19C read-only TFTP readiness audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19c-tftp-readiness-audit.txt"
+          chmod +x scripts/grandstream-g10-19c-tftp-readiness-audit.sh
+          scripts/grandstream-g10-19c-tftp-readiness-audit.sh "$REPORT"
+          grep -Fq 'G10-19C-COMPLETE' "$REPORT"
+          grep -Fq 'scope=READ_ONLY' "$REPORT"
+          grep -Fq 'service_change=NO' "$REPORT"
+          grep -Fq 'firewall_change=NO' "$REPORT"
+          grep -Fq 'selinux_change=NO' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19c-tftp-readiness-audit.txt"
+          {
+            echo '## G10-19C Grandstream TFTP Readiness'
+            echo
+            echo '| Guardrail | Value |'
+            echo '|---|---|'
+            echo '| Mode | `READ-ONLY` |'
+            echo '| Service changes | `NONE` |'
+            echo '| Firewall changes | `NONE` |'
+            echo '| SELinux changes | `NONE` |'
+            echo '| Phone writes | `NONE` |'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(cfg_state=|package=|binary=|xinetd_tftp_config=|xinetd_tftp_disable=|udp69_listener=|firewalld_state=|firewalld_tftp_service_default_zone=|selinux_mode=|diagnostic=|next_activity=|G10-19C-COMPLETE)' "$REPORT" | sed 's/^/`/; s/$/`  /'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19c-grandstream-tftp-readiness-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19c-tftp-readiness-audit.txt
+          if-no-files-found: error
+          retention-days: 30
