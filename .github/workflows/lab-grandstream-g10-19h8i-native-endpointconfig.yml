@@ -1,0 +1,186 @@
+name: G10-19H8I | Issabel Lab | Native Endpoint Configurator No Chromium
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8i-http-password-override-helper.py'
+      - 'deploy/grandstream/prepare-g10-19h8i-request-fidelity-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8i-native-endpointconfig.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    name: Endpoint Configurator native login, POST and activation for GXP1625
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 12
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted reversible helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          python3 -B deploy/grandstream/prepare-g10-19h8i-http-password-override-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8i-request-fidelity-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2c-stage-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2c-output-helper.py
+          python3 -B deploy/j129/prepare-grandstream-sip-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Apply authorized endpoint-specific HTTP password override
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8i-db.txt"
+          printf '%s\n' "$PHONE_PASSWORD" \
+            | sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-http-password-override \
+            | tee "$REPORT"
+          grep -Fq 'effective_http_password_matches_supplied=YES' "$REPORT"
+          grep -Fq 'G10-19H8I-HTTP-PASSWORD-OVERRIDE-APPLY-PASS' "$REPORT"
+          ! grep -Fq "$PHONE_PASSWORD" "$REPORT"
+
+      - name: Apply temporary native request and session patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8h2-session-patch \
+            | tee "$RUNNER_TEMP/g10-19h8i-before.txt"
+          grep -Fq 'h8h2_patch_state=READY' "$RUNNER_TEMP/g10-19h8i-before.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8i-request-fidelity \
+            | tee "$RUNNER_TEMP/g10-19h8i-fidelity-apply.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8h2-session-patch \
+            | tee "$RUNNER_TEMP/g10-19h8i-session-apply.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8h2c-stage-trace \
+            | tee "$RUNNER_TEMP/g10-19h8i-stage-apply.txt"
+
+      - name: Run one native Endpoint Configurator applyconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8i-native.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig \
+            | tee "$REPORT"
+
+          grep -Fq 'applyconfig_rc=0' "$REPORT"
+          grep -Fq 'grandstream_start_seen=YES' "$REPORT"
+          grep -Fq 'h8h2c_stage_trace_seen=YES' "$REPORT"
+          grep -Fq 'G10-19H8H2C-STAGE=SID_READY' "$REPORT"
+          grep -Fq 'G10-19H8H2C-STAGE=POST_BEGIN' "$REPORT"
+          grep -Fq 'G10-19H8H2C-STAGE=POST_RESPONSE' "$REPORT"
+          grep -Fq 'G10-19H8H2C-STAGE=POST_JSON_PARSED' "$REPORT"
+          grep -Fq 'grandstream_finished_seen=YES' "$REPORT"
+          grep -Fq 'grandstream_failed_seen=NO' "$REPORT"
+          grep -Fq 'xml_p35_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p270_target_ashly=YES' "$REPORT"
+          touch "$RUNNER_TEMP/g10-19h8i-native-success"
+          echo 'G10-19H8I-NATIVE-APPLYCONFIG=PASS' >> "$REPORT"
+
+      - name: Roll back temporary live-code patches
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          STAGE_RC=0; SESSION_RC=0; FIDELITY_RC=0
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8h2c-stage-trace \
+            | tee "$RUNNER_TEMP/g10-19h8i-stage-rollback.txt" || STAGE_RC=$?
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8h2-session-patch \
+            | tee "$RUNNER_TEMP/g10-19h8i-session-rollback.txt" || SESSION_RC=$?
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8i-request-fidelity \
+            | tee "$RUNNER_TEMP/g10-19h8i-fidelity-rollback.txt" || FIDELITY_RC=$?
+          echo "stage_rollback_rc=$STAGE_RC" >> "$GITHUB_STEP_SUMMARY"
+          echo "session_rollback_rc=$SESSION_RC" >> "$GITHUB_STEP_SUMMARY"
+          echo "fidelity_rollback_rc=$FIDELITY_RC" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$STAGE_RC" -ne 0 ] || [ "$SESSION_RC" -ne 0 ] || [ "$FIDELITY_RC" -ne 0 ]; then exit 1; fi
+
+      - name: Commit override only after native success, otherwise roll it back
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8i-db-finalize.txt"
+          if [ -f "$RUNNER_TEMP/g10-19h8i-native-success" ]; then
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-http-password-override \
+              | tee "$REPORT"
+            grep -Fq 'G10-19H8I-HTTP-PASSWORD-OVERRIDE-COMMIT-PASS' "$REPORT"
+          else
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-http-password-override \
+              | tee "$REPORT"
+            grep -Fq 'G10-19H8I-HTTP-PASSWORD-OVERRIDE-ROLLBACK-PASS\|G10-19H8I-HTTP-PASSWORD-OVERRIDE-ROLLBACK=ALREADY_CLEAN' "$REPORT"
+          fi
+
+      - name: Verify Asterisk registration after native path
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8i-sip.txt"
+          OK=0
+          for n in 1 2 3 4 5 6; do
+            if sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sip-registration > "$REPORT" 2>&1; then
+              if grep -Fq 'target_registration_match=YES' "$REPORT" \
+                 && grep -Fq 'previous_extension_still_on_phone_ip=NO' "$REPORT"; then
+                OK=1
+                break
+              fi
+            fi
+            sleep 15
+          done
+          cat "$REPORT"
+          [ "$OK" -eq 1 ]
+          echo 'G10-19H8I-SIP-VERIFY=PASS' >> "$REPORT"
+
+      - name: Publish sanitized result
+        if: always()
+        shell: bash
+        run: |
+          DB="$RUNNER_TEMP/g10-19h8i-db.txt"
+          NATIVE="$RUNNER_TEMP/g10-19h8i-native.txt"
+          FINAL="$RUNNER_TEMP/g10-19h8i-db-finalize.txt"
+          SIP="$RUNNER_TEMP/g10-19h8i-sip.txt"
+          {
+            echo '## G10-19H8I — Native Endpoint Configurator without Chromium'
+            echo 'authorized_db_write=YES'
+            echo 'phone_password_logged=NO'
+            echo 'sid_or_cookie_value_logged=NO'
+            echo 'submitted_pvalue_payload_logged=NO'
+            echo 'factory_reset=NO'
+            [ -f "$DB" ] && grep -E '^(scope=|target_mac=|target_model=|override_mode=|effective_http_password_matches_supplied=|G10-19H8I-HTTP-PASSWORD-OVERRIDE-APPLY-PASS)' "$DB" || true
+            [ -f "$NATIVE" ] && grep -E '^(applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|h8h2c_stage_trace_seen=|G10-19H8H2C-STAGE=|xml_recreated=|xml_p35_target_202=|xml_p270_target_ashly=|G10-19H8I-NATIVE-APPLYCONFIG=)' "$NATIVE" || true
+            [ -f "$FINAL" ] && grep -E '^(db_override_retained=|db_row_removed=|secret_values_logged=|G10-19H8I-HTTP-PASSWORD-OVERRIDE-)' "$FINAL" || true
+            [ -f "$SIP" ] && grep -E '^(target_extension=|target_ip=|target_status=|target_registration_match=|previous_extension=|previous_extension_still_on_phone_ip=|GRANDSTREAM-SIP-REGISTRATION-PASS|G10-19H8I-SIP-VERIFY=)' "$SIP" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8i-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8i-db.txt
+            ${{ runner.temp }}/g10-19h8i-before.txt
+            ${{ runner.temp }}/g10-19h8i-native.txt
+            ${{ runner.temp }}/g10-19h8i-stage-rollback.txt
+            ${{ runner.temp }}/g10-19h8i-session-rollback.txt
+            ${{ runner.temp }}/g10-19h8i-fidelity-rollback.txt
+            ${{ runner.temp }}/g10-19h8i-db-finalize.txt
+            ${{ runner.temp }}/g10-19h8i-sip.txt
+          if-no-files-found: warn
+          retention-days: 30
