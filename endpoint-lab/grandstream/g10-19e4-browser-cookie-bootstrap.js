@@ -49,7 +49,15 @@ function post(path, body) {
     };
     const ck = cookieHeader();
     if (ck) headers['Cookie'] = ck;
-    const req = http.request({host: phoneIp, port: 80, method:'POST', path, headers, agent}, res => {
+    const req = http.request({
+      host: phoneIp,
+      port: 80,
+      method:'POST',
+      path,
+      headers,
+      agent,
+      insecureHTTPParser: true
+    }, res => {
       let text='';
       res.setEncoding('utf8');
       absorbCookies(res.headers);
@@ -67,6 +75,7 @@ function body(j){ return j && j.body && typeof j.body === 'object' ? j.body : {}
   const lines=[]; const log=(k,v)=>lines.push(`${k}=${v}`);
   log('scope','CONTROLLED_PHONE_BOOTSTRAP');
   log('transport','LAN_HTTP_BROWSER_FIDELITY');
+  log('legacy_http_parser','ENABLED_FOR_GXP1625');
   log('db_write','NO'); log('pbx_live_code_write','NO'); log('factory_reset','NO');
 
   const login = await post('/cgi-bin/dologin',{username,password});
