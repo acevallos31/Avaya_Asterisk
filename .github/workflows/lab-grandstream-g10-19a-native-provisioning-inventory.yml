@@ -2,12 +2,6 @@ name: G10-19A | Issabel Lab | Grandstream Native Provisioning Inventory | Read-O
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - Audit
-    paths:
-      - scripts/grandstream-g10-19a-native-provisioning-inventory.sh
-      - .github/workflows/lab-grandstream-g10-19a-native-provisioning-inventory.yml
 
 permissions:
   contents: read
