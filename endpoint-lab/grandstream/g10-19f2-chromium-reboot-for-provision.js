@@ -57,10 +57,23 @@ function getJson(url){ return new Promise((resolve,reject)=>{ http.get(url,res=>
   if(!names.includes('session-identity')){log('reboot_request','SKIPPED_NO_SESSION');return finish();}
 
   const rr=await cmd('Runtime.evaluate',{expression:`(async()=>{try{const r=await fetch('/cgi-bin/api-sys_operation?request=REBOOT',{credentials:'include',cache:'no-store'});const t=await r.text();let j=null;try{j=JSON.parse(t)}catch(_){};return {http:r.status,response:j&&j.response||'',body:j&&j.body||''};}catch(e){return {error:true}}})()`,awaitPromise:true,returnByValue:true});
-  const v=rr&&rr.result&&rr.result.value?rr.result.value:{};
-  log('reboot_http',v.http||0); log('reboot_response',v.response||'EMPTY'); log('reboot_body_class',v.body==='savereboot'?'SAVEREBOOT':(v.body==='directreboot'?'DIRECTREBOOT':(v.body?'OTHER':'EMPTY')));
-  log('reboot_request',v.http===200&&v.response==='success'?'ACCEPTED':'NOT_ACCEPTED');
-  log('next_activity',v.http===200&&v.response==='success'?'G10-19F3_WAIT_AND_VERIFY_CFG_FETCH':'STOP_REVIEW_REBOOT_AUTH');
+  let v=rr&&rr.result&&rr.result.value?rr.result.value:{};
+  log('session_reboot_http',v.http||0); log('session_reboot_response',v.response||'EMPTY');
+
+  let method='SESSION_ONLY';
+  if(!(v.http===200&&v.response==='success')){
+    method='CTI_PASSCODE';
+    const rr2=await cmd('Runtime.evaluate',{expression:`(async()=>{try{const u='/cgi-bin/api-sys_operation?passcode='+encodeURIComponent(${JSON.stringify(password)})+'&request=REBOOT';const r=await fetch(u,{credentials:'include',cache:'no-store'});const t=await r.text();let j=null;try{j=JSON.parse(t)}catch(_){};return {http:r.status,response:j&&j.response||'',body:j&&j.body||''};}catch(e){return {networkError:true}}})()`,awaitPromise:true,returnByValue:true});
+    v=rr2&&rr2.result&&rr2.result.value?rr2.result.value:{};
+  }
+
+  log('reboot_auth_method',method);
+  log('reboot_http',v.http||0);
+  log('reboot_response',v.response||'EMPTY');
+  log('reboot_body_class',v.body==='savereboot'?'SAVEREBOOT':(v.body==='directreboot'?'DIRECTREBOOT':(v.body?'OTHER':'EMPTY')));
+  const accepted=v.http===200&&v.response==='success';
+  log('reboot_request',accepted?'ACCEPTED':'NOT_ACCEPTED');
+  log('next_activity',accepted?'G10-19F3_WAIT_AND_VERIFY_CFG_FETCH':'STOP_REVIEW_REBOOT_AUTH');
   finish();
 
   function finish(){log('G10-19F2-COMPLETE','YES');fs.writeFileSync(reportPath,lines.join('\n')+'\n',{mode:0o600});console.log(lines.join('\n'));try{ws.close();}catch(_){}}
