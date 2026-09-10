@@ -106,3 +106,10 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
 Próximo ID disponible: `54`.
+
+## Subpruebas Grandstream G10
+
+La investigación incremental Grandstream usa IDs `G10-*` y se registra en
+`docs/grandstream/TEST-LEDGER.md`. H8L y H8M cierran el contrato mínimo del
+GXP1625 en LAB. Los gates de release y producción siguen usando la numeración
+global `NN`; el próximo gate productivo debe reservar el ID `54`.
