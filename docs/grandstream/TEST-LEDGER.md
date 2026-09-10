@@ -56,22 +56,24 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19H1 | PASS diagnóstico | Probar consumo de provisioning por HTTP mirror | El teléfono solicitó `cfgc074ade86609` y `cfgc074ade86609.xml`; PROV aceptado; Account 1 seguía 201 | El teléfono sí ejecuta provisioning y pide ambos formatos |
 | G10-19H2 | PASS | Generar XML equivalente desde cfg binario de Issabel | XML creado con 38 parámetros; P35/P36=202, P34 presente, P47=PBX, P270=Ashly | Probar XML nativo por TFTP |
 | G10-19H3 | PASS FUNCIONAL | Aplicar XML por TFTP desde Issabel | Tras provisioning nativo, el teléfono físico cambió en pantalla de Fabi a Ashly | Éxito funcional del provisioning hacia 202 |
-| G10-19H4 | PASS | Verificar persistencia después de reboot real | Tras reinicio: Account 1 habilitada, Account Name=202/Ashly, SIP server=PBX, User ID=202 y Auth ID=202 | 202 Ashly persiste; siguiente paso es confirmar registro SIP en Asterisk |
+| G10-19H4 | PASS | Verificar persistencia después de reboot real | Tras reinicio: Account 1 habilitada, Account Name=202/Ashly, SIP server=PBX, User ID=202 y Auth ID=202 | 202 Ashly persiste |
+| G10-19H5-a1 | FAIL infraestructura | Primer intento de auditoría SIP Asterisk | Acción nueva del helper de llamadas no estaba autorizada por sudoers; no se ejecutó ninguna consulta Asterisk | Reusar helper privilegiado ya autorizado |
+| G10-19H5-a2 | PASS | Confirmar registro real en Asterisk | Extensión 202 registrada `OK` desde `192.168.1.167`; extensión 201 ya no usa esa IP | Provisioning 202 validado extremo a extremo |
 
 ## Hallazgo actual
 
-El GXP1625 1.0.7.70 quedó aprovisionado funcionalmente desde Issabel y la configuración sobrevivió un reinicio real. Después de G10-19H4, Account 1 conserva `202`, Auth ID `202`, nombre objetivo Ashly y servidor SIP `192.168.1.10`.
+El GXP1625 1.0.7.70 quedó aprovisionado extremo a extremo desde Issabel. La configuración 202 Ashly sobrevivió un reinicio real y Asterisk confirma que la extensión `202` está registrada `OK` desde `192.168.1.167`. La antigua extensión `201` ya no está registrada desde esa IP.
 
-La documentación oficial de Grandstream indica que **Config Server Path (P237)** es la ruta del servidor de configuración y puede expresarse como IP/FQDN o URL válida según familia/firmware. Para TFTP, `P212=0` selecciona el transporte y `P237=192.168.1.10` es válido en este laboratorio. La prueba H1 además demostró que el teléfono solicita desde el servidor configurado tanto `cfg<MAC>` como `cfg<MAC>.xml`, confirmando que el path usado resuelve correctamente al root de provisioning.
+La documentación oficial de Grandstream indica que **Config Server Path (P237)** es la ruta del servidor de configuración y puede expresarse como IP/FQDN o URL válida según familia/firmware. Para TFTP, `P212=0` selecciona el transporte y `P237=192.168.1.10` es válido en este laboratorio. La prueba H1 demostró además que el teléfono solicita tanto `cfg<MAC>` como `cfg<MAC>.xml` desde ese root de provisioning.
 
-No debe considerarse el cierre total hasta verificar que la extensión 202 está registrada en Asterisk y hasta integrar la generación XML al flujo de Endpoint Configurator para que no dependa de una conversión manual/post-proceso.
+El bloqueo funcional del GXP1625 está resuelto. El trabajo restante es de integración: hacer que Endpoint Configurator genere automáticamente el XML junto con el binario, sin el paso H2 manual/post-proceso, y después repetir el flujo en GXP1630/GXP16xx.
 
 ## Próximas pruebas
 
-1. Verificar en Issabel/Asterisk que 202 está realmente registrada desde `192.168.1.167`.
-2. Confirmar que 201 dejó de estar registrada desde ese teléfono.
-3. Integrar generación de `cfg<MAC>.xml` en la clase Grandstream/Endpoint Configurator de forma reutilizable.
-4. Validar que al reasignar otra extensión, Endpoint Configurator regenere binario + XML automáticamente.
+1. Integrar generación de `cfg<MAC>.xml` en la clase Grandstream/Endpoint Configurator de forma reutilizable, conservando el binario legacy.
+2. Validar por pruebas estáticas que el XML usa exactamente los mismos `vars` que el binario y no expone secretos en logs.
+3. En laboratorio, ejecutar Configure desde Endpoint Configurator y comprobar que regenere automáticamente binario + XML.
+4. Reaprovisionar 202 usando únicamente el flujo integrado, sin ejecutar el conversor H2.
 5. Generalizar la ruta a GXP1630/GXP16xx y documentar diferencias por firmware/modelo.
 
 ## Regla de documentación
