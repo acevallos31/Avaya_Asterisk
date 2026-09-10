@@ -40,7 +40,7 @@ verify_grandstream_test55_post_reset() {
   local peer_202 phone_ip_seen
   verify_grandstream_test55_removal
   peer_202="$(asterisk -rx 'sip show peer 202' 2>/dev/null || true)"
-  if grep -Fq '192.168.1.167' <<<"$peer_202"; then phone_ip_seen=YES; else phone_ip_seen=NO; fi
+  if grep -Fq '192.168.1.168' <<<"$peer_202"; then phone_ip_seen=YES; else phone_ip_seen=NO; fi
   echo 'scope=TEST55_GXP1625_POST_RESET_VERIFY'
   echo "extension_202_still_on_old_phone_ip=$phone_ip_seen"
   [ "$phone_ip_seen" = NO ]

@@ -7,7 +7,7 @@ const fs=require('fs');
 const os=require('os');
 const path=require('path');
 
-const phoneBase=process.env.PHONE_BASE||'http://192.168.1.167';
+const phoneBase=process.env.PHONE_BASE||'http://192.168.1.168';
 const username=process.env.PHONE_USERNAME||'admin';
 const password=process.env.PHONE_PASSWORD||'';
 const reportPath=process.env.REPORT_PATH||'/tmp/test55-factory-reset.txt';
@@ -21,7 +21,7 @@ const chrome=spawn('/usr/bin/chromium',[
 ],{stdio:'ignore'});
 const lines=[]; const log=(k,v)=>lines.push(`${k}=${v}`);
 log('scope','TEST55_CONTROLLED_GXP1625_FACTORY_RESET');
-log('target_ip','192.168.1.167');
+log('target_ip',new URL(phoneBase).hostname);
 log('target_mac','C0:74:AD:E8:66:09');
 log('phone_write','FACTORY_RESET_ONLY');
 log('secrets_logged','NO');

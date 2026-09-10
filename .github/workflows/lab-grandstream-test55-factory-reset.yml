@@ -13,8 +13,9 @@ permissions:
   contents: read
 
 env:
-  PHONE_IP: 192.168.1.167
-  PHONE_BASE: http://192.168.1.167
+  PHONE_IP: 192.168.1.168
+  PHONE_BASE: http://192.168.1.168
+  PHONE_MAC: C0:74:AD:E8:66:09
   PHONE_USERNAME: admin
   PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
 
@@ -63,8 +64,13 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REF_NAME" = Audit
-          test "$PHONE_IP" = 192.168.1.167
+          test "$PHONE_IP" = 192.168.1.168
+          test "$PHONE_MAC" = C0:74:AD:E8:66:09
           test -n "$PHONE_PASSWORD"
+          nmap -sn "$PHONE_IP/32" >/dev/null
+          OBSERVED_MAC="$(ip neigh show "$PHONE_IP" | awk 'toupper($5)=="C0:74:AD:E8:66:09" {print toupper($5)}')"
+          test "$OBSERVED_MAC" = "$PHONE_MAC"
+          echo 'target_mac_guard=PASS' >> "$GITHUB_STEP_SUMMARY"
       - name: Factory reset through authenticated phone UI
         shell: bash
         run: |
