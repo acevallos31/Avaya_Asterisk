@@ -6,6 +6,7 @@ on:
     branches: [Audit]
     paths:
       - '.github/workflows/lab-grandstream-g10-19d-tftp-repair-proof.yml'
+      - 'scripts/grandstream-g10-19d-tftp-proof.py'
 
 permissions:
   contents: read
@@ -65,38 +66,7 @@ jobs:
           fi
 
           if ss -lun 2>/dev/null | awk '{print $5}' | grep -Eq '(^|:)69$' && [ -r "$CFG" ]; then
-            python3 - <<'PY' "$REPORT" "$CFG"
-import hashlib, os, socket, struct, sys
-report, source = sys.argv[1], sys.argv[2]
-server=('127.0.0.1',69)
-name=os.path.basename(source).encode()
-req=struct.pack('!H',1)+name+b'\0octet\0'
-s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.settimeout(3); s.sendto(req,server)
-data=bytearray(); expected=1; peer=None
-status='FAILED'
-try:
-    while True:
-        pkt, addr=s.recvfrom(2048)
-        op=struct.unpack('!H',pkt[:2])[0]
-        if op==5: break
-        if op!=3: break
-        block=struct.unpack('!H',pkt[2:4])[0]
-        if block!=expected: break
-        peer=addr
-        chunk=pkt[4:]; data.extend(chunk)
-        s.sendto(struct.pack('!HH',4,block),addr)
-        if len(chunk)<512:
-            status='SUCCESS'; break
-        expected=(expected+1)&0xffff
-except Exception:
-    pass
-src=open(source,'rb').read()
-with open(report,'a') as f:
-    f.write('tftp_rrq=%s\n'%status)
-    if status=='SUCCESS':
-        f.write('tftp_received_size=%d\n'%len(data))
-        f.write('tftp_sha_match=%s\n'%('YES' if hashlib.sha256(data).digest()==hashlib.sha256(src).digest() else 'NO'))
-PY
+            python3 scripts/grandstream-g10-19d-tftp-proof.py "$REPORT" "$CFG"
           else
             log 'tftp_rrq=SKIPPED_NO_LISTENER_OR_CFG'
           fi
