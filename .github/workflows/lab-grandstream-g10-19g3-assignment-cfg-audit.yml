@@ -1,0 +1,45 @@
+name: G10-19G3 | Issabel Lab | GXP1625 Assignment + CFG Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Verify endpoint assignment and generated cfg metadata
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run read-only assignment and cfg audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          REPORT="$RUNNER_TEMP/g10-19g3.txt"
+          chmod +x scripts/grandstream-g10-19g3-assignment-cfg-audit.sh
+          scripts/grandstream-g10-19g3-assignment-cfg-audit.sh "$REPORT"
+          grep -Fq 'G10-19G3-COMPLETE=YES' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19g3.txt"
+          {
+            echo '## G10-19G3 — Assignment + generated cfg'
+            echo
+            [ -f "$REPORT" ] && grep -E '^(scope=|db_write=|phone_write=|pbx_live_code_write=|cfg_state=|cfg_sha256=|db_audit=|endpoint_mac_found=|endpoint_account_count=|endpoint_model=|account_202_assigned=|assigned_accounts=|diagnostic=|G10-19G3-COMPLETE=)' "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19g3-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19g3.txt
+          if-no-files-found: warn
+          retention-days: 30
