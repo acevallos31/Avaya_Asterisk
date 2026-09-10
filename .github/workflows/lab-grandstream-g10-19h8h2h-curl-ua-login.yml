@@ -1,0 +1,48 @@
+name: G10-19H8H2H | Issabel Lab | Curl-UA Native Login Probe
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'scripts/grandstream-g10-19h8h2h-curl-ua-login.py'
+      - '.github/workflows/lab-grandstream-g10-19h8h2h-curl-ua-login.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+  PHONE_USERNAME: admin
+  PHONE_IP: 192.168.1.167
+
+jobs:
+  probe:
+    name: Test Python http.client with curl-like Accept and User-Agent
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run read-only login probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          REPORT="$RUNNER_TEMP/g10-19h8h2h.txt"
+          python3 -B scripts/grandstream-g10-19h8h2h-curl-ua-login.py | tee "$REPORT"
+          grep -Fq 'G10-19H8H2H-COMPLETE=YES' "$REPORT"
+          {
+            echo '## G10-19H8H2H — Curl-UA native login probe'
+            grep -E '^(scope=|phone_write=|db_write=|secret_values_logged=|tested_accept_star=|tested_user_agent_curl=|http_status_200=|content_type_json=|response_success=|body_dict=|sid_present=|diagnostic=|G10-19H8H2H-COMPLETE=)' "$REPORT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8h2h-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8h2h.txt
+          if-no-files-found: warn
+          retention-days: 30
