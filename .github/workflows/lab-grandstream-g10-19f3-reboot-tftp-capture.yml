@@ -24,6 +24,7 @@ jobs:
           REPORT="$RUNNER_TEMP/g10-19f3.txt"
           PCAP="$RUNNER_TEMP/g10-19f3.pcap"
           TXT="$RUNNER_TEMP/g10-19f3.txtdump"
+          ERR="$RUNNER_TEMP/g10-19f3.err"
           : > "$REPORT"
           log(){ printf '%s\n' "$1" | tee -a "$REPORT"; }
           log 'scope=READ_ONLY_TFTP_RRQ_CAPTURE'
@@ -37,9 +38,16 @@ jobs:
             log 'G10-19F3-COMPLETE=YES'
             exit 0
           fi
-          rm -f "$PCAP"
+          CAP=(tcpdump)
+          if sudo -n tcpdump --version >/dev/null 2>&1; then
+            CAP=(sudo -n tcpdump)
+            log 'capture_privilege=SUDO_AUTHORIZED'
+          else
+            log 'capture_privilege=UNPRIVILEGED'
+          fi
+          rm -f "$PCAP" "$ERR"
           set +e
-          timeout 100 tcpdump -ni any -s 192 -w "$PCAP" 'udp dst port 69' 2>"$RUNNER_TEMP/g10-19f3.err"
+          timeout 100 "${CAP[@]}" -ni any -s 192 -w "$PCAP" 'udp dst port 69' 2>"$ERR"
           RC=$?
           set -e
           if [ "$RC" -ne 0 ] && [ ! -s "$PCAP" ]; then
@@ -68,7 +76,7 @@ jobs:
             log 'diagnostic=TFTP_RRQ_CAPTURED_WITHOUT_EXPECTED_CFG'
             log 'next_activity=G10-19F4_REVIEW_REQUESTED_FILENAME'
           fi
-          rm -f "$PCAP" "$TXT" "$RUNNER_TEMP/g10-19f3.err"
+          rm -f "$PCAP" "$TXT" "$ERR"
           log 'G10-19F3-COMPLETE=YES'
       - name: Publish sanitized result summary
         if: always()
@@ -79,7 +87,7 @@ jobs:
             echo '## G10-19F3 — GXP1625 TFTP RRQ Capture'
             echo
             if [ -f "$REPORT" ]; then
-              grep -E '^(scope=|phone_write=|tcpdump=|tcpdump_capture=|rrq_packets=|expected_cfg_rrq=|diagnostic=|next_activity=|G10-19F3-COMPLETE=)' "$REPORT" || true
+              grep -E '^(scope=|phone_write=|capture_privilege=|tcpdump=|tcpdump_capture=|rrq_packets=|expected_cfg_rrq=|diagnostic=|next_activity=|G10-19F3-COMPLETE=)' "$REPORT" || true
             else
               echo 'report=NOT_CREATED'
             fi
