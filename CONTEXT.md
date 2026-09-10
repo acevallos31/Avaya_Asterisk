@@ -1,5 +1,23 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Actualización Grandstream GXP1625 — 2026-09-10
+
+El GXP1625 físico con firmware `1.0.7.70` alcanzó cierre E2E nativo en Issabel
+LAB. H8J-a2 validó y retuvo la integración sin Chromium. H8L run
+`34506170492` demostró que no se requiere User-Agent explícito. H8M run
+`34507118291` completó dos Configure nativos separados 300 segundos, regeneró
+`cfg<MAC>` y `cfg<MAC>.xml`, mantuvo 202/Ashly `OK` desde `192.168.1.167` y
+confirmó que 201 ya no usa esa IP.
+
+Estado: `LAB-INTEGRATION-PASS` para GXP1625 `1.0.7.70`. El parche mínimo
+H6+H8J/H8M permanece activo en LAB. La ejecución H8M a 60 segundos falló de
+forma segura y revirtió el cambio, por lo que producción debe iniciar con un
+guardrail de 300 segundos entre Configure del mismo teléfono.
+
+Siguiente paso: empaquetar install/verify/rollback, validar el paquete exacto
+en LAB, congelar checksums y ejecutar preflight read-only en la PBX productiva
+seleccionada. GXP1630 todavía requiere E2E físico independiente.
+
 Actualizado: 2026-09-02
 
 Este archivo resume el estado operativo vigente para retomar el proyecto sin reconstruir la historia. No contiene secretos reales.
