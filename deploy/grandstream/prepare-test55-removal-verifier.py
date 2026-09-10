@@ -31,6 +31,8 @@ verify_grandstream_test55_removal() {
   [ ! -e "$cfg_xml" ]
   grep -Eq 'Name[[:space:]]*:[[:space:]]*201([[:space:]]|$)' <<<"$peer_201"
   grep -Eq 'Name[[:space:]]*:[[:space:]]*202([[:space:]]|$)' <<<"$peer_202"
+  rm -f "$defaults_file"
+  trap - RETURN EXIT
   echo 'TEST55-ENDPOINT-REMOVAL-VERIFY=PASS'
 }
 
