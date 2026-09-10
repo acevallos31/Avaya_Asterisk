@@ -2,6 +2,11 @@ name: G10-19G3 | Issabel Lab | GXP1625 Assignment + CFG Audit
 
 on:
   workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19g3-assignment-cfg-audit.yml'
+      - 'scripts/grandstream-g10-19g3-assignment-cfg-audit.sh'
 
 permissions:
   contents: read
