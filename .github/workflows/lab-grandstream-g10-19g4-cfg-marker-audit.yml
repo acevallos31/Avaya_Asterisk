@@ -1,0 +1,49 @@
+name: G10-19G4 | Issabel Lab | GXP1625 CFG Marker Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19g4-cfg-marker-audit.yml'
+      - 'scripts/grandstream-g10-19g4-cfg-marker-audit.py'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Inspect binary cfg for safe extension markers
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read cfg markers only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          export REPORT_PATH="$RUNNER_TEMP/g10-19g4.txt"
+          python3 scripts/grandstream-g10-19g4-cfg-marker-audit.py
+          grep -Fq 'G10-19G4-COMPLETE=YES' "$REPORT_PATH"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19g4.txt"
+          {
+            echo '## G10-19G4 — Safe cfg markers'
+            echo
+            [ -f "$REPORT" ] && cat "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19g4-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19g4.txt
+          if-no-files-found: warn
+          retention-days: 30
