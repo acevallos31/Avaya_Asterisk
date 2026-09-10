@@ -86,9 +86,9 @@ s = s.replace(write_anchor, write_anchor + "            self._writeContent(sConf
 method_anchor = '    def _encodeGrandstreamConfig(self, vars):\n'
 if s.count(method_anchor) != 1:
     raise SystemExit('ERROR: expected exactly one encoder anchor')
-method = r'''    # G10-19H6-INTEGRATED-XML-GENERATOR
+method = r"""    # G10-19H6-INTEGRATED-XML-GENERATOR
     def _encodeGrandstreamXmlConfig(self, vars):
-        """Encode the same P-value map used by the legacy binary cfg as Grandstream XML."""
+        # Encode the same P-value map used by the legacy binary cfg as Grandstream XML.
         root = ET.Element('gs_provision', {'version': '1'})
         ET.SubElement(root, 'mac').text = self._mac.replace(':', '').lower()
         config = ET.SubElement(root, 'config', {'version': '1'})
@@ -105,7 +105,7 @@ method = r'''    # G10-19H6-INTEGRATED-XML-GENERATOR
 
         return ET.tostring(root, encoding='UTF-8', xml_declaration=True)
 
-'''
+"""
 s = s.replace(method_anchor, method + method_anchor, 1)
 p.write_text(s, encoding='utf-8')
 PY
