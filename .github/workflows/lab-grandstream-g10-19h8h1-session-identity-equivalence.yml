@@ -1,0 +1,53 @@
+name: G10-19H8H1 | Endpoint Lab | Session Identity Equivalence
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19h8h1-session-identity-equivalence.js'
+      - '.github/workflows/lab-grandstream-g10-19h8h1-session-identity-equivalence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Compare browser session-identity with login SID without exposing values
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 6
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run read-only session identity equivalence probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h8h1.txt"
+          node endpoint-lab/grandstream/g10-19h8h1-session-identity-equivalence.js
+          grep -Fq 'G10-19H8H1-COMPLETE=YES' "$REPORT_PATH"
+          grep -Fq 'login_request_seen=YES' "$REPORT_PATH"
+          grep -Fq 'login_response=success' "$REPORT_PATH"
+          grep -Fq 'login_sid_present=YES' "$REPORT_PATH"
+          grep -Fq 'session_identity_present=YES' "$REPORT_PATH"
+      - name: Publish sanitized result
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h8h1.txt"
+          {
+            echo '## G10-19H8H1 — Session identity equivalence'
+            [ -f "$REPORT" ] && cat "$REPORT" || echo 'report=NOT_CREATED'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19h8h1-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8h1.txt
+          if-no-files-found: warn
+          retention-days: 30
