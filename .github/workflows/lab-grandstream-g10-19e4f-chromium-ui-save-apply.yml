@@ -1,0 +1,56 @@
+name: G10-19E4F | Endpoint Lab | GXP1625 UI Save and Apply
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e4f-chromium-ui-save-apply.js'
+      - '.github/workflows/lab-grandstream-g10-19e4f-chromium-ui-save-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    name: Persist P212/P237 through real provisioning UI
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Controlled real-UI Save and Apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          command -v chromium >/dev/null
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e4f.txt"
+          node endpoint-lab/grandstream/g10-19e4f-chromium-ui-save-apply.js
+          grep -Fq 'G10-19E4F-COMPLETE=YES' "$REPORT_PATH"
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19e4f.txt"
+          {
+            echo '## G10-19E4F — GXP1625 real UI Save and Apply'
+            echo
+            if [ -f "$REPORT" ]; then
+              grep -E '^(scope=|phone_write=|factory_reset=|login_ui_action=|session_identity_present=|page_upgrade_visible=|config_upgrade_via_visible=|config_server_path_visible=|save_and_apply_visible=|ui_set_config_via=|ui_set_config_path=|save_and_apply_clicked=|ui_change_attempted=|cgi_request_count=|cgi_unique_paths=|diagnostic=|next_activity=|G10-19E4F-COMPLETE=)' "$REPORT" || true
+            else
+              echo 'report=NOT_CREATED'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19e4f-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e4f.txt
+          if-no-files-found: warn
+          retention-days: 30
