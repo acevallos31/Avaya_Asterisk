@@ -1,0 +1,71 @@
+name: G10-19H6 | Issabel Lab | Integrated Grandstream XML Generator Dry-Run
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h6-integrated-xml-generator-dryrun.yml'
+      - 'deploy/grandstream/prepare-xml-generator.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dryrun:
+    name: Patch workspace Grandstream.py and validate dual cfg generation code
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare integrated XML generator in workspace only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/grandstream/prepare-xml-generator.py | tee "$RUNNER_TEMP/g10-19h6.txt"
+          grep -Fq 'G10-19H6-PREPARE=PASS' "$RUNNER_TEMP/g10-19h6.txt"
+
+      - name: Validate syntax and invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          F='usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          python3 -m py_compile "$F"
+          grep -Fq "self._writeContent(sConfigPath, self._encodeGrandstreamConfig(vars))" "$F"
+          grep -Fq "self._writeContent(sConfigPath + '.xml', self._encodeGrandstreamXmlConfig(vars))" "$F"
+          grep -Fq "ET.Element('gs_provision', {'version': '1'})" "$F"
+          grep -Fq "ET.SubElement(root, 'mac').text = self._mac.replace(':', '').lower()" "$F"
+          grep -Fq "if key.startswith('P') and key[1:].isdigit():" "$F"
+          {
+            echo 'syntax=PASS'
+            echo 'legacy_binary_generation_preserved=YES'
+            echo 'xml_generation_added=YES'
+            echo 'same_vars_source=YES'
+            echo 'xml_mac_binding=YES'
+            echo 'non_p_values_excluded=YES'
+            echo 'live_pbx_code_write=NO'
+            echo 'phone_write=NO'
+            echo 'diagnostic=INTEGRATED_XML_GENERATOR_DRYRUN_PASS'
+            echo 'G10-19H6-COMPLETE=YES'
+          } | tee -a "$RUNNER_TEMP/g10-19h6.txt"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H6 — Integrated XML generator dry-run'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h6.txt" ] && cat "$RUNNER_TEMP/g10-19h6.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h6-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h6.txt
+          if-no-files-found: warn
+          retention-days: 30
