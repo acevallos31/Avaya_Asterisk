@@ -1,0 +1,106 @@
+name: G10-19H7 | Issabel Lab | Install Integrated Grandstream XML Generator
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h7-live-xml-generator.yml'
+      - 'deploy/grandstream/prepare-live-xml-generator-helper.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: Install dual cfg generator into live Endpoint Configurator
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted H7 helper action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/grandstream/prepare-live-xml-generator-helper.py | tee "$RUNNER_TEMP/g10-19h7-prepare.txt"
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          grep -Eq 'G10-19H7-HELPER-PREPARE=(PASS|ALREADY_PRESENT)' "$RUNNER_TEMP/g10-19h7-prepare.txt"
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Inspect live state before install
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-xml-generator \
+            | tee "$RUNNER_TEMP/g10-19h7-before.txt"
+          grep -Fq 'GRANDSTREAM-XML-GENERATOR-INSPECT-PASS' "$RUNNER_TEMP/g10-19h7-before.txt"
+
+      - name: Apply integrated XML generator to live Grandstream.py
+        id: apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-xml-generator \
+            | tee "$RUNNER_TEMP/g10-19h7-apply.txt"
+          grep -Eq 'GRANDSTREAM-XML-GENERATOR-APPLY-(PASS|ALREADY_PRESENT)' "$RUNNER_TEMP/g10-19h7-apply.txt"
+
+      - name: Validate live code after install
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-xml-generator \
+            | tee "$RUNNER_TEMP/g10-19h7-after.txt"
+          grep -Fq 'live_xml_generator_state=PRESENT_VALID' "$RUNNER_TEMP/g10-19h7-after.txt"
+          grep -Fq 'g10_14_username_patch_present=YES' "$RUNNER_TEMP/g10-19h7-after.txt"
+          grep -Fq 'g10_15_host_patch_present=YES' "$RUNNER_TEMP/g10-19h7-after.txt"
+          grep -Fq 'g10_15_referer_patch_present=YES' "$RUNNER_TEMP/g10-19h7-after.txt"
+          echo 'G10-19H7-COMPLETE=YES' | tee -a "$RUNNER_TEMP/g10-19h7-after.txt"
+
+      - name: Roll back H7 automatically if validation failed
+        if: failure() && steps.apply.outcome == 'success'
+        shell: bash
+        run: |
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-xml-generator \
+            | tee "$RUNNER_TEMP/g10-19h7-rollback.txt"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H7 — Live integrated Grandstream XML generator'
+            echo
+            echo '- Scope: controlled live code patch on Issabel LAB'
+            echo '- Phone configuration write: NO'
+            echo '- SIP/DB write: NO'
+            echo '- Rollback point: protected backup before live replacement'
+            echo
+            for f in "$RUNNER_TEMP/g10-19h7-before.txt" "$RUNNER_TEMP/g10-19h7-apply.txt" "$RUNNER_TEMP/g10-19h7-after.txt" "$RUNNER_TEMP/g10-19h7-rollback.txt"; do
+              if [ -f "$f" ]; then
+                grep -E '^(scope=|live_xml_generator_state=|xml_generator_marker_count=|binary_generation_count=|xml_generation_count=|g10_14_username_patch_present=|g10_15_host_patch_present=|g10_15_referer_patch_present=|backup_state=|GRANDSTREAM-XML-GENERATOR-|G10-19H7)' "$f" || true
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h7-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h7-before.txt
+            ${{ runner.temp }}/g10-19h7-apply.txt
+            ${{ runner.temp }}/g10-19h7-after.txt
+            ${{ runner.temp }}/g10-19h7-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
