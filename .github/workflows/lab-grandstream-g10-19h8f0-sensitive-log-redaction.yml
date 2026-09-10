@@ -1,0 +1,100 @@
+name: G10-19H8F0 | Issabel Lab | Grandstream Sensitive Log Redaction
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8f0-sensitive-log-redaction.yml'
+      - 'deploy/grandstream/prepare-live-log-redaction-helper.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  harden:
+    name: Remove sensitive GXP140x error logging before integrated applyconfig
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted log-redaction helper action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/grandstream/prepare-live-log-redaction-helper.py | tee "$RUNNER_TEMP/g10-19h8f0-prepare.txt"
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          grep -Eq 'G10-19H8F0-HELPER-PREPARE=(PASS|ALREADY_PRESENT)' "$RUNNER_TEMP/g10-19h8f0-prepare.txt"
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Inspect sensitive logging before patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sensitive-logging \
+            | tee "$RUNNER_TEMP/g10-19h8f0-before.txt"
+          grep -Fq 'GRANDSTREAM-SENSITIVE-LOGGING-INSPECT-PASS' "$RUNNER_TEMP/g10-19h8f0-before.txt"
+
+      - name: Apply safe error logging patch
+        id: apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-log-redaction \
+            | tee "$RUNNER_TEMP/g10-19h8f0-apply.txt"
+          grep -Eq 'GRANDSTREAM-LOG-REDACTION-APPLY-(PASS|ALREADY_SAFE)' "$RUNNER_TEMP/g10-19h8f0-apply.txt"
+
+      - name: Verify no sensitive rejection logging remains
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sensitive-logging \
+            | tee "$RUNNER_TEMP/g10-19h8f0-after.txt"
+          grep -Fq 'sensitive_logging_state=SAFE' "$RUNNER_TEMP/g10-19h8f0-after.txt"
+          echo 'G10-19H8F0-COMPLETE=YES' | tee -a "$RUNNER_TEMP/g10-19h8f0-after.txt"
+
+      - name: Roll back automatically if validation failed
+        if: failure() && steps.apply.outcome == 'success'
+        shell: bash
+        run: |
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-log-redaction \
+            | tee "$RUNNER_TEMP/g10-19h8f0-rollback.txt"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8F0 — Grandstream sensitive log redaction'
+            echo
+            echo '- Scope: live Grandstream.py security hardening'
+            echo '- Phone/SIP/DB write: NO'
+            echo '- Purpose: prevent P34/SID/config values from entering applyconfig logs'
+            echo
+            for f in "$RUNNER_TEMP/g10-19h8f0-before.txt" "$RUNNER_TEMP/g10-19h8f0-apply.txt" "$RUNNER_TEMP/g10-19h8f0-after.txt" "$RUNNER_TEMP/g10-19h8f0-rollback.txt"; do
+              [ -f "$f" ] && grep -E '^(scope=|unsafe_sensitive_error_log_count=|safe_logging_marker_count=|sensitive_logging_state=|unsafe_before=|unsafe_after=|backup_state=|GRANDSTREAM-|G10-19H8F0)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8f0-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8f0-before.txt
+            ${{ runner.temp }}/g10-19h8f0-apply.txt
+            ${{ runner.temp }}/g10-19h8f0-after.txt
+            ${{ runner.temp }}/g10-19h8f0-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
