@@ -4,7 +4,6 @@
 Validated on GXP1625 firmware 1.0.7.70 by H8I. The live patch preserves the
 existing G10-14/G10-15 login payload/Host/Referer behavior and adds:
 - Accept: */*
-- validated curl-like User-Agent
 - propagation of Set-Cookie values from dologin
 - client-side session-identity=<SID>, matching the real web UI contract
 
@@ -40,7 +39,7 @@ inspect_grandstream_h8j_final_native() {
   echo "cookie_header_count=$cookie_count"
   if [ "$marker_count" -eq 0 ] && [ "$sid_count" -eq 0 ]; then
     echo 'h8j_state=READY'
-  elif [ "$marker_count" -ge 2 ] && [ "$accept_count" -ge 1 ] && [ "$ua_count" -ge 1 ] && [ "$sid_count" -eq 1 ] && [ "$cookie_count" -ge 1 ]; then
+  elif [ "$marker_count" -ge 2 ] && [ "$accept_count" -ge 1 ] && [ "$ua_count" -eq 0 ] && [ "$sid_count" -eq 1 ] && [ "$cookie_count" -ge 1 ]; then
     echo 'h8j_state=PATCHED'
   else
     echo 'h8j_state=UNEXPECTED'
@@ -91,7 +90,6 @@ new_headers = """            headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 # G10-19H8J-FINAL-NATIVE-GXP16XX — request fidelity validated on GXP1625 1.0.7.70
                 'Accept': '*/*',
-                'User-Agent': 'curl/8.14.1',
                 'Host': self._ip,
                 'Referer': 'http://%s/' % self._ip,
             }
