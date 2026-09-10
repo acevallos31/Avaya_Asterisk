@@ -1,0 +1,77 @@
+name: G10-19H4 | Endpoint Lab | GXP1625 Reboot Persistence
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h4-reboot-persistence.yml'
+      - 'endpoint-lab/grandstream/g10-19h4-reboot-persistence.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Reboot phone and verify 202 persists
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 8
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger controlled reboot
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h4-reboot.txt"
+          node endpoint-lab/grandstream/g10-19h4-reboot-persistence.js
+          grep -Fq 'reboot_request=ACCEPTED' "$REPORT_PATH"
+      - name: Wait for full phone recovery
+        shell: bash
+        run: |
+          sleep 45
+          READY=NO
+          for i in $(seq 1 35); do
+            if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then READY=YES; break; fi
+            sleep 4
+          done
+          echo "phone_http_ready=$READY" >> "$GITHUB_STEP_SUMMARY"
+          test "$READY" = YES
+          sleep 25
+      - name: Verify Account 1 after reboot
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h4-account.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+          grep -Fq 'sip_user_id=202' "$REPORT_PATH"
+          grep -Fq 'auth_id=202' "$REPORT_PATH"
+          grep -Fq 'account_name_target_202=YES' "$REPORT_PATH"
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H4 — Reboot persistence'
+            echo
+            for f in "$RUNNER_TEMP/g10-19h4-reboot.txt" "$RUNNER_TEMP/g10-19h4-account.txt"; do
+              [ -f "$f" ] && grep -E '^(scope=|phone_write=|sip_account_direct_write=|factory_reset=|reboot_http=|reboot_response=|reboot_request=|account_enabled=|account_name_target_202=|sip_server_target_pbx=|sip_user_id=|auth_id=|diagnostic=|G10-19)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h4-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h4-reboot.txt
+            ${{ runner.temp }}/g10-19h4-account.txt
+          if-no-files-found: warn
+          retention-days: 30
