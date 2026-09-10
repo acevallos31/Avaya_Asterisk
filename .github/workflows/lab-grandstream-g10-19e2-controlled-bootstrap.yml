@@ -1,0 +1,65 @@
+name: G10-19E2 | Endpoint Lab | GXP1625 Controlled TFTP Bootstrap
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e2-controlled-bootstrap.js'
+      - '.github/workflows/lab-grandstream-g10-19e2-controlled-bootstrap.yml'
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-19E2'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Apply and verify P212/P237 on GXP1625
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Guard Audit branch and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          if [ "${GITHUB_EVENT_NAME}" = 'workflow_dispatch' ]; then
+            test '${{ inputs.confirmation }}' = 'RUN-G10-19E2'
+          fi
+          test "$(id -un)" = 'github-runner'
+          command -v node >/dev/null
+          test -n "$PHONE_PASSWORD"
+
+      - name: Controlled phone provisioning bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e2-controlled-bootstrap.txt"
+          node endpoint-lab/grandstream/g10-19e2-controlled-bootstrap.js
+          grep -Fq 'G10-19E2-COMPLETE=YES' "$REPORT_PATH"
+          if grep -Fq 'diagnostic=PHONE_TFTP_BOOTSTRAP_READY' "$REPORT_PATH"; then
+            echo 'bootstrap_result=READY' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'bootstrap_result=NOT_APPLIED' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          grep -E '^(login=|pre_read=|phone_write=|bootstrap_post_|verify_read=|p212_target_match=|p237_target_match=|connection_reused=|diagnostic=|next_activity=|G10-19E2-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19e2-controlled-bootstrap-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e2-controlled-bootstrap.txt
+          if-no-files-found: error
+          retention-days: 30
