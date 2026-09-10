@@ -1,0 +1,88 @@
+name: G10-19H8B | Issabel Lab | issabel-endpointconfig CLI Contract Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8b-endpointconfig-cli-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Determine safest supported applyconfig scope
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect CLI contract read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8b.txt"
+          {
+            echo 'scope=READ_ONLY_ISSABEL_ENDPOINTCONFIG_CLI_CONTRACT'
+            echo 'phone_write=NO'
+            echo 'pbx_write=NO'
+            echo 'db_write=NO'
+            echo 'secrets_logged=NO'
+            if [ -x /usr/bin/issabel-endpointconfig ]; then
+              echo 'endpointconfig_cli_present=YES'
+              file /usr/bin/issabel-endpointconfig | sed 's/^/cli_file_type=/'
+              echo '--- HELP ---'
+              /usr/bin/issabel-endpointconfig --help 2>&1 | head -n 120 || true
+              echo '--- SAFE OPTION TOKENS FROM SOURCE/BINARY ---'
+              python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('/usr/bin/issabel-endpointconfig')
+          try:
+              data=p.read_bytes()[:2000000]
+          except Exception:
+              data=b''
+          text=data.decode('utf-8','ignore')
+          tokens=sorted(set(re.findall(r'--[A-Za-z0-9][A-Za-z0-9_-]*', text)))
+          for t in tokens:
+              if any(k in t.lower() for k in ('apply','config','endpoint','mac','ip','vendor','model','progress','clear','help')):
+                  print('cli_option_token='+t)
+          for needle in ('applyconfig','clearconfig','progressfile','endpoint','mac_address','last_known_ipv4'):
+              print('cli_contains_%s=%s' % (needle, 'YES' if needle in text else 'NO'))
+          PY
+              echo '--- PHP INVOCATION CONTRACT ---'
+              sed -n '470,520p' /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php \
+                | grep -E 'issabel-endpointconfig|applyconfig|clearconfig|progressfile|exec\(' \
+                | head -n 40 || true
+              echo '--- CURRENT APPLYCONFIG PROCESS ---'
+              if pgrep -af '[i]ssabel-endpointconfig.*applyconfig' >/dev/null 2>&1; then
+                echo 'applyconfig_process_running=YES'
+              else
+                echo 'applyconfig_process_running=NO'
+              fi
+            else
+              echo 'endpointconfig_cli_present=NO'
+            fi
+            echo 'G10-19H8B-COMPLETE=YES'
+          } | tee "$REPORT"
+          grep -Fq 'G10-19H8B-COMPLETE=YES' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8B — issabel-endpointconfig CLI contract'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8b.txt" ] && cat "$RUNNER_TEMP/g10-19h8b.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8b-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8b.txt
+          if-no-files-found: warn
+          retention-days: 30
