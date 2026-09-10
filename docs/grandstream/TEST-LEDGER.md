@@ -27,42 +27,48 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 |---|---|---|---|---|
 | G10-19A | PASS | Inventariar provisioning nativo Issabel | Issabel genera `cfg<MAC>` binario; `Grandstream.py` contiene P212/P237/P6767; cfg presente en `/tftpboot` | Mantener generador existente mientras sea viable |
 | G10-19B | PASS | Mapear P-values de provisioning | P212=Config Upgrade Via; P237=Config Server Path; P234/P235 prefijo/sufijo; P240 auth config; P1359/P1360/P1361 auth XML/HTTP | Base común para GXP1625/GXP1630 |
-| G10-19C | PASS | Diagnosticar TFTP | `tftp-server` e `in.tftpd` presentes; xinetd activo; listener no evidente con `ss` | Probar RRQ real en vez de confiar solo en `ss` |
-| G10-19D | PASS | Probar TFTP real | RRQ local y desde `endpoint-lab-debian` exitosos; tamaño y SHA del cfg coinciden | TFTP de Issabel queda validado; firewall no es bloqueo |
-| G10-19E | PASS | Leer estado provisioning del GXP1625 | Login y lectura P-values exitosos; P212/P237 sin bootstrap útil | Se requiere bootstrap del teléfono |
-| G10-19E2 | FAIL controlado | Escribir P212/P237 por API web | Login/read OK; `api.values.post` devuelve `session-expired`; valores no cambian | No asumir problema de credenciales |
-| G10-19E3 | FAIL controlado | Repetir write en una sola sesión HTTP/2 | Login/read/sesión persistente OK; write sigue `session-expired` | Se descarta que HTTP/2/keepalive sea la causa |
-| G10-19E4 | FAIL controlado | Reproducir request tipo navegador | Chrome real sí escribe; cliente directo no. Se identifica diferencia de cookies/sesión | Investigar `session-identity` |
-| G10-19E4B | FAIL controlado | Parsear cookies legacy del firmware | Cliente obtiene `session-role`, no `session-identity`; write sigue `session-expired` | `session-identity` no viene del login HTTP directo observado |
-| G10-19E4C | PASS diagnóstico | Buscar origen estático de `session-identity` | `webapp.nocache.js` no contiene literal relevante | Pasar a traza runtime con navegador real |
-| G10-19E4D | PASS diagnóstico | Traza runtime con Chromium/CDP | Login UI real crea `session-identity` y `session-role`; no se observó como Set-Cookie directo | Reproducir secuencia real del navegador |
-| G10-19E4E | PASS temporal | Aplicar bootstrap dentro de sesión Chromium real | POST P212/P237 responde `success/right`; relectura inmediata confirma P212=0 y P237=PBX | La escritura runtime funciona, pero debe demostrarse persistencia |
-| G10-19F2 | PASS | Reiniciar de forma controlada | Fallback autenticado aceptado con `SAVEREBOOT`; no hubo factory reset | Verificar persistencia después del boot |
-| G10-19F3 | BLOQUEADO observabilidad | Capturar RRQ TFTP | Runner sin privilegio de `tcpdump`; `sudo -n tcpdump` tampoco autorizado | No interpretar falta de captura como falta de RRQ |
-| G10-19F3B | BLOQUEADO observabilidad | Buscar RRQ en logs TFTP | Journal/messages no legibles para runner | Usar estado del teléfono o helper restringido como evidencia alternativa |
-| G10-19G2-pre | PASS diagnóstico | Baseline Account 1 | Cuenta habilitada, PBX correcta, User/Auth ID=201 | 201 confirmado como rollback previo |
-| G10-19E-post-reboot | FAIL funcional | Verificar persistencia P212/P237 después del reboot | Tras volver HTTP, P212 y P237 regresaron a vacío | `api.values.post` por sí solo cambia estado operativo pero no persiste en flash/config permanente |
-| G10-19G2-post | PASS diagnóstico | Verificar Account 1 después del reboot | Teléfono vuelve accesible; User/Auth ID siguen en 201 | No hubo aplicación persistente de cfg hacia 202 |
-| G10-19E4F | FAIL seguro | Usar página real Upgrade and Provisioning y pulsar Save and Apply | Página/labels/botón encontrados; Config Server Path se localizó; selector de Config Upgrade Via no fue mapeado, por lo que no se pulsó Save and Apply | No forzar UI a ciegas; inspeccionar forma real del control |
-| G10-19E4F2 | PASS diagnóstico | Auditar forma DOM de controles de provisioning | Página tiene 4 `select`, 39 radios y 8 botones; búsqueda exacta del nodo de texto del label no lo localizó | GWT fragmenta/renderiza texto; siguiente prueba debe mapear controles por índice/valores visibles de forma read-only |
+| G10-19C | PASS | Diagnosticar TFTP | `tftp-server` e `in.tftpd` presentes; xinetd activo | Probar RRQ real |
+| G10-19D | PASS | Probar TFTP real | RRQ local y desde `endpoint-lab-debian` exitosos; tamaño y SHA del cfg coinciden | TFTP de Issabel validado |
+| G10-19E | PASS | Leer estado provisioning del GXP1625 | Login/read exitosos; P212/P237 inicialmente vacíos | Se requiere bootstrap |
+| G10-19E2 | FAIL controlado | Escribir P212/P237 por cliente directo | `api.values.post` devuelve `session-expired` | No es problema de credenciales |
+| G10-19E3 | FAIL controlado | Repetir write HTTP/2/keepalive | Sigue `session-expired` | Transporte no era la causa |
+| G10-19E4D | PASS diagnóstico | Trazar sesión Chromium real | Webapp crea `session-identity`/`session-role` | Usar navegador real para writes |
+| G10-19E4E | PASS temporal | Escribir P212/P237 dentro de Chromium | `success/right`; relectura inmediata confirma P212=0 y P237=PBX | Escritura runtime funciona |
+| G10-19F2 | PASS | Reboot controlado | Fallback autenticado aceptado con `SAVEREBOOT`; sin factory reset | Verificar estado post-boot |
+| G10-19F3 | BLOQUEADO observabilidad | Capturar RRQ TFTP | Runner sin privilegio de captura | No inferir ausencia de RRQ |
+| G10-19F3B | BLOQUEADO observabilidad | Buscar RRQ en logs | Journal/messages no legibles | Usar evidencia alternativa |
+| G10-19G2-pre | PASS diagnóstico | Baseline Account 1 | Cuenta habilitada, PBX correcta, User/Auth=201 | 201 queda rollback |
+| G10-19E-post-reboot | FAIL funcional | Persistencia P212/P237 | Tras reboot vuelven a vacío | Write runtime no persiste |
+| G10-19E4F | FAIL seguro | Save and Apply por UI | Página/campos/botón encontrados; no se mapeó P212 con seguridad | No pulsar a ciegas |
+| G10-19E4F2 | PASS diagnóstico | Auditar DOM | 4 selects, 39 radios, 8 botones | Mapear radios |
+| G10-19E4F3 | PASS diagnóstico | Mapear selects | Ningún select corresponde a P212 | P212 no es select |
+| G10-19E4F3B | PASS diagnóstico | Mapear radios P212 | `name=P212`: value 0=TFTP, 1=HTTP, 2=HTTPS, 3=FTP, 4=FTPS | Control identificado inequívocamente |
+| G10-19E4F4 | PASS temporal | Save and Apply real con P212/P237 | Radio TFTP, P237 y botón encontrados; click ejecutado; API inmediata confirma objetivo | Probar persistencia post-reboot |
+| G10-19F4 | TRANSITORIO | Reboot + persistencia | Reboot aceptado; ventana de 90 s insuficiente para HTTP | Repetir con espera larga |
+| G10-19F4B | PASS diagnóstico | Leer después del boot | P212/P237 vuelven a vacío; Account 1 sigue 201 | Save and Apply tampoco deja esos P-values persistentes |
+| G10-19F5 | PASS diagnóstico | Control sin posibilidad de fetch | Se usó temporalmente destino reservado no enrutable; tras reboot P212/P237 también vuelven a vacío | Se descarta que el cfg de Issabel sea quien esté borrando P212/P237 |
+| G10-19F6 | INCONCLUSO | Set PBX + disparar operación PROV en proceso separado | Bootstrap previo OK; segundo Chromium arrancó mientras teléfono estaba ocupado y terminó en timeout antes del trigger | No clasificar soporte PROV con esta corrida |
+| G10-19F6B-a1 | TRANSITORIO | Bootstrap runtime + PROV en una sola sesión | Primer intento arrancó durante estado transitorio y no obtuvo sesión web | Repetir con teléfono estable |
+| G10-19F6B-a2 | PASS diagnóstico | Bootstrap runtime + PROV en la misma sesión estable | Login real OK; P212/P237 `success/right`; verificación READY; `PROV` con fallback autenticado devuelve `success`; teléfono vuelve accesible | Firmware sí acepta operación nativa PROV; siguiente bloqueo está en fetch/aplicación del cfg |
+| G10-19G2-after-PROV | PASS diagnóstico | Leer Account 1 después de PROV aceptado | Cuenta habilitada; SIP server PBX; User/Auth siguen `201` | PROV no llevó Account 1 a 202; inspeccionar cfg/assignment antes de más pruebas de teléfono |
 
 ## Hallazgo actual
 
-La sesión Chromium resuelve definitivamente el `session-expired`: G10-19E4E logró una escritura aceptada y verificable inmediatamente. Sin embargo, el reboot posterior demostró que P212/P237 vuelven a vacío. Por tanto, `api.values.post` no es suficiente para persistir estos parámetros en el GXP1625 1.0.7.70.
+El firmware GXP1625 1.0.7.70 acepta una operación nativa de provisioning (`PROV`) cuando primero se establece en runtime P212=TFTP y P237=PBX dentro de una sesión Chromium válida. G10-19F6B-a2 confirmó la secuencia completa hasta `provision_request=ACCEPTED`.
 
-La ruta correcta ahora es reproducir el comportamiento de **Save and Apply** de la página real `Upgrade and Provisioning`. G10-19E4F evitó una escritura incompleta al no poder mapear con seguridad el control `Config Upgrade Via`; G10-19E4F2 confirmó que existen controles nativos suficientes, pero el DOM GWT no permite localizar el label mediante texto exacto simple.
+Sin embargo, Account 1 continúa en `201` después de PROV. Esto desplaza el siguiente diagnóstico desde la autenticación web del teléfono hacia la cadena **Endpoint Configurator -> cfg generado -> solicitud/consumo del cfg -> contenido compatible con 202**. No conviene seguir variando cookies, sesiones, reboot o P212/P237 hasta comprobar el estado del cfg y la asignación del lado Issabel.
 
-No debe declararse éxito de provisioning de `202 Ashly` hasta que P212/P237 sobrevivan un reboot, el teléfono consuma el cfg y Account 1 muestre 202, seguido de registro SIP en Asterisk.
+No debe declararse éxito de provisioning de `202 Ashly` hasta que el teléfono muestre User/Auth ID 202 y Asterisk confirme su registro.
 
 ## Próximas pruebas
 
-1. Mapear de forma read-only los cuatro `select` de Upgrade and Provisioning mediante sus opciones visibles, sin registrar valores sensibles.
-2. Identificar inequívocamente cuál `select` contiene TFTP/HTTP/HTTPS y asociarlo a Config Upgrade Via.
-3. Ejecutar Save and Apply con P212=0 y P237=PBX.
-4. Reboot/verificación de persistencia.
-5. Verificar Account 1: 201 -> 202.
-6. Confirmar registro SIP 202 en Issabel.
-7. Documentar la secuencia generalizable para GXP1630/GXP16xx.
+1. Auditar en Issabel, solo lectura, la asignación vigente del GXP1625/MAC y confirmar que apunta a `202 Ashly`.
+2. Auditar metadata del `cfg<MAC>` vigente: existencia, timestamp, tamaño, owner/permisos y SHA; no publicar payload ni secreto SIP.
+3. Determinar si ese cfg fue regenerado después de seleccionar 202 o sigue correspondiendo a un estado anterior.
+4. Si assignment/cfg son correctos, buscar evidencia de solicitud/consumo del archivo sin ampliar privilegios innecesariamente.
+5. Si el cfg no corresponde a 202, corregir la generación desde Endpoint Configurator con aprobación antes de tocar la cuenta del teléfono.
+6. Cuando Account 1 muestre 202, verificar registro SIP en Issabel.
+7. Generalizar la secuencia a GXP1630/GXP16xx.
 
 ## Regla de documentación
 
