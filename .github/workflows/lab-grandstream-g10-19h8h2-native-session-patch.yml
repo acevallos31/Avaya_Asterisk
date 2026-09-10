@@ -1,0 +1,129 @@
+name: G10-19H8H2 | Issabel Lab | Native Session Identity Patch
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8h2-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8h2-native-session-patch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  patch-and-prove:
+    name: Make native Grandstream applyconfig reproduce browser session identity
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted helper actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 -B deploy/grandstream/prepare-g10-19h8h2-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Inspect live patch baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8h2-before.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8h2-session-patch | tee "$REPORT"
+          grep -Fq 'secret_values_logged=NO' "$REPORT"
+          grep -Eq 'h8h2_patch_state=(READY|PATCHED)' "$REPORT"
+          grep -Fq 'GRANDSTREAM-H8H2-SESSION-PATCH-INSPECT-PASS' "$REPORT"
+
+      - name: Apply targeted browser-equivalent session patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8h2-apply.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8h2-session-patch | tee "$REPORT"
+          grep -Eq 'GRANDSTREAM-H8H2-SESSION-PATCH-(APPLY-PASS|ALREADY-PRESENT)' "$REPORT"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8h2-session-patch \
+            | tee "$RUNNER_TEMP/g10-19h8h2-after.txt"
+          grep -Fq 'h8h2_patch_state=PATCHED' "$RUNNER_TEMP/g10-19h8h2-after.txt"
+          grep -Fq 'session_identity_synth_line_count=1' "$RUNNER_TEMP/g10-19h8h2-after.txt"
+          grep -Fq 'secret_values_logged=NO' "$RUNNER_TEMP/g10-19h8h2-after.txt"
+
+      - name: Run Endpoint Configurator directly with no Chromium provisioning step
+        id: native
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8h2-native.txt"
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          HELPER_RC=${PIPESTATUS[0]}
+          set -e
+
+          TECH=FAIL
+          if [ "$HELPER_RC" -eq 0 ] \
+             && grep -Fq 'applyconfig_rc=0' "$REPORT" \
+             && grep -Fq 'grandstream_start_seen=YES' "$REPORT" \
+             && grep -Fq 'grandstream_finished_seen=YES' "$REPORT" \
+             && grep -Fq 'grandstream_failed_seen=NO' "$REPORT" \
+             && grep -Fq 'xml_recreated=YES' "$REPORT" \
+             && grep -Fq 'xml_p35_target_202=YES' "$REPORT" \
+             && grep -Fq 'xml_p36_target_202=YES' "$REPORT" \
+             && grep -Fq 'xml_p47_target_pbx=YES' "$REPORT" \
+             && grep -Fq 'G10-19H8F-INTEGRATED-APPLYCONFIG-PASS' "$REPORT"; then
+            TECH=PASS
+          fi
+
+          echo "technical_result=$TECH" >> "$GITHUB_OUTPUT"
+          if [ "$TECH" != PASS ]; then
+            echo 'Native activation did not complete; rolling back only H8H2 live-code patch.' >&2
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8h2-session-patch \
+              | tee "$RUNNER_TEMP/g10-19h8h2-rollback.txt"
+            exit 1
+          fi
+
+      - name: Publish sanitized proof
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8H2 — Native Issabel session identity patch'
+            echo
+            echo 'chromium_used_for_provisioning=NO'
+            echo 'phone_password_logged=NO'
+            echo 'session_identity_value_logged=NO'
+            echo 'login_sid_value_logged=NO'
+            echo
+            for f in \
+              "$RUNNER_TEMP/g10-19h8h2-before.txt" \
+              "$RUNNER_TEMP/g10-19h8h2-after.txt" \
+              "$RUNNER_TEMP/g10-19h8h2-native.txt" \
+              "$RUNNER_TEMP/g10-19h8h2-rollback.txt"; do
+              [ -f "$f" ] || continue
+              grep -E '^(scope=|secret_values_logged=|username_payload_line_count=|host_header_line_count=|referer_header_line_count=|h8h2_marker_count=|session_identity_synth_line_count=|cookie_header_line_count=|h8h2_backup_present=|h8h2_patch_state=|selected_count=|target_selected_count=|applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|xml_recreated=|xml_p35_target_202=|xml_p36_target_202=|xml_p47_target_pbx=|diagnostic=|GRANDSTREAM-H8H2|G10-19H8F)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8h2-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8h2-before.txt
+            ${{ runner.temp }}/g10-19h8h2-apply.txt
+            ${{ runner.temp }}/g10-19h8h2-after.txt
+            ${{ runner.temp }}/g10-19h8h2-native.txt
+            ${{ runner.temp }}/g10-19h8h2-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
