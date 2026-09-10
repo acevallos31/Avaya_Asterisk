@@ -51,7 +51,7 @@ jobs:
           set -euo pipefail
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-log-redaction \
             | tee "$RUNNER_TEMP/g10-19h8f0-apply.txt"
-          grep -Eq 'GRANDSTREAM-LOG-REDACTION-APPLY-(PASS|ALREADY_SAFE)' "$RUNNER_TEMP/g10-19h8f0-apply.txt"
+          grep -Eq 'GRANDSTREAM-LOG-REDACTION-APPLY(-PASS|=ALREADY_SAFE)' "$RUNNER_TEMP/g10-19h8f0-apply.txt"
 
       - name: Verify no sensitive rejection logging remains
         shell: bash
