@@ -1,0 +1,81 @@
+name: G10-19F6B | Endpoint Lab | GXP1625 Live Bootstrap + PROV
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19f6b-live-bootstrap-prov.js'
+      - '.github/workflows/lab-grandstream-g10-19f6b-live-bootstrap-prov.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-bootstrap-prov:
+    name: Set runtime TFTP target and trigger PROV in same Chromium session
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 10
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Live bootstrap and native PROV
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f6b-prov.txt"
+          node endpoint-lab/grandstream/g10-19f6b-live-bootstrap-prov.js
+          grep -Fq 'G10-19F6B-COMPLETE=YES' "$REPORT_PATH"
+      - name: Wait for phone to settle
+        id: wait
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          sleep 15
+          READY=NO
+          for i in $(seq 1 48); do
+            if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then READY=YES; break; fi
+            sleep 5
+          done
+          echo "ready=$READY" >> "$GITHUB_OUTPUT"
+          echo "phone_http_returned=$READY" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+      - name: Read Account 1 after PROV attempt
+        if: steps.wait.outputs.ready == 'YES'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f6b-account.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+          {
+            echo '## G10-19F6B — Account 1'
+            grep -E '^(account_enabled=|account_name_target_202=|sip_server_target_pbx=|sip_user_id=|auth_id=|diagnostic=)' "$REPORT_PATH" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish sanitized PROV result
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19f6b-prov.txt"
+          {
+            echo
+            echo '## G10-19F6B — Live bootstrap + native PROV'
+            [ -f "$REPORT" ] && cat "$REPORT" || echo 'report=NOT_CREATED'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19f6b-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19f6b-prov.txt
+            ${{ runner.temp }}/g10-19f6b-account.txt
+          if-no-files-found: warn
+          retention-days: 30
