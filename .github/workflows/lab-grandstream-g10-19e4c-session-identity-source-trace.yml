@@ -1,0 +1,36 @@
+name: G10-19E4C | Endpoint Lab | GXP1625 Session Identity Source Trace
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e4c-session-identity-source-trace.sh'
+      - '.github/workflows/lab-grandstream-g10-19e4c-session-identity-source-trace.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    name: Trace session-identity source in GXP1625 webapp
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_BASE: http://192.168.1.167
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only static webapp trace
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e4c.txt"
+          bash endpoint-lab/grandstream/g10-19e4c-session-identity-source-trace.sh
+          grep -Fq 'G10-19E4C-COMPLETE=YES' "$REPORT_PATH"
+          grep -E '^(scope=|root_fetch=|asset\[[0-9]+\]\.(name|size|session_identity_hits|session_role_hits|api_values_post_hits)=|assets_fetched=|session_identity_total_hits=|session_role_total_hits=|api_values_post_total_hits=|diagnostic=|next_activity=|G10-19E4C-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: g10-19e4c-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e4c.txt
+          if-no-files-found: error
+          retention-days: 30
