@@ -1,0 +1,52 @@
+name: G10-19H8L | Issabel Lab | Minimal User-Agent Login Probe
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'scripts/grandstream-g10-19h8l-user-agent-minimal.py'
+      - '.github/workflows/lab-grandstream-g10-19h8l-user-agent-minimal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+  PHONE_USERNAME: admin
+  PHONE_IP: 192.168.1.167
+
+jobs:
+  probe:
+    name: Minimize the validated native login User-Agent requirement
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run read-only User-Agent minimization probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          REPORT="$RUNNER_TEMP/g10-19h8l.txt"
+          python3 -B scripts/grandstream-g10-19h8l-user-agent-minimal.py | tee "$REPORT"
+          grep -Fq 'scope=READ_ONLY_USER_AGENT_MINIMIZATION' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+          grep -Fq 'db_write=NO' "$REPORT"
+          grep -Fq 'secret_values_logged=NO' "$REPORT"
+          grep -Fq 'G10-19H8L-COMPLETE=YES' "$REPORT"
+          {
+            echo '## G10-19H8L — Minimal User-Agent login probe'
+            grep -E '^(scope=|phone_write=|db_write=|secret_values_logged=|variant_count=|accept_only_no_explicit_ua=|accept_plus_issabel_ua=|decision=|G10-19H8L-COMPLETE=)' "$REPORT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8l-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8l.txt
+          if-no-files-found: warn
+          retention-days: 30
