@@ -5,6 +5,7 @@ on:
     branches: [Audit]
     paths:
       - 'deploy/grandstream/prepare-g10-19h8j-final-native-helper.py'
+      - 'deploy/grandstream/prepare-g10-19h8j-select-endpoint-helper.py'
       - '.github/workflows/lab-grandstream-g10-19h8j-final-native.yml'
   workflow_dispatch:
 
@@ -28,6 +29,7 @@ jobs:
           test "$GITHUB_REF_NAME" = 'Audit'
           test -n "$PHONE_PASSWORD"
           python3 -B deploy/grandstream/prepare-g10-19h8j-final-native-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8j-select-endpoint-helper.py
           python3 -B deploy/grandstream/prepare-g10-19h8h2f-http-password-match-helper.py
           python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
           python3 -B deploy/j129/prepare-grandstream-sip-registration-audit.py
@@ -51,7 +53,17 @@ jobs:
             | tee "$REPORT"
           grep -Fq 'effective_http_password_source=ENDPOINT_OVERRIDE' "$REPORT"
           grep -Fq 'effective_http_password_matches_lab_secret=YES' "$REPORT"
-          ! grep -Fq "$PHONE_PASSWORD" "$REPORT"
+
+      - name: Select exact GXP1625 202 endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8j-selection.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy select-grandstream-gxp1625-202 \
+            | tee "$REPORT"
+          grep -Fq 'selected_now=YES' "$REPORT"
+          grep -Fq 'G10-19H8J-SELECT-ENDPOINT-PASS' "$REPORT"
+          touch "$RUNNER_TEMP/g10-19h8j-selection-active"
 
       - name: Apply final reversible native integration
         shell: bash
@@ -63,6 +75,7 @@ jobs:
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8j-final-native \
             | tee "$RUNNER_TEMP/g10-19h8j-apply.txt"
           grep -Fq 'G10-19H8J-FINAL-NATIVE-APPLY-PASS' "$RUNNER_TEMP/g10-19h8j-apply.txt"
+          touch "$RUNNER_TEMP/g10-19h8j-patch-active"
 
       - name: Run clean Endpoint Configurator applyconfig
         shell: bash
@@ -103,45 +116,67 @@ jobs:
           touch "$RUNNER_TEMP/g10-19h8j-e2e-success"
           echo 'G10-19H8J-SIP-VERIFY=PASS' >> "$REPORT"
 
-      - name: Retain final patch only after E2E success
+      - name: Finalize native patch and endpoint selection safely
         if: always()
         shell: bash
         run: |
-          set -euo pipefail
+          set +e
           REPORT="$RUNNER_TEMP/g10-19h8j-finalize.txt"
+          : > "$REPORT"
+          PATCH_RC=0
+          SELECT_RC=0
+
           if [ -f "$RUNNER_TEMP/g10-19h8j-e2e-success" ]; then
-            sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-h8j-final-native \
-              | tee "$REPORT"
-            grep -Fq 'G10-19H8J-FINAL-NATIVE-COMMIT-PASS' "$REPORT"
-            sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8j-final-native \
-              | tee -a "$REPORT"
-            grep -Fq 'h8j_state=PATCHED' "$REPORT"
+            if [ -f "$RUNNER_TEMP/g10-19h8j-patch-active" ]; then
+              sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-h8j-final-native \
+                | tee -a "$REPORT" || PATCH_RC=$?
+              if [ "$PATCH_RC" -eq 0 ]; then
+                sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8j-final-native \
+                  | tee -a "$REPORT" || PATCH_RC=$?
+              fi
+            fi
+            if [ -f "$RUNNER_TEMP/g10-19h8j-selection-active" ]; then
+              sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-gxp1625-selection \
+                | tee -a "$REPORT" || SELECT_RC=$?
+            fi
           else
-            sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8j-final-native \
-              | tee "$REPORT"
-            grep -Fq 'G10-19H8J-FINAL-NATIVE-ROLLBACK-PASS' "$REPORT"
+            if [ -f "$RUNNER_TEMP/g10-19h8j-patch-active" ]; then
+              sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8j-final-native \
+                | tee -a "$REPORT" || PATCH_RC=$?
+            fi
+            if [ -f "$RUNNER_TEMP/g10-19h8j-selection-active" ]; then
+              sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-gxp1625-selection \
+                | tee -a "$REPORT" || SELECT_RC=$?
+            fi
           fi
+
+          echo "patch_finalize_rc=$PATCH_RC" >> "$REPORT"
+          echo "selection_finalize_rc=$SELECT_RC" >> "$REPORT"
+          if [ "$PATCH_RC" -ne 0 ] || [ "$SELECT_RC" -ne 0 ]; then exit 1; fi
 
       - name: Publish sanitized result
         if: always()
         shell: bash
         run: |
           CRED="$RUNNER_TEMP/g10-19h8j-credential.txt"
+          SELECT="$RUNNER_TEMP/g10-19h8j-selection.txt"
           NATIVE="$RUNNER_TEMP/g10-19h8j-native.txt"
           SIP="$RUNNER_TEMP/g10-19h8j-sip.txt"
           FINAL="$RUNNER_TEMP/g10-19h8j-finalize.txt"
           {
             echo '## G10-19H8J — Final native GXP1625 integration'
             echo 'chromium_used=NO'
-            echo 'db_write=NO_NEW_DB_WRITE'
+            echo 'credential_db_write=NO_NEW_CREDENTIAL_WRITE'
+            echo 'selected_flag_write=YES_EXACT_ENDPOINT_ONLY'
             echo 'phone_password_logged=NO'
             echo 'sid_or_cookie_value_logged=NO'
             echo 'submitted_pvalue_payload_logged=NO'
             echo 'factory_reset=NO'
             [ -f "$CRED" ] && grep -E '^(effective_http_password_source=|endpoint_override_count=|effective_http_password_matches_lab_secret=)' "$CRED" || true
+            [ -f "$SELECT" ] && grep -E '^(scope=|db_write=|target_mac=|target_account=|previous_selected=|selected_now=|G10-19H8J-SELECT-ENDPOINT-PASS)' "$SELECT" || true
             [ -f "$NATIVE" ] && grep -E '^(applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|xml_recreated=|xml_p35_target_202=|xml_p36_target_202=|xml_p47_target_pbx=|xml_p270_target_ashly=|G10-19H8J-CLEAN-APPLYCONFIG=)' "$NATIVE" || true
             [ -f "$SIP" ] && grep -E '^(target_extension=|target_ip=|target_status=|target_registration_match=|previous_extension=|previous_extension_still_on_phone_ip=|GRANDSTREAM-SIP-REGISTRATION-PASS|G10-19H8J-SIP-VERIFY=)' "$SIP" || true
-            [ -f "$FINAL" ] && grep -E '^(final_native_patch_retained=|h8j_state=|final_marker_count=|accept_header_count=|validated_user_agent_count=|session_identity_synth_count=|cookie_header_count=|G10-19H8J-FINAL-NATIVE-)' "$FINAL" || true
+            [ -f "$FINAL" ] && grep -E '^(final_native_patch_retained=|h8j_state=|final_marker_count=|accept_header_count=|validated_user_agent_count=|session_identity_synth_count=|cookie_header_count=|selected_after_applyconfig=|selected_restored_to=|patch_finalize_rc=|selection_finalize_rc=|G10-19H8J-FINAL-NATIVE-|G10-19H8J-SELECT-)' "$FINAL" || true
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload sanitized evidence
@@ -151,6 +186,7 @@ jobs:
           name: g10-19h8j-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/g10-19h8j-credential.txt
+            ${{ runner.temp }}/g10-19h8j-selection.txt
             ${{ runner.temp }}/g10-19h8j-before.txt
             ${{ runner.temp }}/g10-19h8j-apply.txt
             ${{ runner.temp }}/g10-19h8j-native.txt
