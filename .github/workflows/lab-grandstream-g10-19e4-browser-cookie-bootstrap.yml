@@ -1,0 +1,59 @@
+name: G10-19E4 | Endpoint Lab | GXP1625 Browser Cookie Bootstrap
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e4-browser-cookie-bootstrap.js'
+      - '.github/workflows/lab-grandstream-g10-19e4-browser-cookie-bootstrap.yml'
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-19E4'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Replay browser cookie/session pattern for P212/P237
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Guard Audit branch and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          if [ "${GITHUB_EVENT_NAME}" = 'workflow_dispatch' ]; then
+            test '${{ inputs.confirmation }}' = 'RUN-G10-19E4'
+          fi
+          test "$(id -un)" = 'github-runner'
+          test -n "$PHONE_PASSWORD"
+
+      - name: Controlled browser-fidelity bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e4-browser-cookie-bootstrap.txt"
+          node endpoint-lab/grandstream/g10-19e4-browser-cookie-bootstrap.js
+          grep -Fq 'G10-19E4-COMPLETE=YES' "$REPORT_PATH"
+          grep -E '^(transport=|login=|cookie_names=|session_identity_|session_role_|pre_read=|phone_write=|bootstrap_post_|verify_read=|p212_target_match=|p237_target_match=|diagnostic=|next_activity=|G10-19E4-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19e4-browser-cookie-bootstrap-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e4-browser-cookie-bootstrap.txt
+          if-no-files-found: error
+          retention-days: 30
