@@ -1,0 +1,42 @@
+name: G10-19G2 | Endpoint Lab | GXP1625 Account State Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19g2-chromium-account-state.js'
+      - '.github/workflows/lab-grandstream-g10-19g2-phone-account-state.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Read account 1 state after TFTP provisioning
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read account state with real Chromium session
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          command -v chromium >/dev/null
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19g2.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+          grep -E '^(scope=|login_ui_action=|read_http=|read_response=|account_enabled=|account_name_target_202=|sip_server_target_pbx=|sip_user_id=|auth_id=|diagnostic=|G10-19G2-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19g2-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19g2.txt
+          if-no-files-found: warn
+          retention-days: 30
