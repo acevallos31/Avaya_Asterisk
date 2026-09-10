@@ -1,0 +1,60 @@
+name: G10-19E3 | Endpoint Lab | GXP1625 Persistent HTTP2 Bootstrap
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e3-http2-bootstrap.js'
+      - '.github/workflows/lab-grandstream-g10-19e3-http2-bootstrap.yml'
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN-G10-19E3'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Apply P212/P237 in one HTTP2 session
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_TUNNEL_ORIGIN: https://phone1.nocpbx.com
+      PBX_IP: 192.168.1.10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Guard Audit branch and confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          if [ "${GITHUB_EVENT_NAME}" = 'workflow_dispatch' ]; then
+            test '${{ inputs.confirmation }}' = 'RUN-G10-19E3'
+          fi
+          test "$(id -un)" = 'github-runner'
+          node -e "require('http2')"
+          test -n "$PHONE_PASSWORD"
+
+      - name: Controlled bootstrap through persistent HTTP2 session
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e3-http2-bootstrap.txt"
+          node endpoint-lab/grandstream/g10-19e3-http2-bootstrap.js
+          grep -Fq 'G10-19E3-COMPLETE=YES' "$REPORT_PATH"
+          grep -E '^(transport=|login=|session_alive_|pre_read=|phone_write=|bootstrap_post_|verify_read=|p212_target_match=|p237_target_match=|same_http2_session=|diagnostic=|next_activity=|G10-19E3-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload sanitized report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19e3-http2-bootstrap-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e3-http2-bootstrap.txt
+          if-no-files-found: error
+          retention-days: 30
