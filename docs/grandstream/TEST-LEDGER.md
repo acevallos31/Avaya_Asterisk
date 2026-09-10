@@ -30,9 +30,9 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19C | PASS | Diagnosticar TFTP | `tftp-server` e `in.tftpd` presentes; xinetd activo | Probar RRQ real |
 | G10-19D | PASS | Probar TFTP real | RRQ local y desde `endpoint-lab-debian` exitosos; tamaño y SHA del cfg coinciden | TFTP de Issabel validado |
 | G10-19E | PASS | Leer estado provisioning del GXP1625 | Login/read exitosos; P212/P237 inicialmente vacíos | Se requiere bootstrap |
-| G10-19E2 | FAIL controlado | Escribir P212/P237 por cliente directo | `api.values.post` devuelve `session-expired` | No es problema de credenciales |
-| G10-19E3 | FAIL controlado | Repetir write HTTP/2/keepalive | Sigue `session-expired` | Transporte no era la causa |
-| G10-19E4D | PASS diagnóstico | Trazar sesión Chromium real | Webapp crea `session-identity`/`session-role` | Usar navegador real para writes |
+| G10-19E2 | FAIL controlado | Escribir P212/P237 por cliente directo | `api.values.post` devuelve `session-expired` | No concluir todavía que sea problema de credenciales |
+| G10-19E3 | FAIL controlado | Repetir write HTTP/2/keepalive | Sigue `session-expired` | Transporte no era suficiente |
+| G10-19E4D | PASS diagnóstico | Trazar sesión Chromium real | Webapp crea `session-identity`/`session-role` | Usar navegador real para caracterizar sesión |
 | G10-19E4E | PASS temporal | Escribir P212/P237 dentro de Chromium | `success/right`; relectura inmediata confirma P212=0 y P237=PBX | Escritura runtime funciona |
 | G10-19F2 | PASS | Reboot controlado | Fallback autenticado aceptado con `SAVEREBOOT`; sin factory reset | Verificar estado post-boot |
 | G10-19F3 | BLOQUEADO observabilidad | Capturar RRQ TFTP | Runner sin privilegio de captura | No inferir ausencia de RRQ |
@@ -59,23 +59,37 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19H4 | PASS | Verificar persistencia después de reboot real | Tras reinicio: Account 1 habilitada, Account Name=202/Ashly, SIP server=PBX, User ID=202 y Auth ID=202 | 202 Ashly persiste |
 | G10-19H5-a1 | FAIL infraestructura | Primer intento de auditoría SIP Asterisk | Acción nueva del helper de llamadas no estaba autorizada por sudoers; no se ejecutó ninguna consulta Asterisk | Reusar helper privilegiado ya autorizado |
 | G10-19H5-a2 | PASS | Confirmar registro real en Asterisk | Extensión 202 registrada `OK` desde `192.168.1.167`; extensión 201 ya no usa esa IP | Provisioning 202 validado extremo a extremo |
-| G10-19H6 | PASS dry-run | Integrar generación XML en `Grandstream.py` conservando binario legacy | `py_compile` PASS; escritura binaria preservada; XML agregado desde el mismo `vars`; MAC ligada al XML; solo P-values; sin write al PBX live ni al teléfono | Código candidato listo para despliegue controlado en LAB |
+| G10-19H6 | PASS dry-run | Integrar generación XML en `Grandstream.py` conservando binario legacy | `py_compile` PASS; escritura binaria preservada; XML agregado desde el mismo `vars`; MAC ligada al XML; solo P-values | Código candidato listo para despliegue controlado en LAB |
+| G10-19H8F | PASS generación / FAIL activación nativa | Ejecutar `applyconfig` real con un solo GXP1625 seleccionado | `applyconfig_rc=0`; binario + XML se regeneran automáticamente con 202/Ashly/PBX, pero `grandstream_failed_seen=YES` | La generación integrada está resuelta; aislar login/activación HTTP nativa |
+| G10-19H8G-a1 | FAIL observabilidad | E2E integrado + evidencia TFTP | Generación y teléfono pasaron; la prueba final falló por lectura TFTP sin privilegios | Corregir solo el mecanismo de evidencia |
+| G10-19H8G-a2 | PASS E2E | Endpoint Configurator → cfg/XML → bootstrap/PROV → TFTP → teléfono → Asterisk | Los 3 jobs pasan; teléfono queda 202/Ashly, TFTP observado y 202 registrada desde `192.168.1.167`; 201 liberada | Flujo funcional completo probado; Chromium todavía actúa como bootstrap |
+| G10-19H8H1 | PASS diagnóstico | Comparar `session-identity` del navegador con SID de login sin exponer valores | `session-identity` existe, no llega por Set-Cookie y coincide con SID de `/dologin` | El cliente nativo puede sintetizar `session-identity=<SID>` |
+| G10-19H8H2 | FAIL controlado | Añadir `session-identity=<SID>` al cliente nativo | Parche instala/compila, pero `applyconfig` sigue fallando; rollback automático PASS | La falla ocurre antes o falta otra diferencia de login |
+| G10-19H8H2B | PASS diagnóstico parcial | Clasificar respuesta del POST nativo | Tras corregir el anchor, el clasificador se instala, pero `h8h2b_response_class_seen=NO`; rollback H8H2B/H8H2 PASS | El flujo no llega al parser de `api.values.post`; mirar etapa de login |
+| G10-19H8H2C | PASS diagnóstico | Trazar etapas del login nativo sin valores sensibles | Llega a `ENTER`, `LOGIN_RESPONSE`, `LOGIN_JSON_PARSED`; nunca llega a `SID_READY` ni `POST_BEGIN` | `/dologin` devuelve JSON, pero sin SID utilizable para el código actual |
+| G10-19H8H2D | PASS diagnóstico | Añadir temporalmente `Accept: */*` al `applyconfig` nativo | Con el password efectivo actual de Issabel sigue sin llegar a `SID_READY`; rollback completo PASS | Este resultado no aísla Accept porque después se demostró mismatch de credencial |
+| G10-19H8H2E | PASS diagnóstico | Clasificar forma del JSON de `/dologin` usado por Issabel | `response_success=NO`, `body_dict=NO`, `sid_present=NO` | El login nativo de Issabel está siendo rechazado |
+| G10-19H8H2F | PASS diagnóstico | Comparar password HTTP efectivo de Endpoint Configurator con el secreto de laboratorio conocido como válido | Fuente efectiva=`MODEL_DEFAULT`; `endpoint_override_count=0`; `effective_http_password_matches_lab_secret=NO` | Hay un bloqueo de credencial: falta override por endpoint o equivalente seguro |
+| G10-19H8H2G | PASS diagnóstico | Repetir `/dologin` con Python `http.client` y el password conocido como válido | HTTP 200/JSON, pero `response_success=NO`, `body_dict=NO`, `sid_present=NO` | Además del password, existe diferencia de fidelidad en la petición Python |
+| G10-19H8H2H | PASS diagnóstico | Probar Python `http.client` con password válido + `Accept: */*` + `User-Agent: curl/8.14.1` | HTTP 200/JSON, `response_success=YES`, `body_dict=YES`, `sid_present=YES` | La fidelidad de headers queda resuelta usando el par Accept + User-Agent; siguiente bloqueo es alinear la credencial efectiva de Issabel |
 
 ## Hallazgo actual
 
-El GXP1625 1.0.7.70 quedó aprovisionado extremo a extremo desde Issabel. La configuración 202 Ashly sobrevivió un reinicio real y Asterisk confirma que la extensión `202` está registrada `OK` desde `192.168.1.167`. La antigua extensión `201` ya no está registrada desde esa IP.
+El GXP1625 1.0.7.70 está funcionalmente aprovisionado extremo a extremo como `202 Ashly`: sobrevivió un reinicio real y Asterisk confirma `202` registrada desde `192.168.1.167`, mientras `201` ya no usa esa IP.
 
-La documentación oficial de Grandstream indica que **Config Server Path (P237)** es la ruta del servidor de configuración y puede expresarse como IP/FQDN o URL válida según familia/firmware. Para TFTP, `P212=0` selecciona el transporte y `P237=192.168.1.10` es válido en este laboratorio. La prueba H1 demostró además que el teléfono solicita tanto `cfg<MAC>` como `cfg<MAC>.xml` desde ese root de provisioning.
+La generación integrada de Endpoint Configurator también está resuelta: `Grandstream.py` live conserva el `cfg<MAC>` binario y genera automáticamente `cfg<MAC>.xml` desde el mismo mapa de P-values. El flujo H8G confirmó la cadena completa cuando Chromium realiza el bootstrap de provisioning.
 
-G10-19H6 validó en dry-run la modificación candidata de `Grandstream.py`: el flujo conserva `cfg<MAC>` binario y añade `cfg<MAC>.xml` usando exactamente el mismo mapa `vars`. El cambio todavía no se ha instalado sobre la clase live de Issabel; el siguiente paso cruza la frontera de modificación de código live del PBX.
+Para eliminar Chromium se aislaron **dos requisitos distintos** del login HTTP nativo. Primero, Issabel está tomando `http_password` del `MODEL_DEFAULT`, no existe override para este endpoint y ese valor no coincide con la contraseña real conocida del teléfono. Segundo, aun usando la contraseña correcta, el `http.client` actual es rechazado hasta reproducir mejor la petición aceptada: H8H2H confirma login `success` con SID cuando se añaden `Accept: */*` y `User-Agent: curl/8.14.1` junto con Host/Referer/Content-Type.
+
+No se ha escrito todavía ninguna contraseña en `endpoint_properties`. Esa modificación de base de datos queda deliberadamente pendiente de autorización explícita. Tampoco quedan activos los parches diagnósticos temporales H8H2/H8H2B/H8H2C/H8H2D/H8H2E; sus rollbacks fueron validados.
 
 ## Próximas pruebas
 
-1. Desplegar de forma controlada y reversible la modificación H6 sobre `Grandstream.py` live del LAB.
-2. Ejecutar Configure desde Endpoint Configurator y comprobar que regenere automáticamente binario + XML sin el conversor H2.
-3. Reaprovisionar 202 usando únicamente el flujo integrado y verificar teléfono + Asterisk.
-4. Documentar arquitectura final y matriz GXP1625/GXP1630/GXP16xx.
-5. Repetir el flujo con GXP1630 sin asumir diferencias de firmware.
+1. Con autorización de escritura DB, configurar `http_password` como propiedad específica del endpoint GXP1625, sin mostrar ni registrar el valor y conservando rollback.
+2. Incorporar en el cliente GXP140x los headers de login validados y la síntesis `session-identity=<SID>`.
+3. Ejecutar `applyconfig` sin Chromium y comprobar que llegue a `api.values.post` y complete activación estática.
+4. Repetir el E2E nativo: Endpoint Configurator → binario/XML → teléfono → TFTP → 202/Ashly → Asterisk.
+5. Convertir el mecanismo final en arquitectura reusable y matriz GXP1625/GXP1630/GXP16xx.
 
 ## Regla de documentación
 
