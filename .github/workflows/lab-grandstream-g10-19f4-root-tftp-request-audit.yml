@@ -1,0 +1,36 @@
+name: G10-19F4 | Issabel Lab | Grandstream TFTP Request Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/j129/prepare-grandstream-tftp-request-audit.py'
+      - '.github/workflows/lab-grandstream-g10-19f4-root-tftp-request-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Read TFTP request evidence through restricted helper
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare restricted helper action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 -B deploy/j129/prepare-grandstream-tftp-request-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          test -x /usr/local/sbin/avaya-j129-helper-sync
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+      - name: Inspect Grandstream TFTP requests read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-tftp-requests)"
+          printf '%s\n' "$OUT"
+          grep -F 'GRANDSTREAM-TFTP-REQUEST-AUDIT-' <<<"$OUT"
