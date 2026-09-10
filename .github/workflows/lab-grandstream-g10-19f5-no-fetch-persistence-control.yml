@@ -1,0 +1,103 @@
+name: G10-19F5 | Endpoint Lab | GXP1625 No-Fetch Persistence Control
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19f5-no-fetch-persistence-control.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-fetch-persistence-control:
+    name: Distinguish flash persistence from cfg overwrite
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 12
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PHONE_IP: 192.168.1.167
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save unreachable documentation-net TFTP target
+        shell: bash
+        env:
+          PBX_IP: 192.0.2.1
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f5-before-reboot.txt"
+          node endpoint-lab/grandstream/g10-19e4f4-ui-persist-bootstrap.js
+          grep -Fq 'p212_target_match=YES' "$REPORT_PATH"
+          grep -Fq 'p237_target_match=YES' "$REPORT_PATH"
+      - name: Controlled reboot
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f5-reboot.txt"
+          node endpoint-lab/grandstream/g10-19f2-chromium-reboot-for-provision.js
+          grep -Fq 'reboot_request=ACCEPTED' "$REPORT_PATH"
+      - name: Wait up to five minutes for HTTP
+        id: wait
+        shell: bash
+        run: |
+          set +e
+          READY=NO
+          for i in $(seq 1 60); do
+            if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then READY=YES; break; fi
+            sleep 5
+          done
+          echo "ready=$READY" >> "$GITHUB_OUTPUT"
+          echo "phone_http_returned=$READY" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+      - name: Read provisioning state after no-fetch reboot
+        if: steps.wait.outputs.ready == 'YES'
+        id: read
+        shell: bash
+        env:
+          PBX_IP: 192.0.2.1
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f5-after-reboot.txt"
+          python3 endpoint-lab/grandstream/g10-19e-provisioning-state-preflight.py
+          {
+            echo '## G10-19F5 — no-fetch control result'
+            grep -E '^(p212_value=|p237_target=|diagnostic=)' "$REPORT_PATH" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+          if grep -Fq 'p212_value=0' "$REPORT_PATH" && grep -Fq 'p237_target=PBX_LAB' "$REPORT_PATH"; then
+            echo 'persisted=YES' >> "$GITHUB_OUTPUT"
+            echo 'inference=PREVIOUS_PBX_CFG_MAY_HAVE_OVERWRITTEN_BOOTSTRAP' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'persisted=NO' >> "$GITHUB_OUTPUT"
+            echo 'inference=BOOTSTRAP_NOT_FLASH_PERSISTENT_EVEN_WITHOUT_CFG_FETCH' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Restore PBX TFTP target if control persisted
+        if: steps.read.outputs.persisted == 'YES'
+        shell: bash
+        env:
+          PBX_IP: 192.168.1.10
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f5-restore.txt"
+          node endpoint-lab/grandstream/g10-19e4f4-ui-persist-bootstrap.js
+          grep -Fq 'p237_target_match=YES' "$REPORT_PATH"
+          echo 'rollback_to_pbx_target=APPLIED' >> "$GITHUB_STEP_SUMMARY"
+      - name: Phone unavailable classification
+        if: steps.wait.outputs.ready != 'YES'
+        shell: bash
+        run: |
+          echo 'diagnostic=PHONE_HTTP_NOT_RETURNED_WITHIN_5_MIN' >> "$GITHUB_STEP_SUMMARY"
+          echo 'next_activity=STOP_PHYSICAL_PHONE_RECOVERY_CHECK' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19f5-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19f5-before-reboot.txt
+            ${{ runner.temp }}/g10-19f5-reboot.txt
+            ${{ runner.temp }}/g10-19f5-after-reboot.txt
+            ${{ runner.temp }}/g10-19f5-restore.txt
+          if-no-files-found: warn
+          retention-days: 30
