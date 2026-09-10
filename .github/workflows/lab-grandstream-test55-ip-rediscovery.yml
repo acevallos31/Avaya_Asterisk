@@ -1,0 +1,68 @@
+name: 55 | Issabel Lab | GXP1625 IP Rediscovery | Read-Only
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-test55-ip-rediscovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rediscover:
+    name: Locate exact GXP1625 MAC without writes
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan LAB subnet and resolve target MAC
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          TARGET='C0:74:AD:E8:66:09'
+          REPORT="$RUNNER_TEMP/test55-ip-rediscovery.txt"
+          SCAN="$RUNNER_TEMP/test55-nmap.txt"
+          nmap -sn 192.168.1.0/24 >"$SCAN"
+          FOUND="$(awk -v target="$TARGET" '
+            /^Nmap scan report for / { ip=$NF; gsub(/[()]/,"",ip) }
+            /^MAC Address:/ { mac=toupper($3); if (mac==target) print ip }
+          ' "$SCAN" | sort -u)"
+          if [ -z "$FOUND" ]; then
+            FOUND="$(ip neigh show | awk -v target="$TARGET" 'toupper($5)==target {print $1}' | sort -u)"
+          fi
+          COUNT="$(printf '%s\n' "$FOUND" | sed '/^$/d' | wc -l | tr -d ' ')"
+          {
+            echo 'scope=TEST55_READ_ONLY_IP_REDISCOVERY'
+            echo 'target_mac=C0:74:AD:E8:66:09'
+            echo "match_count=$COUNT"
+            if [ "$COUNT" -eq 1 ]; then
+              echo "discovered_ip=$FOUND"
+              if [ "$FOUND" = 192.168.1.167 ]; then echo 'ip_changed=NO'; else echo 'ip_changed=YES'; fi
+              STATUS="$(curl -sS -o /dev/null --connect-timeout 3 --max-time 5 -w '%{http_code}' "http://$FOUND/" || true)"
+              echo "root_http_status=${STATUS:-000}"
+              echo 'TEST55-IP-REDISCOVERY=PASS'
+            else
+              echo 'discovered_ip=NOT_UNIQUE_OR_NOT_FOUND'
+              echo 'TEST55-IP-REDISCOVERY=FAIL'
+            fi
+          } | tee "$REPORT"
+          test "$COUNT" -eq 1
+      - name: Publish sanitized evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 55 — Read-only IP rediscovery'
+            [ -f "$RUNNER_TEMP/test55-ip-rediscovery.txt" ] && cat "$RUNNER_TEMP/test55-ip-rediscovery.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test55-ip-rediscovery-${{ github.run_id }}
+          path: ${{ runner.temp }}/test55-ip-rediscovery.txt
+          if-no-files-found: warn
+          retention-days: 30
