@@ -1,0 +1,80 @@
+name: G10-19H8F2 | Issabel Lab | Python 3.6 Grandstream XML Compatibility
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8f2-python36-xml-compat.yml'
+      - 'deploy/grandstream/prepare-python36-xml-compat-helper.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  patch:
+    name: Make integrated XML serializer compatible with Issabel Python 3.6
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted H8F2 helper action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/grandstream/prepare-python36-xml-compat-helper.py | tee "$RUNNER_TEMP/g10-19h8f2-prepare.txt"
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          grep -Eq 'G10-19H8F2-HELPER-PREPARE=(PASS|ALREADY_PRESENT)' "$RUNNER_TEMP/g10-19h8f2-prepare.txt"
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Apply Python 3.6 serializer compatibility patch
+        id: apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8f2.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-py36-xml-compat | tee "$REPORT"
+          grep -Eq 'GRANDSTREAM-PY36-XML-COMPAT-APPLY(-PASS|=ALREADY_PRESENT)' "$REPORT"
+          grep -Fq 'synthetic_runtime_encoder_probe=PASS' "$REPORT" || grep -Fq 'py36_xml_serializer_state=ALREADY_PRESENT' "$REPORT"
+
+      - name: Roll back automatically on validation failure
+        if: failure() && steps.apply.outcome == 'success'
+        shell: bash
+        run: |
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-py36-xml-compat | tee "$RUNNER_TEMP/g10-19h8f2-rollback.txt"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8F2 — Python 3.6 XML serializer compatibility'
+            echo
+            echo '- Cause under test: ElementTree.tostring(xml_declaration=...) compatibility on PBX Python 3.6.'
+            echo '- Change: use ElementTree.write() through BytesIO.'
+            echo '- Phone/SIP/DB write: NO.'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8f2.txt" ] && cat "$RUNNER_TEMP/g10-19h8f2.txt" || true
+            [ -f "$RUNNER_TEMP/g10-19h8f2-rollback.txt" ] && cat "$RUNNER_TEMP/g10-19h8f2-rollback.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8f2-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8f2.txt
+            ${{ runner.temp }}/g10-19h8f2-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
