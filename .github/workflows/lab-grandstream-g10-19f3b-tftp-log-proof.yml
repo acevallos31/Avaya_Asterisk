@@ -1,0 +1,85 @@
+name: G10-19F3B | Issabel Lab | GXP1625 TFTP Log Proof
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19f3b-tftp-log-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    name: Inspect sanitized TFTP service evidence
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect recent TFTP evidence without raw log output
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19f3b.txt"
+          TMP="$RUNNER_TEMP/g10-19f3b-source.txt"
+          : > "$REPORT"; : > "$TMP"
+          log(){ printf '%s\n' "$1" | tee -a "$REPORT"; }
+          log 'scope=READ_ONLY_SANITIZED_TFTP_LOG_PROOF'
+          log 'phone_write=NO'
+          log 'db_write=NO'
+          log 'pbx_live_code_write=NO'
+          log 'raw_logs_published=NO'
+
+          JOURNAL_OK=NO
+          if journalctl --since '-15 min' --no-pager >/dev/null 2>&1; then
+            journalctl --since '-15 min' --no-pager 2>/dev/null > "$TMP" || true
+            JOURNAL_OK=YES
+          fi
+          MSG_OK=NO
+          if [ -r /var/log/messages ]; then
+            tail -n 5000 /var/log/messages >> "$TMP" 2>/dev/null || true
+            MSG_OK=YES
+          fi
+          log "journal_readable=$JOURNAL_OK"
+          log "messages_readable=$MSG_OK"
+
+          PHONE_HITS=$(grep -F '192.168.1.167' "$TMP" 2>/dev/null | wc -l | tr -d ' ' || true)
+          CFG_HITS=$(grep -Fi 'cfgc074ade86609' "$TMP" 2>/dev/null | wc -l | tr -d ' ' || true)
+          TFTP_HITS=$(grep -Ei 'tftp|in\.tftpd' "$TMP" 2>/dev/null | wc -l | tr -d ' ' || true)
+          log "phone_ip_log_hits=$PHONE_HITS"
+          log "expected_cfg_log_hits=$CFG_HITS"
+          log "tftp_log_hits=$TFTP_HITS"
+
+          if [ "$CFG_HITS" -gt 0 ]; then
+            log 'expected_cfg_rrq=YES_LOG_EVIDENCE'
+            log 'diagnostic=GXP1625_CFG_REQUEST_VISIBLE_IN_SERVER_LOGS'
+            log 'next_activity=G10-19G_ENDPOINT_CONFIGURATOR_202'
+          elif [ "$JOURNAL_OK" = NO ] && [ "$MSG_OK" = NO ]; then
+            log 'expected_cfg_rrq=UNKNOWN'
+            log 'diagnostic=TFTP_LOGS_NOT_READABLE_BY_RUNNER'
+            log 'next_activity=G10-19F4_ALTERNATE_OBSERVABILITY'
+          else
+            log 'expected_cfg_rrq=NOT_OBSERVED'
+            log 'diagnostic=NO_EXPECTED_CFG_REQUEST_IN_RECENT_READABLE_LOGS'
+            log 'next_activity=G10-19F4_ALTERNATE_OBSERVABILITY'
+          fi
+          rm -f "$TMP"
+          log 'G10-19F3B-COMPLETE=YES'
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19f3b.txt"
+          {
+            echo '## G10-19F3B — TFTP server log proof'
+            echo
+            [ -f "$REPORT" ] && cat "$REPORT" || echo 'report=NOT_CREATED'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19f3b-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19f3b.txt
+          if-no-files-found: warn
+          retention-days: 30
