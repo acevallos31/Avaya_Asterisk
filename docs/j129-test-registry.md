@@ -71,6 +71,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 52 | `lab-pbx-runner-baseline-audit.yml` | `52 | PBX & Runner Baseline | Read-Only Audit` | Auditoría genérica parametrizada por `target`. Targets actuales: `lab` y `ceiba-production`. Comparte `scripts/pbx-runner-baseline-audit.sh`; mantiene guard estricto para producción. Run histórico LAB 34165728592: PASS con advertencias. |
 | 53 | `prod-pbx-runner-baseline-audit.yml` | `53 | Ceiba Production | PBX & Runner Baseline | Read-Only Audit` | RETIRADA/SUPERSEDED antes de ejecución. Su semántica quedó absorbida por Test 52 parametrizada; el workflow duplicado fue eliminado sin reutilizar el ID 53. |
 | 54 | `prod-grandstream-gxp1625-preflight.yml` (reservado) | `54 | Production | Grandstream GXP1625 | Read-Only Preflight` | RESERVADA. Se implementa cuando se declare PBX/sitio, runner dedicado, IP/MAC/firmware y extensiones actual/objetivo del canario. No autoriza instalación. |
+| 55 | `lab-grandstream-test55-factory-reset.yml` | `55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test` | EN EJECUCIÓN. Verifica remoción exacta en Endpoint Configurator, conserva extensiones 201/202, envía factory reset autenticado al GXP1625 LAB y comprueba separación SIP. |
 
 ## Reglas de runners
 
@@ -106,7 +107,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `55`.
+Próximo ID disponible: `56`.
 
 ## Subpruebas Grandstream G10
 
