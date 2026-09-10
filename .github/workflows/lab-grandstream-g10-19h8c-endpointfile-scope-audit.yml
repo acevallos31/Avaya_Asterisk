@@ -1,0 +1,59 @@
+name: G10-19H8C | Issabel Lab | endpointfile Scope Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8c-endpointfile-scope-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Determine whether hidden endpointfile can target one endpoint safely
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect endpointfile implementation read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8c.txt"
+          {
+            echo 'scope=READ_ONLY_ENDPOINTFILE_SCOPE_AUDIT'
+            echo 'phone_write=NO'
+            echo 'pbx_write=NO'
+            echo 'db_write=NO'
+            echo 'secrets_logged=NO'
+            echo '--- OPTION DEFINITION ---'
+            grep -n -C 6 -- '--endpointfile' /usr/bin/issabel-endpointconfig | head -n 80 || true
+            echo '--- ENDPOINTFILE REFERENCES ---'
+            grep -n -C 5 -E 'endpointfile|endpoint_file|EndpointFile' /usr/bin/issabel-endpointconfig | head -n 160 || true
+            echo '--- APPLYCONFIG CONTROL FLOW ---'
+            grep -n -C 7 -E 'applyconfig|updateLocalConfig\(|applyConfig|apply_config' /usr/bin/issabel-endpointconfig | head -n 220 || true
+            echo 'G10-19H8C-COMPLETE=YES'
+          } | tee "$REPORT"
+          grep -Fq 'G10-19H8C-COMPLETE=YES' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8C — endpointfile scope audit'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8c.txt" ] && cat "$RUNNER_TEMP/g10-19h8c.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8c-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8c.txt
+          if-no-files-found: warn
+          retention-days: 30
