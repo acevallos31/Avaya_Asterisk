@@ -1,0 +1,50 @@
+name: G10-19H2 | Issabel Lab | Generate GXP1625 XML from Issabel Binary
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'scripts/grandstream-g10-19h2-binary-to-xml.py'
+      - '.github/workflows/lab-grandstream-g10-19h2-generate-xml.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate cfgMAC.xml from current Issabel cfgMAC
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate XML provisioning file without logging secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h2.txt"
+          python3 scripts/grandstream-g10-19h2-binary-to-xml.py
+          grep -Fq 'G10-19H2-COMPLETE=YES' "$REPORT_PATH"
+          grep -Fq 'diagnostic=XML_CFG_GENERATED_FROM_ISSABEL_BINARY_202' "$REPORT_PATH"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h2.txt"
+          {
+            echo '## G10-19H2 — cfgMAC binary → XML'
+            echo
+            [ -f "$REPORT" ] && grep -E '^(scope=|phone_write=|pbx_live_provisioning_file_write=|db_write=|factory_reset=|binary_cfg_state=|binary_cfg_size=|binary_cfg_sha256=|decoded_parameter_count=|header_mac_match=|legacy_separator_match=|p35_target_202=|p36_target_202=|p34_secret_present=|p47_target_pbx=|p270_target_ashly=|xml_cfg_state=|xml_cfg_size=|xml_cfg_sha256=|diagnostic=|next_activity=|G10-19H2-COMPLETE=)' "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h2-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h2.txt
+          if-no-files-found: warn
+          retention-days: 30
