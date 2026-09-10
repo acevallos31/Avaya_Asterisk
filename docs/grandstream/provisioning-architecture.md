@@ -40,7 +40,7 @@ GXP1625 /cgi-bin/dologin
         | username + password
         | Host + Referer
         | Accept: */*
-        | validated curl-like User-Agent
+        | no explicit User-Agent required
         v
 login JSON -> SID
         |
@@ -120,7 +120,7 @@ The stock Issabel GXP140x-style client was not sufficient for GXP1625 firmware 1
 - `Host` for the phone IP.
 - `Referer` for the phone root URL.
 - `Accept: */*`.
-- A User-Agent accepted by the tested firmware; the validated implementation currently uses `curl/8.14.1`.
+- No explicit User-Agent. H8L proved the minimal request succeeds without one.
 
 After a successful `/cgi-bin/dologin`, the JSON response supplies a SID. Real-browser tracing established that the browser's `session-identity` value matches that SID even though it was not observed arriving as a conventional Set-Cookie value.
 
@@ -177,6 +177,9 @@ The validated lab intentionally retains:
 - Phone account 202 Ashly.
 
 The diagnostic stage tracing used in H8K2 is not retained.
+The fixed curl-like User-Agent used during diagnosis is also not retained.
+The initial operational guardrail is 300 seconds between Configure operations
+for the same GXP1625 running firmware 1.0.7.70.
 
 ## Reuse for other Grandstream models
 
@@ -202,3 +205,5 @@ A model is not marked supported until the physical E2E path is demonstrated.
 - GitHub Actions G10-19H8I — first native no-Chromium success.
 - GitHub Actions G10-19H8J — final retained native integration.
 - GitHub Actions G10-19H8K2 — repeated native POST classified as `success/right` with temporary safe tracing.
+- GitHub Actions G10-19H8L — login accepted without an explicit User-Agent.
+- GitHub Actions G10-19H8M — two minimal native E2E cycles passed with 300-second spacing.
