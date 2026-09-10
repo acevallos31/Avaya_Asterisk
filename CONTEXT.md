@@ -22,10 +22,14 @@ El workflow de Test 55 quedó protegido: los pushes solo ejecutan la auditoría
 read-only; el factory reset requiere dispatch manual, operación `factory-reset`
 y confirmación exacta por MAC. Producción no fue tocada.
 
-Siguiente paso manual: en Endpoint Configurator seleccionar únicamente la fila
-`C0:74:AD:E8:66:09` / `192.168.1.168`, asignar `202 / Ashly` y ejecutar
-Configure. Luego verificar generación cfg, activación HTTP, registro SIP y
-prueba física de llamada antes de cerrar Test 55.
+La configuración manual ya fue ejecutada y corroborada en el run read-only
+`34543757258`: `account_count=1`, asociación SIP 202 exacta, `cfg` binario y
+XML presentes, XML ligado a la MAC con P35/P36=202, PBX `.10` y Ashly, HTTP 200,
+peer 202 en `.168` y 201 fuera de esa IP. La auditoría general del repositorio
+también pasó en `34543757263`.
+
+Siguiente paso: prueba física de registro estable y llamada/audio. Mantener el
+guardrail de 300 s entre Configure; producción continúa sin cambios.
 
 ## Actualización Grandstream GXP1625 — 2026-09-10
 
