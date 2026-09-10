@@ -55,11 +55,12 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19G4 | PASS | Verificar marcadores seguros del cfg | Binario contiene 202, Ashly y PBX; no contiene 201/Fabi | El cfg generado por Issabel sí apunta a 202 |
 | G10-19H1 | PASS diagnóstico | Probar consumo de provisioning por HTTP mirror | El teléfono solicitó `cfgc074ade86609` y `cfgc074ade86609.xml`; PROV aceptado; Account 1 seguía 201 | El teléfono sí ejecuta provisioning y pide ambos formatos |
 | G10-19H2 | PASS | Generar XML equivalente desde cfg binario de Issabel | XML creado con 38 parámetros; P35/P36=202, P34 presente, P47=PBX, P270=Ashly | Probar XML nativo por TFTP |
-| G10-19H3 | PASS FUNCIONAL | Aplicar XML por TFTP desde Issabel | Tras provisioning nativo, el teléfono físico cambió en pantalla de Fabi a Ashly | Éxito funcional del provisioning hacia 202; falta confirmar registro SIP y endurecer integración automática |
+| G10-19H3 | PASS FUNCIONAL | Aplicar XML por TFTP desde Issabel | Tras provisioning nativo, el teléfono físico cambió en pantalla de Fabi a Ashly | Éxito funcional del provisioning hacia 202 |
+| G10-19H4 | PASS | Verificar persistencia después de reboot real | Tras reinicio: Account 1 habilitada, Account Name=202/Ashly, SIP server=PBX, User ID=202 y Auth ID=202 | 202 Ashly persiste; siguiente paso es confirmar registro SIP en Asterisk |
 
 ## Hallazgo actual
 
-El GXP1625 1.0.7.70 ya quedó aprovisionado funcionalmente desde Issabel: el teléfono pasó de **201 Fabi** a **202 Ashly** usando provisioning nativo y un `cfg<MAC>.xml` servido por TFTP desde `192.168.1.10`.
+El GXP1625 1.0.7.70 quedó aprovisionado funcionalmente desde Issabel y la configuración sobrevivió un reinicio real. Después de G10-19H4, Account 1 conserva `202`, Auth ID `202`, nombre objetivo Ashly y servidor SIP `192.168.1.10`.
 
 La documentación oficial de Grandstream indica que **Config Server Path (P237)** es la ruta del servidor de configuración y puede expresarse como IP/FQDN o URL válida según familia/firmware. Para TFTP, `P212=0` selecciona el transporte y `P237=192.168.1.10` es válido en este laboratorio. La prueba H1 además demostró que el teléfono solicita desde el servidor configurado tanto `cfg<MAC>` como `cfg<MAC>.xml`, confirmando que el path usado resuelve correctamente al root de provisioning.
 
@@ -69,10 +70,9 @@ No debe considerarse el cierre total hasta verificar que la extensión 202 está
 
 1. Verificar en Issabel/Asterisk que 202 está realmente registrada desde `192.168.1.167`.
 2. Confirmar que 201 dejó de estar registrada desde ese teléfono.
-3. Reiniciar el GXP1625 y comprobar persistencia de 202 Ashly.
-4. Integrar generación de `cfg<MAC>.xml` en la clase Grandstream/Endpoint Configurator de forma reutilizable.
-5. Validar que al reasignar otra extensión, Endpoint Configurator regenere binario + XML automáticamente.
-6. Generalizar la ruta a GXP1630/GXP16xx y documentar diferencias por firmware/modelo.
+3. Integrar generación de `cfg<MAC>.xml` en la clase Grandstream/Endpoint Configurator de forma reutilizable.
+4. Validar que al reasignar otra extensión, Endpoint Configurator regenere binario + XML automáticamente.
+5. Generalizar la ruta a GXP1630/GXP16xx y documentar diferencias por firmware/modelo.
 
 ## Regla de documentación
 
