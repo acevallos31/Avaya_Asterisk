@@ -59,6 +59,7 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19H4 | PASS | Verificar persistencia después de reboot real | Tras reinicio: Account 1 habilitada, Account Name=202/Ashly, SIP server=PBX, User ID=202 y Auth ID=202 | 202 Ashly persiste |
 | G10-19H5-a1 | FAIL infraestructura | Primer intento de auditoría SIP Asterisk | Acción nueva del helper de llamadas no estaba autorizada por sudoers; no se ejecutó ninguna consulta Asterisk | Reusar helper privilegiado ya autorizado |
 | G10-19H5-a2 | PASS | Confirmar registro real en Asterisk | Extensión 202 registrada `OK` desde `192.168.1.167`; extensión 201 ya no usa esa IP | Provisioning 202 validado extremo a extremo |
+| G10-19H6 | PASS dry-run | Integrar generación XML en `Grandstream.py` conservando binario legacy | `py_compile` PASS; escritura binaria preservada; XML agregado desde el mismo `vars`; MAC ligada al XML; solo P-values; sin write al PBX live ni al teléfono | Código candidato listo para despliegue controlado en LAB |
 
 ## Hallazgo actual
 
@@ -66,15 +67,15 @@ El GXP1625 1.0.7.70 quedó aprovisionado extremo a extremo desde Issabel. La con
 
 La documentación oficial de Grandstream indica que **Config Server Path (P237)** es la ruta del servidor de configuración y puede expresarse como IP/FQDN o URL válida según familia/firmware. Para TFTP, `P212=0` selecciona el transporte y `P237=192.168.1.10` es válido en este laboratorio. La prueba H1 demostró además que el teléfono solicita tanto `cfg<MAC>` como `cfg<MAC>.xml` desde ese root de provisioning.
 
-El bloqueo funcional del GXP1625 está resuelto. El trabajo restante es de integración: hacer que Endpoint Configurator genere automáticamente el XML junto con el binario, sin el paso H2 manual/post-proceso, y después repetir el flujo en GXP1630/GXP16xx.
+G10-19H6 validó en dry-run la modificación candidata de `Grandstream.py`: el flujo conserva `cfg<MAC>` binario y añade `cfg<MAC>.xml` usando exactamente el mismo mapa `vars`. El cambio todavía no se ha instalado sobre la clase live de Issabel; el siguiente paso cruza la frontera de modificación de código live del PBX.
 
 ## Próximas pruebas
 
-1. Integrar generación de `cfg<MAC>.xml` en la clase Grandstream/Endpoint Configurator de forma reutilizable, conservando el binario legacy.
-2. Validar por pruebas estáticas que el XML usa exactamente los mismos `vars` que el binario y no expone secretos en logs.
-3. En laboratorio, ejecutar Configure desde Endpoint Configurator y comprobar que regenere automáticamente binario + XML.
-4. Reaprovisionar 202 usando únicamente el flujo integrado, sin ejecutar el conversor H2.
-5. Generalizar la ruta a GXP1630/GXP16xx y documentar diferencias por firmware/modelo.
+1. Desplegar de forma controlada y reversible la modificación H6 sobre `Grandstream.py` live del LAB.
+2. Ejecutar Configure desde Endpoint Configurator y comprobar que regenere automáticamente binario + XML sin el conversor H2.
+3. Reaprovisionar 202 usando únicamente el flujo integrado y verificar teléfono + Asterisk.
+4. Documentar arquitectura final y matriz GXP1625/GXP1630/GXP16xx.
+5. Repetir el flujo con GXP1630 sin asumir diferencias de firmware.
 
 ## Regla de documentación
 
