@@ -1,4 +1,4 @@
-name: G10-19F3 | Issabel Lab | GXP1625 Reboot TFTP RRQ Capture
+name: G10-19F3 | Issabel Lab | GXP1625 TFTP RRQ Capture
 
 on:
   push:
@@ -12,113 +12,64 @@ permissions:
 
 jobs:
   capture:
-    name: Capture only TFTP RRQ while rebooting GXP1625
+    name: Capture TFTP RRQ from GXP1625
     runs-on: [self-hosted, Linux, X64, issabel-lab]
-    timeout-minutes: 4
-    env:
-      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
-      PHONE_IP: 192.168.1.167
-      CFG_NAME: cfgc074ade86609
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Controlled reboot with RRQ-only packet capture
+      - name: Capture RRQ-only traffic for 100 seconds
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/g10-19f3.txt"
-          PCAP="$RUNNER_TEMP/g10-19f3-rrq.pcap"
-          CURLCFG="$RUNNER_TEMP/g10-19f3-curl.conf"
-          CAPERR="$RUNNER_TEMP/g10-19f3-tcpdump.err"
+          PCAP="$RUNNER_TEMP/g10-19f3.pcap"
+          TXT="$RUNNER_TEMP/g10-19f3.txtdump"
           : > "$REPORT"
           log(){ printf '%s\n' "$1" | tee -a "$REPORT"; }
-          log 'scope=CONTROLLED_REBOOT_TFTP_RRQ_CAPTURE'
-          log 'phone_write=REBOOT_ONLY'
+          log 'scope=READ_ONLY_TFTP_RRQ_CAPTURE'
+          log 'phone_write=NO'
           log 'db_write=NO'
           log 'pbx_live_code_write=NO'
           log 'cfg_content_logged=NO'
-          log 'secret_in_process_argv=NO'
-          command -v tcpdump >/dev/null || { log 'tcpdump=ABSENT'; log 'G10-19F3-COMPLETE=YES'; exit 0; }
-          test -n "$PHONE_PASSWORD"
-
-          # Start capture first. Filter is RRQ direction only (UDP destination 69),
-          # so configuration DATA packets and their contents are never captured.
+          if ! command -v tcpdump >/dev/null; then
+            log 'tcpdump=ABSENT'
+            log 'diagnostic=TCPDUMP_NOT_AVAILABLE'
+            log 'G10-19F3-COMPLETE=YES'
+            exit 0
+          fi
           rm -f "$PCAP"
           set +e
-          timeout 100 tcpdump -ni any -s 192 -w "$PCAP" 'udp dst port 69' 2>"$CAPERR" &
-          CAP_PID=$!
-          sleep 3
-          if ! kill -0 "$CAP_PID" 2>/dev/null; then
-            wait "$CAP_PID" || true
-            set -e
-            log 'tcpdump_capture=NO_PERMISSION_OR_START_FAILURE'
-            log 'phone_reboot=SKIPPED_CAPTURE_NOT_READY'
+          timeout 100 tcpdump -ni any -s 192 -w "$PCAP" 'udp dst port 69' 2>"$RUNNER_TEMP/g10-19f3.err"
+          RC=$?
+          set -e
+          if [ "$RC" -ne 0 ] && [ ! -s "$PCAP" ]; then
+            log 'tcpdump_capture=FAILED_OR_NO_PERMISSION'
             log 'diagnostic=RRQ_CAPTURE_PRIVILEGE_REQUIRED'
             log 'G10-19F3-COMPLETE=YES'
             exit 0
           fi
-          set -e
-          log 'tcpdump_capture=STARTED'
-
-          # Build curl config from environment in a 0600 temp file. The phone
-          # password is never placed in process argv or workflow output.
-          python3 - "$CURLCFG" <<'PY'
-import os, sys, urllib.parse
-p=os.environ['PHONE_PASSWORD']
-ip=os.environ['PHONE_IP']
-u='http://%s/cgi-bin/api-sys_operation?passcode=%s&request=REBOOT' % (ip, urllib.parse.quote(p, safe=''))
-with open(sys.argv[1],'w',encoding='utf-8') as f:
-    f.write('url = "'+u.replace('"','\\"')+'"\n')
-    f.write('silent\nshow-error\nmax-time = 8\n')
-os.chmod(sys.argv[1],0o600)
-PY
-          REBOOT_OUT="$RUNNER_TEMP/g10-19f3-reboot.json"
-          if curl --config "$CURLCFG" > "$REBOOT_OUT" 2>/dev/null; then
-            if python3 - "$REBOOT_OUT" <<'PY'
-import json,sys
-try:
-    j=json.load(open(sys.argv[1],encoding='utf-8'))
-    ok=j.get('response')=='success' and j.get('body') in ('savereboot','directreboot')
-except Exception:
-    ok=False
-raise SystemExit(0 if ok else 1)
-PY
-            then log 'phone_reboot=ACCEPTED'; else log 'phone_reboot=RESPONSE_NOT_ACCEPTED'; fi
-          else
-            log 'phone_reboot=CURL_CONNECTION_RESULT_UNCERTAIN'
-          fi
-          rm -f "$CURLCFG" "$REBOOT_OUT"
-
-          # Give the phone time to boot and request provisioning.
-          sleep 70
-          kill "$CAP_PID" 2>/dev/null || true
-          wait "$CAP_PID" 2>/dev/null || true
-
+          log 'tcpdump_capture=COMPLETED'
           if [ ! -s "$PCAP" ]; then
             log 'rrq_packets=0'
             log 'expected_cfg_rrq=NO'
             log 'diagnostic=NO_TFTP_RRQ_CAPTURED'
-            log 'next_activity=G10-19F4_REVIEW_PHONE_PROVISIONING_BEHAVIOR'
             log 'G10-19F3-COMPLETE=YES'
             exit 0
           fi
-
-          # Decode only RRQ packets. No TFTP DATA payload was captured by design.
-          TXT="$RUNNER_TEMP/g10-19f3-rrq.txt"
           tcpdump -nn -A -r "$PCAP" 'udp dst port 69' > "$TXT" 2>/dev/null || true
           COUNT=$(tcpdump -nn -r "$PCAP" 'udp dst port 69' 2>/dev/null | wc -l | tr -d ' ')
           log "rrq_packets=$COUNT"
-          if grep -F "$CFG_NAME" "$TXT" >/dev/null 2>&1; then
+          if grep -F 'cfgc074ade86609' "$TXT" >/dev/null 2>&1; then
             log 'expected_cfg_rrq=YES'
             log 'diagnostic=GXP1625_CFG_RRQ_PROVEN'
             log 'next_activity=G10-19G_ENDPOINT_CONFIGURATOR_202'
           else
             log 'expected_cfg_rrq=NO'
-            log 'diagnostic=TFTP_RRQ_SEEN_BUT_EXPECTED_CFG_NOT_SEEN'
-            log 'next_activity=G10-19F4_INSPECT_REQUESTED_FILENAMES'
+            log 'diagnostic=TFTP_RRQ_CAPTURED_WITHOUT_EXPECTED_CFG'
+            log 'next_activity=G10-19F4_REVIEW_REQUESTED_FILENAME'
           fi
-          rm -f "$PCAP" "$TXT" "$CAPERR"
+          rm -f "$PCAP" "$TXT" "$RUNNER_TEMP/g10-19f3.err"
           log 'G10-19F3-COMPLETE=YES'
-          grep -E '^(scope=|phone_write=|tcpdump_capture=|phone_reboot=|rrq_packets=|expected_cfg_rrq=|diagnostic=|next_activity=|G10-19F3-COMPLETE=)' "$REPORT" >> "$GITHUB_STEP_SUMMARY" || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
