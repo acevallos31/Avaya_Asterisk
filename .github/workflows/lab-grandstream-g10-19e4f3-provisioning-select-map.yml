@@ -1,0 +1,51 @@
+name: G10-19E4F3 | Endpoint Lab | GXP1625 Provisioning Select Map
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19e4f3-provisioning-select-map.js'
+      - '.github/workflows/lab-grandstream-g10-19e4f3-provisioning-select-map.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  map-provisioning-selects:
+    name: Identify Config Upgrade Via select without writes
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only provisioning select map
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          command -v chromium >/dev/null
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19e4f3.txt"
+          node endpoint-lab/grandstream/g10-19e4f3-provisioning-select-map.js
+          grep -Fq 'G10-19E4F3-COMPLETE=YES' "$REPORT_PATH"
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19e4f3.txt"
+          {
+            echo '## G10-19E4F3 — Provisioning select map'
+            echo
+            [ -f "$REPORT" ] && cat "$REPORT" || echo 'report=NOT_CREATED'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19e4f3-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19e4f3.txt
+          if-no-files-found: warn
+          retention-days: 30
