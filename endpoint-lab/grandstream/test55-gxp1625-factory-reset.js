@@ -52,8 +52,19 @@ const phoneReachable=()=>new Promise(resolve=>{const u=new URL(phoneBase+'/');co
     await sleep(500);
   }
   log('login_ui_action',loginAction); await sleep(5000);
-  const cookies=await cmd('Network.getAllCookies');
-  const cookieNames=[...new Set((cookies.cookies||[]).map(c=>c.name))];
+  let cookies=await cmd('Network.getAllCookies');
+  let cookieNames=[...new Set((cookies.cookies||[]).map(c=>c.name))];
+  if(!cookieNames.includes('session-identity')){
+    const native=await cmd('Runtime.evaluate',{expression:`(async()=>{try{const body=new URLSearchParams({username:${JSON.stringify(username)},password:${JSON.stringify(password)}}).toString();const r=await fetch('/cgi-bin/dologin',{method:'POST',credentials:'include',headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'*/*'},body});const j=await r.json();const sid=j&&j.body&&j.body.sid||'';if(r.status===200&&j&&j.response==='success'&&sid){document.cookie='session-identity='+encodeURIComponent(sid)+'; path=/';return {http:r.status,success:true,sidPresent:true};}return {http:r.status,success:false,sidPresent:!!sid};}catch(e){return {http:0,success:false,sidPresent:false};}})()`,awaitPromise:true,returnByValue:true});
+    const nv=native?.result?.value||{};
+    log('native_login_http',String(nv.http||0));
+    log('native_login_success',nv.success?'YES':'NO');
+    log('native_login_sid_present',nv.sidPresent?'YES':'NO');
+    if(!nv.success) throw new Error('AUTHENTICATED_SESSION_NOT_ESTABLISHED');
+    await cmd('Page.navigate',{url:phoneBase+'/'}); await sleep(3500);
+    cookies=await cmd('Network.getAllCookies');
+    cookieNames=[...new Set((cookies.cookies||[]).map(c=>c.name))];
+  }
   log('session_identity_present',cookieNames.includes('session-identity')?'YES':'NO');
   if(!cookieNames.includes('session-identity')) throw new Error('AUTHENTICATED_SESSION_NOT_ESTABLISHED');
 
