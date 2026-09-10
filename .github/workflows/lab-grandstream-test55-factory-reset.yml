@@ -67,7 +67,7 @@ jobs:
           test "$PHONE_IP" = 192.168.1.168
           test "$PHONE_MAC" = C0:74:AD:E8:66:09
           test -n "$PHONE_PASSWORD"
-          nmap -sn "$PHONE_IP/32" >/dev/null
+          curl -fsS -o /dev/null --connect-timeout 3 --max-time 5 "$PHONE_BASE/"
           OBSERVED_MAC="$(ip neigh show "$PHONE_IP" | awk 'toupper($5)=="C0:74:AD:E8:66:09" {print toupper($5)}')"
           test "$OBSERVED_MAC" = "$PHONE_MAC"
           echo 'target_mac_guard=PASS' >> "$GITHUB_STEP_SUMMARY"
