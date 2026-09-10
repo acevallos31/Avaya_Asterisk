@@ -77,6 +77,9 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19H8J-a2 | PASS E2E FINAL | Repetir con selección exacta y retener integración nativa | `selected=1` solo para GXP1625/202; `applyconfig_rc=0`; `grandstream_finished_seen=YES`; `grandstream_failed_seen=NO`; XML 202/Ashly; SIP 202 `OK`; `selected_after_applyconfig=0`; parche H8J retenido | GXP1625 queda integrado nativamente sin Chromium |
 | G10-19H8K-a1/a2 | FAIL transitorio reproducible | Repetir inmediatamente el flujo ya persistido sin modificar código | Prerrequisitos H8J y credencial correctos; dos intentos inmediatos regeneran XML pero la activación devuelve `grandstream_failed_seen=YES`; selección vuelve a 0 | No revertir H8J: aislar etapa antes de atribuir causa |
 | G10-19H8K2 | PASS diagnóstico | Instrumentar temporalmente la repetición H8K sin cambiar el contrato H8J | Recorre `ENTER→LOGIN_RESPONSE→LOGIN_JSON_PARSED→SID_READY→POST_BEGIN→POST_RESPONSE→POST_JSON_PARSED`; POST clasifica `response=success status=right`; `grandstream_finished_seen=YES`; trace revertido | H8J persiste correcto; los dos fallos H8K se clasifican como condición transitoria/no determinista aún no atribuida |
+| G10-19H8L | PASS READ-ONLY | Minimizar el requisito de User-Agent del login nativo | Run `34506170492`: sin User-Agent explícito y con `Issabel-EndpointConfig/5.0` ambos obtienen HTTP 200, JSON success y SID; sin escrituras | Eliminar el User-Agent fijo `curl/8.14.1` del contrato final |
+| G10-19H8M-a1 | FAIL SEGURO | Probar dos Configure nativos sin User-Agent separados 60 s | Run `34506766259`: ciclo 1 PASS completo; ciclo 2 regeneró XML pero activación falló; rollback del cambio H8M PASS | 60 s no es una ventana segura de repetición; H8J fue restaurado automáticamente |
+| G10-19H8M-a2 | PASS E2E REPETIBLE | Repetir dos ciclos sin User-Agent con recuperación conservadora | Run `34507118291`: ambos ciclos separados 300 s terminaron `grandstream_finished_seen=YES`, XML 202/Ashly correcto, SIP 202 `OK`, 201 liberada; parche mínimo retenido | Contrato mínimo cerrado; aplicar guardrail operativo inicial de 5 minutos entre Configure del mismo teléfono |
 
 ## Hallazgo actual
 
@@ -86,23 +89,25 @@ La integración nativa **ya funciona sin Chromium**. Endpoint Configurator usa u
 
 El `Config Server Path` validado para este laboratorio es `192.168.1.10` con TFTP seleccionado mediante P212. H1 demostró experimentalmente que el teléfono solicita tanto `cfg<MAC>` como `cfg<MAC>.xml` desde el provisioning root.
 
-H8K mostró dos fallos al repetir inmediatamente Configure pese a tener la credencial y H8J correctos. H8K2, ejecutado después con trazado temporal, completó login y POST con `response=success status=right`. No se atribuye todavía el comportamiento a timeout, sesión, caché o rate limit sin una prueba específica. El trazado H8K2 fue revertido y el parche final H8J permanece activo.
+H8K mostró dos fallos al repetir inmediatamente Configure pese a tener la credencial y H8J correctos. H8K2, ejecutado después con trazado temporal, completó login y POST con `response=success status=right`. H8M confirmó que 60 segundos todavía pueden reproducir el fallo, mientras dos ciclos separados 300 segundos pasan extremo a extremo. Esto establece un guardrail operativo conservador, pero no atribuye la causa interna a timeout, sesión, caché o rate limit.
+
+H8L y H8M demostraron además que el `User-Agent: curl/8.14.1` no es requerido. El contrato mínimo retenido usa `Accept: */*`, Host/Referer, credencial por endpoint y `session-identity=<SID>`, sin User-Agent explícito.
 
 ## Estado persistente autorizado en LAB
 
 - OUI adicional Grandstream `C0:74:AD` en Endpoint Configurator.
 - Generación dual `cfg<MAC>` + `cfg<MAC>.xml` en la clase live Grandstream.
 - Override `http_password` específico del endpoint GXP1625; el valor no se expone.
-- Parche H8J de request/session fidelity activo en `Grandstream.py` live.
+- Parche final H8J/H8M de request/session fidelity activo en `Grandstream.py` live, sin User-Agent fijo.
 - Teléfono provisionado como `202 Ashly`.
 - `endpoint.selected` vuelve a `0` después de cada `applyconfig`.
 
 ## Próximas pruebas
 
-1. Ejecutar una repetición controlada con ventana de espera definida para caracterizar el comportamiento transitorio visto en H8K sin alterar H8J.
-2. Confirmar nuevamente SIP 202 después de esa repetición y, si se usa reboot, validar persistencia post-boot.
-3. Convertir la integración H6+H8J en mecanismo reproducible de despliegue/documentación, sin depender de cambios manuales en el PBX.
-4. Documentar arquitectura final y matriz de compatibilidad por modelo/firmware.
+1. Convertir H6+H8J/H8M en un paquete reproducible con preflight, backup, install, verify y rollback.
+2. Ejecutar el ciclo exacto del paquete en LAB y congelar checksums.
+3. Ejecutar preflight read-only en la PBX de producción seleccionada.
+4. Desplegar primero en un único GXP1625 canario, respetando 300 s entre Configure del mismo teléfono.
 5. Probar GXP1630 físicamente antes de marcarlo como soportado.
 
 ## Regla de documentación
