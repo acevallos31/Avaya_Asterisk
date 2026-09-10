@@ -1,0 +1,154 @@
+name: G10-19H8K | Issabel Lab | Repeat Native GXP1625 Provisioning
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8k-repeat-native.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repeat_native:
+    name: Re-run persisted native Endpoint Configurator path without Chromium
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 12
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted read/selection helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          python3 -B deploy/grandstream/prepare-g10-19h8j-final-native-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8j-select-endpoint-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2f-http-password-match-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          python3 -B deploy/j129/prepare-grandstream-sip-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Verify persisted native prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          PATCH="$RUNNER_TEMP/g10-19h8k-patch.txt"
+          CRED="$RUNNER_TEMP/g10-19h8k-credential.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8j-final-native | tee "$PATCH"
+          grep -Fq 'h8j_state=PATCHED' "$PATCH"
+          printf '%s\n' "$PHONE_PASSWORD" \
+            | sudo -n /usr/local/sbin/avaya-j129-lab-deploy compare-grandstream-http-password \
+            | tee "$CRED"
+          grep -Fq 'effective_http_password_source=ENDPOINT_OVERRIDE' "$CRED"
+          grep -Fq 'effective_http_password_matches_lab_secret=YES' "$CRED"
+
+      - name: Select exact GXP1625 202 endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8k-selection.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy select-grandstream-gxp1625-202 | tee "$REPORT"
+          grep -Fq 'selected_now=YES' "$REPORT"
+          touch "$RUNNER_TEMP/g10-19h8k-selection-active"
+
+      - name: Run persisted native Endpoint Configurator applyconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8k-native.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          grep -Fq 'applyconfig_rc=0' "$REPORT"
+          grep -Fq 'grandstream_start_seen=YES' "$REPORT"
+          grep -Fq 'grandstream_finished_seen=YES' "$REPORT"
+          grep -Fq 'grandstream_failed_seen=NO' "$REPORT"
+          grep -Fq 'xml_recreated=YES' "$REPORT"
+          grep -Fq 'xml_p35_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p36_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p47_target_pbx=YES' "$REPORT"
+          grep -Fq 'xml_p270_target_ashly=YES' "$REPORT"
+          touch "$RUNNER_TEMP/g10-19h8k-apply-success"
+          echo 'G10-19H8K-APPLYCONFIG=PASS' >> "$REPORT"
+
+      - name: Verify SIP registration
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8k-sip.txt"
+          OK=0
+          for n in 1 2 3 4 5 6; do
+            if sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sip-registration > "$REPORT" 2>&1; then
+              if grep -Fq 'target_registration_match=YES' "$REPORT" \
+                 && grep -Fq 'previous_extension_still_on_phone_ip=NO' "$REPORT"; then
+                OK=1
+                break
+              fi
+            fi
+            sleep 15
+          done
+          cat "$REPORT"
+          [ "$OK" -eq 1 ]
+          touch "$RUNNER_TEMP/g10-19h8k-e2e-success"
+          echo 'G10-19H8K-SIP=PASS' >> "$REPORT"
+
+      - name: Finalize exact selection state
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8k-selection-final.txt"
+          if [ -f "$RUNNER_TEMP/g10-19h8k-selection-active" ]; then
+            if [ -f "$RUNNER_TEMP/g10-19h8k-apply-success" ]; then
+              sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-gxp1625-selection | tee "$REPORT"
+              grep -Fq 'selected_after_applyconfig=0' "$REPORT"
+            else
+              sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-gxp1625-selection | tee "$REPORT"
+            fi
+          else
+            echo 'selection_state=NOT_CREATED' | tee "$REPORT"
+          fi
+
+      - name: Publish sanitized result
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8K — Repeat native GXP1625 provisioning'
+            echo 'chromium_used=NO'
+            echo 'live_code_changed=NO'
+            echo 'credential_db_changed=NO'
+            echo 'selected_flag_write=YES_EXACT_ENDPOINT_ONLY'
+            echo 'phone_password_logged=NO'
+            echo 'sid_or_cookie_value_logged=NO'
+            echo 'factory_reset=NO'
+            for f in "$RUNNER_TEMP/g10-19h8k-patch.txt" "$RUNNER_TEMP/g10-19h8k-credential.txt" "$RUNNER_TEMP/g10-19h8k-selection.txt" "$RUNNER_TEMP/g10-19h8k-native.txt" "$RUNNER_TEMP/g10-19h8k-sip.txt" "$RUNNER_TEMP/g10-19h8k-selection-final.txt"; do
+              [ -f "$f" ] && grep -E '^(h8j_state=|final_marker_count=|effective_http_password_source=|effective_http_password_matches_lab_secret=|selected_now=|applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|xml_recreated=|xml_p35_target_202=|xml_p36_target_202=|xml_p47_target_pbx=|xml_p270_target_ashly=|G10-19H8K-|target_extension=|target_ip=|target_status=|target_registration_match=|previous_extension_still_on_phone_ip=|selected_after_applyconfig=)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8k-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8k-patch.txt
+            ${{ runner.temp }}/g10-19h8k-credential.txt
+            ${{ runner.temp }}/g10-19h8k-selection.txt
+            ${{ runner.temp }}/g10-19h8k-native.txt
+            ${{ runner.temp }}/g10-19h8k-sip.txt
+            ${{ runner.temp }}/g10-19h8k-selection-final.txt
+          if-no-files-found: warn
+          retention-days: 30
