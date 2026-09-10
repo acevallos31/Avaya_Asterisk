@@ -1,0 +1,54 @@
+name: G10-19D3 | Endpoint Lab | Grandstream TFTP Network Proof | Read-Only Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Audit]
+    paths:
+      - 'scripts/grandstream-g10-19d3-network-tftp-proof.py'
+      - '.github/workflows/lab-grandstream-g10-19d3-network-tftp-proof.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  g10_19d3:
+    name: Prove PBX TFTP from endpoint lab
+    runs-on: [self-hosted, Linux, X64, endpoint-lab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Audit branch and endpoint runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          test "$(id -un)" = 'github-runner'
+
+      - name: Run external TFTP RRQ proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19d3-network-tftp-proof.txt"
+          python3 scripts/grandstream-g10-19d3-network-tftp-proof.py "$REPORT"
+          grep -Fq 'G10-19D3-COMPLETE' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+          grep -Fq 'pbx_config_write=NO' "$REPORT"
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19d3-network-tftp-proof.txt"
+          [ -f "$REPORT" ] && grep -E '^(tftp_|diagnostic=|next_activity=|G10-19D3-COMPLETE)' "$REPORT" >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19d3-network-tftp-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19d3-network-tftp-proof.txt
+          if-no-files-found: error
+          retention-days: 30
