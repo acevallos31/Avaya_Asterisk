@@ -32,10 +32,19 @@ apply_grandstream_h8h2b_response_classifier() {
     echo 'GRANDSTREAM-H8H2B-RESPONSE-CLASSIFIER-ALREADY-PRESENT'
     return 0
   fi
-  [ ! -e "$GRANDSTREAM_H8H2B_PATCH_BACKUP" ] || {
-    echo 'ERROR: H8H2B backup already exists; refusing overwrite.' >&2
-    exit 1
-  }
+
+  # A previous failed diagnostic can leave a backup even though no H8H2B marker
+  # was installed. Remove it only when it is byte-for-byte the same as the
+  # current H8H2-patched live file; otherwise refuse to overwrite evidence.
+  if [ -e "$GRANDSTREAM_H8H2B_PATCH_BACKUP" ]; then
+    if cmp -s "$GRANDSTREAM_PY" "$GRANDSTREAM_H8H2B_PATCH_BACKUP"; then
+      rm -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP"
+      echo 'stale_h8h2b_backup_cleanup=SAFE_MATCH_REMOVED'
+    else
+      echo 'ERROR: H8H2B backup exists and differs from live file; refusing overwrite.' >&2
+      exit 1
+    fi
+  fi
 
   local tmp before_sha after_sha
   install -d -o root -g root -m 0700 "$STATE_DIR"
@@ -48,9 +57,16 @@ apply_grandstream_h8h2b_response_classifier() {
 import sys
 src, dst = sys.argv[1], sys.argv[2]
 text = open(src, 'r', encoding='utf-8').read()
+fn_marker = '    def _enableStaticProvisioning_GXP140x(self, vars):\n'
+start = text.find(fn_marker)
+if start < 0:
+    raise SystemExit('H8H2B GXP140x function not found')
+next_def = text.find('\n    def ', start + len(fn_marker))
+end = len(text) if next_def < 0 else next_def
+prefix, body, suffix = text[:start], text[start:end], text[end:]
 anchor = "            jsonvars = self._parseBotchedJSONResponse(response)\n"
-if text.count(anchor) != 1:
-    raise SystemExit('H8H2B expected exactly one GXP140x response parse anchor')
+if body.count(anchor) != 1:
+    raise SystemExit('H8H2B expected exactly one response parse anchor inside GXP140x')
 block = """            jsonvars = self._parseBotchedJSONResponse(response)
             # G10-19H8H2B-SAFE-RESPONSE-CLASS
             response_class = 'NON_DICT'
@@ -64,8 +80,8 @@ block = """            jsonvars = self._parseBotchedJSONResponse(response)
             logging.error('G10-19H8H2B-RESPONSE-CLASS response=%s status=%s' %
                           (response_class, status_class))
 """
-text = text.replace(anchor, block, 1)
-open(dst, 'w', encoding='utf-8').write(text)
+body = body.replace(anchor, block, 1)
+open(dst, 'w', encoding='utf-8').write(prefix + body + suffix)
 PY
 
   python3 -m py_compile "$tmp"
@@ -79,18 +95,32 @@ PY
 }
 
 rollback_grandstream_h8h2b_response_classifier() {
-  [ -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP" ] || { echo 'ERROR: no H8H2B backup exists.' >&2; exit 1; }
-  grep -Fq '# G10-19H8H2B-SAFE-RESPONSE-CLASS' "$GRANDSTREAM_PY" || {
-    echo 'ERROR: H8H2B marker absent; rollback cancelled.' >&2
+  if grep -Fq '# G10-19H8H2B-SAFE-RESPONSE-CLASS' "$GRANDSTREAM_PY"; then
+    [ -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP" ] || { echo 'ERROR: H8H2B marker present but backup absent.' >&2; exit 1; }
+    python3 -m py_compile "$GRANDSTREAM_H8H2B_PATCH_BACKUP"
+    install -o root -g root -m 0644 "$GRANDSTREAM_H8H2B_PATCH_BACKUP" "$GRANDSTREAM_PY"
+    rm -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP" "${GRANDSTREAM_PY}c" 2>/dev/null || true
+    grep -Fq '# G10-19H8H2-SESSION-IDENTITY' "$GRANDSTREAM_PY"
+    ! grep -Fq '# G10-19H8H2B-SAFE-RESPONSE-CLASS' "$GRANDSTREAM_PY"
+    echo 'secret_values_logged=NO'
+    echo 'GRANDSTREAM-H8H2B-RESPONSE-CLASSIFIER-ROLLBACK-PASS'
+    return 0
+  fi
+
+  # If apply aborted before installing the marker, remove only an identical
+  # stale backup. This leaves any differing backup untouched for manual review.
+  if [ -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP" ]; then
+    if cmp -s "$GRANDSTREAM_PY" "$GRANDSTREAM_H8H2B_PATCH_BACKUP"; then
+      rm -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP"
+      echo 'stale_h8h2b_backup_cleanup=SAFE_MATCH_REMOVED'
+      echo 'GRANDSTREAM-H8H2B-RESPONSE-CLASSIFIER-ROLLBACK=ALREADY_CLEAN'
+      return 0
+    fi
+    echo 'ERROR: H8H2B marker absent but backup differs; preserving backup for review.' >&2
     exit 1
-  }
-  python3 -m py_compile "$GRANDSTREAM_H8H2B_PATCH_BACKUP"
-  install -o root -g root -m 0644 "$GRANDSTREAM_H8H2B_PATCH_BACKUP" "$GRANDSTREAM_PY"
-  rm -f "$GRANDSTREAM_H8H2B_PATCH_BACKUP" "${GRANDSTREAM_PY}c" 2>/dev/null || true
-  grep -Fq '# G10-19H8H2-SESSION-IDENTITY' "$GRANDSTREAM_PY"
-  ! grep -Fq '# G10-19H8H2B-SAFE-RESPONSE-CLASS' "$GRANDSTREAM_PY"
-  echo 'secret_values_logged=NO'
-  echo 'GRANDSTREAM-H8H2B-RESPONSE-CLASSIFIER-ROLLBACK-PASS'
+  fi
+
+  echo 'GRANDSTREAM-H8H2B-RESPONSE-CLASSIFIER-ROLLBACK=ALREADY_CLEAN'
 }
 '''
 
