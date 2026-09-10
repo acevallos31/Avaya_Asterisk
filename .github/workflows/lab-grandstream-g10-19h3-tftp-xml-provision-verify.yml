@@ -1,0 +1,84 @@
+name: G10-19H3 | Endpoint Lab | GXP1625 TFTP XML Provision + Verify 202
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h3-tftp-xml-provision-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+  PHONE_USERNAME: admin
+  PHONE_BASE: http://192.168.1.167
+  PHONE_IP: 192.168.1.167
+  PBX_IP: 192.168.1.10
+
+jobs:
+  provision:
+    name: Trigger native TFTP provisioning and verify Account 1 becomes 202
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger native provisioning against Issabel TFTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h3-prov.txt"
+          node endpoint-lab/grandstream/g10-19f6b-live-bootstrap-prov.js
+          grep -Fq 'G10-19F6B-COMPLETE=YES' "$REPORT_PATH"
+          grep -Fq 'provision_request=ACCEPTED' "$REPORT_PATH"
+
+      - name: Wait for XML provisioning to apply
+        shell: bash
+        run: |
+          sleep 35
+          READY=NO
+          for i in $(seq 1 30); do
+            if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then READY=YES; break; fi
+            sleep 4
+          done
+          echo "phone_http_ready=$READY" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify Account 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h3-account.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+          if grep -Fq 'sip_user_id=202' "$REPORT_PATH" && grep -Fq 'auth_id=202' "$REPORT_PATH"; then
+            echo 'g10_19h3_result=PASS_202_APPLIED' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'g10_19h3_result=FAIL_ACCOUNT_STILL_NOT_202' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H3 — TFTP XML provisioning result'
+            echo
+            for f in "$RUNNER_TEMP/g10-19h3-prov.txt" "$RUNNER_TEMP/g10-19h3-account.txt"; do
+              [ -f "$f" ] && grep -E '^(scope=|phone_write=|factory_reset=|session_identity_present=|bootstrap_verify=|provision_auth_method=|provision_http=|provision_response=|provision_request=|account_enabled=|account_name_target_202=|sip_server_target_pbx=|sip_user_id=|auth_id=|diagnostic=|G10-19)' "$f" || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h3-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h3-prov.txt
+            ${{ runner.temp }}/g10-19h3-account.txt
+          if-no-files-found: warn
+          retention-days: 30
