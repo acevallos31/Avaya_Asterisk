@@ -22,4 +22,30 @@ jobs:
           python-version: "3.11"
 
       - name: Run repository audit contracts
-        run: python -m unittest discover -s tests -p "test_*.py" -v
+        shell: bash
+        run: |
+          set -o pipefail
+          REPORT="$RUNNER_TEMP/audit-tests.txt"
+          python -m unittest discover -s tests -p "test_*.py" -v 2>&1 | tee "$REPORT"
+          rc=${PIPESTATUS[0]}
+
+          {
+            echo "# Avaya Issabel Audit Tests"
+            echo
+            echo "- Branch: \`$GITHUB_REF_NAME\`"
+            echo "- Commit: \`${GITHUB_SHA:0:12}\`"
+            if [ "$rc" -eq 0 ]; then
+              echo "- Result: ✅ PASS"
+            else
+              echo "- Result: ❌ FAIL"
+            fi
+            echo
+            echo "## Test result"
+            echo '```text'
+            tail -n 30 "$REPORT"
+            echo '```'
+            echo
+            echo "> Device/lab workflows publish their own sanitized operational report and artifact. Persistent integration findings belong in docs/grandstream/TEST-LEDGER.md."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit "$rc"
