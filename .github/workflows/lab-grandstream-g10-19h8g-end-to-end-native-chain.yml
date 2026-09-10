@@ -1,0 +1,252 @@
+name: G10-19H8G | Lab | Integrated Endpoint Configurator to SIP E2E
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8g-end-to-end-native-chain.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    name: Regenerate target config through Endpoint Configurator
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+    outputs:
+      baseline_epoch: ${{ steps.evidence.outputs.baseline_epoch }}
+      xml_atime_before: ${{ steps.evidence.outputs.xml_atime_before }}
+      bin_atime_before: ${{ steps.evidence.outputs.bin_atime_before }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted integrated applyconfig action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/grandstream/prepare-integrated-applyconfig-helper.py | tee "$RUNNER_TEMP/g10-19h8g-prepare.txt"
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          grep -Eq 'G10-19H8F-HELPER-PREPARE=(PASS|ALREADY_PRESENT)' "$RUNNER_TEMP/g10-19h8g-prepare.txt"
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Run real single-selected Endpoint Configurator applyconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8g-apply.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          grep -Fq 'selected_count=1' "$REPORT"
+          grep -Fq 'target_selected_count=1' "$REPORT"
+          grep -Fq 'xml_recreated=YES' "$REPORT"
+          grep -Fq 'xml_root_valid=YES' "$REPORT"
+          grep -Fq 'xml_mac_binding=YES' "$REPORT"
+          grep -Fq 'xml_p35_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p36_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p34_secret_present=YES' "$REPORT"
+          grep -Fq 'xml_p47_target_pbx=YES' "$REPORT"
+          grep -Fq 'xml_p270_target_ashly=YES' "$REPORT"
+          grep -Fq 'G10-19H8F-INTEGRATED-APPLYCONFIG-PASS' "$REPORT"
+
+      - name: Record post-generation fetch baseline
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          XML='/tftpboot/cfgc074ade86609.xml'
+          BIN='/tftpboot/cfgc074ade86609'
+          test -f "$XML"
+          test -f "$BIN"
+          NOW="$(date +%s)"
+          XML_A="$(stat -c %X "$XML")"
+          BIN_A="$(stat -c %X "$BIN")"
+          echo "baseline_epoch=$NOW" >> "$GITHUB_OUTPUT"
+          echo "xml_atime_before=$XML_A" >> "$GITHUB_OUTPUT"
+          echo "bin_atime_before=$BIN_A" >> "$GITHUB_OUTPUT"
+          {
+            echo '## G10-19H8G — Stage 1'
+            echo 'endpointconfig_regeneration=PASS'
+            echo 'target=GXP1625_202_Ashly'
+            echo 'secrets_logged=NO'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized generation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8g-generation-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8g-apply.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  bootstrap_prov:
+    name: Bootstrap TFTP and trigger native PROV
+    needs: regenerate
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 12
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+      PHONE_IP: 192.168.1.167
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Controlled browser bootstrap and native PROV
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h8g-prov.txt"
+          node endpoint-lab/grandstream/g10-19f6b-live-bootstrap-prov.js
+          grep -Fq 'G10-19F6B-COMPLETE=YES' "$REPORT_PATH"
+          grep -Fq 'session_identity_present=YES' "$REPORT_PATH"
+          grep -Fq 'bootstrap_verify=READY' "$REPORT_PATH"
+          grep -Fq 'provision_request=ACCEPTED' "$REPORT_PATH"
+          grep -Fq 'diagnostic=LIVE_BOOTSTRAP_PROV_ACCEPTED' "$REPORT_PATH"
+
+      - name: Wait for phone to apply provisioning
+        id: wait
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 35
+          READY=NO
+          for i in $(seq 1 36); do
+            if curl -fsS --connect-timeout 2 --max-time 3 "$PHONE_BASE/" >/dev/null 2>&1; then READY=YES; break; fi
+            sleep 5
+          done
+          echo "ready=$READY" >> "$GITHUB_OUTPUT"
+          echo "phone_http_returned=$READY" >> "$GITHUB_STEP_SUMMARY"
+          test "$READY" = YES
+
+      - name: Verify Account 1 is 202 Ashly
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/g10-19h8g-account.txt"
+          node endpoint-lab/grandstream/g10-19g2-chromium-account-state.js
+          grep -Fq 'G10-19G2-COMPLETE=YES' "$REPORT_PATH"
+          grep -Fq 'account_enabled=YES' "$REPORT_PATH"
+          grep -Fq 'account_name_target_202=YES' "$REPORT_PATH"
+          grep -Fq 'sip_server_target_pbx=YES' "$REPORT_PATH"
+          grep -Fq 'sip_user_id=202' "$REPORT_PATH"
+          grep -Fq 'auth_id=202' "$REPORT_PATH"
+          grep -Fq 'diagnostic=PHONE_ACCOUNT1_HAS_202' "$REPORT_PATH"
+          {
+            echo '## G10-19H8G — Stage 2'
+            grep -E '^(session_identity_present=|bootstrap_verify=|provision_auth_method=|provision_http=|provision_response=|provision_request=|diagnostic=)' "$RUNNER_TEMP/g10-19h8g-prov.txt" || true
+            grep -E '^(account_enabled=|account_name_target_202=|sip_server_target_pbx=|sip_user_id=|auth_id=|diagnostic=)' "$REPORT_PATH" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized phone evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8g-phone-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8g-prov.txt
+            ${{ runner.temp }}/g10-19h8g-account.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  verify:
+    name: Prove config fetch and Asterisk registration
+    needs: [regenerate, bootstrap_prov]
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 7
+    env:
+      FETCH_BASELINE_EPOCH: ${{ needs.regenerate.outputs.baseline_epoch }}
+      XML_ATIME_BEFORE: ${{ needs.regenerate.outputs.xml_atime_before }}
+      BIN_ATIME_BEFORE: ${{ needs.regenerate.outputs.bin_atime_before }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prove phone fetched a freshly generated config
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHONE_IP='192.168.1.167'
+          XML_NAME='cfgc074ade86609.xml'
+          BIN_NAME='cfgc074ade86609'
+          XML="/tftpboot/$XML_NAME"
+          BIN="/tftpboot/$BIN_NAME"
+          REPORT="$RUNNER_TEMP/g10-19h8g-fetch.txt"
+          : > "$REPORT"
+          log(){ printf '%s\n' "$1" | tee -a "$REPORT"; }
+          XML_AFTER="$(stat -c %X "$XML")"
+          BIN_AFTER="$(stat -c %X "$BIN")"
+          XML_ADV=NO; BIN_ADV=NO
+          [ "$XML_AFTER" -gt "$XML_ATIME_BEFORE" ] && XML_ADV=YES || true
+          [ "$BIN_AFTER" -gt "$BIN_ATIME_BEFORE" ] && BIN_ADV=YES || true
+          TMP="$RUNNER_TEMP/g10-19h8g-tftp.log"
+          : > "$TMP"
+          LOG_READ=NO
+          if journalctl -u xinetd --since "@$FETCH_BASELINE_EPOCH" --no-pager > "$TMP" 2>/dev/null; then LOG_READ=YES; fi
+          XML_HIT=NO; BIN_HIT=NO
+          if grep -F "$PHONE_IP" "$TMP" 2>/dev/null | grep -Fi "$XML_NAME" >/dev/null 2>&1; then XML_HIT=YES; fi
+          if grep -F "$PHONE_IP" "$TMP" 2>/dev/null | grep -Fi "$BIN_NAME" >/dev/null 2>&1; then BIN_HIT=YES; fi
+          FETCH=NO
+          if [ "$XML_ADV" = YES ] || [ "$BIN_ADV" = YES ] || [ "$XML_HIT" = YES ] || [ "$BIN_HIT" = YES ]; then FETCH=YES; fi
+          FORMAT=NONE
+          if [ "$XML_ADV" = YES ] || [ "$XML_HIT" = YES ]; then FORMAT=XML; fi
+          if [ "$BIN_ADV" = YES ] || [ "$BIN_HIT" = YES ]; then
+            [ "$FORMAT" = XML ] && FORMAT=BOTH || FORMAT=BINARY
+          fi
+          log 'scope=POST_PROV_CONFIG_FETCH_PROOF'
+          log "journal_read=$LOG_READ"
+          log "xml_atime_advanced=$XML_ADV"
+          log "binary_atime_advanced=$BIN_ADV"
+          log "phone_xml_log_hit=$XML_HIT"
+          log "phone_binary_log_hit=$BIN_HIT"
+          log "requested_format=$FORMAT"
+          log "fresh_config_fetch_proven=$FETCH"
+          [ "$FETCH" = YES ]
+
+      - name: Prepare restricted SIP registration audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 deploy/j129/prepare-grandstream-sip-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Verify 202 registration and 201 release
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8g-sip.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-sip-registration | tee "$REPORT"
+          grep -Fq 'target_registration_match=YES' "$REPORT"
+          grep -Fq 'previous_extension_still_on_phone_ip=NO' "$REPORT"
+          grep -Fq 'GRANDSTREAM-SIP-REGISTRATION-PASS' "$REPORT"
+          {
+            echo '## G10-19H8G — Stage 3 / Final'
+            cat "$RUNNER_TEMP/g10-19h8g-fetch.txt"
+            cat "$REPORT"
+            echo 'G10-19H8G-END-TO-END-PASS=YES'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized final evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8g-final-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8g-fetch.txt
+            ${{ runner.temp }}/g10-19h8g-sip.txt
+          if-no-files-found: warn
+          retention-days: 30
