@@ -1,0 +1,42 @@
+name: G10-19F2 | Endpoint Lab | GXP1625 Reboot For Provisioning Proof
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'endpoint-lab/grandstream/g10-19f2-chromium-reboot-for-provision.js'
+      - '.github/workflows/lab-grandstream-g10-19f2-chromium-reboot-for-provision.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reboot:
+    name: Controlled reboot to trigger provisioning
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 5
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      PHONE_USERNAME: admin
+      PHONE_BASE: http://192.168.1.167
+    steps:
+      - uses: actions/checkout@v4
+      - name: Controlled reboot through authenticated Chromium session
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'Audit'
+          command -v chromium >/dev/null
+          test -n "$PHONE_PASSWORD"
+          export REPORT_PATH="$RUNNER_TEMP/g10-19f2.txt"
+          node endpoint-lab/grandstream/g10-19f2-chromium-reboot-for-provision.js
+          grep -Fq 'G10-19F2-COMPLETE=YES' "$REPORT_PATH"
+          grep -E '^(scope=|login_ui_action=|session_identity_present=|session_role_present=|reboot_http=|reboot_response=|reboot_body_class=|reboot_request=|next_activity=|diagnostic=|G10-19F2-COMPLETE=)' "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g10-19f2-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19f2.txt
+          if-no-files-found: warn
+          retention-days: 30
