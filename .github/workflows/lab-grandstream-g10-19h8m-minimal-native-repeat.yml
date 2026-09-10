@@ -19,7 +19,7 @@ jobs:
   repeatability:
     name: Prove two minimal native GXP1625 cycles with controlled spacing
     runs-on: [self-hosted, Linux, X64, issabel-lab]
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -80,7 +80,7 @@ jobs:
             sudo -n /usr/local/sbin/avaya-j129-lab-deploy commit-grandstream-gxp1625-selection \
               | tee "$RUNNER_TEMP/g10-19h8m-select-final-${cycle}.txt"
             rm -f "$RUNNER_TEMP/g10-19h8m-selection-active"
-            if [ "$cycle" -eq 1 ]; then sleep 60; fi
+            if [ "$cycle" -eq 1 ]; then sleep 300; fi
           done
           touch "$RUNNER_TEMP/g10-19h8m-native-success"
 
@@ -133,7 +133,7 @@ jobs:
           {
             echo '## G10-19H8M — Minimal native repeatability gate'
             echo 'explicit_user_agent=NONE'
-            echo 'controlled_spacing_seconds=60'
+            echo 'controlled_spacing_seconds=300'
             echo 'phone_password_logged=NO'
             echo 'sid_or_cookie_value_logged=NO'
             echo 'submitted_pvalue_payload_logged=NO'
