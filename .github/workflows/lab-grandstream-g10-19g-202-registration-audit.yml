@@ -1,0 +1,35 @@
+name: G10-19G | Issabel Lab | GXP1625 202 Registration Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/j129/prepare-grandstream-202-registration-audit.py'
+      - '.github/workflows/lab-grandstream-g10-19g-202-registration-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Verify account 202 registration from GXP1625
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare restricted helper action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 -B deploy/j129/prepare-grandstream-202-registration-audit.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+      - name: Verify 202 without SIP secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-202-registration)"
+          printf '%s\n' "$OUT"
+          grep -F 'GRANDSTREAM-202-REGISTRATION-AUDIT-PASS' <<<"$OUT"
