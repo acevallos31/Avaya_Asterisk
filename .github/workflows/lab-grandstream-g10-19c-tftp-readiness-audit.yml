@@ -2,11 +2,6 @@ name: G10-19C | Issabel Lab | Grandstream TFTP Readiness | Read-Only Audit
 
 on:
   workflow_dispatch:
-  push:
-    branches: [Audit]
-    paths:
-      - 'scripts/grandstream-g10-19c-tftp-readiness-audit.sh'
-      - '.github/workflows/lab-grandstream-g10-19c-tftp-readiness-audit.yml'
 
 permissions:
   contents: read
