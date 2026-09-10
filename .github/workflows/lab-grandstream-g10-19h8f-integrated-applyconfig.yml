@@ -1,0 +1,81 @@
+name: G10-19H8F | Issabel Lab | Integrated Endpoint Configurator ApplyConfig
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-g10-19h8f-integrated-applyconfig.yml'
+      - 'deploy/grandstream/prepare-integrated-applyconfig-helper.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    name: Prove live Endpoint Configurator regenerates cfgMAC.xml automatically
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted integrated applyconfig action
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 deploy/grandstream/prepare-integrated-applyconfig-helper.py | tee "$RUNNER_TEMP/g10-19h8f-prepare.txt"
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          grep -Eq 'G10-19H8F-HELPER-PREPARE=(PASS|ALREADY_PRESENT)' "$RUNNER_TEMP/g10-19h8f-prepare.txt"
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Run single-selected-endpoint Endpoint Configurator applyconfig
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8f.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          grep -Fq 'selected_count=1' "$REPORT"
+          grep -Fq 'target_selected_count=1' "$REPORT"
+          grep -Fq 'xml_removed_before_apply=YES' "$REPORT"
+          grep -Fq 'xml_recreated=YES' "$REPORT"
+          grep -Fq 'xml_mtime_after_baseline=YES' "$REPORT"
+          grep -Fq 'xml_root_valid=YES' "$REPORT"
+          grep -Fq 'xml_mac_binding=YES' "$REPORT"
+          grep -Fq 'xml_p35_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p36_target_202=YES' "$REPORT"
+          grep -Fq 'xml_p34_secret_present=YES' "$REPORT"
+          grep -Fq 'xml_p47_target_pbx=YES' "$REPORT"
+          grep -Fq 'xml_p270_target_ashly=YES' "$REPORT"
+          grep -Fq 'G10-19H8F-INTEGRATED-APPLYCONFIG-PASS' "$REPORT"
+
+      - name: Publish sanitized summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## G10-19H8F — Integrated Endpoint Configurator ApplyConfig'
+            echo
+            echo '- Scope guard: exactly one selected endpoint, GXP1625 / 202 / 192.168.1.167'
+            echo '- Existing XML is removed only inside a rollback-protected window.'
+            echo '- Raw applyconfig logs are never uploaded or printed.'
+            echo '- Success proves live Grandstream.py itself recreates cfgMAC.xml; H2 converter is not used.'
+            echo
+            [ -f "$RUNNER_TEMP/g10-19h8f.txt" ] && cat "$RUNNER_TEMP/g10-19h8f.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8f-${{ github.run_id }}
+          path: ${{ runner.temp }}/g10-19h8f.txt
+          if-no-files-found: warn
+          retention-days: 30
