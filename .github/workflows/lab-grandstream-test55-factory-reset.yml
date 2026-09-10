@@ -1,0 +1,133 @@
+name: 55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-test55-removal-verifier.py'
+      - 'endpoint-lab/grandstream/test55-gxp1625-factory-reset.js'
+      - '.github/workflows/lab-grandstream-test55-factory-reset.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHONE_IP: 192.168.1.167
+  PHONE_BASE: http://192.168.1.167
+  PHONE_USERNAME: admin
+  PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+
+jobs:
+  verify-removal:
+    name: Verify exact Endpoint Configurator removal
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install narrow read-only verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          python3 -B deploy/grandstream/prepare-test55-removal-verifier.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+      - name: Verify MAC, provisioning files and extensions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy verify-grandstream-test55-removal \
+            | tee "$RUNNER_TEMP/test55-removal.txt"
+          grep -Fq 'TEST55-ENDPOINT-REMOVAL-VERIFY=PASS' "$RUNNER_TEMP/test55-removal.txt"
+      - name: Publish sanitized removal evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 55 — Endpoint Configurator removal'
+            [ -f "$RUNNER_TEMP/test55-removal.txt" ] && cat "$RUNNER_TEMP/test55-removal.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  factory-reset:
+    name: Send controlled factory reset to exact GXP1625
+    needs: verify-removal
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate destructive-operation guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          test "$PHONE_IP" = 192.168.1.167
+          test -n "$PHONE_PASSWORD"
+      - name: Factory reset through authenticated phone UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test55-factory-reset.txt"
+          node endpoint-lab/grandstream/test55-gxp1625-factory-reset.js
+          grep -Fq 'TEST55-FACTORY-RESET=PASS' "$REPORT_PATH"
+      - name: Publish sanitized reset evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 55 — Controlled factory reset'
+            [ -f "$RUNNER_TEMP/test55-factory-reset.txt" ] && cat "$RUNNER_TEMP/test55-factory-reset.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  verify-post-reset:
+    name: Verify account detached after factory reset
+    needs: factory-reset
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install narrow read-only verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          python3 -B deploy/grandstream/prepare-test55-removal-verifier.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+      - name: Wait for SIP registration to detach
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test55-post-reset.txt"
+          PASS=0
+          for n in $(seq 1 18); do
+            if sudo -n /usr/local/sbin/avaya-j129-lab-deploy verify-grandstream-test55-post-reset >"$REPORT" 2>&1; then
+              PASS=1
+              break
+            fi
+            sleep 15
+          done
+          cat "$REPORT"
+          test "$PASS" -eq 1
+          grep -Fq 'TEST55-POST-RESET-VERIFY=PASS' "$REPORT"
+      - name: Publish sanitized post-reset evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 55 — Post-reset state'
+            [ -f "$RUNNER_TEMP/test55-post-reset.txt" ] && cat "$RUNNER_TEMP/test55-post-reset.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test55-gxp1625-factory-reset-${{ github.run_id }}
+          path: ${{ runner.temp }}/test55-post-reset.txt
+          if-no-files-found: warn
+          retention-days: 30
