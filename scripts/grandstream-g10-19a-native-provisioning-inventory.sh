@@ -10,7 +10,7 @@ PHP_CLASS="/var/www/html/modules/endpoint_configurator/phonesrv/vendor/Grandstre
 
 : > "$REPORT"
 chmod 600 "$REPORT"
-log() { printf '%s\n' "$1" | tee -a "$REPORT"; }
+log() { printf '%s\n' "${1:-}" | tee -a "$REPORT"; }
 
 log '=== G10-19A GRANDSTREAM NATIVE PROVISIONING INVENTORY ==='
 log 'scope=READ_ONLY'
