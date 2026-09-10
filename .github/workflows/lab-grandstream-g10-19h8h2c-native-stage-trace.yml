@@ -1,0 +1,108 @@
+name: G10-19H8H2C | Issabel Lab | Native GXP140x Stage Trace
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/grandstream/prepare-g10-19h8h2c-stage-helper.py'
+      - 'deploy/grandstream/prepare-g10-19h8h2c-output-helper.py'
+      - '.github/workflows/lab-grandstream-g10-19h8h2c-native-stage-trace.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    name: Identify last safe native provisioning stage without exposing secrets
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare restricted H8H2 and H8H2C helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'Audit'
+          python3 -B deploy/grandstream/prepare-g10-19h8h2-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2c-stage-helper.py
+          python3 -B deploy/grandstream/prepare-integrated-applyconfig-helper.py
+          python3 -B deploy/grandstream/prepare-g10-19h8h2c-output-helper.py
+          bash -n deploy/j129/avaya-j129-lab-deploy
+
+      - name: Sync restricted privileged helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          printf '%s\n' "$OUT"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$OUT"
+
+      - name: Apply temporary browser-equivalent session and stage trace
+        shell: bash
+        run: |
+          set -euo pipefail
+          BEFORE="$RUNNER_TEMP/g10-19h8h2c-before.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-h8h2-session-patch | tee "$BEFORE"
+          grep -Fq 'h8h2_patch_state=READY' "$BEFORE"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8h2-session-patch \
+            | tee "$RUNNER_TEMP/g10-19h8h2c-h8h2-apply.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-h8h2c-stage-trace \
+            | tee "$RUNNER_TEMP/g10-19h8h2c-stage-apply.txt"
+          grep -Fq 'GRANDSTREAM-H8H2C-STAGE-TRACE-APPLY-PASS' "$RUNNER_TEMP/g10-19h8h2c-stage-apply.txt"
+
+      - name: Run one native Endpoint Configurator attempt and capture stage trace
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/g10-19h8h2c-native.txt"
+          set +e
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy run-grandstream-integrated-applyconfig | tee "$REPORT"
+          HELPER_RC=${PIPESTATUS[0]}
+          set -e
+          echo "integrated_helper_rc=$HELPER_RC" >> "$REPORT"
+          grep -Fq 'h8h2c_stage_trace_seen=YES' "$REPORT"
+          grep -Eq '^G10-19H8H2C-STAGE=[A-Z_]+$' "$REPORT"
+          echo 'G10-19H8H2C-STAGE-CAPTURE=PASS' >> "$REPORT"
+
+      - name: Roll back H8H2C and H8H2 live-code patches
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          STAGE_RC=0
+          H8H2_RC=0
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8h2c-stage-trace \
+            | tee "$RUNNER_TEMP/g10-19h8h2c-stage-rollback.txt" || STAGE_RC=$?
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy rollback-grandstream-h8h2-session-patch \
+            | tee "$RUNNER_TEMP/g10-19h8h2c-h8h2-rollback.txt" || H8H2_RC=$?
+          echo "stage_rollback_rc=$STAGE_RC" >> "$GITHUB_STEP_SUMMARY"
+          echo "h8h2_rollback_rc=$H8H2_RC" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$STAGE_RC" -ne 0 ] || [ "$H8H2_RC" -ne 0 ]; then exit 1; fi
+
+      - name: Publish sanitized stage result
+        if: always()
+        shell: bash
+        run: |
+          REPORT="$RUNNER_TEMP/g10-19h8h2c-native.txt"
+          {
+            echo '## G10-19H8H2C — Native GXP140x stage trace'
+            echo 'phone_password_logged=NO'
+            echo 'sid_or_cookie_value_logged=NO'
+            echo 'submitted_pvalue_payload_logged=NO'
+            [ -f "$REPORT" ] && grep -E '^(applyconfig_rc=|grandstream_start_seen=|grandstream_finished_seen=|grandstream_failed_seen=|h8h2c_stage_trace_seen=|G10-19H8H2C-STAGE=|integrated_helper_rc=|G10-19H8H2C-STAGE-CAPTURE=)' "$REPORT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g10-19h8h2c-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g10-19h8h2c-before.txt
+            ${{ runner.temp }}/g10-19h8h2c-native.txt
+            ${{ runner.temp }}/g10-19h8h2c-stage-rollback.txt
+            ${{ runner.temp }}/g10-19h8h2c-h8h2-rollback.txt
+          if-no-files-found: warn
+          retention-days: 30
