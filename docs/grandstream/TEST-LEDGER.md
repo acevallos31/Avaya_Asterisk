@@ -36,26 +36,29 @@ Endpoint Configurator debe descubrir el teléfono, asignar la extensión, genera
 | G10-19E4B | FAIL controlado | Parsear cookies legacy del firmware | Cliente obtiene `session-role`, no `session-identity`; write sigue `session-expired` | `session-identity` no viene del login HTTP directo observado |
 | G10-19E4C | PASS diagnóstico | Buscar origen estático de `session-identity` | `webapp.nocache.js` no contiene literal relevante | Pasar a traza runtime con navegador real |
 | G10-19E4D | PASS diagnóstico | Traza runtime con Chromium/CDP | Login UI real crea `session-identity` y `session-role`; no se observó como Set-Cookie directo; 38 eventos de red | Reproducir secuencia real del navegador, no inventar valor de cookie |
-| G10-19G2 | PASS diagnóstico | Leer estado real de Account 1 después de las pruebas de provisioning | Login UI real y lectura HTTP 200; cuenta habilitada; SIP server apunta a la PBX; User ID/Auth ID siguen en `201`; nombre de cuenta no corresponde a 202 | El teléfono todavía conserva la cuenta rollback 201; 202 aún no está aplicada en Account 1 |
+| G10-19E4E | PASS | Aplicar bootstrap nativo dentro de sesión Chromium real | Login UI + SID en memoria + `session-identity`/`session-role`; POST P212/P237 responde `success/right`; relectura confirma P212=0 y P237=PBX | El bloqueo `session-expired` queda superado usando el contexto real de la webapp; avanzar a reboot y prueba de fetch |
+| G10-19F2 | PASS | Reiniciar de forma controlada para disparar provisioning | Reboot de sesión simple rechazado; fallback autenticado aceptado con `SAVEREBOOT`; no hubo factory reset | Esperar boot completo y verificar persistencia/fetch antes de tocar cuenta SIP |
+| G10-19F3 | BLOQUEADO observabilidad | Capturar RRQ TFTP del teléfono | `tcpdump` existe pero el runner no tiene privilegio de captura; incluso `sudo -n tcpdump` no está autorizado | No interpretar ausencia de captura como ausencia de RRQ; evitar más intentos ciegos de privilegios |
+| G10-19F3B | BLOQUEADO observabilidad | Buscar evidencia TFTP en logs del servidor | `journalctl` y `/var/log/messages` no son legibles para el runner; resultado RRQ=UNKNOWN | Usar transición de estado del teléfono como evidencia alternativa o helper restringido si resulta necesario |
+| G10-19G2 | PASS diagnóstico | Leer estado real de Account 1 antes del bootstrap exitoso | Login UI real y lectura HTTP 200; cuenta habilitada; SIP server apunta a la PBX; User ID/Auth ID siguen en `201` | Baseline confirmado: 202 aún no estaba aplicada antes de E4E |
+| G10-19E-post-reboot | TRANSITORIO | Releer P212/P237 inmediatamente después de reboot | Dos lecturas dieron timeout/connection refused mientras el teléfono seguía reiniciando | No clasificar como regresión; repetir cuando HTTP vuelva a estar disponible |
 
 ## Hallazgo actual
 
-La diferencia crítica entre el cliente automatizado directo y Chrome es que el flujo real del navegador termina con una cookie `session-identity`. El login HTTP directo solo produce de forma útil `session-role`. La escritura de `api.values.post` funciona desde Chrome y falla con `session-expired` fuera de ese flujo.
+El hallazgo decisivo es que el GXP1625 firmware 1.0.7.70 acepta la escritura de P-values cuando la petición se ejecuta dentro de una sesión Chromium que reproduce la webapp real. G10-19E4E confirmó P212=0 y P237 apuntando a la PBX antes del reboot.
 
-La prueba G10-19E4D confirmó que `session-identity` aparece durante el flujo real de la webapp ejecutada en Chromium, pero no se detectó como un `Set-Cookie` HTTP convencional. Esto sugiere que la identidad de sesión se establece o transforma dentro del flujo de la aplicación web.
+G10-19F2 confirmó después un reboot controlado aceptado (`SAVEREBOOT`). La observabilidad directa del RRQ desde la PBX sigue bloqueada por permisos del runner, por lo que el siguiente criterio fuerte será verificar, una vez que el teléfono termine de arrancar, que P212/P237 persistieron y si Account 1 cambia de `201` a `202` después de consumir el cfg generado por Issabel.
 
-El checkpoint G10-19G2 confirma que Account 1 sigue funcionando con la extensión rollback `201` y que el SIP server ya apunta a la PBX. Por tanto, no debe declararse éxito de provisioning de `202 Ashly` hasta que una lectura posterior muestre 202 en el teléfono y Asterisk confirme su registro.
+No debe declararse éxito de provisioning de `202 Ashly` hasta que una lectura posterior muestre 202 en el teléfono y Asterisk confirme su registro.
 
 ## Próximas pruebas
 
-Las pruebas posteriores deben conservar la secuencia de evidencia y no saltarse la verificación de estado real del teléfono:
-
-1. probar/aplicar el mecanismo de provisioning sin exponer secretos,
-2. confirmar solicitud/descarga del `cfg<MAC>`,
-3. releer Account 1,
-4. exigir `202` como User ID/Auth ID antes de marcar provisioning exitoso,
-5. comprobar registro SIP de 202 en Issabel,
-6. mantener 201 documentado como rollback hasta cerrar la validación.
+1. Esperar disponibilidad HTTP del GXP1625 después de G10-19F2.
+2. Releer P212/P237 y confirmar persistencia tras reboot.
+3. Releer Account 1 y comparar contra baseline 201.
+4. Si sigue 201, verificar que el `cfg<MAC>` vigente fue generado realmente para 202 antes de repetir provisioning.
+5. Si aparece 202, comprobar registro SIP de 202 en Issabel.
+6. Documentar arquitectura reutilizable para GXP1630 y otros GXP16xx.
 
 ## Regla de documentación
 
@@ -65,6 +68,6 @@ Cada prueba operativa Grandstream debe dejar tres evidencias:
 2. Artifact sanitizado, usando `if: always()` cuando sea viable para conservar evidencia aun si una validación falla.
 3. Entrada persistente en este ledger con hipótesis, resultado, decisión y siguiente actividad.
 
-El workflow general `Avaya Issabel Audit Tests` es un validador de contratos del repositorio, no una prueba física del teléfono. A partir de este punto también debe publicar un resumen visible de sus unit tests para evitar runs aparentemente vacíos.
+El workflow general `Avaya Issabel Audit Tests` es un validador de contratos del repositorio, no una prueba física del teléfono. También publica resumen de unit tests para evitar runs aparentemente vacíos.
 
 Los workflows de diagnóstico deben evitar matrices ciegas. Cada prueba necesita hipótesis, criterio de éxito y condición de parada.
