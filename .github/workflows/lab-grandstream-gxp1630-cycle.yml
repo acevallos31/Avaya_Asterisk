@@ -3,7 +3,9 @@ name: 57 | Endpoint Lab | GXP1630 | Controlled Provisioning Cycle
 on:
   push:
     branches: [Audit]
-    paths: ['.github/workflows/lab-grandstream-gxp1630-cycle.yml']
+    paths:
+      - '.github/workflows/lab-grandstream-gxp1630-cycle.yml'
+      - 'endpoint-lab/grandstream/test57-gxp1630-bootstrap.py'
   workflow_dispatch:
 
 permissions:
@@ -35,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           export REPORT_PATH="$RUNNER_TEMP/test57-gxp1630-bootstrap.txt"
-          node endpoint-lab/grandstream/g10-19e2-controlled-bootstrap.js
+          python3 endpoint-lab/grandstream/test57-gxp1630-bootstrap.py
           grep -Fq 'diagnostic=PHONE_TFTP_BOOTSTRAP_READY' "$REPORT_PATH"
           grep -Fq 'p212_target_match=YES' "$REPORT_PATH"
           grep -Fq 'p237_target_match=YES' "$REPORT_PATH"
