@@ -9,6 +9,7 @@ USERNAME = os.environ.get("PHONE_USERNAME", "admin")
 PASSWORD = os.environ.get("PHONE_PASSWORD", "")
 PBX_IP = os.environ.get("PBX_IP", "192.168.1.10")
 REPORT = os.environ.get("REPORT_PATH", "test64-grp2601p-auth-read.txt")
+CREDENTIAL_SOURCE = os.environ.get("CREDENTIAL_SOURCE", "GRP_DEDICATED")
 
 
 def log(line):
@@ -38,6 +39,7 @@ if not PASSWORD:
     raise SystemExit(0)
 
 log("credential_status=PRESENT")
+log("credential_source=" + CREDENTIAL_SOURCE)
 headers = {
     "Content-Type": "application/x-www-form-urlencoded",
     "Host": PHONE_IP,
@@ -57,7 +59,10 @@ log("login=" + ("SUCCESS" if accepted else "FAILED"))
 log("login_http=" + str(status))
 if not accepted:
     log("diagnostic=PHONE_LOGIN_CONTRACT_OR_CREDENTIAL_FAILED")
-    log("TEST64-GRP2601P-AUTH-READ=FAILED")
+    if CREDENTIAL_SOURCE == "GXP_SINGLE_CANDIDATE":
+        log("TEST64-GRP2601P-AUTH-READ=GXP-CANDIDATE-REJECTED")
+    else:
+        log("TEST64-GRP2601P-AUTH-READ=FAILED")
     raise SystemExit(0)
 
 keys = "phone_model:1395:firmware_version:45:hardware_version:1397:P212:P237:P234:P235:P240:P1359:P1360:P1361:P6767"
