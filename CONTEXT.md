@@ -1,5 +1,11 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Test 57 GXP1630 — ciclo controlado — 2026-09-11
+
+Autorizado ciclo completo sin preguntas adicionales. La primera fase mutante
+limita la escritura a P212=TFTP y P237=192.168.1.10 sobre el equipo exacto
+`192.168.1.169` / `C0:74:AD:B4:AD:70`; no asigna extensión ni resetea.
+
 ## Test 56 GXP1630 — descubrimiento de fábrica — 2026-09-11
 
 Hay un Grandstream GXP1630 de fábrica conectado a la red LAB. Test 56 inicia

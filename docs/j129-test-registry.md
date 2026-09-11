@@ -73,6 +73,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 54 | `prod-grandstream-gxp1625-preflight.yml` (reservado) | `54 | Production | Grandstream GXP1625 | Read-Only Preflight` | RESERVADA. Se implementa cuando se declare PBX/sitio, runner dedicado, IP/MAC/firmware y extensiones actual/objetivo del canario. No autoriza instalación. |
 | 55 | `lab-grandstream-test55-factory-reset.yml` | `55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test` | CERRADA / `LAB-INTEGRATION-PASS` / `PHYSICAL-GXP1625-PASS`. Run `34541419730`: reset exacto observado (HTTP down/up). Run `34542431592`: baseline limpio en `.168`. Run `34543757258`: Configure manual corroborado, asociación 202, cfg/XML ligados a MAC y Ashly, HTTP 200, SIP 202 en `.168`; 201 fuera de esa IP. El operador confirmó configuración física satisfactoria. Workflow manual-only; repetir reset exige dispatch y confirmación exacta. |
 | 56 | `lab-grandstream-gxp1630-probe.yml` | `56 | Issabel Lab | Grandstream GXP1630 | Factory-State Discovery` | `LAB-READ-PASS`, runs `34578860986`, `34580059714` y `34583242705`. Único GXP1630: `.169`, `C0:74:AD:B4:AD:70`. Login/SID y lectura P-values compatibles con GXP1625; provisioning de fábrica vacío. Run `34583129574` fue `HARNESS-FAIL` por ping sin CAP_NET_RAW, corregido con HTTP. Sin escrituras. |
+| 57 | `lab-grandstream-gxp1630-cycle.yml` | `57 | Endpoint Lab | GXP1630 | Controlled Provisioning Cycle` | EN EJECUCIÓN. Bootstrap limitado a P212/P237 sobre el GXP1630 exacto `.169` / `C0:74:AD:B4:AD:70`, con verificación posterior. No asigna cuenta ni ejecuta factory reset. |
 
 ## Reglas de runners
 
@@ -108,7 +109,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `57`.
+Próximo ID disponible: `58`.
 
 ## Subpruebas Grandstream G10
 

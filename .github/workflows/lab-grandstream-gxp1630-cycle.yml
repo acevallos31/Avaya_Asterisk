@@ -1,0 +1,53 @@
+name: 57 | Endpoint Lab | GXP1630 | Controlled Provisioning Cycle
+
+on:
+  push:
+    branches: [Audit]
+    paths: ['.github/workflows/lab-grandstream-gxp1630-cycle.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Bootstrap GXP1630 to LAB TFTP
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 7
+    env:
+      PHONE_IP: 192.168.1.169
+      PHONE_USERNAME: admin
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD }}
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard exact LAB target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          test -n "$PHONE_PASSWORD"
+          curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 "http://$PHONE_IP/"
+          observed="$(ip neigh show "$PHONE_IP" | awk '/lladdr/ {print toupper($5); exit}')"
+          test "$observed" = C0:74:AD:B4:AD:70
+      - name: Apply only P212/P237 and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test57-gxp1630-bootstrap.txt"
+          node endpoint-lab/grandstream/g10-19e2-controlled-bootstrap.js
+          grep -Fq 'diagnostic=PHONE_TFTP_BOOTSTRAP_READY' "$REPORT_PATH"
+          grep -Fq 'p212_target_match=YES' "$REPORT_PATH"
+          grep -Fq 'p237_target_match=YES' "$REPORT_PATH"
+          echo 'TEST57-GXP1630-BOOTSTRAP=PASS' | tee -a "$REPORT_PATH"
+      - name: Publish sanitized evidence
+        if: always()
+        shell: bash
+        run: |
+          { echo '## Test 57 — GXP1630 controlled bootstrap'; [ -f "$RUNNER_TEMP/test57-gxp1630-bootstrap.txt" ] && cat "$RUNNER_TEMP/test57-gxp1630-bootstrap.txt" || true; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test57-gxp1630-bootstrap-${{ github.run_id }}
+          path: ${{ runner.temp }}/test57-gxp1630-bootstrap.txt
+          retention-days: 30
