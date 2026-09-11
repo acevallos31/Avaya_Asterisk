@@ -21,6 +21,13 @@ NOT-TESTED
 
 ---
 
+## 2026-09-11 — Codex — inicia Test 56 GXP1630 factory-state discovery
+
+El operador conectó un GXP1630 de fábrica a la red LAB. Se reservó Test 56 para
+discovery automático read-only de IP/MAC/modelo y comparación inicial con las
+superficies HTTP usadas por GXP1625. Esta fase no configura, reinicia ni escribe
+en el teléfono o Endpoint Configurator.
+
 ## 2026-09-11 — Codex — Test 55 cerrado con validación física satisfactoria
 
 El operador confirmó que la prueba manual ya fue completada satisfactoriamente

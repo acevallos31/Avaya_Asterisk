@@ -72,6 +72,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 53 | `prod-pbx-runner-baseline-audit.yml` | `53 | Ceiba Production | PBX & Runner Baseline | Read-Only Audit` | RETIRADA/SUPERSEDED antes de ejecución. Su semántica quedó absorbida por Test 52 parametrizada; el workflow duplicado fue eliminado sin reutilizar el ID 53. |
 | 54 | `prod-grandstream-gxp1625-preflight.yml` (reservado) | `54 | Production | Grandstream GXP1625 | Read-Only Preflight` | RESERVADA. Se implementa cuando se declare PBX/sitio, runner dedicado, IP/MAC/firmware y extensiones actual/objetivo del canario. No autoriza instalación. |
 | 55 | `lab-grandstream-test55-factory-reset.yml` | `55 | Issabel Lab | GXP1625 Factory Reset | Controlled Test` | CERRADA / `LAB-INTEGRATION-PASS` / `PHYSICAL-GXP1625-PASS`. Run `34541419730`: reset exacto observado (HTTP down/up). Run `34542431592`: baseline limpio en `.168`. Run `34543757258`: Configure manual corroborado, asociación 202, cfg/XML ligados a MAC y Ashly, HTTP 200, SIP 202 en `.168`; 201 fuera de esa IP. El operador confirmó configuración física satisfactoria. Workflow manual-only; repetir reset exige dispatch y confirmación exacta. |
+| 56 | `lab-grandstream-gxp1630-probe.yml` | `56 | Issabel Lab | Grandstream GXP1630 | Factory-State Discovery` | EN EJECUCIÓN. Discovery automático read-only en `192.168.1.0/24`; identifica un GXP1630 de fábrica mediante las superficies HTTP Grandstream y registra IP/MAC sin credenciales. No configura ni reinicia el teléfono. |
 
 ## Reglas de runners
 
@@ -107,7 +108,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `56`.
+Próximo ID disponible: `57`.
 
 ## Subpruebas Grandstream G10
 

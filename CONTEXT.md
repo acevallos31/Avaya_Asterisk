@@ -1,5 +1,12 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Test 56 GXP1630 — descubrimiento de fábrica — 2026-09-11
+
+Hay un Grandstream GXP1630 de fábrica conectado a la red LAB. Test 56 inicia
+con discovery automático read-only en `192.168.1.0/24` y compara las superficies
+de detección HTTP con la lógica validada para GXP1625. No aplica Configure, no
+escribe DB y no reinicia el teléfono.
+
 ## Test 55 GXP1625 — E2E manual cerrado — 2026-09-11
 
 La IP anterior `192.168.1.167` fue reasignada por DHCP a un DVR Hikvision; el
