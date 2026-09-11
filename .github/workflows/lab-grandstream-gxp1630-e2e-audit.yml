@@ -3,7 +3,6 @@ on:
   push:
     branches: [Audit]
     paths:
-      - 'deploy/j129/avaya-j129-lab-deploy'
       - '.github/workflows/lab-grandstream-gxp1630-e2e-audit.yml'
   workflow_dispatch:
 permissions:
