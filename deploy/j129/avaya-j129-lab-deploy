@@ -15,6 +15,7 @@ DB_STATE_FILE="$STATE_DIR/db-j129.state"
 GRANDSTREAM_OUI_STATE_FILE="$STATE_DIR/grandstream-c074ad.state"
 GRANDSTREAM_GXP1630_MODEL_STATE_FILE="$STATE_DIR/grandstream-gxp1630-model.state"
 GRANDSTREAM_GRP2601P_MODEL_STATE_FILE="$STATE_DIR/grandstream-grp2601p-model.state"
+GRANDSTREAM_GRP2601P_OUI_STATE_FILE="$STATE_DIR/grandstream-grp2601p-ec74d7.state"
 GRANDSTREAM_GXP1630_STAGE_STATE_FILE="$STATE_DIR/grandstream-gxp1630-201.state"
 GRANDSTREAM_PY="$BASE/class/issabel/vendor/Grandstream.py"
 GRANDSTREAM_LOGIN_PATCH_BACKUP="$STATE_DIR/Grandstream.py.pre-g10-14"
@@ -361,12 +362,25 @@ SQL
 }
 
 apply_grandstream_grp2601p_model() {
-  local d source_id existing new_id oui_count
+  local d source_id existing new_id oui_count oui_other manufacturer_id
   d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
   source_id="$(mysql_scalar "$d" "SELECT m.id FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GXP1625' LIMIT 1;")"
   [ "$source_id" = 134 ] || { echo "ERROR: unexpected GXP1625 source id=$source_id" >&2; exit 1; }
-  oui_count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Grandstream' AND UPPER(mp.mac_prefix)='EC:74:D7';")"
-  [ "$oui_count" -eq 1 ] || { echo "ERROR: expected one Grandstream EC:74:D7 OUI, found $oui_count" >&2; exit 1; }
+  manufacturer_id="$(mysql_scalar "$d" "SELECT id FROM manufacturer WHERE name='Grandstream' LIMIT 1;")"
+  [[ "$manufacturer_id" =~ ^[0-9]+$ ]] || { echo 'ERROR: Grandstream manufacturer missing' >&2; exit 1; }
+  oui_count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM mac_prefix WHERE UPPER(mac_prefix)='EC:74:D7';")"
+  oui_other="$(mysql_scalar "$d" "SELECT COUNT(*) FROM mac_prefix WHERE UPPER(mac_prefix)='EC:74:D7' AND id_manufacturer<>$manufacturer_id;")"
+  [ "$oui_other" -eq 0 ] || { echo 'ERROR: EC:74:D7 belongs to another manufacturer' >&2; exit 1; }
+  [ "$oui_count" -le 1 ] || { echo "ERROR: duplicate EC:74:D7 OUI rows=$oui_count" >&2; exit 1; }
+  if [ "$oui_count" -eq 0 ]; then
+    [ ! -e "$GRANDSTREAM_GRP2601P_OUI_STATE_FILE" ] || { echo 'ERROR: pending GRP2601P OUI state' >&2; exit 1; }
+    mysql --defaults-extra-file="$d" endpointconfig -e "INSERT INTO mac_prefix (id_manufacturer,mac_prefix,description) VALUES ($manufacturer_id,'EC:74:D7','Grandstream GRP2601P');"
+    printf 'mac_prefix=EC:74:D7\n' > "$GRANDSTREAM_GRP2601P_OUI_STATE_FILE"
+    chmod 0600 "$GRANDSTREAM_GRP2601P_OUI_STATE_FILE"
+    echo 'GRP2601P-OUI-APPLY-PASS'
+  else
+    echo 'GRP2601P-OUI-ALREADY-PRESENT'
+  fi
   existing="$(mysql_scalar "$d" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GRP2601P';")"
   [ "$existing" -le 1 ] || { echo 'ERROR: duplicate GRP2601P models' >&2; exit 1; }
   if [ "$existing" -eq 1 ]; then rm -f "$d"; trap - RETURN EXIT; echo 'GRP2601P-MODEL-ALREADY-PRESENT'; return 0; fi
@@ -399,7 +413,13 @@ rollback_grandstream_grp2601p_model() {
   endpoints="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE id_model=$model_id;")"
   [ "$endpoints" -eq 0 ] || { echo 'ERROR: GRP2601P endpoints exist; rollback cancelled' >&2; exit 1; }
   mysql --defaults-extra-file="$d" endpointconfig -e "START TRANSACTION; DELETE FROM model_properties WHERE id_model=$model_id; DELETE FROM model WHERE id=$model_id AND name='GRP2601P'; COMMIT;"
-  rm -f "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE" "$d"
+  rm -f "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE"
+  if [ -f "$GRANDSTREAM_GRP2601P_OUI_STATE_FILE" ]; then
+    mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM mac_prefix WHERE UPPER(mac_prefix)='EC:74:D7' AND id_manufacturer=(SELECT id FROM manufacturer WHERE name='Grandstream' LIMIT 1);"
+    rm -f "$GRANDSTREAM_GRP2601P_OUI_STATE_FILE"
+    echo 'GRP2601P-OUI-ROLLBACK-PASS'
+  fi
+  rm -f "$d"
   trap - RETURN EXIT
   echo 'GRP2601P-MODEL-ROLLBACK-PASS'
 }
