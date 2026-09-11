@@ -53,3 +53,40 @@ jobs:
           name: test57-gxp1630-bootstrap-${{ github.run_id }}
           path: ${{ runner.temp }}/test57-gxp1630-bootstrap.txt
           retention-days: 30
+
+  reboot:
+    name: Reboot exact GXP1630 for provisioning fetch
+    needs: bootstrap
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 10
+    env:
+      PHONE_BASE: http://192.168.1.169
+      PHONE_USERNAME: admin
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Request controlled reboot
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test57-gxp1630-reboot.txt"
+          node endpoint-lab/grandstream/g10-19f2-chromium-reboot-for-provision.js
+          grep -Fq 'reboot_request=ACCEPTED' "$REPORT_PATH"
+      - name: Wait for exact phone to return
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -fsS -o /dev/null --connect-timeout 2 --max-time 3 "$PHONE_BASE/"; then
+              echo 'phone_returned=YES' | tee -a "$RUNNER_TEMP/test57-gxp1630-reboot.txt"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'phone_returned=NO' | tee -a "$RUNNER_TEMP/test57-gxp1630-reboot.txt"
+          exit 1
+      - name: Publish sanitized reboot evidence
+        if: always()
+        shell: bash
+        run: |
+          { echo '## Test 57 — controlled reboot'; cat "$RUNNER_TEMP/test57-gxp1630-reboot.txt" 2>/dev/null || true; } >> "$GITHUB_STEP_SUMMARY"
