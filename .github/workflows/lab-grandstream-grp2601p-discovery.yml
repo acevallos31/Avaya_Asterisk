@@ -160,7 +160,12 @@ jobs:
             echo 'grp2601p_model_in_endpointconfig=NO' | tee -a "$REPORT"
           fi
 
-          if grep -Fqi "$prefix" "$RUNNER_TEMP/test62-endpointconfig-db.txt"; then
+          if awk -v prefix="$prefix" '
+            /=== REQUESTED PREFIX LOOKUP ===/ {in_lookup=1; next}
+            /=== ENDPOINT COUNT ===/ {in_lookup=0}
+            in_lookup && index(toupper($0), toupper(prefix)) {found=1}
+            END {exit found ? 0 : 1}
+          ' "$RUNNER_TEMP/test62-endpointconfig-db.txt"; then
             echo 'grp2601p_oui_in_endpointconfig=YES' | tee -a "$REPORT"
           else
             echo 'grp2601p_oui_in_endpointconfig=NO' | tee -a "$REPORT"
