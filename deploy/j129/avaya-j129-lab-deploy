@@ -14,6 +14,7 @@ STAMP_FILE="$STATE_DIR/installed.sha256"
 DB_STATE_FILE="$STATE_DIR/db-j129.state"
 GRANDSTREAM_OUI_STATE_FILE="$STATE_DIR/grandstream-c074ad.state"
 GRANDSTREAM_GXP1630_MODEL_STATE_FILE="$STATE_DIR/grandstream-gxp1630-model.state"
+GRANDSTREAM_GRP2601P_MODEL_STATE_FILE="$STATE_DIR/grandstream-grp2601p-model.state"
 GRANDSTREAM_GXP1630_STAGE_STATE_FILE="$STATE_DIR/grandstream-gxp1630-201.state"
 GRANDSTREAM_PY="$BASE/class/issabel/vendor/Grandstream.py"
 GRANDSTREAM_LOGIN_PATCH_BACKUP="$STATE_DIR/Grandstream.py.pre-g10-14"
@@ -359,6 +360,73 @@ SQL
   rm -f "$DB_STATE_FILE" "$defaults_file"; trap - RETURN EXIT; echo "DB-J129-ROLLBACK-PASS"
 }
 
+apply_grandstream_grp2601p_model() {
+  local d source_id existing new_id oui_count
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  source_id="$(mysql_scalar "$d" "SELECT m.id FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GXP1625' LIMIT 1;")"
+  [ "$source_id" = 134 ] || { echo "ERROR: unexpected GXP1625 source id=$source_id" >&2; exit 1; }
+  oui_count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM mac_prefix mp JOIN manufacturer mf ON mf.id=mp.id_manufacturer WHERE mf.name='Grandstream' AND UPPER(mp.mac_prefix)='EC:74:D7';")"
+  [ "$oui_count" -eq 1 ] || { echo "ERROR: expected one Grandstream EC:74:D7 OUI, found $oui_count" >&2; exit 1; }
+  existing="$(mysql_scalar "$d" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GRP2601P';")"
+  [ "$existing" -le 1 ] || { echo 'ERROR: duplicate GRP2601P models' >&2; exit 1; }
+  if [ "$existing" -eq 1 ]; then rm -f "$d"; trap - RETURN EXIT; echo 'GRP2601P-MODEL-ALREADY-PRESENT'; return 0; fi
+  [ ! -e "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE" ] || { echo 'ERROR: pending GRP2601P model state' >&2; exit 1; }
+  mysql --defaults-extra-file="$d" endpointconfig <<SQL
+START TRANSACTION;
+INSERT INTO model (id_manufacturer,name,description,max_accounts,static_ip_supported,dynamic_ip_supported,static_prov_supported)
+SELECT id_manufacturer,'GRP2601P','GRP2601P',2,static_ip_supported,dynamic_ip_supported,static_prov_supported FROM model WHERE id=${source_id};
+SET @new_id := LAST_INSERT_ID();
+INSERT INTO model_properties (id_model,property_key,property_value)
+SELECT @new_id,property_key,CASE WHEN property_key='max_sip_accounts' THEN '2' ELSE property_value END
+FROM model_properties WHERE id_model=${source_id};
+COMMIT;
+SQL
+  new_id="$(mysql_scalar "$d" "SELECT m.id FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GRP2601P' LIMIT 1;")"
+  [[ "$new_id" =~ ^[0-9]+$ ]] || { echo 'ERROR: GRP2601P id missing after insert' >&2; exit 1; }
+  printf 'model_id=%s\n' "$new_id" > "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE"
+  chmod 0600 "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE"
+  rm -f "$d"; trap - RETURN EXIT
+  echo "grp2601p_model_id=$new_id"
+  echo 'GRP2601P-MODEL-APPLY-PASS'
+}
+
+rollback_grandstream_grp2601p_model() {
+  [ -f "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE" ] || { echo 'ERROR: no GRP2601P model state' >&2; exit 1; }
+  . "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE"
+  [[ "${model_id:-}" =~ ^[0-9]+$ ]] || exit 1
+  local d endpoints
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  endpoints="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE id_model=$model_id;")"
+  [ "$endpoints" -eq 0 ] || { echo 'ERROR: GRP2601P endpoints exist; rollback cancelled' >&2; exit 1; }
+  mysql --defaults-extra-file="$d" endpointconfig -e "START TRANSACTION; DELETE FROM model_properties WHERE id_model=$model_id; DELETE FROM model WHERE id=$model_id AND name='GRP2601P'; COMMIT;"
+  rm -f "$GRANDSTREAM_GRP2601P_MODEL_STATE_FILE" "$d"
+  trap - RETURN EXIT
+  echo 'GRP2601P-MODEL-ROLLBACK-PASS'
+}
+
+discover_grandstream_grp2601p() {
+  local d count ip model manufacturer selected accounts
+  /usr/bin/issabel-helper detect_endpoints 192.168.1.0/24 >/dev/null
+  sleep 25
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3';")"
+  ip="$(mysql_scalar "$d" "SELECT COALESCE(last_known_ipv4,'') FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3' LIMIT 1;")"
+  model="$(mysql_scalar "$d" "SELECT COALESCE(m.name,'') FROM endpoint e LEFT JOIN model m ON m.id=e.id_model WHERE UPPER(e.mac_address)='EC:74:D7:1E:E8:E3' LIMIT 1;")"
+  manufacturer="$(mysql_scalar "$d" "SELECT COALESCE(mf.name,'') FROM endpoint e LEFT JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE UPPER(e.mac_address)='EC:74:D7:1E:E8:E3' LIMIT 1;")"
+  selected="$(mysql_scalar "$d" "SELECT COALESCE(selected,-1) FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3' LIMIT 1;")"
+  accounts="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account ea JOIN endpoint e ON e.id=ea.id_endpoint WHERE UPPER(e.mac_address)='EC:74:D7:1E:E8:E3';")"
+  echo "endpoint_count=$count"
+  echo "endpoint_ip=${ip:-NONE}"
+  echo "manufacturer=${manufacturer:-NONE}"
+  echo "model=${model:-NONE}"
+  echo "selected=${selected:--1}"
+  echo "account_count=$accounts"
+  [ "$count" -eq 1 ] && [ "$ip" = 192.168.1.176 ] && [ "$manufacturer" = Grandstream ] && [ "$model" = GRP2601P ]
+  [ "$selected" -eq 0 ] && [ "$accounts" -eq 0 ]
+  rm -f "$d"; trap - RETURN EXIT
+  echo 'GRP2601P-DISCOVERY-PASS'
+}
+
 apply_grandstream_gxp1630_model() {
   local d source_id existing new_id
   d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
@@ -493,6 +561,9 @@ case "$ACTION" in
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
   apply-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_gxp1630_model ;;
+  apply-grandstream-grp2601p-model) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_grp2601p_model ;;
+  rollback-grandstream-grp2601p-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_grp2601p_model ;;
+  discover-grandstream-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_grp2601p ;;
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
