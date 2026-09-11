@@ -5,7 +5,7 @@ Status values in this document are evidence based. A family relationship or manu
 | Model | Physical E2E tested | Firmware tested | Discovery | Binary cfg | XML cfg | Native HTTP activation without Chromium | Reboot persistence | SIP registration verified | Status |
 |---|---:|---|---|---|---|---|---|---|---|
 | GXP1625 | YES | 1.0.7.70 | PASS, including OUI `C0:74:AD` | Generated | Generated and applied | PASS with endpoint credential override + H8J request/session contract | PASS | PASS, 202 at `192.168.1.167` | **SUPPORTED IN LAB** |
-| GXP1630 | NO | Not tested | Not yet validated physically | Expected from current Issabel family support, not proven | Candidate same GXP16xx XML mechanism, not proven | Not tested | Not tested | Not tested | **PENDING PHYSICAL TEST** |
+| GXP1630 | NO | Not exposed in current audit | PASS, `.169` / `C0:74:AD:B4:AD:70` | Generated | Generated and validated | PASS, same GXP140x native contract | PASS | PASS, 201 at `.169` | **LAB SERVER E2E PASS / PHYSICAL PENDING** |
 | Other GXP16xx | NO | Not tested | Varies by OUI/model | Do not assume | Do not assume | Do not assume | Do not assume | Do not assume | **UNVALIDATED** |
 | GRP series | NO | Not tested | Separate model family | Do not assume | Manufacturer supports provisioning, but mapping differs | Do not reuse GXP1625 web/session contract without test | Not tested | Not tested | **UNVALIDATED** |
 

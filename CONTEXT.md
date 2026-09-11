@@ -6,6 +6,12 @@ Autorizado ciclo completo sin preguntas adicionales. La primera fase mutante
 limita la escritura a P212=TFTP y P237=192.168.1.10 sobre el equipo exacto
 `192.168.1.169` / `C0:74:AD:B4:AD:70`; no asigna extensión ni resetea.
 
+Ciclo server-side cerrado: bootstrap/reinicio PASS run `34584178016`; modelo
+ID 148 y discovery PASS run `34585294581`; Configure SIP 201 PASS run
+`34585596964`; E2E server PASS run `34585916245`. GXP1630 registrado en
+`.169`, GXP1625/202 permanece en `.168`, cfg/XML y MAC validados.
+Validación física de llamada/audio pendiente.
+
 ## Test 56 GXP1630 — descubrimiento de fábrica — 2026-09-11
 
 Hay un Grandstream GXP1630 de fábrica conectado a la red LAB. Test 56 inicia

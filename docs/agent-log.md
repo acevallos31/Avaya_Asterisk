@@ -27,6 +27,10 @@ El operador autorizó completar y documentar el ciclo LAB sin nuevas preguntas.
 Se inicia con bootstrap controlado P212/P237 y guardas exactas de IP/MAC; las
 fases posteriores deben detenerse ante conflicto de identidad, cuenta o SIP.
 
+Resultado: bootstrap/reboot `34584178016` PASS; modelo/discovery
+`34585294581` PASS; Configure 201 `34585596964` PASS; auditoría E2E
+`34585916245` PASS. Estado `LAB-INTEGRATION-PASS`, físico pendiente.
+
 ## 2026-09-11 — Codex — inicia Test 56 GXP1630 factory-state discovery
 
 El operador conectó un GXP1630 de fábrica a la red LAB. Se reservó Test 56 para
