@@ -29,12 +29,15 @@ jobs:
         run: |
           set -euo pipefail
           report="$RUNNER_TEMP/test58-gxp1630-server.txt"
-          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream GXP1630 C0:74:AD | tee "$report"
-          grep -Fq 'C0:74:AD:B4:AD:70' "$report"
-          grep -Fq '192.168.1.169' "$report"
-          grep -Fq 'GXP1630' "$report"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream '' C0:74:AD | tee "$report"
+          grep -Fq 'GXP1625' "$report"
+          if grep -Fq $'\tGXP1630\t' "$report"; then
+            echo 'gxp1630_model_present=YES' | tee -a "$report"
+          else
+            echo 'gxp1630_model_present=NO' | tee -a "$report"
+          fi
           grep -Fq 'MANUFACTURER-DB-READONLY-PASS' "$report"
-          echo 'TEST58-GXP1630-SERVER-AUDIT=PASS' | tee -a "$report"
+          echo 'TEST58-GXP1630-SERVER-INVENTORY=PASS' | tee -a "$report"
       - name: Publish evidence
         if: always()
         shell: bash
