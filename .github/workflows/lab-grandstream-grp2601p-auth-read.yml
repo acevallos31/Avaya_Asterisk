@@ -43,8 +43,7 @@ jobs:
     env:
       PHONE_IP: 192.168.1.176
       PHONE_USERNAME: admin
-      GRP_PASSWORD: ${{ secrets.GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD }}
-      GXP1625_PASSWORD_CANDIDATE: ${{ secrets.GRANDSTREAM_GXP1625_HTTP_PASSWORD }}
+      GRP2601P_PASSWORD: ${{ secrets.GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD }}
       PBX_IP: 192.168.1.10
     steps:
       - uses: actions/checkout@v4
@@ -56,17 +55,14 @@ jobs:
           curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 http://192.168.1.176/
           observed="$(ip neigh show 192.168.1.176 | awk '/lladdr/ {print toupper($5); exit}')"
           test "$observed" = EC:74:D7:1E:E8:E3
-      - name: Run sanitized authenticated read (GXP1625 candidate)
+      - name: Run sanitized authenticated read (device label credential)
         shell: bash
         run: |
           set -euo pipefail
           export REPORT_PATH="$RUNNER_TEMP/test64-grp2601p-auth-read.txt"
-          if [ -n "$GRP_PASSWORD" ]; then
-            export PHONE_PASSWORD="$GRP_PASSWORD"
-            export CREDENTIAL_SOURCE=GRP_DEDICATED
-          elif [ -n "$GXP1625_PASSWORD_CANDIDATE" ]; then
-            export PHONE_PASSWORD="$GXP1625_PASSWORD_CANDIDATE"
-            export CREDENTIAL_SOURCE=GXP_SINGLE_CANDIDATE
+          if [ -n "$GRP2601P_PASSWORD" ]; then
+            export PHONE_PASSWORD="$GRP2601P_PASSWORD"
+            export CREDENTIAL_SOURCE=GRP2601P_LABEL_MAC_BOUND
           else
             export PHONE_PASSWORD=''
             export CREDENTIAL_SOURCE=NONE
@@ -74,10 +70,6 @@ jobs:
           python3 -B endpoint-lab/grandstream/test64-grp2601p-auth-read.py
           if grep -Fq 'credential_status=MISSING' "$REPORT_PATH"; then
             grep -Fq 'TEST64-GRP2601P-AUTH-READ=CREDENTIAL-BLOCKED' "$REPORT_PATH"
-            exit 0
-          fi
-          if grep -Fq 'TEST64-GRP2601P-AUTH-READ=GXP-CANDIDATE-REJECTED' "$REPORT_PATH"; then
-            grep -Fq 'credential_source=GXP_SINGLE_CANDIDATE' "$REPORT_PATH"
             exit 0
           fi
           grep -Fq 'login=SUCCESS' "$REPORT_PATH"
