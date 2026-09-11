@@ -7,12 +7,22 @@ password=os.environ.get('PHONE_PASSWORD','')
 pbx=os.environ.get('PBX_IP','192.168.1.10')
 report=os.environ.get('REPORT_PATH','/tmp/test57.txt')
 if not password: raise SystemExit('PHONE_PASSWORD missing')
-lines=[]
+lines=[]; cookies=[]
 def log(k,v): lines.append('%s=%s'%(k,v)); print(lines[-1])
 def call(conn,path,data):
     body=urllib.parse.urlencode(data)
-    conn.request('POST',path,body=body,headers={'Content-Type':'application/x-www-form-urlencoded','Accept':'*/*','Host':ip,'Referer':'http://%s/'%ip})
-    r=conn.getresponse(); raw=r.read().decode('utf-8','replace')
+    headers={'Content-Type':'application/x-www-form-urlencoded','Accept':'*/*','Host':ip,'Referer':'http://%s/'%ip}
+    if cookies: headers['Cookie']='; '.join(cookies)
+    conn.request('POST',path,body=body,headers=headers)
+    r=conn.getresponse()
+    for name,value in r.getheaders():
+        if name.lower()=='set-cookie':
+            pair=value.split(';',1)[0].strip()
+            if pair:
+                key=pair.split('=',1)[0].lower()
+                cookies[:]=[x for x in cookies if x.split('=',1)[0].lower()!=key]
+                cookies.append(pair)
+    raw=r.read().decode('utf-8','replace')
     try: obj=json.loads(raw)
     except Exception: obj={}
     return r.status,obj
@@ -23,6 +33,8 @@ status,obj=call(conn,'/cgi-bin/dologin',{'username':user,'password':password})
 sid=(obj.get('body') or {}).get('sid','') if isinstance(obj,dict) else ''
 log('login','SUCCESS' if status==200 and obj.get('response')=='success' and sid else 'FAILED')
 if not sid: raise SystemExit('login failed')
+cookies[:]=[x for x in cookies if not x.lower().startswith('session-identity=')]
+cookies.append('session-identity='+sid)
 status,obj=call(conn,'/cgi-bin/api.values.get',{'request':'P212:P237','sid':sid})
 b=obj.get('body') or {}
 log('pre_read','SUCCESS' if status==200 and obj.get('response')=='success' else 'FAILED')
