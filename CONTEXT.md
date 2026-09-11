@@ -19,13 +19,14 @@ Grandstream/GRP2601P en `.176`, `selected=0`, cero cuentas. Estado
 `LAB-FIX-PASS`.
 
 Test 64: el run `34620889592` dejó server preflight PASS y
-`CREDENTIAL-BLOCKED` por ausencia del secret GRP. Por autorización del
-operador se probó una sola vez la credencial existente GXP. El run
-`34628195632` llegó al teléfono pero fue `HARNESS-FAIL` al interpretar el
-cuerpo de login; el parser se corrigió sin cambiar el alcance. El run definitivo
-`34628373795` confirmó identidad exacta, server preflight PASS, HTTP 200 y
-`GXP-CANDIDATE-REJECTED`. No hubo escritura, reinicio, provisioning ni
-firmware upgrade.
+`CREDENTIAL-BLOCKED` por ausencia del secret GRP. Los runs
+`34628195632`/`34628373795` usaron por error
+`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`; sirven para validar el parser y el
+rechazo de esa credencial, pero no evaluaban el secreto indicado por el
+operador. Corregido el workflow, el run definitivo `34642689024` usó
+`GRANDSTREAM_GXP1625_HTTP_PASSWORD` y confirmó identidad exacta, server
+preflight PASS, HTTP 200 y `login=FAILED`/`GXP-CANDIDATE-REJECTED`.
+No hubo escritura, reinicio, provisioning ni firmware upgrade.
 
 Próximo paso: leer la contraseña administrativa aleatoria de la etiqueta del
 GRP2601P y cargarla en `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`; luego repetir
