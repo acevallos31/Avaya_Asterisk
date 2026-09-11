@@ -69,8 +69,9 @@ hasta cerrar el gate de autenticación.
 | 63 inicial | 34620205736 | Detención segura antes de escritura: OUI ausente |
 | 63 corregido | 34620390872 | LAB-FIX-PASS: OUI + modelo ID 149; discovery stock exacto |
 | 64 inicial | 34620889592 | Server preflight PASS; lectura Web CREDENTIAL-BLOCKED por secret GRP ausente |
-| 64 parser | 34628195632 | HARNESS-FAIL al interpretar el cuerpo de login; sin escrituras |
-| 64 candidato GXP | 34628373795 | Workflow PASS por resultado esperado: HTTP 200, login rechazado, GXP-CANDIDATE-REJECTED |
+| 64 parser | 34628195632 | HARNESS-FAIL al interpretar el cuerpo de login; usó por error GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD |
+| 64 secret equivocado | 34628373795 | Parser corregido y login rechazado, pero no evaluó el secret indicado por el operador |
+| 64 candidato GXP1625 | 34642689024 | Run autoritativo: GRANDSTREAM_GXP1625_HTTP_PASSWORD presente, HTTP 200, login rechazado, GXP-CANDIDATE-REJECTED |
 
 Estado del endpoint después de Test 63:
 
@@ -92,9 +93,11 @@ rollback. El teléfono no ha sido configurado ni reiniciado.
 
 ## Gate vigente
 
-El ensayo controlado del run `34628373795` demostró que la contraseña
-guardada en `GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD` no autentica este
-GRP2601P. No se harán más intentos con esa credencial.
+Los runs `34628195632`/`34628373795` usaron por error
+`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD` y no son autoritativos respecto de la
+credencial indicada por el operador. El run corregido `34642689024` demostró
+que `GRANDSTREAM_GXP1625_HTTP_PASSWORD` tampoco autentica este GRP2601P. No
+se harán más intentos con esas credenciales.
 
 Antes de bootstrap debe existir el Repository Secret
 `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD` con la contraseña administrativa
