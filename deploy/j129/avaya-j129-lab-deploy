@@ -14,6 +14,7 @@ STAMP_FILE="$STATE_DIR/installed.sha256"
 DB_STATE_FILE="$STATE_DIR/db-j129.state"
 GRANDSTREAM_OUI_STATE_FILE="$STATE_DIR/grandstream-c074ad.state"
 GRANDSTREAM_GXP1630_MODEL_STATE_FILE="$STATE_DIR/grandstream-gxp1630-model.state"
+GRANDSTREAM_GXP1630_STAGE_STATE_FILE="$STATE_DIR/grandstream-gxp1630-201.state"
 GRANDSTREAM_PY="$BASE/class/issabel/vendor/Grandstream.py"
 GRANDSTREAM_LOGIN_PATCH_BACKUP="$STATE_DIR/Grandstream.py.pre-g10-14"
 HTTP_STATE_DIR="$STATE_DIR/httpd"
@@ -411,6 +412,42 @@ discover_grandstream_gxp1630() {
   echo 'GXP1630-DISCOVERY-PASS'
 }
 
+configure_grandstream_gxp1630_201() {
+  local d id other_selected accounts peer raw bin xml
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  id="$(mysql_scalar "$d" "SELECT e.id FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Grandstream' AND m.name='GXP1630' AND UPPER(e.mac_address)='C0:74:AD:B4:AD:70' AND e.last_known_ipv4='192.168.1.169' LIMIT 1;")"
+  [[ "$id" =~ ^[0-9]+$ ]] || { echo 'ERROR: exact GXP1630 endpoint missing' >&2; exit 1; }
+  other_selected="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE selected=1 AND id<>$id;")"
+  accounts="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id;")"
+  [ "$other_selected" -eq 0 ] && [ "$accounts" -eq 0 ] || { echo "ERROR: unsafe selection/accounts other=$other_selected accounts=$accounts" >&2; exit 1; }
+  peer="$(asterisk -rx 'sip show peer 201' 2>/dev/null || true)"
+  grep -Eq 'Name[[:space:]]*:[[:space:]]*201([[:space:]]|$)' <<<"$peer" || { echo 'ERROR: SIP 201 missing' >&2; exit 1; }
+  [ ! -e "$GRANDSTREAM_GXP1630_STAGE_STATE_FILE" ] || { echo 'ERROR: pending GXP1630 stage state' >&2; exit 1; }
+  printf 'endpoint_id=%s\n' "$id" > "$GRANDSTREAM_GXP1630_STAGE_STATE_FILE"; chmod 0600 "$GRANDSTREAM_GXP1630_STAGE_STATE_FILE"
+  mysql --defaults-extra-file="$d" endpointconfig -e "START TRANSACTION; INSERT INTO endpoint_account (id_endpoint,tech,account,priority) VALUES ($id,'sip','201',1); UPDATE endpoint SET selected=1 WHERE id=$id; COMMIT;"
+  raw="$(mktemp /tmp/test60-apply.XXXXXX)"
+  if ! /usr/bin/issabel-endpointconfig --applyconfig >"$raw" 2>&1; then
+    sed -E 's/(password|secret|sid|cookie)[^ ]*/\1=***OCULTO***/Ig' "$raw" | tail -n 80
+    mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='201'; UPDATE endpoint SET selected=0 WHERE id=$id;"
+    rm -f "$GRANDSTREAM_GXP1630_STAGE_STATE_FILE" "$raw" "$d"; trap - RETURN EXIT
+    echo 'GXP1630-CONFIGURE-ROLLBACK-PASS'; return 1
+  fi
+  sed -E 's/(password|secret|sid|cookie)[^ ]*/\1=***OCULTO***/Ig' "$raw" | tail -n 80
+  rm -f "$raw"
+  bin='/tftpboot/cfgc074adb4ad70'; xml='/tftpboot/cfgc074adb4ad70.xml'
+  [ "$(mysql_scalar "$d" "SELECT selected FROM endpoint WHERE id=$id;")" -eq 0 ]
+  [ -s "$bin" ] && [ -s "$xml" ]
+  python3 - "$xml" <<'PY'
+import sys, xml.etree.ElementTree as ET
+r=ET.parse(sys.argv[1]).getroot(); c=r.find('config'); v={x.tag:(x.text or '') for x in c}
+assert (r.findtext('mac') or '').lower()=='c074adb4ad70'
+assert v.get('P35')=='201' and v.get('P36')=='201' and bool(v.get('P34'))
+assert v.get('P47')=='192.168.1.10'
+PY
+  rm -f "$GRANDSTREAM_GXP1630_STAGE_STATE_FILE" "$d"; trap - RETURN EXIT
+  echo 'GXP1630-CONFIGURE-SERVER-PASS'
+}
+
 [ -n "$ACTION" ] || usage
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
@@ -428,6 +465,7 @@ case "$ACTION" in
   apply-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_gxp1630_model ;;
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
+  configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
   install-http) install_http_j129 ;;
   rollback-http) [ -n "$OVERLAY_ROOT" ] || usage; rollback_http_j129 ;;
   install|rollback)

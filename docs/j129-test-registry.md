@@ -76,6 +76,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 57 | `lab-grandstream-gxp1630-cycle.yml` | `57 | Endpoint Lab | GXP1630 | Controlled Provisioning Cycle` | EN EJECUCIÓN. Bootstrap limitado a P212/P237 sobre el GXP1630 exacto `.169` / `C0:74:AD:B4:AD:70`, con verificación posterior. No asigna cuenta ni ejecuta factory reset. |
 | 58 | `lab-grandstream-gxp1630-server-audit.yml` | `58 | Issabel Lab | GXP1630 | Endpoint Configurator Audit` | EN EJECUCIÓN. Auditoría read-only post-reboot de fila exacta, IP/MAC/modelo, selección y conteo de cuentas sin secretos. |
 | 59 | `lab-grandstream-gxp1630-model.yml` | `59 | Issabel Lab | GXP1630 Model | Controlled Add` | EN EJECUCIÓN. Alta reversible del perfil GXP1630 basado en GXP1625, con tres cuentas SIP y sin duplicar lógica vendor. |
+| 60 | `lab-grandstream-gxp1630-configure.yml` | `60 | Issabel Lab | GXP1630 | Controlled Configure 201` | EN EJECUCIÓN. Selección exclusiva del GXP1630 exacto, asociación SIP 201, applyconfig, cfg/XML y rollback automático ante fallo. |
 
 ## Reglas de runners
 
@@ -111,7 +112,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `60`.
+Próximo ID disponible: `61`.
 
 ## Subpruebas Grandstream G10
 

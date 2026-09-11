@@ -1,0 +1,35 @@
+name: 60 | Issabel Lab | GXP1630 | Controlled Configure 201
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/j129/avaya-j129-lab-deploy'
+      - '.github/workflows/lab-grandstream-gxp1630-configure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Configure exact GXP1630 as SIP 201
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/test60.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy configure-grandstream-gxp1630-201 | tee "$report"
+          grep -Fq 'GXP1630-CONFIGURE-SERVER-PASS' "$report"
+      - name: Publish evidence
+        if: always()
+        run: |
+          { echo '## Test 60 — GXP1630 Configure 201'; cat "$RUNNER_TEMP/test60.txt" 2>/dev/null || true; } >> "$GITHUB_STEP_SUMMARY"
