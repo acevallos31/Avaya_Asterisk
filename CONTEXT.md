@@ -1,6 +1,6 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
-## Test 55 GXP1625 — factory reset y baseline limpio — 2026-09-10
+## Test 55 GXP1625 — E2E manual cerrado — 2026-09-11
 
 La IP anterior `192.168.1.167` fue reasignada por DHCP a un DVR Hikvision; el
 GXP1625 exacto `C0:74:AD:E8:66:09` fue redescubierto en `192.168.1.168` por el
@@ -18,9 +18,9 @@ ausentes, extensiones 201/202 conservadas y HTTP 200. Asterisk aún conserva
 `.168` como dirección del peer 202 con estado sanitizado `UNKNOWN`; se trata
 como binding posiblemente cacheado y no como evidencia de registro activo.
 
-El workflow de Test 55 quedó protegido: los pushes solo ejecutan la auditoría
-read-only; el factory reset requiere dispatch manual, operación `factory-reset`
-y confirmación exacta por MAC. Producción no fue tocada.
+El workflow de Test 55 quedó manual-only. Permite auditoría read-only
+`post-config-audit`, auditoría `post-reset-audit` o `factory-reset`; el reset
+requiere confirmación exacta por MAC. Producción no fue tocada.
 
 La configuración manual ya fue ejecutada y corroborada en el run read-only
 `34543757258`: `account_count=1`, asociación SIP 202 exacta, `cfg` binario y
@@ -28,8 +28,11 @@ XML presentes, XML ligado a la MAC con P35/P36=202, PBX `.10` y Ashly, HTTP 200,
 peer 202 en `.168` y 201 fuera de esa IP. La auditoría general del repositorio
 también pasó en `34543757263`.
 
-Siguiente paso: prueba física de registro estable y llamada/audio. Mantener el
-guardrail de 300 s entre Configure; producción continúa sin cambios.
+El operador confirmó que la prueba manual fue satisfactoria y que el teléfono
+se configuró correctamente. Test 55 queda `LAB-INTEGRATION-PASS` y
+`PHYSICAL-GXP1625-PASS`, cerrado. Siguiente paso: preparar el paquete RC y el
+preflight controlado de Ceiba; producción continúa sin cambios y se mantiene el
+guardrail de 300 s entre Configure.
 
 ## Actualización Grandstream GXP1625 — 2026-09-10
 

@@ -21,6 +21,18 @@ NOT-TESTED
 
 ---
 
+## 2026-09-11 — Codex — Test 55 cerrado con validación física satisfactoria
+
+El operador confirmó que la prueba manual ya fue completada satisfactoriamente
+y que el GXP1625 se configuró correctamente. Esta evidencia física, junto con
+`TEST55-POST-CONFIG-AUDIT=PASS` del run `34543757258`, cierra Test 55 como
+`LAB-INTEGRATION-PASS` y `PHYSICAL-GXP1625-PASS`.
+
+El workflow quedó manual-only con operaciones read-only `post-config-audit` y
+`post-reset-audit`; `factory-reset` conserva confirmación destructiva exacta por
+MAC. Próximo paso: paquete RC y preflight controlado de Ceiba. Producción no fue
+tocada.
+
 ## 2026-09-10 — Codex — Test 55 post-Configure corroborado en servidor
 
 El operador ejecutó Configure sobre la única fila `C0:74:AD:E8:66:09` en
@@ -53,9 +65,9 @@ previous_ip=(Unspecified)
 phone_http_status=200
 ```
 
-La auditoría estática general del repositorio pasó en `34543757263`. Pendiente
-solo la validación física de registro estable y una llamada/audio; producción no
-fue tocada.
+La auditoría estática general del repositorio pasó en `34543757263`. La
+validación física posterior fue confirmada satisfactoria por el operador el
+2026-09-11; producción no fue tocada.
 
 ## 2026-09-10 — Codex — Test 55 factory reset y baseline post-reset
 
