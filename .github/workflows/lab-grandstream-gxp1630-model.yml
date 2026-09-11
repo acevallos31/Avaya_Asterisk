@@ -1,10 +1,5 @@
 name: 59 | Issabel Lab | GXP1630 Model | Controlled Add
 on:
-  push:
-    branches: [Audit]
-    paths:
-      - 'deploy/j129/avaya-j129-lab-deploy'
-      - '.github/workflows/lab-grandstream-gxp1630-model.yml'
   workflow_dispatch:
 permissions:
   contents: read
