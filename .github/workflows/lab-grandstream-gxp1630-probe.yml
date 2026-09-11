@@ -42,12 +42,18 @@ jobs:
             api="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip/cgi-bin/api.values.get?request=phone_model:1395" 2>/dev/null || true)"
             if grep -Eqi 'GXP[[:space:]_-]*1630|GXP1630' <<<"$manager $api"; then
               mac="$(ip neigh show "$ip" | awk '/lladdr/ {print toupper($5); exit}')"
+              firmware_body="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip/cgi-bin/api.values.get?request=firmware_version:45" 2>/dev/null || true)"
+              hardware_body="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip/cgi-bin/api.values.get?request=hardware_version:1397" 2>/dev/null || true)"
+              firmware="$(printf '%s' "$firmware_body" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
+              hardware="$(printf '%s' "$hardware_body" | sed -nE 's/.*"hardware_version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' | head -n1)"
               MATCHES=$((MATCHES + 1))
               echo "match_${MATCHES}_ip=$ip" | tee -a "$REPORT"
               echo "match_${MATCHES}_mac=${mac:-UNKNOWN}" | tee -a "$REPORT"
               echo "match_${MATCHES}_model=GXP1630" | tee -a "$REPORT"
               echo "match_${MATCHES}_legacy_manager=$([ -n "$manager" ] && echo RESPONDS || echo NO_RESPONSE)" | tee -a "$REPORT"
               echo "match_${MATCHES}_values_api=$([ -n "$api" ] && echo RESPONDS || echo NO_RESPONSE)" | tee -a "$REPORT"
+              echo "match_${MATCHES}_firmware=${firmware:-NOT_EXPOSED_UNAUTHENTICATED}" | tee -a "$REPORT"
+              echo "match_${MATCHES}_hardware=${hardware:-NOT_EXPOSED_UNAUTHENTICATED}" | tee -a "$REPORT"
             fi
           done < "$HOSTS"
           echo "match_count=$MATCHES" | tee -a "$REPORT"
