@@ -71,7 +71,9 @@ hasta cerrar el gate de autenticación.
 | 64 inicial | 34620889592 | Server preflight PASS; lectura Web CREDENTIAL-BLOCKED por secret GRP ausente |
 | 64 parser | 34628195632 | HARNESS-FAIL al interpretar el cuerpo de login; usó por error GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD |
 | 64 secret equivocado | 34628373795 | Parser corregido y login rechazado, pero no evaluó el secret indicado por el operador |
-| 64 candidato GXP1625 | 34642689024 | Run autoritativo: GRANDSTREAM_GXP1625_HTTP_PASSWORD presente, HTTP 200, login rechazado, GXP-CANDIDATE-REJECTED |
+| 64 candidato GXP1625 | 34642689024 | GRANDSTREAM_GXP1625_HTTP_PASSWORD presente, HTTP 200 y login rechazado |
+| 64 credencial etiqueta | 34647374500 | Secret MAC-bound presente e identidad exacta; login falló |
+| 64 confirmación contrato | 34647476040 | HTTP 200, response ERROR, body string; rechazo explícito de credencial, sin escrituras |
 
 Estado del endpoint después de Test 63:
 
@@ -99,11 +101,14 @@ credencial indicada por el operador. El run corregido `34642689024` demostró
 que `GRANDSTREAM_GXP1625_HTTP_PASSWORD` tampoco autentica este GRP2601P. No
 se harán más intentos con esas credenciales.
 
-Antes de bootstrap debe existir el Repository Secret
-`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD` con la contraseña administrativa
-aleatoria impresa en la etiqueta trasera del teléfono.
+El secret específico
+`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD` ya existe, pero el teléfono
+rechazó su valor explícitamente en los runs `34647374500` y
+`34647476040`. Antes de repetir Test 64 se debe verificar visualmente cada
+carácter de la etiqueta y actualizar ese mismo secret. No realizar más intentos
+automáticos mientras el valor no haya sido verificado.
 
-Repetir Test 64 y exigir:
+Después de corregir el secret, repetir Test 64 y exigir:
 
 ```text
 login=SUCCESS
