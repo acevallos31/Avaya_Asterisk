@@ -396,6 +396,21 @@ rollback_grandstream_gxp1630_model() {
   echo 'GXP1630-MODEL-ROLLBACK-PASS'
 }
 
+discover_grandstream_gxp1630() {
+  local d count ip model manufacturer
+  /usr/bin/issabel-helper detect_endpoints 192.168.1.0/24 >/dev/null
+  sleep 25
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(mac_address)='C0:74:AD:B4:AD:70';")"
+  ip="$(mysql_scalar "$d" "SELECT COALESCE(last_known_ipv4,'') FROM endpoint WHERE UPPER(mac_address)='C0:74:AD:B4:AD:70' LIMIT 1;")"
+  model="$(mysql_scalar "$d" "SELECT COALESCE(m.name,'') FROM endpoint e LEFT JOIN model m ON m.id=e.id_model WHERE UPPER(e.mac_address)='C0:74:AD:B4:AD:70' LIMIT 1;")"
+  manufacturer="$(mysql_scalar "$d" "SELECT COALESCE(mf.name,'') FROM endpoint e LEFT JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE UPPER(e.mac_address)='C0:74:AD:B4:AD:70' LIMIT 1;")"
+  echo "endpoint_count=$count"; echo "endpoint_ip=${ip:-NONE}"; echo "manufacturer=${manufacturer:-NONE}"; echo "model=${model:-NONE}"
+  [ "$count" -eq 1 ] && [ "$ip" = 192.168.1.169 ] && [ "$manufacturer" = Grandstream ] && [ "$model" = GXP1630 ]
+  rm -f "$d"; trap - RETURN EXIT
+  echo 'GXP1630-DISCOVERY-PASS'
+}
+
 [ -n "$ACTION" ] || usage
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
@@ -412,6 +427,7 @@ case "$ACTION" in
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
   apply-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_gxp1630_model ;;
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
+  discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
   install-http) install_http_j129 ;;
   rollback-http) [ -n "$OVERLAY_ROOT" ] || usage; rollback_http_j129 ;;
   install|rollback)
