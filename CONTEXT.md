@@ -18,14 +18,19 @@ reversiblemente OUI y modelo ID 149, `max_accounts=2`,
 Grandstream/GRP2601P en `.176`, `selected=0`, cero cuentas. Estado
 `LAB-FIX-PASS`.
 
-Test 64 run `34620889592`: server preflight PASS; la lectura Web autenticada
-quedó `CREDENTIAL-BLOCKED` porque no existe el Repository Secret
-`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. No se reutilizó la contraseña GXP,
-no se probaron credenciales alternativas y no hubo escritura en el teléfono.
+Test 64: el run `34620889592` dejó server preflight PASS y
+`CREDENTIAL-BLOCKED` por ausencia del secret GRP. Por autorización del
+operador se probó una sola vez la credencial existente GXP. El run
+`34628195632` llegó al teléfono pero fue `HARNESS-FAIL` al interpretar el
+cuerpo de login; el parser se corrigió sin cambiar el alcance. El run definitivo
+`34628373795` confirmó identidad exacta, server preflight PASS, HTTP 200 y
+`GXP-CANDIDATE-REJECTED`. No hubo escritura, reinicio, provisioning ni
+firmware upgrade.
 
-Próximo paso: cargar en ese secret la contraseña administrativa aleatoria de la
-etiqueta del GRP2601P y volver a ejecutar Test 64. Solo después de
-`login=SUCCESS` y lectura de P212/P237 se implementará bootstrap/Configure.
+Próximo paso: leer la contraseña administrativa aleatoria de la etiqueta del
+GRP2601P y cargarla en `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`; luego repetir
+Test 64. Solo después de `login=SUCCESS` y lectura de P212/P237 se
+implementará bootstrap/Configure.
 
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11
 
