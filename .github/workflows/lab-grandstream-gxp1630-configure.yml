@@ -1,11 +1,6 @@
 name: 60 | Issabel Lab | GXP1630 | Controlled Configure 201
 
 on:
-  push:
-    branches: [Audit]
-    paths:
-      - 'deploy/j129/avaya-j129-lab-deploy'
-      - '.github/workflows/lab-grandstream-gxp1630-configure.yml'
   workflow_dispatch:
 
 permissions:
