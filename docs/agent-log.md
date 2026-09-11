@@ -38,13 +38,21 @@ Antes de modificar el helper se retiraron los triggers por cambios del helper
 de los workflows mutantes GXP1630, evitando repetir Configure accidentalmente.
 Los audits 58/61 se limitaron a activarse por cambios de su propio workflow.
 
-Test 64 run `34620889592`: preflight server PASS. La fase autenticada quedó
-`CREDENTIAL-BLOCKED` porque falta
-`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. No se usó el secret GXP, no se
-intentaron otras contraseñas y no hubo escrituras en el teléfono.
+Test 64 run `34620889592`: preflight server PASS y
+`CREDENTIAL-BLOCKED` por ausencia de
+`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. Con autorización posterior se usó
+`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD` como candidato único. El run
+`34628195632` fue `HARNESS-FAIL` tras recibir la respuesta porque el parser
+asumía que `body` siempre era un objeto. Corregido el parser, el run
+`34628373795` quedó verde como resultado esperado: identidad IP/MAC exacta,
+preflight server PASS, HTTP 200, `login=FAILED` y
+`TEST64-GRP2601P-AUTH-READ=GXP-CANDIDATE-REJECTED`. No hubo escrituras,
+reinicio, provisioning ni firmware upgrade.
 
-Estado actual: Endpoint Configurator ya detecta GRP2601P. Provisioning, firmware
-autenticado, cfg/XML y SIP siguen `NOT-TESTED` hasta cerrar Test 64.
+Estado actual: Endpoint Configurator ya detecta GRP2601P. La credencial GXP no
+es válida para este equipo; se requiere la contraseña aleatoria de la etiqueta
+en el secret GRP dedicado. Provisioning autenticado, cfg/XML y SIP siguen
+`NOT-TESTED` hasta cerrar Test 64.
 
 ## 2026-09-11 — Codex — inicia Test 57 GXP1630 provisioning cycle
 
