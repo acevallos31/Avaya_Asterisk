@@ -13,6 +13,15 @@ pero `api.values.get` sí identificó el modelo. Esto demuestra compatibilidad c
 la superficie moderna de detección, no todavía con login, generación cfg/XML ni
 activación nativa.
 
+Run `34580059714` confirmó nuevamente el discovery PASS. Firmware y hardware no
+se exponen sin autenticación; la próxima prueba requiere una credencial Web
+Admin suministrada como Repository Secret, sin probar contraseñas por defecto.
+
+Run `34583242705`: authenticated read PASS usando la credencial de fábrica
+desde `GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`. Login/SID y lectura de P-values
+son compatibles con el contrato GXP1625. P212/P237 y parámetros de autenticación
+de provisioning están vacíos: bootstrap requerido. No hubo escrituras.
+
 ## Test 55 GXP1625 — E2E manual cerrado — 2026-09-11
 
 La IP anterior `192.168.1.167` fue reasignada por DHCP a un DVR Hikvision; el

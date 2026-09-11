@@ -33,6 +33,15 @@ Run `34578860986` terminó PASS: coincidencia única `192.168.1.169`, MAC
 `api.values.get` sí respondió. La siguiente fase debe validar autenticación y
 lectura de estado sin asumir aún compatibilidad completa de provisioning.
 
+Run `34580059714` añadió inventario read-only: modelo/IP/MAC volvieron a
+coincidir, pero firmware y hardware quedaron `NOT_EXPOSED_UNAUTHENTICATED`.
+No se intentaron credenciales por defecto.
+
+Run inicial `34583129574` fue `HARNESS-FAIL` antes del login porque `ping` no
+dispone de CAP_NET_RAW en endpoint-lab. Se sustituyó por una guarda HTTP sin
+ampliar privilegios. Run `34583242705` pasó login y lectura autenticada: contrato
+GXP1625 compatible y provisioning de fábrica vacío; `phone_write=NO`.
+
 ## 2026-09-11 — Codex — Test 55 cerrado con validación física satisfactoria
 
 El operador confirmó que la prueba manual ya fue completada satisfactoriamente
