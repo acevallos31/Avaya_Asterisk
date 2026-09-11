@@ -1,0 +1,86 @@
+name: 64 | Endpoint Lab | GRP2601P | Authenticated Provisioning Read
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-grp2601p-auth-read.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  server-preflight:
+    name: Verify exact Endpoint Configurator row
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only row preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          REPORT="$RUNNER_TEMP/test64-server-preflight.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            inspect-manufacturer Grandstream GRP2601P EC:74:D7 | tee "$REPORT"
+          grep -Fq $'EC:74:D7:1E:E8:E3\t192.168.1.176\tGRP2601P\t0\t0' "$REPORT"
+          grep -Fq 'MANUFACTURER-DB-READONLY-PASS' "$REPORT"
+          echo 'TEST64-GRP2601P-SERVER-PREFLIGHT=PASS' | tee -a "$REPORT"
+      - name: Publish server evidence
+        if: always()
+        shell: bash
+        run: |
+          { echo '## Test 64 — server preflight'; cat "$RUNNER_TEMP/test64-server-preflight.txt" 2>/dev/null || true; } >> "$GITHUB_STEP_SUMMARY"
+
+  authenticated-read:
+    name: Read GRP2601P provisioning state without writes
+    needs: server-preflight
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 7
+    env:
+      PHONE_IP: 192.168.1.176
+      PHONE_USERNAME: admin
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD }}
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard exact network identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 http://192.168.1.176/
+          observed="$(ip neigh show 192.168.1.176 | awk '/lladdr/ {print toupper($5); exit}')"
+          test "$observed" = EC:74:D7:1E:E8:E3
+      - name: Run sanitized authenticated read
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test64-grp2601p-auth-read.txt"
+          python3 -B endpoint-lab/grandstream/test64-grp2601p-auth-read.py
+          if grep -Fq 'credential_status=MISSING' "$REPORT_PATH"; then
+            grep -Fq 'TEST64-GRP2601P-AUTH-READ=CREDENTIAL-BLOCKED' "$REPORT_PATH"
+            exit 0
+          fi
+          grep -Fq 'login=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'read=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'model_match=YES' "$REPORT_PATH"
+          grep -Fq 'TEST64-GRP2601P-AUTH-READ=PASS' "$REPORT_PATH"
+      - name: Publish sanitized authenticated evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 64 — GRP2601P authenticated read'
+            cat "$RUNNER_TEMP/test64-grp2601p-auth-read.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test64-grp2601p-auth-read-${{ github.run_id }}
+          path: ${{ runner.temp }}/test64-grp2601p-auth-read.txt
+          if-no-files-found: warn
+          retention-days: 30
