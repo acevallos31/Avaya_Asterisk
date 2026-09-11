@@ -7,6 +7,12 @@ con discovery automático read-only en `192.168.1.0/24` y compara las superficie
 de detección HTTP con la lógica validada para GXP1625. No aplica Configure, no
 escribe DB y no reinicia el teléfono.
 
+Run `34578860986`: PASS. Se encontró exactamente un GXP1630 en
+`192.168.1.169`, MAC `C0:74:AD:B4:AD:70`. La ruta legacy `/manager` no respondió,
+pero `api.values.get` sí identificó el modelo. Esto demuestra compatibilidad con
+la superficie moderna de detección, no todavía con login, generación cfg/XML ni
+activación nativa.
+
 ## Test 55 GXP1625 — E2E manual cerrado — 2026-09-11
 
 La IP anterior `192.168.1.167` fue reasignada por DHCP a un DVR Hikvision; el

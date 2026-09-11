@@ -28,6 +28,11 @@ discovery automático read-only de IP/MAC/modelo y comparación inicial con las
 superficies HTTP usadas por GXP1625. Esta fase no configura, reinicia ni escribe
 en el teléfono o Endpoint Configurator.
 
+Run `34578860986` terminó PASS: coincidencia única `192.168.1.169`, MAC
+`C0:74:AD:B4:AD:70`, modelo GXP1630. `/manager` no respondió y
+`api.values.get` sí respondió. La siguiente fase debe validar autenticación y
+lectura de estado sin asumir aún compatibilidad completa de provisioning.
+
 ## 2026-09-11 — Codex — Test 55 cerrado con validación física satisfactoria
 
 El operador confirmó que la prueba manual ya fue completada satisfactoriamente
