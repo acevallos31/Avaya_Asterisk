@@ -53,7 +53,18 @@ try:
     login = json.loads(raw)
 except Exception:
     login = {}
-sid = login.get("body", {}).get("sid") or login.get("sid") or ""
+login_body = login.get("body")
+sid = ""
+if isinstance(login_body, dict):
+    sid = login_body.get("sid") or ""
+elif isinstance(login_body, str):
+    try:
+        nested_body = json.loads(login_body)
+    except Exception:
+        nested_body = {}
+    if isinstance(nested_body, dict):
+        sid = nested_body.get("sid") or ""
+sid = sid or login.get("sid") or ""
 accepted = status == 200 and login.get("response") == "success" and bool(sid)
 log("login=" + ("SUCCESS" if accepted else "FAILED"))
 log("login_http=" + str(status))
