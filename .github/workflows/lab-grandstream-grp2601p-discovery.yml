@@ -1,0 +1,194 @@
+name: 62 | Issabel Lab | Grandstream GRP2601P | Factory-State Discovery
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-grp2601p-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    name: Identify GRP2601P and Endpoint Configurator coverage
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard LAB and required tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          test "$(id -un)" = github-runner
+          test "$(hostname -s)" != cei-pbx02
+          command -v nmap
+          command -v curl
+          command -v ip
+
+      - name: Discover GRP2601 family without writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test62-grp2601p-discovery.txt"
+          SCAN="$RUNNER_TEMP/test62-nmap.txt"
+          HOSTS="$RUNNER_TEMP/test62-hosts.txt"
+          L2="$RUNNER_TEMP/test62-l2.txt"
+          : > "$REPORT"
+
+          nmap -sn 192.168.1.0/24 > "$SCAN"
+          awk '/^Nmap scan report for / {ip=$NF; gsub(/[()]/,"",ip); print ip}' "$SCAN" |
+            sort -Vu > "$HOSTS"
+          awk '
+            /^Nmap scan report for / {
+              ip=$NF
+              gsub(/[()]/,"",ip)
+            }
+            /^MAC Address:/ {
+              mac=toupper($3)
+              vendor=$0
+              sub(/^MAC Address: [^ ]+ /,"",vendor)
+              gsub(/[()]/,"",vendor)
+              print ip "|" mac "|" vendor
+            }
+          ' "$SCAN" > "$L2"
+
+          {
+            echo 'scope=TEST62_GRP2601P_FACTORY_STATE_DISCOVERY'
+            echo 'network=192.168.1.0/24'
+            echo 'phone_write=NO'
+            echo 'endpointconfig_write=NO'
+            echo 'firmware_upgrade=NO'
+            echo "live_host_count=$(wc -l < "$HOSTS" | tr -d ' ')"
+          } | tee -a "$REPORT"
+
+          exact_count=0
+          l2_grandstream_count=0
+          match_ip=''
+          match_mac=''
+          match_model=''
+          match_firmware=''
+
+          while IFS= read -r ip_addr; do
+            [ -n "$ip_addr" ] || continue
+
+            l2_row="$(awk -F'|' -v ip="$ip_addr" '$1==ip {print; exit}' "$L2")"
+            mac_addr="$(printf '%s' "$l2_row" | awk -F'|' '{print $2}')"
+            vendor="$(printf '%s' "$l2_row" | awk -F'|' '{print $3}')"
+            if [ -z "$mac_addr" ]; then
+              mac_addr="$(ip neigh show "$ip_addr" | awk '/lladdr/ {print toupper($5); exit}')"
+            fi
+
+            root_http="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip_addr/" 2>/dev/null || true)"
+            root_https="$(curl -kfsS --connect-timeout 1 --max-time 3 "https://$ip_addr/" 2>/dev/null || true)"
+            values="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip_addr/cgi-bin/api.values.get?request=phone_model:1395" 2>/dev/null || true)"
+            firmware_values="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip_addr/cgi-bin/api.values.get?request=firmware_version:45" 2>/dev/null || true)"
+            manager="$(curl -fsS --connect-timeout 1 --max-time 3 "http://$ip_addr/manager?action=product&time=0" 2>/dev/null || true)"
+
+            evidence="$values $manager $root_http $root_https"
+            detected="$(printf '%s' "$evidence" | grep -Eio 'GRP[ _-]*2601(P|W)?' | head -n1 || true)"
+            normalized="$(printf '%s' "$detected" | tr '[:lower:]' '[:upper:]' | tr -d ' _-')"
+            firmware="$(printf '%s' "$firmware_values $evidence" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
+            http_status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 1 --max-time 3 "http://$ip_addr/" 2>/dev/null || true)"
+
+            if grep -Eqi 'Grandstream' <<<"$vendor"; then
+              l2_grandstream_count=$((l2_grandstream_count + 1))
+              echo "l2_grandstream_${l2_grandstream_count}_ip=$ip_addr" | tee -a "$REPORT"
+              echo "l2_grandstream_${l2_grandstream_count}_mac=${mac_addr:-UNKNOWN}" | tee -a "$REPORT"
+              echo "l2_grandstream_${l2_grandstream_count}_http=${http_status:-000}" | tee -a "$REPORT"
+              echo "l2_grandstream_${l2_grandstream_count}_model=${normalized:-NOT_EXPOSED}" | tee -a "$REPORT"
+            fi
+
+            if [ "$normalized" = GRP2601 ] || [ "$normalized" = GRP2601P ]; then
+              exact_count=$((exact_count + 1))
+              match_ip="$ip_addr"
+              match_mac="$mac_addr"
+              match_model="$normalized"
+              match_firmware="$firmware"
+              echo "match_${exact_count}_ip=$ip_addr" | tee -a "$REPORT"
+              echo "match_${exact_count}_mac=${mac_addr:-UNKNOWN}" | tee -a "$REPORT"
+              echo "match_${exact_count}_model=$normalized" | tee -a "$REPORT"
+              echo "match_${exact_count}_firmware=${firmware:-NOT_EXPOSED_UNAUTHENTICATED}" | tee -a "$REPORT"
+              echo "match_${exact_count}_http=${http_status:-000}" | tee -a "$REPORT"
+            fi
+          done < "$HOSTS"
+
+          {
+            echo "l2_grandstream_count=$l2_grandstream_count"
+            echo "exact_match_count=$exact_count"
+          } | tee -a "$REPORT"
+
+          test "$exact_count" -eq 1
+          test -n "$match_ip"
+          test -n "$match_mac"
+          test "$match_mac" != UNKNOWN
+
+          printf '%s\n' "$match_ip" > "$RUNNER_TEMP/test62-ip"
+          printf '%s\n' "$match_mac" > "$RUNNER_TEMP/test62-mac"
+          printf '%s\n' "$match_model" > "$RUNNER_TEMP/test62-model"
+          printf '%s\n' "$match_firmware" > "$RUNNER_TEMP/test62-firmware"
+          echo 'TEST62-GRP2601P-NETWORK-IDENTITY=PASS' | tee -a "$REPORT"
+
+      - name: Audit live Endpoint Configurator catalog read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test62-grp2601p-discovery.txt"
+          mac_addr="$(cat "$RUNNER_TEMP/test62-mac")"
+          prefix="$(printf '%s' "$mac_addr" | cut -d: -f1-3)"
+          {
+            echo "requested_prefix=$prefix"
+            echo 'requested_model=GRP2601P'
+          } | tee -a "$REPORT"
+
+          test -x /usr/local/sbin/avaya-j129-lab-deploy
+          sudo -n -l | grep -F '/usr/local/sbin/avaya-j129-lab-deploy'
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            inspect-manufacturer Grandstream GRP2601P "$prefix" |
+            tee "$RUNNER_TEMP/test62-endpointconfig-db.txt"
+
+          grep -Fq 'MANUFACTURER-DB-READONLY-PASS' \
+            "$RUNNER_TEMP/test62-endpointconfig-db.txt"
+
+          if grep -Fqi $'\tGRP2601P\t' "$RUNNER_TEMP/test62-endpointconfig-db.txt"; then
+            echo 'grp2601p_model_in_endpointconfig=YES' | tee -a "$REPORT"
+          else
+            echo 'grp2601p_model_in_endpointconfig=NO' | tee -a "$REPORT"
+          fi
+
+          if grep -Fqi "$prefix" "$RUNNER_TEMP/test62-endpointconfig-db.txt"; then
+            echo 'grp2601p_oui_in_endpointconfig=YES' | tee -a "$REPORT"
+          else
+            echo 'grp2601p_oui_in_endpointconfig=NO' | tee -a "$REPORT"
+          fi
+
+          echo 'TEST62-GRP2601P-ENDPOINTCONFIG-CATALOG-AUDIT=PASS' | tee -a "$REPORT"
+          echo 'TEST62-GRP2601P-DISCOVERY=PASS' | tee -a "$REPORT"
+
+      - name: Publish sanitized evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 62 — GRP2601P factory-state discovery'
+            echo
+            cat "$RUNNER_TEMP/test62-grp2601p-discovery.txt" 2>/dev/null || true
+            echo
+            echo '### Endpoint Configurator DB/OUI'
+            cat "$RUNNER_TEMP/test62-endpointconfig-db.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test62-grp2601p-discovery-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/test62-grp2601p-discovery.txt
+            ${{ runner.temp }}/test62-endpointconfig-db.txt
+          if-no-files-found: warn
+          retention-days: 30
