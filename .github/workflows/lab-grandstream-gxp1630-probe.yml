@@ -75,3 +75,51 @@ jobs:
           path: ${{ runner.temp }}/test56-gxp1630-discovery.txt
           if-no-files-found: warn
           retention-days: 30
+
+  authenticated-read:
+    name: Compare GXP1625 authenticated read contract
+    needs: discover
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 7
+    env:
+      PHONE_IP: 192.168.1.169
+      PHONE_USERNAME: admin
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD }}
+      PBX_IP: 192.168.1.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard exact factory-state target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          test -n "$PHONE_PASSWORD"
+          ping -c 1 -W 2 "$PHONE_IP" >/dev/null
+          observed="$(ip neigh show "$PHONE_IP" | awk '/lladdr/ {print toupper($5); exit}')"
+          test "$observed" = C0:74:AD:B4:AD:70
+      - name: Run authenticated provisioning read without writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test56-gxp1630-auth-read.txt"
+          python3 endpoint-lab/grandstream/g10-19e-provisioning-state-preflight.py
+          grep -Fq 'login=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'read=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'phone_write=NO' "$REPORT_PATH"
+          echo 'TEST56-GXP1630-AUTH-READ=PASS' | tee -a "$REPORT_PATH"
+      - name: Publish sanitized authenticated evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 56 — GXP1630 authenticated read'
+            [ -f "$RUNNER_TEMP/test56-gxp1630-auth-read.txt" ] && cat "$RUNNER_TEMP/test56-gxp1630-auth-read.txt" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized authenticated evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test56-gxp1630-auth-read-${{ github.run_id }}
+          path: ${{ runner.temp }}/test56-gxp1630-auth-read.txt
+          if-no-files-found: warn
+          retention-days: 30
