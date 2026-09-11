@@ -93,6 +93,14 @@ FROM mac_prefix mp LEFT JOIN manufacturer mf ON mf.id=mp.id_manufacturer
 WHERE '${prefix_norm}'<>'' AND UPPER(mp.mac_prefix)='${prefix_norm}';
 SELECT '=== ENDPOINT COUNT ===';
 SELECT COUNT(*) AS total FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE mf.name='${manufacturer}';
+SELECT '=== ENDPOINTS (NO SECRETS) ===';
+SELECT e.id,e.mac_address,e.last_known_ipv4,m.name AS model,e.selected,
+       (SELECT COUNT(*) FROM endpoint_account ea WHERE ea.id_endpoint=e.id) AS account_count
+FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer
+LEFT JOIN model m ON m.id=e.id_model
+WHERE mf.name='${manufacturer}'
+  AND ('${model_norm}'='' OR UPPER(REPLACE(COALESCE(m.name,''),' ',''))='${model_norm}')
+ORDER BY e.id;
 ROLLBACK;
 SQL
   rm -f "$defaults_file"; trap - RETURN EXIT; echo 'MANUFACTURER-DB-READONLY-PASS'

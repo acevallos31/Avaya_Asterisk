@@ -1,0 +1,42 @@
+name: 58 | Issabel Lab | GXP1630 | Endpoint Configurator Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/j129/avaya-j129-lab-deploy'
+      - '.github/workflows/lab-grandstream-gxp1630-server-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Audit GXP1630 server state
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/test58-gxp1630-server.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream GXP1630 C0:74:AD | tee "$report"
+          grep -Fq 'C0:74:AD:B4:AD:70' "$report"
+          grep -Fq '192.168.1.169' "$report"
+          grep -Fq 'GXP1630' "$report"
+          grep -Fq 'MANUFACTURER-DB-READONLY-PASS' "$report"
+          echo 'TEST58-GXP1630-SERVER-AUDIT=PASS' | tee -a "$report"
+      - name: Publish evidence
+        if: always()
+        shell: bash
+        run: |
+          { echo '## Test 58 — GXP1630 server audit'; cat "$RUNNER_TEMP/test58-gxp1630-server.txt" 2>/dev/null || true; } >> "$GITHUB_STEP_SUMMARY"
