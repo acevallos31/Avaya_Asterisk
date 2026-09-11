@@ -1,5 +1,32 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Grandstream GRP2601P — Tests 62–64 — 2026-09-11
+
+Ciclo LAB iniciado sobre el equipo de fábrica detectado en
+`192.168.1.176`, MAC `EC:74:D7:1E:E8:E3`.
+
+Test 62 autoritativo, run `34620373267`: `LAB-READ-PASS`. Identidad
+GRP2601P única, HTTP 200, firmware no expuesto sin autenticación. La DB stock
+no contenía ni la OUI `EC:74:D7` ni el modelo. El run inicial
+`34619751876` tuvo una clasificación OUI falsa positiva por buscar el prefijo
+en el encabezado del reporte; se corrigió el parser y se repitió sin escrituras.
+
+Test 63: el primer run `34620205736` falló seguro antes de escribir al
+confirmar que faltaba la OUI. El run corregido `34620390872` agregó
+reversiblemente OUI y modelo ID 149, `max_accounts=2`,
+`max_sip_accounts=2`; el rescan stock creó una única fila
+Grandstream/GRP2601P en `.176`, `selected=0`, cero cuentas. Estado
+`LAB-FIX-PASS`.
+
+Test 64 run `34620889592`: server preflight PASS; la lectura Web autenticada
+quedó `CREDENTIAL-BLOCKED` porque no existe el Repository Secret
+`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. No se reutilizó la contraseña GXP,
+no se probaron credenciales alternativas y no hubo escritura en el teléfono.
+
+Próximo paso: cargar en ese secret la contraseña administrativa aleatoria de la
+etiqueta del GRP2601P y volver a ejecutar Test 64. Solo después de
+`login=SUCCESS` y lectura de P212/P237 se implementará bootstrap/Configure.
+
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11
 
 Autorizado ciclo completo sin preguntas adicionales. La primera fase mutante
