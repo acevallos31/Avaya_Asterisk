@@ -1,0 +1,33 @@
+name: 61 | Issabel Lab | GXP1630 | End-to-End Audit
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/j129/avaya-j129-lab-deploy'
+      - '.github/workflows/lab-grandstream-gxp1630-e2e-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        run: |
+          set -euo pipefail
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Audit DB provisioning and SIP
+        run: |
+          set -euo pipefail
+          sleep 30
+          report="$RUNNER_TEMP/test61.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-grandstream-gxp1630-configured | tee "$report"
+          grep -Fq 'GXP1630-POST-CONFIG-AUDIT-PASS' "$report"
+          echo 'TEST61-GXP1630-E2E=PASS' | tee -a "$report"
+      - name: Publish evidence
+        if: always()
+        run: |
+          { echo '## Test 61 — GXP1630 E2E'; cat "$RUNNER_TEMP/test61.txt" 2>/dev/null || true; } >> "$GITHUB_STEP_SUMMARY"

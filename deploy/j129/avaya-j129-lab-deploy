@@ -448,6 +448,36 @@ PY
   echo 'GXP1630-CONFIGURE-SERVER-PASS'
 }
 
+inspect_grandstream_gxp1630_configured() {
+  local d n id ip model selected accounts a201 bin xml peers p201 p202 http
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  n="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(mac_address)='C0:74:AD:B4:AD:70';")"
+  id="$(mysql_scalar "$d" "SELECT id FROM endpoint WHERE UPPER(mac_address)='C0:74:AD:B4:AD:70' LIMIT 1;")"
+  ip="$(mysql_scalar "$d" "SELECT last_known_ipv4 FROM endpoint WHERE id=$id;")"
+  model="$(mysql_scalar "$d" "SELECT m.name FROM endpoint e JOIN model m ON m.id=e.id_model WHERE e.id=$id;")"
+  selected="$(mysql_scalar "$d" "SELECT selected FROM endpoint WHERE id=$id;")"
+  accounts="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id;")"
+  a201="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='201';")"
+  bin='/tftpboot/cfgc074adb4ad70'; xml='/tftpboot/cfgc074adb4ad70.xml'
+  peers="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
+  p201="$(printf '%s\n' "$peers" | awk '$1 ~ /^201(\/|$)/ {print $2; exit}')"
+  p202="$(printf '%s\n' "$peers" | awk '$1 ~ /^202(\/|$)/ {print $2; exit}')"
+  http="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 http://192.168.1.169/ || true)"
+  echo "endpoint_count=$n"; echo "endpoint_ip=$ip"; echo "model=$model"; echo "selected=$selected"; echo "account_count=$accounts"; echo "account_201_count=$a201"
+  echo "sip_201_ip=${p201:-UNREGISTERED}"; echo "sip_202_ip=${p202:-UNREGISTERED}"; echo "phone_http=$http"
+  [ "$n" -eq 1 ] && [ "$ip" = 192.168.1.169 ] && [ "$model" = GXP1630 ] && [ "$selected" -eq 0 ] && [ "$accounts" -eq 1 ] && [ "$a201" -eq 1 ]
+  [ -s "$bin" ] && [ -s "$xml" ] && [ "$p201" = 192.168.1.169 ] && [ "$p202" != 192.168.1.169 ] && [ "$http" = 200 ]
+  python3 - "$xml" <<'PY'
+import sys, xml.etree.ElementTree as ET
+r=ET.parse(sys.argv[1]).getroot(); c=r.find('config'); v={x.tag:(x.text or '') for x in c}
+assert (r.findtext('mac') or '').lower()=='c074adb4ad70'
+assert v.get('P35')=='201' and v.get('P36')=='201' and bool(v.get('P34'))
+assert v.get('P47')=='192.168.1.10'
+PY
+  rm -f "$d"; trap - RETURN EXIT
+  echo 'GXP1630-POST-CONFIG-AUDIT-PASS'
+}
+
 [ -n "$ACTION" ] || usage
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
@@ -466,6 +496,7 @@ case "$ACTION" in
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
+  inspect-grandstream-gxp1630-configured) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_gxp1630_configured ;;
   install-http) install_http_j129 ;;
   rollback-http) [ -n "$OVERLAY_ROOT" ] || usage; rollback_http_j129 ;;
   install|rollback)
