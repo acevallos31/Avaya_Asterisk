@@ -5,6 +5,7 @@ on:
     branches: [Audit]
     paths:
       - '.github/workflows/lab-grandstream-grp2601p-auth-read.yml'
+      - 'endpoint-lab/grandstream/test64-grp2601p-auth-read.py'
   workflow_dispatch:
 
 permissions:
@@ -55,7 +56,7 @@ jobs:
           curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 http://192.168.1.176/
           observed="$(ip neigh show 192.168.1.176 | awk '/lladdr/ {print toupper($5); exit}')"
           test "$observed" = EC:74:D7:1E:E8:E3
-      - name: Run sanitized authenticated read
+      - name: Run sanitized authenticated read (single candidate)
         shell: bash
         run: |
           set -euo pipefail
