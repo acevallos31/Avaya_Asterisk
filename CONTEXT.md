@@ -33,6 +33,15 @@ GRP2601P y cargarla en `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`; luego repetir
 Test 64. Solo después de `login=SUCCESS` y lectura de P212/P237 se
 implementará bootstrap/Configure.
 
+Actualización Test 64: el secret específico
+`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD` fue probado en el run
+`34647374500`. Tras ampliar solo la clasificación sanitizada del contrato,
+el run confirmatorio `34647476040` devolvió HTTP 200,
+`login_response_class=ERROR`, `login_body_type=STR` y `login=FAILED`.
+Esto confirma rechazo explícito de la credencial, no un problema de parser o
+SID. Sin escrituras. Se detienen los intentos hasta verificar visualmente y
+volver a copiar la contraseña de la etiqueta.
+
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11
 
 Autorizado ciclo completo sin preguntas adicionales. La primera fase mutante
