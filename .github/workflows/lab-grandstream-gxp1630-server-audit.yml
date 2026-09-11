@@ -4,7 +4,6 @@ on:
   push:
     branches: [Audit]
     paths:
-      - 'deploy/j129/avaya-j129-lab-deploy'
       - '.github/workflows/lab-grandstream-gxp1630-server-audit.yml'
   workflow_dispatch:
 
