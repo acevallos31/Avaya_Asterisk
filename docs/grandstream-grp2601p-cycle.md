@@ -42,14 +42,14 @@ a ciegas.
 ## Secuencia
 
 1. Test 62: discovery read-only de red, identidad HTTP y cobertura DB/OUI.
-2. Test 63: autenticación y lectura de provisioning, con secret GRP separado.
-3. Test 64: alta reversible del modelo/OUI exacto y rescan.
+2. Test 63: alta reversible del modelo/OUI exacto y rescan.
+3. Test 64: autenticación y lectura de provisioning, con secret GRP separado.
 4. Test 65: bootstrap controlado del servidor de configuración.
 5. Test 66: Configure, cfg/XML, SIP y auditoría E2E.
 6. Validación física manual de llamadas/audio por el operador.
 
-Los números 63–66 describen la secuencia prevista; deben reservarse únicamente
-cuando cada prueba sea implementada.
+Los números 62–64 ya fueron implementados. Test 65–66 permanecen reservados
+hasta cerrar el gate de autenticación.
 
 ## Reglas de seguridad
 
@@ -68,7 +68,9 @@ cuando cada prueba sea implementada.
 | 62 | 34620373267 | LAB-READ-PASS: IP/MAC/modelo exactos; OUI y modelo ausentes en DB stock |
 | 63 inicial | 34620205736 | Detención segura antes de escritura: OUI ausente |
 | 63 corregido | 34620390872 | LAB-FIX-PASS: OUI + modelo ID 149; discovery stock exacto |
-| 64 | 34620889592 | Server preflight PASS; lectura Web CREDENTIAL-BLOCKED por secret ausente |
+| 64 inicial | 34620889592 | Server preflight PASS; lectura Web CREDENTIAL-BLOCKED por secret GRP ausente |
+| 64 parser | 34628195632 | HARNESS-FAIL al interpretar el cuerpo de login; sin escrituras |
+| 64 candidato GXP | 34628373795 | Workflow PASS por resultado esperado: HTTP 200, login rechazado, GXP-CANDIDATE-REJECTED |
 
 Estado del endpoint después de Test 63:
 
@@ -90,10 +92,13 @@ rollback. El teléfono no ha sido configurado ni reiniciado.
 
 ## Gate vigente
 
+El ensayo controlado del run `34628373795` demostró que la contraseña
+guardada en `GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD` no autentica este
+GRP2601P. No se harán más intentos con esa credencial.
+
 Antes de bootstrap debe existir el Repository Secret
 `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD` con la contraseña administrativa
-aleatoria impresa en la etiqueta trasera del teléfono. No usar
-`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`.
+aleatoria impresa en la etiqueta trasera del teléfono.
 
 Repetir Test 64 y exigir:
 
