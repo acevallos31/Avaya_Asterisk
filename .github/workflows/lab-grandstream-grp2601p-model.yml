@@ -1,0 +1,93 @@
+name: 63 | Issabel Lab | GRP2601P Model | Controlled Add & Discovery
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-grp2601p-model.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  add-model:
+    name: Add GRP2601P model and run exact stock discovery
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard exact LAB target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          test "$(id -un)" = github-runner
+          test "$(hostname -s)" != cei-pbx02
+          observed="$(ip neigh show 192.168.1.176 | awk '/lladdr/ {print toupper($5); exit}')"
+          if [ -z "$observed" ]; then
+            curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 http://192.168.1.176/
+            observed="$(ip neigh show 192.168.1.176 | awk '/lladdr/ {print toupper($5); exit}')"
+          fi
+          test "$observed" = EC:74:D7:1E:E8:E3
+          model="$(curl -fsS --connect-timeout 2 --max-time 4 \
+            'http://192.168.1.176/cgi-bin/api.values.get?request=phone_model:1395')"
+          grep -Eqi 'GRP[ _-]*2601P' <<<"$model"
+
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n deploy/j129/avaya-j129-lab-deploy
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+
+      - name: Add reversible GRP2601P model
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test63-grp2601p-model.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            apply-grandstream-grp2601p-model | tee "$REPORT"
+          grep -Eq 'GRP2601P-MODEL-(APPLY-PASS|ALREADY-PRESENT)' "$REPORT"
+
+      - name: Verify model catalog and exact discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test63-grp2601p-model.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            inspect-manufacturer Grandstream GRP2601P EC:74:D7 | tee -a "$REPORT"
+          grep -Fq $'GRP2601P\tGRP2601P\t2\t1\t1\t1' "$REPORT"
+          grep -Fq $'GRP2601P\t' "$REPORT"
+          grep -Fq $'max_sip_accounts\t2' "$REPORT"
+
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            discover-grandstream-grp2601p | tee -a "$REPORT"
+          grep -Fq 'endpoint_ip=192.168.1.176' "$REPORT"
+          grep -Fq 'manufacturer=Grandstream' "$REPORT"
+          grep -Fq 'model=GRP2601P' "$REPORT"
+          grep -Fq 'selected=0' "$REPORT"
+          grep -Fq 'account_count=0' "$REPORT"
+          grep -Fq 'GRP2601P-DISCOVERY-PASS' "$REPORT"
+          echo 'TEST63-GRP2601P-MODEL-DISCOVERY=PASS' | tee -a "$REPORT"
+
+      - name: Publish sanitized evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 63 — GRP2601P model and stock discovery'
+            cat "$RUNNER_TEMP/test63-grp2601p-model.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test63-grp2601p-model-${{ github.run_id }}
+          path: ${{ runner.temp }}/test63-grp2601p-model.txt
+          if-no-files-found: warn
+          retention-days: 30
