@@ -94,7 +94,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REF_NAME" = Audit
           test -n "$PHONE_PASSWORD"
-          ping -c 1 -W 2 "$PHONE_IP" >/dev/null
+          curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 "http://$PHONE_IP/"
           observed="$(ip neigh show "$PHONE_IP" | awk '/lladdr/ {print toupper($5); exit}')"
           test "$observed" = C0:74:AD:B4:AD:70
       - name: Run authenticated provisioning read without writes
