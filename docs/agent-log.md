@@ -57,6 +57,15 @@ GXP1625 tampoco autentica este equipo; se requiere la contraseña aleatoria de
 la etiqueta en el secret GRP dedicado. Provisioning autenticado, cfg/XML y SIP
 siguen `NOT-TESTED` hasta cerrar Test 64.
 
+La credencial de etiqueta se cargó posteriormente en el secret MAC-bound
+`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`. Run `34647374500`:
+secret presente e identidad exacta, pero login falló. Para excluir una
+diferencia de formato del SID se añadió clasificación sanitizada y se repitió
+sin escrituras. Run confirmatorio `34647476040`: HTTP 200,
+`login_response_class=ERROR`, cuerpo string y `login=FAILED`. El teléfono
+rechazó explícitamente la credencial. Se suspenden más intentos hasta verificar
+visualmente caracteres y copia del valor de la etiqueta.
+
 ## 2026-09-11 — Codex — inicia Test 57 GXP1630 provisioning cycle
 
 El operador autorizó completar y documentar el ciclo LAB sin nuevas preguntas.
