@@ -1,0 +1,37 @@
+name: 59 | Issabel Lab | GXP1630 Model | Controlled Add
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - 'deploy/j129/avaya-j129-lab-deploy'
+      - '.github/workflows/lab-grandstream-gxp1630-model.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  add-model:
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Add reversible GXP1630 model
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy apply-grandstream-gxp1630-model | tee "$RUNNER_TEMP/test59.txt"
+          grep -Eq 'GXP1630-MODEL-(APPLY-PASS|ALREADY-PRESENT)' "$RUNNER_TEMP/test59.txt"
+      - name: Verify model inventory
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-manufacturer Grandstream GXP1630 C0:74:AD | tee -a "$RUNNER_TEMP/test59.txt"
+          grep -Fq $'GXP1630\tGXP1630\t3\t1\t1\t1' "$RUNNER_TEMP/test59.txt"
+          echo 'TEST59-GXP1630-MODEL=PASS' | tee -a "$RUNNER_TEMP/test59.txt"
+      - name: Publish evidence
+        if: always()
+        run: |
+          { echo '## Test 59 — GXP1630 model'; cat "$RUNNER_TEMP/test59.txt" 2>/dev/null || true; } >> "$GITHUB_STEP_SUMMARY"

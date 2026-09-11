@@ -13,6 +13,7 @@ BACKUP_DIR="$STATE_DIR/backup"
 STAMP_FILE="$STATE_DIR/installed.sha256"
 DB_STATE_FILE="$STATE_DIR/db-j129.state"
 GRANDSTREAM_OUI_STATE_FILE="$STATE_DIR/grandstream-c074ad.state"
+GRANDSTREAM_GXP1630_MODEL_STATE_FILE="$STATE_DIR/grandstream-gxp1630-model.state"
 GRANDSTREAM_PY="$BASE/class/issabel/vendor/Grandstream.py"
 GRANDSTREAM_LOGIN_PATCH_BACKUP="$STATE_DIR/Grandstream.py.pre-g10-14"
 HTTP_STATE_DIR="$STATE_DIR/httpd"
@@ -357,6 +358,42 @@ SQL
   rm -f "$DB_STATE_FILE" "$defaults_file"; trap - RETURN EXIT; echo "DB-J129-ROLLBACK-PASS"
 }
 
+apply_grandstream_gxp1630_model() {
+  local d source_id existing new_id
+  d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  source_id="$(mysql_scalar "$d" "SELECT m.id FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GXP1625' LIMIT 1;")"
+  [ "$source_id" = 134 ] || { echo "ERROR: unexpected GXP1625 source id=$source_id" >&2; exit 1; }
+  existing="$(mysql_scalar "$d" "SELECT COUNT(*) FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GXP1630';")"
+  [ "$existing" -le 1 ] || { echo 'ERROR: duplicate GXP1630 models' >&2; exit 1; }
+  if [ "$existing" -eq 1 ]; then echo 'GXP1630-MODEL-ALREADY-PRESENT'; return 0; fi
+  [ ! -e "$GRANDSTREAM_GXP1630_MODEL_STATE_FILE" ] || { echo 'ERROR: pending GXP1630 model state' >&2; exit 1; }
+  mysql --defaults-extra-file="$d" endpointconfig <<SQL
+START TRANSACTION;
+INSERT INTO model (id_manufacturer,name,description,max_accounts,static_ip_supported,dynamic_ip_supported,static_prov_supported)
+SELECT id_manufacturer,'GXP1630','GXP1630',3,static_ip_supported,dynamic_ip_supported,static_prov_supported FROM model WHERE id=${source_id};
+SET @new_id := LAST_INSERT_ID();
+INSERT INTO model_properties (id_model,property_key,property_value)
+SELECT @new_id,property_key,CASE WHEN property_key='max_sip_accounts' THEN '3' ELSE property_value END
+FROM model_properties WHERE id_model=${source_id};
+COMMIT;
+SQL
+  new_id="$(mysql_scalar "$d" "SELECT m.id FROM model m JOIN manufacturer mf ON mf.id=m.id_manufacturer WHERE mf.name='Grandstream' AND m.name='GXP1630' LIMIT 1;")"
+  [[ "$new_id" =~ ^[0-9]+$ ]] || { echo 'ERROR: GXP1630 id missing after insert' >&2; exit 1; }
+  printf 'model_id=%s\n' "$new_id" > "$GRANDSTREAM_GXP1630_MODEL_STATE_FILE"; chmod 0600 "$GRANDSTREAM_GXP1630_MODEL_STATE_FILE"
+  echo "gxp1630_model_id=$new_id"; echo 'GXP1630-MODEL-APPLY-PASS'
+}
+
+rollback_grandstream_gxp1630_model() {
+  [ -f "$GRANDSTREAM_GXP1630_MODEL_STATE_FILE" ] || { echo 'ERROR: no GXP1630 model state' >&2; exit 1; }
+  . "$GRANDSTREAM_GXP1630_MODEL_STATE_FILE"; [[ "${model_id:-}" =~ ^[0-9]+$ ]] || exit 1
+  local d endpoints; d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
+  endpoints="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE id_model=$model_id;")"
+  [ "$endpoints" -eq 0 ] || { echo 'ERROR: GXP1630 endpoints exist; rollback cancelled' >&2; exit 1; }
+  mysql --defaults-extra-file="$d" endpointconfig -e "START TRANSACTION; DELETE FROM model_properties WHERE id_model=$model_id; DELETE FROM model WHERE id=$model_id AND name='GXP1630'; COMMIT;"
+  rm -f "$GRANDSTREAM_GXP1630_MODEL_STATE_FILE"
+  echo 'GXP1630-MODEL-ROLLBACK-PASS'
+}
+
 [ -n "$ACTION" ] || usage
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
@@ -371,6 +408,8 @@ case "$ACTION" in
   rollback-login-patch) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_login_patch ;;
   install-db) [ -z "$OVERLAY_ROOT" ] || usage; install_db_j129 ;;
   rollback-db) [ -z "$OVERLAY_ROOT" ] || usage; rollback_db_j129 ;;
+  apply-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_gxp1630_model ;;
+  rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   install-http) install_http_j129 ;;
   rollback-http) [ -n "$OVERLAY_ROOT" ] || usage; rollback_http_j129 ;;
   install|rollback)
