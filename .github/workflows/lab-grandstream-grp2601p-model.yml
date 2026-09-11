@@ -1,4 +1,4 @@
-name: 63 | Issabel Lab | GRP2601P Model | Controlled Add & Discovery
+name: 63 | Issabel Lab | GRP2601P Model & OUI | Controlled Add & Discovery
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   add-model:
-    name: Add GRP2601P model and run exact stock discovery
+    name: Add GRP2601P model/OUI and run exact stock discovery
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 10
 
@@ -51,6 +51,7 @@ jobs:
           REPORT="$RUNNER_TEMP/test63-grp2601p-model.txt"
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
             apply-grandstream-grp2601p-model | tee "$REPORT"
+          grep -Eq 'GRP2601P-OUI-(APPLY-PASS|ALREADY-PRESENT)' "$REPORT"
           grep -Eq 'GRP2601P-MODEL-(APPLY-PASS|ALREADY-PRESENT)' "$REPORT"
 
       - name: Verify model catalog and exact discovery
@@ -79,7 +80,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo '## Test 63 — GRP2601P model and stock discovery'
+            echo '## Test 63 — GRP2601P model/OUI and stock discovery'
             cat "$RUNNER_TEMP/test63-grp2601p-model.txt" 2>/dev/null || true
           } >> "$GITHUB_STEP_SUMMARY"
 
