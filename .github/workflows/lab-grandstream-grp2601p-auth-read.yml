@@ -42,7 +42,8 @@ jobs:
     env:
       PHONE_IP: 192.168.1.176
       PHONE_USERNAME: admin
-      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD }}
+      GRP_PASSWORD: ${{ secrets.GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD }}
+      GXP_PASSWORD_CANDIDATE: ${{ secrets.GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD }}
       PBX_IP: 192.168.1.10
     steps:
       - uses: actions/checkout@v4
@@ -59,9 +60,23 @@ jobs:
         run: |
           set -euo pipefail
           export REPORT_PATH="$RUNNER_TEMP/test64-grp2601p-auth-read.txt"
+          if [ -n "$GRP_PASSWORD" ]; then
+            export PHONE_PASSWORD="$GRP_PASSWORD"
+            export CREDENTIAL_SOURCE=GRP_DEDICATED
+          elif [ -n "$GXP_PASSWORD_CANDIDATE" ]; then
+            export PHONE_PASSWORD="$GXP_PASSWORD_CANDIDATE"
+            export CREDENTIAL_SOURCE=GXP_SINGLE_CANDIDATE
+          else
+            export PHONE_PASSWORD=''
+            export CREDENTIAL_SOURCE=NONE
+          fi
           python3 -B endpoint-lab/grandstream/test64-grp2601p-auth-read.py
           if grep -Fq 'credential_status=MISSING' "$REPORT_PATH"; then
             grep -Fq 'TEST64-GRP2601P-AUTH-READ=CREDENTIAL-BLOCKED' "$REPORT_PATH"
+            exit 0
+          fi
+          if grep -Fq 'TEST64-GRP2601P-AUTH-READ=GXP-CANDIDATE-REJECTED' "$REPORT_PATH"; then
+            grep -Fq 'credential_source=GXP_SINGLE_CANDIDATE' "$REPORT_PATH"
             exit 0
           fi
           grep -Fq 'login=SUCCESS' "$REPORT_PATH"
