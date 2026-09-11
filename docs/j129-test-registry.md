@@ -78,8 +78,9 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 59 | `lab-grandstream-gxp1630-model.yml` | `59 | Issabel Lab | GXP1630 Model | Controlled Add` | PASS run `34585294581`: modelo ID 148, tres cuentas SIP y discovery exacto. |
 | 60 | `lab-grandstream-gxp1630-configure.yml` | `60 | Issabel Lab | GXP1630 | Controlled Configure 201` | PASS run `34585596964`: único endpoint, response success/right, cfg/XML 201 generados. |
 | 61 | `lab-grandstream-gxp1630-e2e-audit.yml` | `61 | Issabel Lab | GXP1630 | End-to-End Audit` | `LAB-INTEGRATION-PASS` run `34585916245`: DB, cfg/XML/MAC, HTTP 200, SIP 201 en `.169`; 202 permanece en `.168`. Validación física pendiente. |
-| 62 | `lab-grandstream-grp2601p-discovery.yml` | `62 | Issabel Lab | Grandstream GRP2601P | Factory-State Discovery` | RESERVADA / EN EJECUCIÓN. Discovery read-only de IP, MAC, modelo, firmware expuesto y cobertura DB/OUI. No escribe teléfono, DB ni configuración. |
-| 63 | `lab-grandstream-grp2601p-model.yml` | `63 | Issabel Lab | GRP2601P Model | Controlled Add & Discovery` | RESERVADA / EN EJECUCIÓN. Alta reversible del modelo con dos cuentas SIP y rescan exacto; no asigna cuenta ni configura el teléfono. |
+| 62 | `lab-grandstream-grp2601p-discovery.yml` | `62 | Issabel Lab | Grandstream GRP2601P | Factory-State Discovery` | `LAB-READ-PASS` run `34620373267`: único GRP2601P `.176`, MAC `EC:74:D7:1E:E8:E3`, HTTP 200; firmware no expuesto sin autenticación. DB confirmó modelo y OUI ausentes. Run inicial `34619751876` tuvo clasificación OUI falsa positiva, corregida sin escribir teléfono/DB. |
+| 63 | `lab-grandstream-grp2601p-model.yml` | `63 | Issabel Lab | GRP2601P Model & OUI | Controlled Add & Discovery` | `LAB-FIX-PASS` run `34620390872`: OUI `EC:74:D7` agregada, modelo ID 149 con dos cuentas SIP, rescan exacto creó una fila `.176`, `selected=0`, cero cuentas. Run `34620205736` falló seguro antes de escribir al confirmar OUI ausente. |
+| 64 | `lab-grandstream-grp2601p-auth-read.yml` | `64 | Endpoint Lab | GRP2601P | Authenticated Provisioning Read` | IMPLEMENTADA. Lee modelo/firmware/hardware y P-values sin escrituras usando `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. Si el secret falta, termina verde como `CREDENTIAL-BLOCKED` sin intentar otras credenciales. |
 
 ## Reglas de runners
 
@@ -115,7 +116,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `64`.
+Próximo ID disponible: `65`.
 
 ## Subpruebas Grandstream G10
 
