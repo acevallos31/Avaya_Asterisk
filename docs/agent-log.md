@@ -21,6 +21,31 @@ NOT-TESTED
 
 ---
 
+## 2026-09-11 — Codex — GRP2601P Tests 62–64
+
+Se inició el ciclo autorizado sobre un GRP2601P de fábrica. Test 62 run
+`34620373267` identificó de forma read-only `192.168.1.176`,
+`EC:74:D7:1E:E8:E3`, modelo GRP2601P y HTTP 200. Confirmó ausencia stock de
+OUI y modelo. El run previo `34619751876` contenía un falso positivo de OUI
+por el parser del reporte; se corrigió y repitió.
+
+Test 63 run inicial `34620205736` se detuvo antes de escribir porque la OUI
+no existía. Se amplió el cambio reversible para insertar OUI y modelo. Run
+`34620390872`: OUI APPLY PASS, modelo ID 149, dos cuentas SIP máximas y
+discovery stock exacto PASS; fila única, no seleccionada y sin cuentas.
+
+Antes de modificar el helper se retiraron los triggers por cambios del helper
+de los workflows mutantes GXP1630, evitando repetir Configure accidentalmente.
+Los audits 58/61 se limitaron a activarse por cambios de su propio workflow.
+
+Test 64 run `34620889592`: preflight server PASS. La fase autenticada quedó
+`CREDENTIAL-BLOCKED` porque falta
+`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. No se usó el secret GXP, no se
+intentaron otras contraseñas y no hubo escrituras en el teléfono.
+
+Estado actual: Endpoint Configurator ya detecta GRP2601P. Provisioning, firmware
+autenticado, cfg/XML y SIP siguen `NOT-TESTED` hasta cerrar Test 64.
+
 ## 2026-09-11 — Codex — inicia Test 57 GXP1630 provisioning cycle
 
 El operador autorizó completar y documentar el ciclo LAB sin nuevas preguntas.
