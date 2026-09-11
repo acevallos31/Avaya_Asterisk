@@ -60,3 +60,47 @@ cuando cada prueba sea implementada.
 - No actualizar firmware automáticamente.
 - Toda escritura posterior requiere IP/MAC/modelo inequívocos y rollback.
 - Asterisk será la fuente autoritativa del registro SIP.
+
+## Evidencia ejecutada
+
+| Test | Run | Resultado |
+|---:|---:|---|
+| 62 | 34620373267 | LAB-READ-PASS: IP/MAC/modelo exactos; OUI y modelo ausentes en DB stock |
+| 63 inicial | 34620205736 | Detención segura antes de escritura: OUI ausente |
+| 63 corregido | 34620390872 | LAB-FIX-PASS: OUI + modelo ID 149; discovery stock exacto |
+| 64 | 34620889592 | Server preflight PASS; lectura Web CREDENTIAL-BLOCKED por secret ausente |
+
+Estado del endpoint después de Test 63:
+
+```text
+IP=192.168.1.176
+MAC=EC:74:D7:1E:E8:E3
+manufacturer=Grandstream
+model=GRP2601P
+model_id=149
+max_accounts=2
+max_sip_accounts=2
+selected=0
+account_count=0
+```
+
+La causa de la falta de detección quedó cerrada: Issabel no contenía la OUI
+`EC:74:D7` ni el modelo `GRP2601P`. Ambos fueron agregados con estado de
+rollback. El teléfono no ha sido configurado ni reiniciado.
+
+## Gate vigente
+
+Antes de bootstrap debe existir el Repository Secret
+`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD` con la contraseña administrativa
+aleatoria impresa en la etiqueta trasera del teléfono. No usar
+`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`.
+
+Repetir Test 64 y exigir:
+
+```text
+login=SUCCESS
+read=SUCCESS
+model_match=YES
+TEST64-GRP2601P-AUTH-READ=PASS
+```
+
