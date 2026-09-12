@@ -203,6 +203,26 @@
             <label>{/literal}{$LBL_CONFIRM_GLOBAL_PASSWORD}{literal}</label><br />
             {{view Ember.TextField type="password" valueBinding="globalPasswordConfirmation" autocomplete="new-password"}}
         </p>
+        <hr />
+        <h3>{/literal}{$LBL_MAC_OVERRIDE}{literal}</h3>
+        <p>
+            <label>MAC Address</label><br />
+            {{view Ember.TextField valueBinding="overrideMac" placeholder="AA:BB:CC:DD:EE:FF"}}
+        </p>
+        <p>
+            <label>{/literal}{$LBL_OVERRIDE_PASSWORD}{literal}</label><br />
+            {{view Ember.TextField type="password" valueBinding="overridePassword" autocomplete="new-password"}}
+        </p>
+        <p>
+            <label>{/literal}{$LBL_CONFIRM_GLOBAL_PASSWORD}{literal}</label><br />
+            {{view Ember.TextField type="password" valueBinding="overridePasswordConfirmation" autocomplete="new-password"}}
+        </p>
+        <button type="button" {{action "saveEndpointOverride"}} {{bindAttr disabled="savingOverride"}}>
+            {/literal}{$LBL_SAVE_OVERRIDE}{literal}
+        </button>
+        <button type="button" {{action "clearEndpointOverride"}} {{bindAttr disabled="savingOverride"}}>
+            {/literal}{$LBL_CLEAR_OVERRIDE}{literal}
+        </button>
         <button type="button" {{action "savePendingRotation"}} {{bindAttr disabled="savingPolicy"}}>
             {/literal}{$LBL_SAVE_PENDING_ROTATION}{literal}
         </button>
