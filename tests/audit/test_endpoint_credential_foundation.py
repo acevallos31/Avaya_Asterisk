@@ -97,9 +97,28 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
         self.assertIn("credential-smoke-grp2601p", helper)
         self.assertIn("phone_write=NO", helper)
         self.assertIn("runs-on: [self-hosted, Linux, X64, issabel-lab]", workflow)
+        self.assertIn('"deploy/endpoint-configurator/**"', workflow)
         self.assertNotIn("j129-production", workflow)
         self.assertIn("GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD", workflow)
         self.assertNotIn("rollback-endpoint-credentials", workflow)
+
+    def test_factory_csv_import_is_csrf_protected_bounded_and_phone_write_free(self):
+        vault = VAULT.read_text(encoding="utf-8")
+        index = MODULE_INDEX.read_text(encoding="utf-8")
+        template = MODULE_TEMPLATE.read_text(encoding="utf-8")
+        javascript = MODULE_JS.read_text(encoding="utf-8")
+        self.assertIn("importPendingFactoryCsv", vault)
+        self.assertIn("START TRANSACTION", vault)
+        self.assertIn("ROLLBACK", vault)
+        self.assertIn("count($rows) >= 100", vault)
+        self.assertIn("handleJSON_importFactoryCredentialsCsv", index)
+        self.assertIn("is_uploaded_file", index)
+        self.assertIn("hash_equals", index)
+        self.assertIn("@unlink($upload['tmp_name'])", index)
+        self.assertIn("credential-factory-csv", template)
+        self.assertIn("FormData", javascript)
+        self.assertIn("importFactoryCredentialsCsv", javascript)
+        self.assertNotIn("applyconfig", index[index.index("function handleJSON_importFactoryCredentialsCsv"):])
 
     def test_security_view_does_not_render_a_secret(self):
         template = MODULE_TEMPLATE.read_text(encoding="utf-8")
