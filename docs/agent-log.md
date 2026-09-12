@@ -21,6 +21,21 @@ NOT-TESTED
 
 ---
 
+## 2026-09-12 — Seguridad administrativa: UI global parcial
+
+La segunda fase de `feature/endpoint-credential-foundation` conectó la bóveda con
+Endpoint Configurator mediante:
+
+- acción `loadCredentialPolicy` de solo estado;
+- acción `saveCredentialPolicy` protegida con token CSRF;
+- pantalla global «Seguridad administrativa»;
+- guardado como rotación `PENDING`, sin aplicar configuración a ningún endpoint.
+
+La auditoría estática Test 67 se amplió para comprobar estos límites. Aún faltan
+override por MAC, importación masiva, rotación/rollback y consumo productivo del
+vendor. No se aplicó SQL ni se generó clave en una PBX; producción permanece sin
+cambios.
+
 ## 2026-09-12 — Fundación de credenciales administrativas iniciada
 
 Se abrió `feature/endpoint-credential-foundation` sobre la rama `Audit` para
