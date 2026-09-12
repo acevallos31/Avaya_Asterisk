@@ -1,6 +1,6 @@
 # Grandstream GRP2601P — ciclo de integración LAB
 
-Actualizado: 2026-09-11
+Actualizado: 2026-09-12
 
 ## Objetivo
 
@@ -48,15 +48,16 @@ a ciegas.
 5. Test 66: Configure, cfg/XML, SIP y auditoría E2E.
 6. Validación física manual de llamadas/audio por el operador.
 
-Los números 62–64 ya fueron implementados. Test 65–66 permanecen reservados
-hasta cerrar el gate de autenticación.
+
+Los Tests 62–64 están cerrados. Test 65 queda habilitado para el bootstrap
+controlado; Test 66 permanece reservado hasta validar ese cambio.
 
 ## Reglas de seguridad
 
 - Rama `Audit` y runner `issabel-lab` exclusivamente.
 - No imprimir contraseñas, cookies, SID, nonces ni secretos SIP.
 - No probar listas de contraseñas.
-- No escribir teléfono/DB durante Test 62.
+- No escribir teléfono/DB durante Test 62 o Test 64.
 - No actualizar firmware automáticamente.
 - Toda escritura posterior requiere IP/MAC/modelo inequívocos y rollback.
 - Asterisk será la fuente autoritativa del registro SIP.
@@ -68,14 +69,14 @@ hasta cerrar el gate de autenticación.
 | 62 | 34620373267 | LAB-READ-PASS: IP/MAC/modelo exactos; OUI y modelo ausentes en DB stock |
 | 63 inicial | 34620205736 | Detención segura antes de escritura: OUI ausente |
 | 63 corregido | 34620390872 | LAB-FIX-PASS: OUI + modelo ID 149; discovery stock exacto |
-| 64 inicial | 34620889592 | Server preflight PASS; lectura Web CREDENTIAL-BLOCKED por secret GRP ausente |
-| 64 parser | 34628195632 | HARNESS-FAIL al interpretar el cuerpo de login; usó por error GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD |
-| 64 secret equivocado | 34628373795 | Parser corregido y login rechazado, pero no evaluó el secret indicado por el operador |
-| 64 candidato GXP1625 | 34642689024 | GRANDSTREAM_GXP1625_HTTP_PASSWORD presente, HTTP 200 y login rechazado |
-| 64 credencial etiqueta | 34647374500 | Secret MAC-bound presente e identidad exacta; login falló |
-| 64 confirmación contrato | 34647476040 | HTTP 200, response ERROR, body string; rechazo explícito de credencial, sin escrituras |
+| 64 inicial | 34620889592 | Server preflight PASS; CREDENTIAL-BLOCKED por secret GRP ausente |
+| 64 parser | 34628195632 | HARNESS-FAIL y secret equivocado |
+| 64 candidato GXP1625 | 34642689024 | Credencial GXP1625 rechazada; no aplica al GRP |
+| 64 contrato heredado | 34647374500 / 34647476040 | Secret de etiqueta presente, pero harness usó login GXP directo incompatible |
+| 64 contrato público | 34663567407–34664179623 | Inspección sin credencial reconstruyó challenge `access` + nonce/SHA-256 |
+| 64 autoritativo | 34664338896 | LAB-READ-PASS: ambos jobs success, login/read/model match PASS, sin escrituras |
 
-Estado del endpoint después de Test 63:
+Estado del endpoint después de Test 64:
 
 ```text
 IP=192.168.1.176
@@ -87,33 +88,49 @@ max_accounts=2
 max_sip_accounts=2
 selected=0
 account_count=0
+P212=EMPTY
+P237=EMPTY
 ```
 
 La causa de la falta de detección quedó cerrada: Issabel no contenía la OUI
 `EC:74:D7` ni el modelo `GRP2601P`. Ambos fueron agregados con estado de
 rollback. El teléfono no ha sido configurado ni reiniciado.
 
+## Contrato de autenticación comprobado
+
+El GRP2601P no acepta el POST heredado GXP con contraseña directa. Su interfaz
+Web ejecuta este challenge:
+
+1. `POST /cgi-bin/access` con `SHA256(username)`.
+2. La respuesta entrega un nonce.
+3. `POST /cgi-bin/dologin` con el usuario y
+   `SHA256(password + nonce)`.
+4. La sesión autenticada permite `GET /cgi-bin/config_get`.
+
+El harness solo registra clasificaciones y estados sanitizados. La contraseña
+de etiqueta, el nonce, el hash y las cookies no se publican.
+
 ## Gate vigente
 
-Los runs `34628195632`/`34628373795` usaron por error
-`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD` y no son autoritativos respecto de la
-credencial indicada por el operador. El run corregido `34642689024` demostró
-que `GRANDSTREAM_GXP1625_HTTP_PASSWORD` tampoco autentica este GRP2601P. No
-se harán más intentos con esas credenciales.
-
-El secret específico
-`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD` ya existe, pero el teléfono
-rechazó su valor explícitamente en los runs `34647374500` y
-`34647476040`. Antes de repetir Test 64 se debe verificar visualmente cada
-carácter de la etiqueta y actualizar ese mismo secret. No realizar más intentos
-automáticos mientras el valor no haya sido verificado.
-
-Después de corregir el secret, repetir Test 64 y exigir:
+Test 64 está cerrado con la credencial específica
+`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`:
 
 ```text
+credential_source=GRP2601P_LABEL_MAC_BOUND
+credential_sent=HASHED
+access_nonce_present=YES
 login=SUCCESS
 read=SUCCESS
 model_match=YES
-TEST64-GRP2601P-AUTH-READ=PASS
+P212=EMPTY
+P237=EMPTY
+phone_write=NO
+endpointconfig_write=NO
+firmware_upgrade=NO
 ```
 
+El gate para Test 65 está abierto. El bootstrap deberá limitarse al teléfono
+exacto `192.168.1.176` / `EC:74:D7:1E:E8:E3`, escribir únicamente los
+P-values de servidor de configuración previamente definidos, verificar la
+lectura posterior y conservar rollback. No asignará extensión ni ejecutará
+Configure todavía.
