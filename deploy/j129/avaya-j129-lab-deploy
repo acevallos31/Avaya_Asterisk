@@ -508,8 +508,13 @@ apply_grandstream_grp26xx_patch() {
   local marker_count before_sha after_sha tmp
   marker_count="$(grep -Fc 'GRP26XX-NONCE-CONFIG-UPDATE' "$GRANDSTREAM_PY" || true)"
   if [ "$marker_count" -ge 1 ]; then
-    echo 'GRP26XX-PATCH-ALREADY-PRESENT'
-    return 0
+    if grep -Fq "request('GET', '/api-will_login')" "$GRANDSTREAM_PY"; then
+      echo 'GRP26XX-PATCH-V1-REFRESH=YES'
+      rollback_grandstream_grp26xx_patch
+    else
+      echo 'GRP26XX-PATCH-ALREADY-PRESENT'
+      return 0
+    fi
   fi
   before_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
   [ "$before_sha" = 'b4d22520a65023456525c16f9756b77ab3ea65687a1ee0dd44a9776daf1421f3' ] || {
@@ -539,7 +544,7 @@ static_probe = """        # GRP26XX-NONCE-CONFIG-UPDATE: identify the carrier-gr
         # before trying legacy GXP/BT/GXV contracts.
         try:
             grp_probe = http.client.HTTPConnection(self._ip)
-            grp_probe.request('GET', '/api-will_login')
+            grp_probe.request('GET', '/cgi-bin/api-will_login')
             grp_response = grp_probe.getresponse()
             grp_content_type = grp_response.getheader('Content-Type', '').split(';', 1)[0]
             grp_response.read()
@@ -812,6 +817,31 @@ inspect_grandstream_grp2601p_configure_preflight() {
   echo 'GRP2601P-CONFIGURE-PREFLIGHT-PASS'
 }
 
+recover_grandstream_grp2601p_configure_stage() {
+  if [ ! -f "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE" ]; then
+    echo 'GRP2601P-CONFIGURE-STAGE=NO_PENDING'
+    return 0
+  fi
+  local endpoint_id account d exact_count
+  . "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE"
+  [ "$endpoint_id" = '8' ] && [ "$account" = '203' ] || {
+    echo 'ERROR: invalid GRP2601P stage state' >&2
+    exit 1
+  }
+  d="$(make_db_defaults_file)"
+  trap 'rm -f "$d"' RETURN EXIT
+  exact_count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint e JOIN model m ON m.id=e.id_model WHERE e.id=8 AND UPPER(e.mac_address)='EC:74:D7:1E:E8:E3' AND e.last_known_ipv4='192.168.1.176' AND m.name='GRP2601P';")"
+  [ "$exact_count" -eq 1 ] || {
+    echo 'ERROR: exact GRP2601P changed; recovery cancelled' >&2
+    exit 1
+  }
+  mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM endpoint_account WHERE id_endpoint=8 AND tech='sip' AND account='203'; UPDATE endpoint SET selected=0 WHERE id=8;"
+  rm -f /tftpboot/cfgec74d71ee8e3 /tftpboot/cfgec74d71ee8e3.xml
+  rm -f "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE" "$d"
+  trap - RETURN EXIT
+  echo 'GRP2601P-CONFIGURE-STAGE-ROLLBACK-PASS'
+}
+
 configure_grandstream_grp2601p_203() {
   local d id model_id other_selected accounts assigned peer http_password old_password old_hex new_hex
   local bin xml raw rc selected_after password_swapped
@@ -910,7 +940,7 @@ SQL
   restore_model_password
 
   sed -E 's/(password|secret|sid|cookie)[^ ]*/\1=***OCULTO***/Ig' "$raw" | tail -n 100
-  if [ "$rc" -ne 0 ]; then
+  if [ "$rc" -ne 0 ] || grep -Fq 'failed configuration for endpoint Grandstream@192.168.1.176' "$raw"; then
     mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='203'; UPDATE endpoint SET selected=0 WHERE id=$id;"
     rm -f "$bin" "$xml" "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE" "$raw"
     echo 'GRP2601P-CONFIGURE-ROLLBACK-PASS'
@@ -920,6 +950,9 @@ SQL
 
   selected_after="$(mysql_scalar "$d" "SELECT selected FROM endpoint WHERE id=$id;")"
   [ "$selected_after" -eq 0 ] || {
+    mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='203'; UPDATE endpoint SET selected=0 WHERE id=$id;"
+    rm -f "$bin" "$xml" "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE"
+    echo 'GRP2601P-CONFIGURE-ROLLBACK-PASS'
     echo 'ERROR: endpoint selection not cleared after Apply' >&2
     exit 1
   }
@@ -1111,6 +1144,7 @@ case "$ACTION" in
   rollback-grandstream-grp26xx-patch) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_grp26xx_patch ;;
   inspect-grandstream-grp2601p-vendor-contract) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_vendor_contract ;;
   inspect-grandstream-grp2601p-configure-preflight) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configure_preflight ;;
+  recover-grandstream-grp2601p-configure-stage) [ -z "$OVERLAY_ROOT" ] || usage; recover_grandstream_grp2601p_configure_stage ;;
   configure-grandstream-grp2601p-203) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_grp2601p_203 ;;
   inspect-grandstream-grp2601p-configured) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configured ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
