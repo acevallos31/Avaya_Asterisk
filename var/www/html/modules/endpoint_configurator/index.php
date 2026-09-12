@@ -143,6 +143,9 @@ function handleHTML_mainReport($smarty, $module_name, $local_templates_dir, $dlg
         'LBL_OVERRIDE_PASSWORD'     => _tr('Endpoint override password'),
         'LBL_SAVE_OVERRIDE'         => _tr('Save pending endpoint override'),
         'LBL_CLEAR_OVERRIDE'        => _tr('Clear endpoint override'),
+        'LBL_FACTORY_CSV'           => _tr('Import factory credentials by MAC'),
+        'LBL_FACTORY_CSV_FORMAT'    => _tr('CSV format: mac_address,password. Existing endpoints only; maximum 100 rows.'),
+        'LBL_IMPORT_FACTORY_CSV'    => _tr('Import encrypted factory credentials'),
         'MSG_OVERRIDE_PENDING'      => _tr('Pending endpoint override saved. No endpoint was changed.'),
         'LBL_SAVE_PENDING_ROTATION'  =>  _tr('Save pending rotation'),
         'MSG_PENDING_ROTATION'       =>  _tr('Pending rotation created. No endpoint was changed.'),
@@ -328,6 +331,38 @@ function handleJSON_clearEndpointCredentialOverride($smarty, $module_name, $loca
             $respuesta['message'] = _tr('Endpoint override cleared. No endpoint was changed.');
         }
     }
+    $json = new Services_JSON();
+    Header('Content-Type: application/json');
+    return $json->encode($respuesta);
+}
+
+function handleJSON_importFactoryCredentialsCsv($smarty, $module_name, $local_templates_dir, $dlglist)
+{
+    $respuesta = array('status' => 'success', 'message' => '(no message)');
+    $csrf = isset($_REQUEST['credential_csrf']) ? (string)$_REQUEST['credential_csrf'] : '';
+    $expectedCsrf = isset($_SESSION[$module_name]['credential_csrf']) ? $_SESSION[$module_name]['credential_csrf'] : '';
+    $upload = isset($_FILES['factory_credentials_csv']) ? $_FILES['factory_credentials_csv'] : NULL;
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $expectedCsrf === '' || !function_exists('hash_equals') || !hash_equals($expectedCsrf, $csrf)) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Invalid security token.');
+    } elseif (!is_array($upload) || !isset($upload['error']) || $upload['error'] !== UPLOAD_ERR_OK || !isset($upload['tmp_name']) || !is_uploaded_file($upload['tmp_name'])) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Credential CSV upload failed.');
+    } elseif (!isset($upload['size']) || $upload['size'] < 1 || $upload['size'] > 1048576) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Credential CSV must be between 1 byte and 1 MiB.');
+    } else {
+        $vault = new EndpointCredentialVault();
+        $imported = $vault->importPendingFactoryCsv($upload['tmp_name']);
+        if ($imported === FALSE) {
+            $respuesta['status'] = 'error';
+            $respuesta['message'] = $vault->getErrMsg();
+        } else {
+            $respuesta['imported'] = (int)$imported;
+            $respuesta['message'] = _tr('Encrypted factory credentials were imported as pending. No endpoint was changed.');
+        }
+    }
+    if (is_array($upload) && isset($upload['tmp_name']) && is_file($upload['tmp_name'])) @unlink($upload['tmp_name']);
     $json = new Services_JSON();
     Header('Content-Type: application/json');
     return $json->encode($respuesta);
