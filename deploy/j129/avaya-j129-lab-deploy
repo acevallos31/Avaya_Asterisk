@@ -500,6 +500,16 @@ discover_grandstream_gxp1630() {
   echo 'GXP1630-DISCOVERY-PASS'
 }
 
+inspect_grandstream_grp2601p_vendor_contract() {
+  [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
+  echo '=== GRANDSTREAM VENDOR CONTRACT (CODIGO, SIN VALORES DE CREDENCIALES) ==='
+  echo "grandstream_py_sha256=$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  grep -nE '(^[[:space:]]*def |dologin|api\.values|config_update|urlopen|Request\(|urlencode|_http_password|_http_username|P212|P237)' "$GRANDSTREAM_PY" |
+    sed -E 's/([Pp]assword[[:space:]]*=[[:space:]]*)[^,})]+/\1***OCULTO***/g' |
+    head -n 160
+  echo 'GRP2601P-VENDOR-CONTRACT-INSPECT-PASS'
+}
+
 inspect_grandstream_grp2601p_configure_preflight() {
   local d id endpoint_count ip model manufacturer selected accounts other_selected ext peer present assigned candidate status
   d="$(make_db_defaults_file)"
@@ -656,6 +666,7 @@ case "$ACTION" in
   discover-grandstream-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_grp2601p ;;
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
+  inspect-grandstream-grp2601p-vendor-contract) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_vendor_contract ;;
   inspect-grandstream-grp2601p-configure-preflight) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configure_preflight ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
   inspect-grandstream-gxp1630-configured) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_gxp1630_configured ;;
