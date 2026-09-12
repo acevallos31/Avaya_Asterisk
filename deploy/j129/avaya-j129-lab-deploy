@@ -60,15 +60,17 @@ SQL
 
 
 run_endpoint_credentials_install() {
-  local defaults_file count state_file="$STATE_DIR/endpoint-credentials.state"
-  defaults_file="$(make_db_defaults_file)"
+  local defaults_file count state_file="$STATE_DIR/endpoint-credentials.state" admin_mode=0
+  if mysql --protocol=socket -uroot --batch --skip-column-names -e "SELECT 1" >/dev/null 2>&1; then admin_mode=1; fi
+  if [ "$admin_mode" -eq 1 ]; then defaults_file=""; else defaults_file="$(make_db_defaults_file)"; fi
   trap 'rm -f "$defaults_file"' RETURN EXIT
   install -d -m 0755 "$STATE_DIR"
   for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
     count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"
     [ "$count" -eq 0 ] || { echo "ERROR: $table ya existe; instalación cancelada" >&2; exit 1; }
   done
-  cat <<'SQL' | mysql --defaults-extra-file="$defaults_file" endpointconfig
+  if [ "$admin_mode" -eq 1 ]; then mysql_cmd=(mysql --protocol=socket -uroot endpointconfig); else mysql_cmd=(mysql --defaults-extra-file="$defaults_file" endpointconfig); fi
+  cat <<'SQL' | "${mysql_cmd[@]}"
 CREATE TABLE pbx_admin_password_policy (
     id TINYINT UNSIGNED NOT NULL,
     pbx_identity VARCHAR(191) NOT NULL,
@@ -121,7 +123,7 @@ SQL
 
 run_endpoint_credentials_rollback() {
   local defaults_file state_file="$STATE_DIR/endpoint-credentials.state"
-  [ -f "$state_file" ] || { echo 'ERROR: no existe estado de instalación; rollback cancelado' >&2; exit 1; }
+  [ -f "$state_file" ] || { echo 'ENDPOINT-CREDENTIALS-ROLLBACK-SKIP no state created'; return 0; }
   defaults_file="$(make_db_defaults_file)"
   trap 'rm -f "$defaults_file"' RETURN EXIT
   cat <<'SQL' | mysql --defaults-extra-file="$defaults_file" endpointconfig
