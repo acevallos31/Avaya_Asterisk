@@ -12,16 +12,16 @@ permissions:
   contents: read
 
 jobs:
-  contract-preflight:
-    name: Verify GRP bootstrap API without writes
+  bootstrap:
+    name: Apply exact GRP bootstrap and verify reboot
     runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
-    timeout-minutes: 7
+    timeout-minutes: 12
     env:
       PHONE_IP: 192.168.1.176
       PHONE_USERNAME: admin
       PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD }}
       PBX_IP: 192.168.1.10
-      APPLY_BOOTSTRAP: '0'
+      APPLY_BOOTSTRAP: '1'
     steps:
       - uses: actions/checkout@v4
       - name: Guard exact factory-state LAB target
@@ -33,29 +33,72 @@ jobs:
           curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 "http://$PHONE_IP/"
           observed="$(ip neigh show "$PHONE_IP" | awk '/lladdr/ {print toupper($5); exit}')"
           test "$observed" = EC:74:D7:1E:E8:E3
-      - name: Authenticate and inspect public bootstrap contract
+      - name: Apply only P212/P237 with verification and rollback
         shell: bash
         run: |
           set -euo pipefail
           export REPORT_PATH="$RUNNER_TEMP/test65-grp2601p-bootstrap.txt"
           python3 -B endpoint-lab/grandstream/test65-grp2601p-bootstrap.py
           grep -Fq 'login=SUCCESS' "$REPORT_PATH"
-          grep -Fq 'pre_read=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'p212_target_match=YES' "$REPORT_PATH"
+          grep -Fq 'p237_target_match=YES' "$REPORT_PATH"
+          grep -Fq 'diagnostic=PHONE_TFTP_BOOTSTRAP_READY' "$REPORT_PATH"
+          grep -Eq '^reboot_request=(ACCEPTED|CONNECTION_DROPPED_AFTER_REQUEST)$' "$REPORT_PATH"
+          grep -Fq 'TEST65-GRP2601P-BOOTSTRAP=PASS' "$REPORT_PATH"
+      - name: Wait for phone to return
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test65-grp2601p-reboot.txt"
+          down=NO
+          for i in $(seq 1 24); do
+            if ! curl -fsS -o /dev/null --connect-timeout 1 --max-time 2 "http://$PHONE_IP/"; then
+              down=YES
+              break
+            fi
+            sleep 2
+          done
+          echo "phone_down_observed=$down" | tee "$REPORT"
+          for i in $(seq 1 90); do
+            if curl -fsS -o /dev/null --connect-timeout 2 --max-time 3 "http://$PHONE_IP/"; then
+              echo 'phone_returned=YES' | tee -a "$REPORT"
+              exit 0
+            fi
+            sleep 4
+          done
+          echo 'phone_returned=NO' | tee -a "$REPORT"
+          exit 1
+      - name: Verify P212/P237 persisted after reboot
+        shell: bash
+        env:
+          APPLY_BOOTSTRAP: '0'
+          VERIFY_TARGET: '1'
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test65-grp2601p-post-reboot.txt"
+          python3 -B endpoint-lab/grandstream/test65-grp2601p-bootstrap.py
           grep -Fq 'phone_write=NO' "$REPORT_PATH"
-          grep -Fq 'TEST65-GRP2601P-BOOTSTRAP=CONTRACT-PREFLIGHT-PASS' "$REPORT_PATH"
-      - name: Publish sanitized contract evidence
+          grep -Fq 'p212_target_match=YES' "$REPORT_PATH"
+          grep -Fq 'p237_target_match=YES' "$REPORT_PATH"
+          grep -Fq 'TEST65-GRP2601P-BOOTSTRAP=VERIFY-PASS' "$REPORT_PATH"
+      - name: Publish sanitized evidence
         if: always()
         shell: bash
         run: |
           {
-            echo '## Test 65 — GRP2601P bootstrap contract preflight'
+            echo '## Test 65 — GRP2601P controlled bootstrap'
             cat "$RUNNER_TEMP/test65-grp2601p-bootstrap.txt" 2>/dev/null || true
+            cat "$RUNNER_TEMP/test65-grp2601p-reboot.txt" 2>/dev/null || true
+            cat "$RUNNER_TEMP/test65-grp2601p-post-reboot.txt" 2>/dev/null || true
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload sanitized evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test65-grp2601p-bootstrap-${{ github.run_id }}
-          path: ${{ runner.temp }}/test65-grp2601p-bootstrap.txt
+          path: |
+            ${{ runner.temp }}/test65-grp2601p-bootstrap.txt
+            ${{ runner.temp }}/test65-grp2601p-reboot.txt
+            ${{ runner.temp }}/test65-grp2601p-post-reboot.txt
           if-no-files-found: warn
           retention-days: 30
