@@ -764,6 +764,38 @@ $(document).ready(function() {
 			}.bind(this)).fail(function() {
 				this.set('savingOverride', false);
 				this.set('saveError', 'Unable to clear endpoint override.');
+		}.bind(this));
+		},
+
+		importingFactoryCsv: false,
+		importFactoryCsv: function() {
+			this.set('saveMessage', null);
+			this.set('saveError', null);
+			var input = document.getElementById('credential-factory-csv');
+			if (!input || !input.files || input.files.length !== 1) {
+				this.set('saveError', 'Select exactly one CSV file.');
+				return;
+			}
+			var data = new FormData();
+			data.append('menu', module_name);
+			data.append('rawmode', 'yes');
+			data.append('action', 'importFactoryCredentialsCsv');
+			data.append('credential_csrf', credential_csrf);
+			data.append('factory_credentials_csv', input.files[0]);
+			this.set('importingFactoryCsv', true);
+			$.ajax({
+				url: 'index.php?menu=' + module_name + '&rawmode=yes', type: 'POST', data: data,
+				processData: false, contentType: false
+			}).done(function(respuesta) {
+				this.set('importingFactoryCsv', false);
+				if (respuesta.status == 'error') this.set('saveError', respuesta.message);
+				else {
+					input.value = '';
+					this.set('saveMessage', respuesta.message);
+				}
+			}.bind(this)).fail(function() {
+				this.set('importingFactoryCsv', false);
+				this.set('saveError', 'Unable to import factory credentials.');
 			}.bind(this));
 		},
 
