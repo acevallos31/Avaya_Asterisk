@@ -102,5 +102,12 @@ $arrLangModule = array(
     "Dismiss" => "Dismiss",
     "All endpoints were successfully configured" => "All endpoints were successfully configured",
     "Endpoint configuration completed with %d warnings and %d errors. Please examine the log for details." => "Endpoint configuration completed with %d warnings and %d errors. Please examine the log for details.",
+    "Administrative security" => "Administrative security",
+    "Global administrative password" => "Global administrative password",
+    "Confirm global administrative password" => "Confirm global administrative password",
+    "Save pending rotation" => "Save pending rotation",
+    "Pending rotation created. No endpoint was changed." => "Pending rotation created. No endpoint was changed.",
+    "Administrative passwords must be present and match." => "Administrative passwords must be present and match.",
+    "No password is displayed. Saving creates a pending rotation only." => "No password is displayed. Saving creates a pending rotation only.",
 );
 ?>
