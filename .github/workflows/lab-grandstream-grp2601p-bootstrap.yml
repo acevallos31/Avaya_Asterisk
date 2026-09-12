@@ -1,0 +1,61 @@
+name: 65 | Endpoint Lab | GRP2601P | Controlled Provisioning Bootstrap
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-grp2601p-bootstrap.yml'
+      - 'endpoint-lab/grandstream/test65-grp2601p-bootstrap.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-preflight:
+    name: Verify GRP bootstrap API without writes
+    runs-on: [self-hosted, Linux, X64, endpoint-lab, debian, grandstream-lab]
+    timeout-minutes: 7
+    env:
+      PHONE_IP: 192.168.1.176
+      PHONE_USERNAME: admin
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD }}
+      PBX_IP: 192.168.1.10
+      APPLY_BOOTSTRAP: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard exact factory-state LAB target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          test -n "$PHONE_PASSWORD"
+          curl -fsS -o /dev/null --connect-timeout 2 --max-time 4 "http://$PHONE_IP/"
+          observed="$(ip neigh show "$PHONE_IP" | awk '/lladdr/ {print toupper($5); exit}')"
+          test "$observed" = EC:74:D7:1E:E8:E3
+      - name: Authenticate and inspect public bootstrap contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REPORT_PATH="$RUNNER_TEMP/test65-grp2601p-bootstrap.txt"
+          python3 -B endpoint-lab/grandstream/test65-grp2601p-bootstrap.py
+          grep -Fq 'login=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'pre_read=SUCCESS' "$REPORT_PATH"
+          grep -Fq 'phone_write=NO' "$REPORT_PATH"
+          grep -Fq 'TEST65-GRP2601P-BOOTSTRAP=CONTRACT-PREFLIGHT-PASS' "$REPORT_PATH"
+      - name: Publish sanitized contract evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 65 — GRP2601P bootstrap contract preflight'
+            cat "$RUNNER_TEMP/test65-grp2601p-bootstrap.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test65-grp2601p-bootstrap-${{ github.run_id }}
+          path: ${{ runner.temp }}/test65-grp2601p-bootstrap.txt
+          if-no-files-found: warn
+          retention-days: 30
