@@ -235,7 +235,10 @@ function handleJSON_saveCredentialPolicy($smarty, $module_name, $local_templates
     $confirmation = isset($_REQUEST['global_password_confirmation']) ? (string)$_REQUEST['global_password_confirmation'] : '';
     $csrf = isset($_REQUEST['credential_csrf']) ? (string)$_REQUEST['credential_csrf'] : '';
     $expectedCsrf = isset($_SESSION[$module_name]['credential_csrf']) ? $_SESSION[$module_name]['credential_csrf'] : '';
-    if ($expectedCsrf === '' || !function_exists('hash_equals') || !hash_equals($expectedCsrf, $csrf)) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Invalid security token.');
+    } elseif ($expectedCsrf === '' || !function_exists('hash_equals') || !hash_equals($expectedCsrf, $csrf)) {
         $respuesta['status'] = 'error';
         $respuesta['message'] = _tr('Invalid security token.');
     } elseif ($password === '' || $password !== $confirmation) {
