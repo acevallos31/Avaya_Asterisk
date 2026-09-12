@@ -232,11 +232,50 @@ query = urllib.parse.urlencode({
 status, raw, _ = request(conn, "GET", "/cgi-bin/config_get?" + query, None, headers)
 try:
     data = json.loads(raw)
+    read_json_valid = isinstance(data, dict)
 except Exception:
     data = {}
-body = data.get("body") if isinstance(data.get("body"), dict) else {}
-read_ok = status == 200 and data.get("response") == "success" and isinstance(body, dict)
+    read_json_valid = False
+read_response = data.get("response")
+read_payload = data.get("body")
+if isinstance(read_payload, str):
+    try:
+        nested_payload = json.loads(read_payload)
+    except Exception:
+        nested_payload = None
+else:
+    nested_payload = read_payload
+
+body = {}
+if isinstance(nested_payload, dict):
+    body = nested_payload
+elif isinstance(nested_payload, list):
+    for item in nested_payload:
+        if not isinstance(item, dict):
+            continue
+        key = item.get("pvalue") or item.get("id") or item.get("name")
+        if key is not None and "value" in item:
+            body[str(key)] = item["value"]
+elif isinstance(data, dict) and any(str(key).isdigit() for key in data.keys()):
+    body = data
+
 log("read_contract=GRP_CONFIG_GET")
+log("read_json_valid=" + ("YES" if read_json_valid else "NO"))
+log("read_top_keys=" + (
+    ",".join(sorted(str(key) for key in data.keys()))
+    if read_json_valid else "NONE"
+))
+log("read_response_class=" + (
+    "SUCCESS" if read_response == "success"
+    else "ERROR" if read_response == "error"
+    else "MISSING" if read_response is None
+    else "OTHER"
+))
+log("read_body_type=" + type(read_payload).__name__.upper())
+if isinstance(read_payload, list) and read_payload and isinstance(read_payload[0], dict):
+    log("read_first_item_keys=" + ",".join(sorted(str(key) for key in read_payload[0].keys())))
+log("read_value_count=" + str(len(body)))
+read_ok = status == 200 and read_response != "error" and bool(body)
 log("read=" + ("SUCCESS" if read_ok else "FAILED"))
 log("read_http=" + str(status))
 if not read_ok:
