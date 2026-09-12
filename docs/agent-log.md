@@ -49,6 +49,18 @@ Bloqueo operativo esperado: el grant DDL de `asteriskuser` fue retirado después
 del run `34681386727`. Test 68 necesita ese permiso mínimo solamente para crear
 las tablas una vez; después debe revocarse. Producción no fue tocada.
 
+Commit publicado: `0c5f7f175c2b29ea780b141c7cc6abc501b23067`.
+
+- Test 67 run `34683238910`: `STATIC-PASS`; job DDL omitido en push.
+- Test 68 run `34683238936`: static, guardas y helper sync PASS;
+  `INFRA-BLOCKED` por MySQL 1142 al crear la primera tabla.
+- Las etapas de instalación del runtime, almacenamiento cifrado y login del
+  teléfono quedaron skipped; no existe cambio parcial que revertir.
+
+Siguiente acción exacta: otorgar temporalmente `CREATE, REFERENCES` sobre
+`endpointconfig.*` a `asteriskuser@localhost`, reejecutar los jobs fallidos del
+run `34683238936` y revocar ambos privilegios después del PASS.
+
 ## 2026-09-12 — Seguridad administrativa: UI global parcial
 
 La segunda fase de `feature/endpoint-credential-foundation` conectó la bóveda con
