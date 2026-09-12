@@ -96,6 +96,12 @@ for source in script_sources[:12]:
             ))
             for value in interesting_strings[:40]:
                 log("contract_string=" + safe_name + ";" + value)
+            access_positions = [match.start() for match in re.finditer(r"""["']/access["']""", script_raw)]
+            for access_index, access_pos in enumerate(access_positions[:4], start=1):
+                access_snippet = script_raw[max(0, access_pos - 700):access_pos + 1100]
+                access_snippet = re.sub(r"\\s+", " ", access_snippet)
+                access_snippet = re.sub(r"(?i)[0-9a-f]{32,}", "<HEX>", access_snippet)
+                log("contract_access_context_" + str(access_index) + "=" + access_snippet)
             if "dologin" in markers:
                 pos = script_lower.find("dologin")
                 snippet = script_raw[max(0, pos - 900):pos + 1400]
