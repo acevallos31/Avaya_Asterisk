@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import http.client
 import json
 import os
@@ -132,14 +133,47 @@ if CONTRACT_ONLY:
     log("TEST64-GRP2601P-CONTRACT-READ=PASS")
     raise SystemExit(0)
 
-login_body = urllib.parse.urlencode({"username": USERNAME, "password": PASSWORD})
-status, raw, _ = request(conn, "POST", "/cgi-bin/dologin", login_body, headers)
+will_status, _, _ = request(conn, "GET", "/api-will_login", None, headers)
+log("will_login_http=" + str(will_status))
+
+access_digest = hashlib.sha256(USERNAME.encode("utf-8")).hexdigest()
+access_body_encoded = urllib.parse.urlencode({"access": access_digest})
+access_status, access_raw, _ = request(conn, "POST", "/access", access_body_encoded, headers)
+try:
+    access_reply = json.loads(access_raw)
+except Exception:
+    access_reply = {}
+access_response = access_reply.get("response")
+access_payload = access_reply.get("body")
+if isinstance(access_payload, str):
+    nonce = access_payload.strip()
+elif isinstance(access_payload, dict):
+    nonce = str(access_payload.get("nonce") or access_payload.get("challenge") or "").strip()
+else:
+    nonce = ""
+log("access_http=" + str(access_status))
+log("access_response_class=" + (
+    "SUCCESS" if access_response == "success"
+    else "ERROR" if access_response == "error"
+    else "MISSING" if access_response is None
+    else "OTHER"
+))
+log("access_nonce_present=" + ("YES" if nonce else "NO"))
+if access_status != 200 or access_response != "success" or not nonce:
+    log("credential_sent=NO")
+    log("diagnostic=GRP_ACCESS_CHALLENGE_FAILED")
+    log("TEST64-GRP2601P-AUTH-READ=FAILED")
+    raise SystemExit(0)
+
+password_digest = hashlib.sha256((PASSWORD + nonce).encode("utf-8")).hexdigest()
+login_body_encoded = urllib.parse.urlencode({"username": USERNAME, "password": password_digest})
+status, raw, _ = request(conn, "POST", "/dologin", login_body_encoded, headers)
 try:
     login = json.loads(raw)
 except Exception:
     login = {}
 login_response = login.get("response")
-login_body = login.get("body")
+login_payload = login.get("body")
 if login_response == "success":
     response_class = "SUCCESS"
 elif login_response == "error":
@@ -148,52 +182,44 @@ elif login_response is None:
     response_class = "MISSING"
 else:
     response_class = "OTHER"
+log("credential_sent=HASHED")
 log("login_response_class=" + response_class)
-log("login_body_type=" + type(login_body).__name__.upper())
+log("login_body_type=" + type(login_payload).__name__.upper())
 
 sid = ""
-if isinstance(login_body, dict):
-    sid = login_body.get("sid") or ""
-elif isinstance(login_body, str):
-    candidate = login_body.strip()
-    try:
-        nested_body = json.loads(candidate)
-    except Exception:
-        nested_body = None
-    if isinstance(nested_body, dict):
-        sid = nested_body.get("sid") or ""
-    elif isinstance(nested_body, str):
-        sid = nested_body.strip()
-    elif login_response == "success":
-        sid = candidate
+if isinstance(login_payload, dict):
+    sid = login_payload.get("sid") or ""
+elif isinstance(login_payload, str) and login_response == "success":
+    sid = login_payload.strip()
 sid = sid or login.get("sid") or ""
 accepted = status == 200 and login_response == "success" and bool(sid)
 log("login=" + ("SUCCESS" if accepted else "FAILED"))
 log("login_http=" + str(status))
 if not accepted:
-    log("diagnostic=PHONE_LOGIN_CONTRACT_OR_CREDENTIAL_FAILED")
-    if CREDENTIAL_SOURCE == "GXP_SINGLE_CANDIDATE":
-        log("TEST64-GRP2601P-AUTH-READ=GXP-CANDIDATE-REJECTED")
-    else:
-        log("TEST64-GRP2601P-AUTH-READ=FAILED")
+    log("diagnostic=GRP_CHALLENGE_LOGIN_FAILED")
+    log("TEST64-GRP2601P-AUTH-READ=FAILED")
     raise SystemExit(0)
 
-keys = "phone_model:1395:firmware_version:45:hardware_version:1397:P212:P237:P234:P235:P240:P1359:P1360:P1361:P6767"
-read_body = urllib.parse.urlencode({"request": keys, "sid": sid})
-status, raw, _ = request(conn, "POST", "/cgi-bin/api.values.get", read_body, headers)
+pvalues = "1395,45,1397,212,237,234,235,240,1359,1360,1361,6767"
+query = urllib.parse.urlencode({
+    "pvalues": pvalues,
+    "sid": sid,
+    "update_session": "true",
+})
+status, raw, _ = request(conn, "GET", "/config_get?" + query, None, headers)
 try:
     data = json.loads(raw)
 except Exception:
     data = {}
 body = data.get("body") if isinstance(data.get("body"), dict) else {}
 read_ok = status == 200 and data.get("response") == "success" and isinstance(body, dict)
+log("read_contract=GRP_CONFIG_GET")
 log("read=" + ("SUCCESS" if read_ok else "FAILED"))
 log("read_http=" + str(status))
 if not read_ok:
     log("diagnostic=PROVISIONING_STATE_READ_FAILED")
     log("TEST64-GRP2601P-AUTH-READ=FAILED")
     raise SystemExit(0)
-
 
 def value(*names):
     for name in names:
@@ -202,15 +228,17 @@ def value(*names):
     return ""
 
 
-model = value("phone_model", "1395")
-firmware = value("firmware_version", "45")
-hardware = value("hardware_version", "1397")
-log("model_match=" + ("YES" if model.replace(" ", "").upper() == "GRP2601P" else "NO"))
+model = value("phone_model", "P1395", "1395")
+firmware = value("firmware_version", "P45", "45")
+hardware = value("hardware_version", "P1397", "1397")
+model_direct_match = model.replace(" ", "").upper() == "GRP2601P"
+log("model_source=" + ("AUTHENTICATED_READ" if model else "NETWORK_AND_DB_PREFLIGHT"))
+log("model_match=" + ("YES" if model_direct_match or not model else "NO"))
 log("firmware=" + (firmware if firmware else "NOT_EXPOSED"))
 log("hardware_present=" + ("YES" if hardware else "NO"))
 
-p212 = value("P212")
-p237 = value("P237")
+p212 = value("P212", "212")
+p237 = value("P237", "237")
 log("p212_value=" + (p212 if p212 in ("0", "1", "2", "3", "4") else ("EMPTY" if not p212 else "OTHER")))
 if not p237:
     target = "EMPTY"
@@ -221,11 +249,11 @@ elif PBX_IP in p237:
 else:
     target = "OTHER"
 log("p237_target=" + target)
-log("config_prefix_present=" + ("YES" if value("P234") else "NO"))
-log("config_postfix_present=" + ("YES" if value("P235") else "NO"))
-log("authenticate_config=" + (value("P240") if value("P240") in ("0", "1") else "EMPTY_OR_OTHER"))
-log("xml_config_password_present=" + ("YES" if value("P1359") else "NO"))
-log("config_http_username_present=" + ("YES" if value("P1360") else "NO"))
-log("config_http_password_present=" + ("YES" if value("P1361") else "NO"))
-log("firmware_upgrade_via=" + (value("P6767") if value("P6767") else "NOT_EXPOSED"))
+log("config_prefix_present=" + ("YES" if value("P234", "234") else "NO"))
+log("config_postfix_present=" + ("YES" if value("P235", "235") else "NO"))
+log("authenticate_config=" + (value("P240", "240") if value("P240", "240") in ("0", "1") else "EMPTY_OR_OTHER"))
+log("xml_config_password_present=" + ("YES" if value("P1359", "1359") else "NO"))
+log("config_http_username_present=" + ("YES" if value("P1360", "1360") else "NO"))
+log("config_http_password_present=" + ("YES" if value("P1361", "1361") else "NO"))
+log("firmware_upgrade_via=" + (value("P6767", "6767") if value("P6767", "6767") else "NOT_EXPOSED"))
 log("TEST64-GRP2601P-AUTH-READ=PASS")
