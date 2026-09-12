@@ -82,6 +82,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 63 | `lab-grandstream-grp2601p-model.yml` | `63 | Issabel Lab | GRP2601P Model & OUI | Controlled Add & Discovery` | `LAB-FIX-PASS` run `34620390872`: OUI `EC:74:D7` agregada, modelo ID 149 con dos cuentas SIP, rescan exacto creó una fila `.176`, `selected=0`, cero cuentas. Run `34620205736` falló seguro antes de escribir al confirmar OUI ausente. |
 | 64 | `lab-grandstream-grp2601p-auth-read.yml` | `64 | Endpoint Lab | GRP2601P | Authenticated Provisioning Read` | `LAB-READ-PASS` run `34664338896`: ambos jobs success; secret de etiqueta MAC-bound, challenge nonce/SHA-256, `login=SUCCESS`, `read=SUCCESS`, `model_match=YES`; `P212`/`P237` vacíos. Sin escrituras, reinicio, provisioning ni firmware upgrade. Runs anteriores conservarse como diagnóstico de secrets equivocados y contrato GXP incompatible. |
 | 65 | `lab-grandstream-grp2601p-bootstrap.yml` | `65 | Endpoint Lab | GRP2601P | Controlled Provisioning Bootstrap` | IMPLEMENTADA por fases. Primero preflight read-only del contrato `config_set`/reboot; la fase APPLY solo se habilita después de confirmar el API GRP. Target único `.176` / `EC:74:D7:1E:E8:E3`; únicamente P212/P237, con verificación y rollback. Sin extensión, Configure ni firmware. |
+| 66 | `lab-grandstream-grp2601p-configure.yml` | `66 | Issabel Lab | GRP2601P | Configure & End-to-End Audit` | IMPLEMENTADA por fases. Preflight read-only selecciona una extensión SIP LAB existente y no asociada sin desplazar J129/GXP1625/GXP1630. La fase mutante quedará condicionada a identidad exacta, cuenta libre, rollback y soporte del contrato GRP. |
 
 ## Reglas de runners
 
@@ -117,7 +118,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `66`.
+Próximo ID disponible: `67`.
 
 ## Subpruebas Grandstream G10
 
