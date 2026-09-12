@@ -40,6 +40,15 @@ class EndpointCredentialVault
         return TRUE;
     }
 
+    public function validateFactoryPassword($password)
+    {
+        if (!is_string($password) || strlen($password) < 8 || strlen($password) > 128) {
+            $this->_errMsg = 'Factory administrative password must contain 8 to 128 characters.';
+            return FALSE;
+        }
+        return TRUE;
+    }
+
     private function _key()
     {
         if (!is_readable(self::KEY_FILE)) {
@@ -212,6 +221,58 @@ class EndpointCredentialVault
         return $next;
     }
 
+    public function createPendingFactory($idEndpoint, $password, $actor = 'credential-bootstrap')
+    {
+        if ($this->_db === NULL || !ctype_digit((string)$idEndpoint) || !$this->validateFactoryPassword($password)) return FALSE;
+        $encrypted = $this->encryptFactory($password);
+        if ($encrypted === NULL) return FALSE;
+        $current = $this->endpointStatus((int)$idEndpoint);
+        if ($current === NULL) return FALSE;
+        $next = ((int)$current['version']) + 1;
+        $now = date('Y-m-d H:i:s');
+        $sql = 'INSERT INTO endpoint_admin_credential ' .
+            '(id_endpoint, source, ciphertext, key_reference, version, validation_status, rotation_status, updated_at) ' .
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?) ' .
+            'ON DUPLICATE KEY UPDATE source = VALUES(source), ciphertext = VALUES(ciphertext), ' .
+            'key_reference = VALUES(key_reference), version = VALUES(version), validation_status = VALUES(validation_status), ' .
+            'rotation_status = VALUES(rotation_status), updated_at = VALUES(updated_at)';
+        if (!$this->_db->genQuery($sql, array((int)$idEndpoint, 'FACTORY', $encrypted, self::KEY_REFERENCE, $next, 'PENDING', 'PENDING', $now))) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        $rawCorrelation = function_exists('openssl_random_pseudo_bytes') ? bin2hex(openssl_random_pseudo_bytes(16)) : md5(uniqid('', TRUE));
+        $correlation = substr($rawCorrelation, 0, 8) . '-' . substr($rawCorrelation, 8, 4) . '-' . substr($rawCorrelation, 12, 4) . '-' . substr($rawCorrelation, 16, 4) . '-' . substr($rawCorrelation, 20, 12);
+        if (!$this->_db->genQuery(
+            'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            array((int)$idEndpoint, 'CREATE_FACTORY', 'PENDING', substr((string)$actor, 0, 191), $correlation, $now)
+        )) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        return $next;
+    }
+
+    private function encryptFactory($password)
+    {
+        if (!$this->validateFactoryPassword($password)) return NULL;
+        $key = $this->_key();
+        if ($key === NULL || !function_exists('openssl_encrypt')) return NULL;
+        $iv = openssl_random_pseudo_bytes(12);
+        $tag = '';
+        $ciphertext = openssl_encrypt($password, self::CIPHER, $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+        if ($ciphertext === FALSE || strlen($tag) !== 16) {
+            $this->_errMsg = 'Unable to encrypt factory administrative credential.';
+            return NULL;
+        }
+        return json_encode(array(
+            'v' => 1,
+            'alg' => self::CIPHER,
+            'iv' => base64_encode($iv),
+            'tag' => base64_encode($tag),
+            'ct' => base64_encode($ciphertext),
+        ));
+    }
+
     public function clearOverride($idEndpoint, $actor = 'issabel-ui')
     {
         if ($this->_db === NULL || !ctype_digit((string)$idEndpoint)) return FALSE;
@@ -239,7 +300,7 @@ class EndpointCredentialVault
     {
         if ($this->_db === NULL || !ctype_digit((string)$idEndpoint)) return NULL;
         $row = $this->_db->getFirstRowQuery(
-            "SELECT ciphertext FROM endpoint_admin_credential WHERE id_endpoint = ? AND source = 'OVERRIDE' AND validation_status = 'PENDING' LIMIT 1",
+            "SELECT ciphertext FROM endpoint_admin_credential WHERE id_endpoint = ? AND source IN ('OVERRIDE', 'FACTORY') AND validation_status = 'PENDING' LIMIT 1",
             TRUE, array((int)$idEndpoint)
         );
         if (!is_array($row) || count($row) === 0) {
@@ -254,7 +315,7 @@ class EndpointCredentialVault
         if ($this->_db === NULL || !ctype_digit((string)$idEndpoint)) return FALSE;
         $now = date('Y-m-d H:i:s');
         if (!$this->_db->genQuery(
-            "UPDATE endpoint_admin_credential SET validation_status = 'VALIDATED', last_validated_at = ?, rotation_status = 'NONE', updated_at = ? WHERE id_endpoint = ? AND source = 'OVERRIDE' AND validation_status = 'PENDING'",
+            "UPDATE endpoint_admin_credential SET validation_status = 'VALIDATED', last_validated_at = ?, rotation_status = 'NONE', updated_at = ? WHERE id_endpoint = ? AND source IN ('OVERRIDE', 'FACTORY') AND validation_status = 'PENDING'",
             array($now, $now, (int)$idEndpoint)
         )) {
             $this->_errMsg = $this->_db->errMsg;
