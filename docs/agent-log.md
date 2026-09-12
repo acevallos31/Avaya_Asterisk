@@ -564,3 +564,8 @@ lectura y `VALIDATED`. El único fallo restante fue la llamada directa al CLI en
 la verificación final, rechazada por sudoers. Se enrutó esa lectura sanitizada
 por `avaya-j129-lab-deploy credential-status-grp2601p`, helper exacto que ya
 está autorizado; no se agregó ningún permiso nuevo.
+
+Run final `34684066307`: ambos jobs PASS y todas las etapas PASS. Resultado
+`LAB-RUNTIME-SMOKE-PASS`. La fundación queda instalada persistentemente en LAB,
+la credencial `FACTORY` está cifrada y `VALIDATED`, y el acceso al teléfono fue
+exclusivamente read-only. Producción permanece intacta.
