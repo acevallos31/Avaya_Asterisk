@@ -66,7 +66,7 @@ run_endpoint_credentials_install() {
   trap 'rm -f "$defaults_file"' RETURN EXIT
   install -d -m 0755 "$STATE_DIR"
   for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
-    count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"
+    if [ "$admin_mode" -eq 1 ]; then count="$(mysql --protocol=socket -uroot --batch --skip-column-names endpointconfig -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; else count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; fi
     [ "$count" -eq 0 ] || { echo "ERROR: $table ya existe; instalación cancelada" >&2; exit 1; }
   done
   if [ "$admin_mode" -eq 1 ]; then mysql_cmd=(mysql --protocol=socket -uroot endpointconfig); else mysql_cmd=(mysql --defaults-extra-file="$defaults_file" endpointconfig); fi
@@ -114,7 +114,7 @@ CREATE TABLE endpoint_credential_event (
 SQL
   printf 'created_by_helper=1\n' > "$state_file"; chmod 0600 "$state_file"
   for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
-    count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"
+    if [ "$admin_mode" -eq 1 ]; then count="$(mysql --protocol=socket -uroot --batch --skip-column-names endpointconfig -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; else count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; fi
     [ "$count" -eq 1 ] || { echo "ERROR: verificación falló para $table" >&2; exit 1; }
   done
   rm -f "$defaults_file"; trap - RETURN EXIT
@@ -138,7 +138,7 @@ DROP TABLE IF EXISTS endpoint_admin_credential;
 DROP TABLE IF EXISTS pbx_admin_password_policy;
 SQL
   for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
-    count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"
+    if [ "$admin_mode" -eq 1 ]; then count="$(mysql --protocol=socket -uroot --batch --skip-column-names endpointconfig -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; else count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; fi
     [ "$count" -eq 0 ] || { echo "ERROR: rollback incompleto para $table" >&2; exit 1; }
   done
   rm -f "$state_file" "$defaults_file"; trap - RETURN EXIT
