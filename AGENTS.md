@@ -69,6 +69,18 @@ El discovery inter-VLAN no se resuelve dentro de `Avaya.py`; debe ser una capaci
 
 Nunca almacenar ni imprimir secretos SIP reales, contraseña Web Admin, cookies, XToken, nonce, hashes de autenticación, tokens, claves privadas o credenciales de DB.
 
+Credenciales administrativas de endpoints:
+
+- La contraseña inicial de fábrica es una credencial individual por MAC y no se
+  reutiliza automáticamente como contraseña final.
+- La contraseña administrativa final puede definirse globalmente por PBX, con
+  override explícito por endpoint.
+- Los valores deben cifrarse en reposo con una clave fuera de la base de datos.
+- Nunca imprimir valores en logs, artefactos, reportes o respuestas JSON.
+- Una rotación debe validar la nueva contraseña antes de retirar la anterior.
+- Los overrides no se cambian durante una rotación global salvo autorización
+  explícita.
+
 - `J129_WEB_PASSWORD` solo como GitHub Repository Secret.
 - No ampliar sudo del runner de forma genérica.
 - No subir Phone Reports brutos ni trazas SIP con secretos.
