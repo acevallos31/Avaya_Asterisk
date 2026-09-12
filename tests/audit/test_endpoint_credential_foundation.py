@@ -16,6 +16,7 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
     def test_vault_uses_authenticated_encryption_and_external_key(self):
         text = VAULT.read_text(encoding="utf-8")
         self.assertIn("aes-256-gcm", text)
+        self.assertIn("endpoint_credential_event", text)
         self.assertIn("/etc/issabel/endpoint-configurator.key", text)
         self.assertIn("openssl_random_pseudo_bytes", text)
         self.assertNotIn("var_dump", text.lower())
