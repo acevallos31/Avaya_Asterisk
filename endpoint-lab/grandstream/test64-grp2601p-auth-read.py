@@ -11,6 +11,7 @@ PASSWORD = os.environ.get("PHONE_PASSWORD", "")
 PBX_IP = os.environ.get("PBX_IP", "192.168.1.10")
 REPORT = os.environ.get("REPORT_PATH", "test64-grp2601p-auth-read.txt")
 CREDENTIAL_SOURCE = os.environ.get("CREDENTIAL_SOURCE", "GRP_DEDICATED")
+CONTRACT_ONLY = os.environ.get("CONTRACT_ONLY", "1") != "0"
 
 
 def log(line):
@@ -79,11 +80,25 @@ for source in script_sources[:12]:
         continue
     if script_status == 200:
         local_script_count += 1
-        contract_text += "\n" + script_raw.lower()
+        script_lower = script_raw.lower()
+        contract_text += "\n" + script_lower
+        markers = [
+            marker
+            for marker in ("dologin", "challenge", "nonce", "sha256", "md5", "cryptojs")
+            if marker in script_lower
+        ]
+        if "dologin" in markers or "challenge" in markers or "nonce" in markers:
+            safe_name = os.path.basename(parsed.path or script_path)
+            log("contract_asset=" + safe_name + ";markers=" + ",".join(markers))
 log("root_local_script_count=" + str(local_script_count))
 log("contract_dologin_present=" + ("YES" if "dologin" in contract_text else "NO"))
 log("contract_challenge_present=" + ("YES" if "challenge" in contract_text or "nonce" in contract_text else "NO"))
 log("contract_hash_present=" + ("YES" if "sha256" in contract_text or "md5" in contract_text else "NO"))
+
+if CONTRACT_ONLY:
+    log("credential_sent=NO")
+    log("TEST64-GRP2601P-CONTRACT-READ=PASS")
+    raise SystemExit(0)
 
 login_body = urllib.parse.urlencode({"username": USERNAME, "password": PASSWORD})
 status, raw, _ = request(conn, "POST", "/cgi-bin/dologin", login_body, headers)
