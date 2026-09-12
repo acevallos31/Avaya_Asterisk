@@ -139,6 +139,11 @@ function handleHTML_mainReport($smarty, $module_name, $local_templates_dir, $dlg
         'LBL_SECURITY'              =>  _tr('Administrative security'),
         'LBL_GLOBAL_PASSWORD'       =>  _tr('Global administrative password'),
         'LBL_CONFIRM_GLOBAL_PASSWORD'=> _tr('Confirm global administrative password'),
+        'LBL_MAC_OVERRIDE'          => _tr('Endpoint password override by MAC'),
+        'LBL_OVERRIDE_PASSWORD'     => _tr('Endpoint override password'),
+        'LBL_SAVE_OVERRIDE'         => _tr('Save pending endpoint override'),
+        'LBL_CLEAR_OVERRIDE'        => _tr('Clear endpoint override'),
+        'MSG_OVERRIDE_PENDING'      => _tr('Pending endpoint override saved. No endpoint was changed.'),
         'LBL_SAVE_PENDING_ROTATION'  =>  _tr('Save pending rotation'),
         'MSG_PENDING_ROTATION'       =>  _tr('Pending rotation created. No endpoint was changed.'),
         'MSG_NO_PASSWORD_DISPLAY'   =>  _tr('No password is displayed. Saving creates a pending rotation only.'),
@@ -258,6 +263,69 @@ function handleJSON_saveCredentialPolicy($smarty, $module_name, $local_templates
                 'key_reference' => EndpointCredentialVault::KEY_REFERENCE,
             );
             $respuesta['message'] = _tr('Pending rotation created. No endpoint was changed.');
+        }
+    }
+    $json = new Services_JSON();
+    Header('Content-Type: application/json');
+    return $json->encode($respuesta);
+}
+
+function handleJSON_saveEndpointCredentialOverride($smarty, $module_name, $local_templates_dir, $dlglist)
+{
+    $respuesta = array('status' => 'success', 'message' => '(no message)');
+    $mac = isset($_REQUEST['mac_address']) ? (string)$_REQUEST['mac_address'] : '';
+    $password = isset($_REQUEST['override_password']) ? (string)$_REQUEST['override_password'] : '';
+    $confirmation = isset($_REQUEST['override_password_confirmation']) ? (string)$_REQUEST['override_password_confirmation'] : '';
+    $csrf = isset($_REQUEST['credential_csrf']) ? (string)$_REQUEST['credential_csrf'] : '';
+    $expectedCsrf = isset($_SESSION[$module_name]['credential_csrf']) ? $_SESSION[$module_name]['credential_csrf'] : '';
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $expectedCsrf === '' || !function_exists('hash_equals') || !hash_equals($expectedCsrf, $csrf)) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Invalid security token.');
+    } elseif ($password === '' || $password !== $confirmation) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Administrative passwords must be present and match.');
+    } else {
+        $vault = new EndpointCredentialVault();
+        $idEndpoint = $vault->findEndpointIdByMac($mac);
+        if ($idEndpoint === NULL) {
+            $respuesta['status'] = 'error';
+            $respuesta['message'] = $vault->getErrMsg() ?: _tr('Endpoint MAC address was not found.');
+        } else {
+            $version = $vault->createPendingOverride($idEndpoint, $password);
+            if ($version === FALSE) {
+                $respuesta['status'] = 'error';
+                $respuesta['message'] = $vault->getErrMsg();
+            } else {
+                $respuesta['override'] = array('mac_address' => $mac, 'status' => 'PENDING', 'version' => (int)$version);
+                $respuesta['message'] = _tr('Pending endpoint override saved. No endpoint was changed.');
+            }
+        }
+    }
+    $json = new Services_JSON();
+    Header('Content-Type: application/json');
+    return $json->encode($respuesta);
+}
+
+function handleJSON_clearEndpointCredentialOverride($smarty, $module_name, $local_templates_dir, $dlglist)
+{
+    $respuesta = array('status' => 'success', 'message' => '(no message)');
+    $mac = isset($_REQUEST['mac_address']) ? (string)$_REQUEST['mac_address'] : '';
+    $csrf = isset($_REQUEST['credential_csrf']) ? (string)$_REQUEST['credential_csrf'] : '';
+    $expectedCsrf = isset($_SESSION[$module_name]['credential_csrf']) ? $_SESSION[$module_name]['credential_csrf'] : '';
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $expectedCsrf === '' || !function_exists('hash_equals') || !hash_equals($expectedCsrf, $csrf)) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Invalid security token.');
+    } else {
+        $vault = new EndpointCredentialVault();
+        $idEndpoint = $vault->findEndpointIdByMac($mac);
+        if ($idEndpoint === NULL) {
+            $respuesta['status'] = 'error';
+            $respuesta['message'] = $vault->getErrMsg() ?: _tr('Endpoint MAC address was not found.');
+        } elseif (!$vault->clearOverride($idEndpoint)) {
+            $respuesta['status'] = 'error';
+            $respuesta['message'] = $vault->getErrMsg();
+        } else {
+            $respuesta['message'] = _tr('Endpoint override cleared. No endpoint was changed.');
         }
     }
     $json = new Services_JSON();
