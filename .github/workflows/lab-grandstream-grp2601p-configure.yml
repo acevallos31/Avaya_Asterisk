@@ -1,0 +1,52 @@
+name: 66 | Issabel Lab | GRP2601P | Configure & End-to-End Audit
+
+on:
+  push:
+    branches: [Audit]
+    paths:
+      - '.github/workflows/lab-grandstream-grp2601p-configure.yml'
+      - 'deploy/j129/avaya-j129-lab-deploy'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Select unused LAB SIP extension without writes
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = Audit
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Inspect exact endpoint and extensions 203-209
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/test66-grp2601p-preflight.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy             inspect-grandstream-grp2601p-configure-preflight | tee "$report"
+          grep -Fq 'GRP2601P-CONFIGURE-PREFLIGHT-PASS' "$report"
+          grep -Eq '^candidate_extension=20[3-9]$' "$report"
+          echo 'TEST66-GRP2601P-CONFIGURE-PREFLIGHT=PASS' | tee -a "$report"
+      - name: Publish sanitized evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 66 — GRP2601P Configure preflight'
+            cat "$RUNNER_TEMP/test66-grp2601p-preflight.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test66-grp2601p-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/test66-grp2601p-preflight.txt
+          if-no-files-found: warn
+          retention-days: 30
