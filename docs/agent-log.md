@@ -569,3 +569,14 @@ Run final `34684066307`: ambos jobs PASS y todas las etapas PASS. Resultado
 `LAB-RUNTIME-SMOKE-PASS`. La fundación queda instalada persistentemente en LAB,
 la credencial `FACTORY` está cifrada y `VALIDATED`, y el acceso al teléfono fue
 exclusivamente read-only. Producción permanece intacta.
+## 2026-09-12 — Codex — importación CSV FACTORY por MAC
+
+Se añadió el primer flujo de importación masiva en Seguridad administrativa.
+Acepta solo un CSV `mac_address,password`, máximo 100 filas y únicamente MACs
+ya inventariadas. La validación es completa antes de escribir; después usa una
+transacción para crear credenciales `FACTORY` cifradas y `PENDING`, con evento
+por endpoint. El temporal de subida se borra al finalizar la petición y la
+respuesta no devuelve contraseñas. No se invoca Configure ni se contacta ningún
+teléfono. Auditoría local: 10/10 PASS; el lint PHP queda cubierto por la
+validación estática remota. Pendiente: Test LAB de importación con archivo de
+prueba controlado, sin producción.
