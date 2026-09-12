@@ -96,6 +96,20 @@ for source in script_sources[:12]:
                 snippet = re.sub(r"\\s+", " ", snippet)
                 snippet = re.sub(r"(?i)[0-9a-f]{32,}", "<HEX>", snippet)
                 log("contract_dologin_context=" + snippet)
+                for label, needle in (
+                    ("endpoint_dologin", "/cgi-bin/dologin"),
+                    ("endpoint_access", "/cgi-bin/access"),
+                    ("method_dologin", "dologin:function"),
+                    ("method_access", "access:function"),
+                    ("method_willlogin", "willlogin:function"),
+                ):
+                    marker_pos = script_lower.find(needle)
+                    if marker_pos < 0:
+                        continue
+                    marker_snippet = script_raw[max(0, marker_pos - 500):marker_pos + 900]
+                    marker_snippet = re.sub(r"\\s+", " ", marker_snippet)
+                    marker_snippet = re.sub(r"(?i)[0-9a-f]{32,}", "<HEX>", marker_snippet)
+                    log("contract_" + label + "_context=" + marker_snippet)
 log("root_local_script_count=" + str(local_script_count))
 log("contract_dologin_present=" + ("YES" if "dologin" in contract_text else "NO"))
 log("contract_challenge_present=" + ("YES" if "challenge" in contract_text or "nonce" in contract_text else "NO"))
