@@ -66,6 +66,24 @@ Producción permanece bloqueada hasta implementar la UI y el almacenamiento
 cifrado de credenciales administrativas; el puente efímero usado por Test 66
 es exclusivamente LAB.
 
+## Fundación de credenciales administrativas — implementación iniciada — 2026-09-12
+
+Se creó la rama `feature/endpoint-credential-foundation` para implementar el
+diseño aprobado sin tocar LAB ni producción. La primera entrega incluye:
+
+- esquema reversible `deploy/endpoint-configurator/db/001_admin_credentials.sql`
+  para política global por PBX, credencial por endpoint/MAC y eventos;
+- bóveda PHP con AES-256-GCM y clave externa en
+  `/etc/issabel/endpoint-configurator.key`;
+- instalador idempotente de clave con permisos 0600;
+- auditoría estática `tests/audit/test_endpoint_credential_foundation.py`.
+
+Todavía no existe menú, override conectado al detalle, importación masiva,
+rotación, rollback ni integración del vendor con esta bóveda. No se ha aplicado
+la migración, no se ha generado ninguna clave en una PBX y no se ha modificado
+producción. El Test 67 queda en implementación hasta completar la UI y el flujo
+controlado en LAB.
+
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
 Se aprobó el documento `docs/endpoint-configurator-credential-lifecycle.md`.
