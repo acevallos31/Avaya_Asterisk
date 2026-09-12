@@ -148,6 +148,11 @@ con mínimo de 12 caracteres. La importación por lote está destinada a las cla
 iniciales de etiqueta, que pueden tener desde 8 caracteres. La prueba física de
 carga CSV queda pendiente para LAB; producción no cambia.
 
+Run `34698714634`: static audit, instalación runtime, lint PHP remoto y smoke
+read-only del GRP2601P PASS con esta versión. La importación CSV no se ejecutó
+contra datos reales en ese run, por diseño; la siguiente prueba LAB debe usar
+un archivo controlado con MACs existentes y contraseñas de etiqueta válidas.
+
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
 Se aprobó el documento `docs/endpoint-configurator-credential-lifecycle.md`.
