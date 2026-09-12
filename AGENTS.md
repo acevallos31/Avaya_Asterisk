@@ -83,6 +83,10 @@ Credenciales administrativas de endpoints:
 
 - `J129_WEB_PASSWORD` solo como GitHub Repository Secret.
 - No ampliar sudo del runner de forma genérica.
+- Las migraciones de credenciales usan privilegios DDL permanentes limitados a
+  `pbx_admin_password_policy`, `endpoint_admin_credential` y
+  `endpoint_credential_event`; no conceder DDL global ni repetir ciclos de
+  grant/revoke por cada despliegue.
 - No subir Phone Reports brutos ni trazas SIP con secretos.
 - No ejecutar jobs LAB sobre producción.
 - No usar selectores genéricos `runs-on: self-hosted` o `[self-hosted, Linux, X64]` para LAB.

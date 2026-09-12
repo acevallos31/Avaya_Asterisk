@@ -97,10 +97,16 @@ Primer run Test 68 `34683238936`: auditoría estática PASS, guardas LAB PASS y
 helper sync PASS. Se detuvo de forma segura antes de instalar el runtime por
 MySQL 1142 `CREATE command denied`; no hubo archivos instalados, clave creada,
 override almacenado ni acceso al teléfono. Estado `INFRA-BLOCKED` hasta
-reactivar temporalmente `CREATE`/`REFERENCES` para `asteriskuser` en
-`endpointconfig` y reejecutar únicamente el job fallido. Test 67 run
+conceder una sola vez DDL permanente por tabla —sin DDL global sobre
+`endpointconfig`— y reejecutar únicamente el job fallido. Test 67 run
 `34683238910` quedó verde con static PASS y su ciclo DDL correctamente omitido
 en push.
+
+Decisión operativa: no repetir grant/revoke en cada despliegue. `asteriskuser`
+conserva `CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
+credenciales y `REFERENCES` sobre la tabla padre `endpoint`; no recibe `DROP`,
+`CREATE USER`, acceso a otras bases ni DDL general. El helper sigue ejecutando
+SQL allowlisted y versionado.
 
 Pendientes posteriores a esta fundación: importación masiva, aplicación de una
 contraseña final, rotación/rollback por lote, extensiones/registro en la tabla y

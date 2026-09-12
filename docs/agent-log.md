@@ -57,9 +57,12 @@ Commit publicado: `0c5f7f175c2b29ea780b141c7cc6abc501b23067`.
 - Las etapas de instalación del runtime, almacenamiento cifrado y login del
   teléfono quedaron skipped; no existe cambio parcial que revertir.
 
-Siguiente acción exacta: otorgar temporalmente `CREATE, REFERENCES` sobre
-`endpointconfig.*` a `asteriskuser@localhost`, reejecutar los jobs fallidos del
-run `34683238936` y revocar ambos privilegios después del PASS.
+El operador rechazó correctamente el ciclo repetido de grant/revoke. Se adoptó
+un permiso permanente de mínimo privilegio: `CREATE, ALTER, INDEX, REFERENCES`
+solo en las tres tablas de credenciales y `REFERENCES` en la tabla padre
+`endpoint`. No se concede `DROP` ni DDL a nivel de base. Después de configurarlo
+una vez, las migraciones versionadas pueden avanzar mediante el helper
+allowlisted sin intervención manual recurrente.
 
 ## 2026-09-12 — Seguridad administrativa: UI global parcial
 
