@@ -252,6 +252,88 @@ class EndpointCredentialVault
         return $next;
     }
 
+    public function importPendingFactoryCsv($filePath, $actor = 'issabel-ui-batch')
+    {
+        if ($this->_db === NULL || !is_string($filePath) || !is_readable($filePath)) {
+            $this->_errMsg = 'Credential import file is unavailable.';
+            return FALSE;
+        }
+        $handle = fopen($filePath, 'r');
+        if ($handle === FALSE) {
+            $this->_errMsg = 'Credential import file cannot be read.';
+            return FALSE;
+        }
+        $header = fgetcsv($handle, 4096);
+        if (!is_array($header) || count($header) !== 2) {
+            fclose($handle);
+            $this->_errMsg = 'CSV must contain exactly mac_address,password columns.';
+            return FALSE;
+        }
+        $first = strtolower(trim($header[0]));
+        $second = strtolower(trim($header[1]));
+        if ($first !== 'mac_address' || $second !== 'password') {
+            fclose($handle);
+            $this->_errMsg = 'CSV header must be mac_address,password.';
+            return FALSE;
+        }
+        $rows = array();
+        $seen = array();
+        while (($row = fgetcsv($handle, 4096)) !== FALSE) {
+            if (count($row) === 1 && trim($row[0]) === '') continue;
+            if (count($row) !== 2 || count($rows) >= 100) {
+                fclose($handle);
+                $this->_errMsg = 'CSV contains an invalid row or exceeds 100 endpoints.';
+                return FALSE;
+            }
+            $mac = strtoupper(preg_replace('/[^0-9A-F]/i', '', trim($row[0])));
+            $password = (string)$row[1];
+            if (!preg_match('/^[0-9A-F]{12}$/', $mac) || isset($seen[$mac]) || !$this->validateFactoryPassword($password)) {
+                fclose($handle);
+                unset($password);
+                $this->_errMsg = 'CSV contains an invalid, duplicate, or unsupported credential row.';
+                return FALSE;
+            }
+            $idEndpoint = $this->findEndpointIdByMac($mac);
+            if ($idEndpoint === NULL) {
+                fclose($handle);
+                unset($password);
+                $this->_errMsg = 'CSV references an endpoint MAC not present in Endpoint Configurator.';
+                return FALSE;
+            }
+            $seen[$mac] = TRUE;
+            $rows[] = array('id_endpoint' => $idEndpoint, 'password' => $password);
+            unset($password);
+        }
+        fclose($handle);
+        if (count($rows) === 0) {
+            $this->_errMsg = 'CSV contains no credential rows.';
+            return FALSE;
+        }
+        if (!$this->_db->genQuery('START TRANSACTION')) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        foreach ($rows as $row) {
+            if ($this->createPendingFactory($row['id_endpoint'], $row['password'], $actor) === FALSE) {
+                $this->_db->genQuery('ROLLBACK');
+                for ($i = 0; $i < count($rows); $i++) $rows[$i]['password'] = '';
+                unset($rows);
+                return FALSE;
+            }
+        }
+        if (!$this->_db->genQuery('COMMIT')) {
+            $this->_db->genQuery('ROLLBACK');
+            for ($i = 0; $i < count($rows); $i++) $rows[$i]['password'] = '';
+            unset($rows);
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        $count = count($rows);
+        for ($i = 0; $i < count($rows); $i++) $rows[$i]['password'] = '';
+        unset($rows);
+        return $count;
+    }
+
     private function encryptFactory($password)
     {
         if (!$this->validateFactoryPassword($password)) return NULL;
