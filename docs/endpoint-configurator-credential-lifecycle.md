@@ -97,6 +97,9 @@ crear migraciones.
 - Las pantallas solo muestran estado, versión y fecha; nunca el valor.
 - La importación CSV debe cifrar cada fila y eliminar el archivo después del
   procesamiento.
+- La importación inicial admite únicamente `mac_address,password` para
+  credenciales `FACTORY`, con máximo de 100 MACs que ya existan en el inventario;
+  una fila inválida cancela el lote completo antes de persistir cambios.
 - La MAC es la identidad primaria; la IP solo sirve para localizar el equipo.
 - La rotación conserva la credencial anterior hasta verificar la nueva.
 - Un fallo de un endpoint no debe detener ni marcar como exitoso el lote completo.
@@ -133,7 +136,8 @@ permanecer como un dato histórico que suplante una consulta actual.
 1. Definir almacenamiento cifrado y migración reversible.
 2. Añadir menú global por PBX.
 3. Añadir override por MAC.
-4. Añadir importación masiva segura.
+4. Añadir importación masiva segura. **Implementación inicial:** CSV FACTORY por
+   MAC, transaccional y sin escritura al teléfono; falta validación física LAB.
 5. Añadir extensiones y registro SIP en la tabla principal.
 6. Implementar rotación controlada y rollback.
 7. Validar con GRP2601P, GXP1625 y GXP1630 en LAB.
