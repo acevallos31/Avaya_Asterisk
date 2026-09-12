@@ -94,9 +94,13 @@ rollback, importación masiva segura y visualización de extensiones/registro SI
 La implementación debe mantenerse separada de **Batch of Extensions** y usar
 Asterisk como fuente autoritativa del registro.
 
-Siguiente actividad: implementar almacenamiento cifrado, menú global y override
-por endpoint en LAB. Después repetir una prueba documentada desde la UI; solo
-entonces preparar un canario de producción.
+La rama `feature/endpoint-credential-foundation` ya contiene el esquema cifrado,
+la bóveda externa y la primera pantalla global con guard CSRF. Guardar la
+contraseña solo crea una rotación `PENDING`; no aplica cambios a teléfonos.
+
+Pendiente para cerrar Test 67: ejecutar la auditoría en LAB, conectar el override
+por MAC, importación masiva, rotación/rollback y el consumo del vendor. Producción
+continúa intacta.
 
 
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11
