@@ -122,11 +122,12 @@ SQL
 }
 
 run_endpoint_credentials_rollback() {
-  local defaults_file state_file="$STATE_DIR/endpoint-credentials.state"
+  local defaults_file state_file="$STATE_DIR/endpoint-credentials.state" admin_mode=0
   [ -f "$state_file" ] || { echo 'ENDPOINT-CREDENTIALS-ROLLBACK-SKIP no state created'; return 0; }
   defaults_file="$(make_db_defaults_file)"
   trap 'rm -f "$defaults_file"' RETURN EXIT
   if mysql --protocol=socket -uroot --batch --skip-column-names -e "SELECT 1" >/dev/null 2>&1; then
+    admin_mode=1
     defaults_file=""
     mysql_cmd=(mysql --protocol=socket -uroot endpointconfig)
   else
