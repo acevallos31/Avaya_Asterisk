@@ -133,7 +133,7 @@ log("will_login_http=" + str(will_status))
 
 access_digest = hashlib.sha256(USERNAME.encode("utf-8")).hexdigest()
 access_body_encoded = urllib.parse.urlencode({"access": access_digest})
-access_status, access_raw, access_headers = request(conn, "POST", "/access", access_body_encoded, headers)
+access_status, access_raw, access_headers = request(conn, "POST", "/cgi-bin/access", access_body_encoded, headers)
 try:
     access_reply = json.loads(access_raw)
     access_json_valid = isinstance(access_reply, dict)
@@ -190,7 +190,7 @@ if access_status != 200 or access_response == "error" or not nonce:
 
 password_digest = hashlib.sha256((PASSWORD + nonce).encode("utf-8")).hexdigest()
 login_body_encoded = urllib.parse.urlencode({"username": USERNAME, "password": password_digest})
-status, raw, _ = request(conn, "POST", "/dologin", login_body_encoded, headers)
+status, raw, _ = request(conn, "POST", "/cgi-bin/dologin", login_body_encoded, headers)
 try:
     login = json.loads(raw)
 except Exception:
@@ -229,7 +229,7 @@ query = urllib.parse.urlencode({
     "sid": sid,
     "update_session": "true",
 })
-status, raw, _ = request(conn, "GET", "/config_get?" + query, None, headers)
+status, raw, _ = request(conn, "GET", "/cgi-bin/config_get?" + query, None, headers)
 try:
     data = json.loads(raw)
 except Exception:
