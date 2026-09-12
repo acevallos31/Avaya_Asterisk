@@ -42,6 +42,21 @@ Esto confirma rechazo explícito de la credencial, no un problema de parser o
 SID. Sin escrituras. Se detienen los intentos hasta verificar visualmente y
 volver a copiar la contraseña de la etiqueta.
 
+
+## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
+
+Se aprobó el documento `docs/endpoint-configurator-credential-lifecycle.md`.
+La contraseña administrativa final será global por PBX, con override opcional por
+endpoint/MAC. La contraseña inicial de fábrica seguirá siendo individual y solo
+servirá para el primer acceso. Se añadieron reglas de cifrado, rotación,
+rollback, importación masiva segura y visualización de extensiones/registro SIP.
+La implementación debe mantenerse separada de **Batch of Extensions** y usar
+Asterisk como fuente autoritativa del registro.
+
+Siguiente actividad: implementar el almacenamiento cifrado y el menú global en
+LAB antes de habilitar la rotación o el provisioning del GRP2601P.
+
+
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11
 
 Autorizado ciclo completo sin preguntas adicionales. La primera fase mutante
