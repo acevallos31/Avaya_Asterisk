@@ -1,47 +1,66 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
-## Grandstream GRP2601P — Tests 62–64 — 2026-09-12
+## Grandstream GRP2601P — ciclo LAB Tests 62–66 — 2026-09-12
 
-Ciclo LAB sobre el equipo de fábrica detectado en `192.168.1.176`, MAC
-`EC:74:D7:1E:E8:E3`.
+Equipo exacto: `192.168.1.176`, MAC `EC:74:D7:1E:E8:E3`.
 
-Test 62 autoritativo, run `34620373267`: `LAB-READ-PASS`. Identidad
-GRP2601P única, HTTP 200, firmware no expuesto sin autenticación. La DB stock
-no contenía ni la OUI `EC:74:D7` ni el modelo. El run inicial
-`34619751876` tuvo una clasificación OUI falsa positiva; se corrigió el
-parser y se repitió sin escrituras.
+- Test 62, run `34620373267`: `LAB-READ-PASS`; identificó el teléfono y
+  confirmó que la OUI/modelo no existían en la DB stock.
+- Test 63, run `34620390872`: `LAB-FIX-PASS`; agregó reversiblemente OUI
+  `EC:74:D7` y modelo ID 149 con dos cuentas SIP; discovery creó una fila
+  exacta sin cuentas.
+- Test 64, run `34664338896`: `LAB-READ-PASS`; validó la contraseña de
+  etiqueta mediante challenge nonce/SHA-256 y leyó la configuración sin
+  escrituras.
+- Test 65 preflight, run `34670448152`: confirmó que GRP usa
+  `PUT /cgi-bin/config_update`, no `api.values.post`.
+- Test 65 autoritativo, run `34670575973`: bootstrap P212/P237,
+  `write_response=SUCCESS`, reinicio aceptado, caída/retorno HTTP observados
+  y persistencia posterior PASS.
+- Test 66 preflight, run `34670740654`: fila exacta limpia y extensión SIP
+  203 existente, libre y no registrada.
+- Test 66 autoritativo, run `34677554254`: `LAB-INTEGRATION-PASS`.
+  Recuperó la etapa fallida previa, instaló el patch GRP26xx reversible,
+  ejecutó Apply estándar de Issabel con la credencial transportada por stdin,
+  restauró inmediatamente el password de modelo, generó cfg/XML y registró
+  SIP 203 desde `192.168.1.176`.
 
-Test 63: el primer run `34620205736` falló seguro antes de escribir al
-confirmar que faltaba la OUI. El run corregido `34620390872` agregó
-reversiblemente OUI y modelo ID 149, `max_accounts=2`,
-`max_sip_accounts=2`; el rescan stock creó una única fila
-Grandstream/GRP2601P en `.176`, `selected=0`, cero cuentas. Estado
-`LAB-FIX-PASS`.
+Contrato comprobado:
 
-Test 64 quedó cerrado con `LAB-READ-PASS` en el run autoritativo
-`34664338896`. Ambos jobs terminaron en `success`: preflight exacto de la
-fila del Endpoint Configurator y lectura autenticada del teléfono. Se usó
-exclusivamente el secret MAC-bound
-`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`, correspondiente a la
-contraseña de la etiqueta.
+```text
+POST /cgi-bin/access       SHA256(username) -> nonce
+POST /cgi-bin/dologin      SHA256(password + nonce) -> SID
+PUT  /cgi-bin/config_update JSON alias/pvalue
+GET  /cgi-bin/api-sys_operation?request=REBOOT&sid=...
+```
 
-La investigación del contrato Web demostró que los runs
-`34647374500`/`34647476040` no probaron correctamente la credencial:
-intentaban el login heredado GXP en texto directo. El GRP2601P requiere
-`POST /cgi-bin/access` con hash del usuario, recibe un nonce y luego
-`POST /cgi-bin/dologin` con `SHA256(password + nonce)`. Con ese contrato,
-el run final obtuvo `access_http=200`, `access_nonce_present=YES`,
-`credential_sent=HASHED`, `login=SUCCESS`, `read=SUCCESS` y
-`model_match=YES`.
+Evidencia final Test 66:
 
-La lectura confirmó estado de fábrica: `P212=EMPTY`, `P237=EMPTY`, sin
-prefijo/postfijo de configuración y sin credenciales HTTP de provisioning
-expuestas. Firmware y hardware no fueron expuestos por esta API. No hubo
-escritura, reinicio, provisioning ni upgrade de firmware.
+```text
+endpoint_count=1
+model=GRP2601P
+selected=0
+account_count=1
+account_203_count=1
+binary_cfg_present=YES
+xml_cfg_present=YES
+phone_http=200
+sip_203_ip=192.168.1.176
+sip_201_at_grp=NO
+sip_202_at_grp=NO
+```
 
-Próximo paso autorizado del ciclo: Test 65, bootstrap controlado y reversible
-del servidor de configuración sobre la identidad exacta del GRP2601P. Test 66
-seguirá reservado para Configure, artefactos cfg/XML, SIP y auditoría E2E.
+El run `34671167798` es `HARNESS-FAIL`: el probe inicial omitía
+`/cgi-bin`, cayó en la ruta GXP y no configuró el teléfono. El run
+`34677542766` falló antes del preflight porque existía esa etapa pendiente.
+El run final ejecutó rollback de cuenta/selección/cfg de la etapa y luego
+repitió correctamente.
+
+Estado: integración servidor/teléfono/SIP cerrada en LAB. La prueba física
+manual de llamada/audio queda pendiente y no se infiere de la evidencia
+automatizada. Producción permanece bloqueada hasta implementar la UI y el
+almacenamiento cifrado de credenciales administrativas; el puente efímero
+usado por Test 66 es exclusivamente LAB.
 
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
@@ -53,8 +72,9 @@ rollback, importación masiva segura y visualización de extensiones/registro SI
 La implementación debe mantenerse separada de **Batch of Extensions** y usar
 Asterisk como fuente autoritativa del registro.
 
-Siguiente actividad: implementar el almacenamiento cifrado y el menú global en
-LAB antes de habilitar la rotación o el provisioning del GRP2601P.
+Siguiente actividad: implementar almacenamiento cifrado, menú global y override
+por endpoint en LAB. Después repetir una prueba documentada desde la UI; solo
+entonces preparar un canario de producción.
 
 
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11
