@@ -42,6 +42,7 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
         index = MODULE_INDEX.read_text(encoding="utf-8")
         self.assertIn("handleJSON_saveCredentialPolicy", index)
         self.assertIn("hash_equals", index)
+        self.assertIn("REQUEST_METHOD", index)
         self.assertIn("credential_csrf", index)
         self.assertIn("'status' => 'PENDING'", index)
         self.assertNotIn("applyconfig", index[index.index("handleJSON_saveCredentialPolicy"):index.index("function handleJSON_configStart")])
