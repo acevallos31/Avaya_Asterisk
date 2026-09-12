@@ -2,6 +2,7 @@
 import http.client
 import json
 import os
+import re
 import urllib.parse
 
 PHONE_IP = os.environ.get("PHONE_IP", "192.168.1.176")
@@ -22,7 +23,7 @@ def request(conn, method, path, body, headers):
     conn.request(method, path, body=body, headers=headers)
     response = conn.getresponse()
     data = response.read().decode("utf-8", "replace")
-    return response.status, data
+    return response.status, data, response.getheaders()
 
 
 open(REPORT, "w").close()
@@ -45,10 +46,47 @@ headers = {
     "Host": PHONE_IP,
     "Referer": "http://%s/" % PHONE_IP,
     "Accept": "*/*",
+    "User-Agent": "Mozilla/5.0 EndpointConfigurator-Lab-Test64",
 }
 conn = http.client.HTTPConnection(PHONE_IP, 80, timeout=5)
+
+root_status, root_raw, root_headers = request(conn, "GET", "/", None, headers)
+cookie_parts = [
+    value.split(";", 1)[0].strip()
+    for name, value in root_headers
+    if name.lower() == "set-cookie" and value.strip()
+]
+if cookie_parts:
+    headers["Cookie"] = "; ".join(cookie_parts)
+log("root_http=" + str(root_status))
+log("root_cookie_present=" + ("YES" if cookie_parts else "NO"))
+
+script_sources = sorted(set(re.findall(
+    r"""<script[^>]+src=["']([^"'?#]+)""",
+    root_raw,
+    flags=re.IGNORECASE,
+)))
+contract_text = root_raw.lower()
+local_script_count = 0
+for source in script_sources[:12]:
+    parsed = urllib.parse.urlparse(source)
+    if parsed.scheme or parsed.netloc:
+        continue
+    script_path = source if source.startswith("/") else "/" + source
+    try:
+        script_status, script_raw, _ = request(conn, "GET", script_path, None, headers)
+    except Exception:
+        continue
+    if script_status == 200:
+        local_script_count += 1
+        contract_text += "\n" + script_raw.lower()
+log("root_local_script_count=" + str(local_script_count))
+log("contract_dologin_present=" + ("YES" if "dologin" in contract_text else "NO"))
+log("contract_challenge_present=" + ("YES" if "challenge" in contract_text or "nonce" in contract_text else "NO"))
+log("contract_hash_present=" + ("YES" if "sha256" in contract_text or "md5" in contract_text else "NO"))
+
 login_body = urllib.parse.urlencode({"username": USERNAME, "password": PASSWORD})
-status, raw = request(conn, "POST", "/cgi-bin/dologin", login_body, headers)
+status, raw, _ = request(conn, "POST", "/cgi-bin/dologin", login_body, headers)
 try:
     login = json.loads(raw)
 except Exception:
@@ -95,7 +133,7 @@ if not accepted:
 
 keys = "phone_model:1395:firmware_version:45:hardware_version:1397:P212:P237:P234:P235:P240:P1359:P1360:P1361:P6767"
 read_body = urllib.parse.urlencode({"request": keys, "sid": sid})
-status, raw = request(conn, "POST", "/cgi-bin/api.values.get", read_body, headers)
+status, raw, _ = request(conn, "POST", "/cgi-bin/api.values.get", read_body, headers)
 try:
     data = json.loads(raw)
 except Exception:
