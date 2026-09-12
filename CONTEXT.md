@@ -102,6 +102,14 @@ conceder una sola vez DDL permanente por tabla —sin DDL global sobre
 `34683238910` quedó verde con static PASS y su ciclo DDL correctamente omitido
 en push.
 
+Segundo intento del mismo run: después del grant permanente por tabla, la
+instalación persistente del esquema y del runtime terminó PASS. La etapa de
+almacenamiento se detuvo antes de acceder al teléfono porque trataba la
+contraseña corta de etiqueta como un override final sujeto al mínimo de 12
+caracteres. Se corrigió el modelo: la credencial inicial queda como `FACTORY`,
+cifrada y ligada a la MAC, mientras que `OVERRIDE` conserva la política fuerte
+de contraseña administrativa final. No hubo escritura en el teléfono.
+
 Decisión operativa: no repetir grant/revoke en cada despliegue. `asteriskuser`
 conserva `CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
 credenciales y `REFERENCES` sobre la tabla padre `endpoint`; no recibe `DROP`,
