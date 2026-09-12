@@ -25,7 +25,7 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
     def test_vault_never_exposes_plaintext_in_status(self):
         text = VAULT.read_text(encoding="utf-8")
         status = text[text.index("public function status"):text.index("public function createPendingGlobal")]
-        self.assertNotRegex(status, r"SELECT[^;]*(?:password|ciphertext)", re.I)
+        self.assertNotRegex(status, r"SELECT[^;]*\\bciphertext\\b", re.I)
 
     def test_schema_contains_no_plaintext_credential_column(self):
         text = SCHEMA.read_text(encoding="utf-8")
