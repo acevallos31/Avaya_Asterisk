@@ -608,6 +608,7 @@ $(document).ready(function() {
 	App.Router.map(function() {
 		this.resource('endpoints', { path: '/' }, function () {
 			this.route('getconfiglog');
+			this.route('security');
 			this.route('endpointconfig', { path: '/endpointconfig/:id_endpoint' });
 		});
 	});
@@ -683,6 +684,63 @@ $(document).ready(function() {
 			this.render('endpointconfig-' + model.get('detail_dialog'), {
 				into: 'endpoints/endpointconfig'
 			});
+		}
+	});
+
+	App.EndpointsSecurityController = Ember.ObjectController.extend({
+		policy: null,
+		loadingPolicy: true,
+		savingPolicy: false,
+		globalPassword: '',
+		globalPasswordConfirmation: '',
+		saveMessage: null,
+		saveError: null,
+
+		savePendingRotation: function() {
+			this.set('saveMessage', null);
+			this.set('saveError', null);
+			this.set('savingPolicy', true);
+			$.post('index.php?menu=' + module_name + '&rawmode=yes', {
+				menu: module_name,
+				rawmode: 'yes',
+				action: 'saveCredentialPolicy',
+				global_password: this.get('globalPassword'),
+				global_password_confirmation: this.get('globalPasswordConfirmation')
+			}, function(respuesta) {
+				this.set('savingPolicy', false);
+				if (respuesta.status == 'error') {
+					this.set('saveError', respuesta.message);
+					return;
+				}
+				this.set('policy', respuesta.policy);
+				this.set('globalPassword', '');
+				this.set('globalPasswordConfirmation', '');
+				this.set('saveMessage', respuesta.message);
+			}.bind(this)).fail(function() {
+				this.set('savingPolicy', false);
+				this.set('saveError', 'Unable to save administrative credential policy.');
+			}.bind(this));
+		},
+		cancelSecurity: function() {
+			this.get('target.router').transitionTo('endpoints.index');
+		}
+	});
+
+	App.EndpointsSecurityRoute = Ember.Route.extend({
+		model: function() {
+			return Ember.$.get('index.php', {
+				menu: module_name,
+				rawmode: 'yes',
+				action: 'loadCredentialPolicy'
+			});
+		},
+		setupController: function(controller, model) {
+			controller.set('policy', model.policy || {});
+			controller.set('loadingPolicy', false);
+			if (model.status == 'error') controller.set('saveError', model.message);
+		},
+		renderTemplate: function() {
+			this.render({ into: 'endpoints' });
 		}
 	});
 
