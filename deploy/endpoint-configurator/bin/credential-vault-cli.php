@@ -91,6 +91,17 @@ if ($action === 'store-override') {
     exit(0);
 }
 
+if ($action === 'store-factory') {
+    $password = rtrim(stream_get_contents(STDIN, 129), "\r\n");
+    if ($vault->createPendingFactory($endpointId, $password, 'lab-test68') === FALSE) {
+        fwrite(STDERR, "ERROR: factory credential storage failed\n");
+        exit(1);
+    }
+    unset($password);
+    echo "CREDENTIAL-FACTORY-STORED=PENDING\n";
+    exit(0);
+}
+
 if ($action === 'emit-pending') {
     if (!function_exists('posix_geteuid') || posix_geteuid() !== 0 || getenv('ENDPOINT_CREDENTIAL_ALLOW_EMIT') !== '1') {
         fwrite(STDERR, "ERROR: credential emission denied\n");
