@@ -117,6 +117,13 @@ directamente con `sudo`, fuera del allowlist existente. Se cambió a la acción
 sanitizada `credential-status-grp2601p` del helper ya autorizado, sin ampliar
 sudoers.
 
+Run autoritativo `34684066307`: ambos jobs y todas las etapas PASS. Quedaron
+confirmados esquema y runtime persistentes, clave externa protegida,
+credencial de fábrica cifrada por MAC, login/lectura read-only del GRP2601P,
+promoción a `VALIDATED` y verificación final mediante helper allowlisted.
+`phone_write=NO`; producción no fue tocada. Test 68 queda
+`LAB-RUNTIME-SMOKE-PASS`.
+
 Decisión operativa: no repetir grant/revoke en cada despliegue. `asteriskuser`
 conserva `CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
 credenciales y `REFERENCES` sobre la tabla padre `endpoint`; no recibe `DROP`,
