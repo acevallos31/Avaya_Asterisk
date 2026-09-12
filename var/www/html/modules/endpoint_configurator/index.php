@@ -34,6 +34,7 @@ require_once '/var/www/html/libs/paloSantoGrid.class.php';
 require_once '/var/www/html/libs/paloSantoJSON.class.php';
 require_once '/var/www/html/libs/paloSantoNetwork.class.php';
 require_once '/var/www/html/libs/paloSantoValidar.class.php';
+require_once '/var/www/html/modules/endpoint_configurator/libs/EndpointCredentialVault.class.php';
 
 
 function _moduleContent(&$smarty, $module_name)
@@ -128,6 +129,12 @@ function handleHTML_mainReport($smarty, $module_name, $local_templates_dir, $dlg
         'LBL_CSV_NESTED'            =>  _tr('CSV (nested)'),
         'LBL_UPLOAD'                =>  _tr('Upload list of endpoint configuration'),
         'LBL_VIEW_LOG'              =>  _tr('View log of last configuration'),
+        'LBL_SECURITY'              =>  _tr('Administrative security'),
+        'LBL_GLOBAL_PASSWORD'       =>  _tr('Global administrative password'),
+        'LBL_CONFIRM_GLOBAL_PASSWORD'=> _tr('Confirm global administrative password'),
+        'LBL_SAVE_PENDING_ROTATION'  =>  _tr('Save pending rotation'),
+        'MSG_PENDING_ROTATION'       =>  _tr('Pending rotation created. No endpoint was changed.'),
+        'MSG_NO_PASSWORD_DISPLAY'   =>  _tr('No password is displayed. Saving creates a pending rotation only.'),
         'LBL_STATUS'                =>  _tr('Status'),
         'LBL_MAC_ADDRESS'           =>  _tr('MAC Address'),
         'LBL_CURRENT_IP'            =>  _tr('Current IP'),
@@ -193,6 +200,51 @@ function handleJSON_loadModels($smarty, $module_name, $local_templates_dir, $dlg
         $respuesta['models'] = $listaModelos;
     }
     
+    $json = new Services_JSON();
+    Header('Content-Type: application/json');
+    return $json->encode($respuesta);
+}
+
+function handleJSON_loadCredentialPolicy($smarty, $module_name, $local_templates_dir, $dlglist)
+{
+    $vault = new EndpointCredentialVault();
+    $status = $vault->status();
+    $respuesta = array('status' => 'success', 'message' => '(no message)');
+    if ($status === NULL) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = $vault->getErrMsg();
+    } else {
+        $respuesta['policy'] = $status;
+    }
+    $json = new Services_JSON();
+    Header('Content-Type: application/json');
+    return $json->encode($respuesta);
+}
+
+function handleJSON_saveCredentialPolicy($smarty, $module_name, $local_templates_dir, $dlglist)
+{
+    $respuesta = array('status' => 'success', 'message' => '(no message)');
+    $password = isset($_REQUEST['global_password']) ? (string)$_REQUEST['global_password'] : '';
+    $confirmation = isset($_REQUEST['global_password_confirmation']) ? (string)$_REQUEST['global_password_confirmation'] : '';
+    if ($password === '' || $password !== $confirmation) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Administrative passwords must be present and match.');
+    } else {
+        $vault = new EndpointCredentialVault();
+        $identity = function_exists('gethostname') ? gethostname() : 'issabel-pbx';
+        $version = $vault->createPendingGlobal($identity, $password);
+        if ($version === FALSE) {
+            $respuesta['status'] = 'error';
+            $respuesta['message'] = $vault->getErrMsg();
+        } else {
+            $respuesta['policy'] = array(
+                'status' => 'PENDING',
+                'pending_version' => (int)$version,
+                'key_reference' => EndpointCredentialVault::KEY_REFERENCE,
+            );
+            $respuesta['message'] = _tr('Pending rotation created. No endpoint was changed.');
+        }
+    }
     $json = new Services_JSON();
     Header('Content-Type: application/json');
     return $json->encode($respuesta);
