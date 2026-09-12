@@ -64,16 +64,14 @@ function _moduleContent(&$smarty, $module_name)
     $smarty->assign('LASTOP_ERROR_MESSAGE', 'null');
 
     // Inicialización del estado del módulo
-    if (!isset($_SESSION[$module_name]['credential_csrf'])) {
-        $bytes = function_exists('openssl_random_pseudo_bytes') ? openssl_random_pseudo_bytes(24) : uniqid('', TRUE);
-        $_SESSION[$module_name]['credential_csrf'] = bin2hex($bytes);
-    }
-    $credentialCsrf = $_SESSION[$module_name]['credential_csrf'];
-
     if (!isset($_SESSION[$module_name])) $_SESSION[$module_name] = array(
         'estadoCliente'     =>  NULL,
         'estadoClienteHash' =>  NULL,
     );
+    if (!isset($_SESSION[$module_name]['credential_csrf'])) {
+        $bytes = function_exists('openssl_random_pseudo_bytes') ? openssl_random_pseudo_bytes(24) : uniqid('', TRUE);
+        $_SESSION[$module_name]['credential_csrf'] = bin2hex($bytes);
+    }
     
     // Construir lista de todos los diálogos conocidos
     $dlglist = array();
@@ -118,6 +116,8 @@ function handleHTML_mainReport($smarty, $module_name, $local_templates_dir, $dlg
     modificarReferenciasLibreriasJS($smarty, $module_name, $dlglist);
 
     $json = new Services_JSON();
+    $credentialCsrf = isset($_SESSION[$module_name]['credential_csrf'])
+        ? $_SESSION[$module_name]['credential_csrf'] : '';
     $smarty->assign(array(
         'title'                     =>  _tr('Endpoint Configurator'),
         'CREDENTIAL_CSRF'           =>  $json->encode($credentialCsrf),

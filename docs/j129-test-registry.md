@@ -83,7 +83,8 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 64 | `lab-grandstream-grp2601p-auth-read.yml` | `64 | Endpoint Lab | GRP2601P | Authenticated Provisioning Read` | `LAB-READ-PASS` run `34664338896`: ambos jobs success; secret de etiqueta MAC-bound, challenge nonce/SHA-256, `login=SUCCESS`, `read=SUCCESS`, `model_match=YES`; `P212`/`P237` vacíos. Sin escrituras, reinicio, provisioning ni firmware upgrade. Runs anteriores conservarse como diagnóstico de secrets equivocados y contrato GXP incompatible. |
 | 65 | `lab-grandstream-grp2601p-bootstrap.yml` | `65 | Endpoint Lab | GRP2601P | Controlled Provisioning Bootstrap` | `LAB-FIX-PASS` run `34670575973`: contrato `PUT /cgi-bin/config_update`, P212/P237 verificados, reboot aceptado, caída/retorno HTTP y persistencia post-reboot PASS. Preflight read-only `34670448152` PASS. Sin extensión, Configure ni firmware. |
 | 66 | `lab-grp2601p-e2e.yml` | `66 | Issabel Lab | GRP2601P | Full Provisioning E2E` | `LAB-INTEGRATION-PASS` run `34677554254`: recovery, preflight exacto para extensión 203, parche reversible de vendor, aprovisionamiento y auditoría E2E; `endpoint_count=1`, cuenta SIP 203 única, HTTP 200 y `cfg<MAC>` binario/XML presentes. `PHYSICAL-GRP2601P-PASS`: el operador confirmó el 2026-09-12 que el teléfono funciona correctamente. Producción no tocada. |
-| 67 | `tests/audit/test_endpoint_credential_foundation.py` (en implementación) | `67 | Repository | Endpoint Credential Foundation | Static Security Audit` | LAB-SCHEMA-CYCLE-PASS run 34681386727: static audit, runner LAB, DDL de las tres tablas, verificación y rollback obligatorio PASS; no quedaron cambios persistentes. Pendientes: override por MAC, importación, rotación/rollback completa y consumo del vendor. |
+| 67 | `lab-endpoint-credential-test67.yml` | `67 | Issabel Lab | Endpoint Credentials | Foundation` | `LAB-SCHEMA-CYCLE-PASS` run `34681386727`: auditoría estática, DDL de tres tablas, verificación y rollback PASS. En push queda static-only; el ciclo DDL reversible requiere dispatch manual. Run `34681677185`: static/helper PASS y DDL bloqueado correctamente tras retirar el grant temporal. |
+| 68 | `lab-endpoint-credential-test68.yml` | `68 | Issabel Lab | Endpoint Credentials | Runtime Smoke` | EN IMPLEMENTACIÓN. Instalación persistente del esquema, clave y UI en LAB; guarda override cifrado del GRP2601P por stdin, valida login/read-only y marca `VALIDATED`. No cambia el teléfono ni ejecuta Configure. Requiere DDL mínimo temporal para la creación inicial. |
 
 ## Reglas de runners
 
@@ -119,7 +120,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `68`.
+Próximo ID disponible: `69`.
 
 ## Subpruebas Grandstream G10
 

@@ -66,23 +66,36 @@ Producción permanece bloqueada hasta implementar la UI y el almacenamiento
 cifrado de credenciales administrativas; el puente efímero usado por Test 66
 es exclusivamente LAB.
 
-## Fundación de credenciales administrativas — implementación iniciada — 2026-09-12
+## Fundación de credenciales administrativas — Tests 67–68 — 2026-09-12
 
-Se creó la rama `feature/endpoint-credential-foundation` para implementar el
-diseño aprobado sin tocar LAB ni producción. La primera entrega incluye:
+La rama `feature/endpoint-credential-foundation` contiene:
 
 - esquema reversible `deploy/endpoint-configurator/db/001_admin_credentials.sql`
   para política global por PBX, credencial por endpoint/MAC y eventos;
 - bóveda PHP con AES-256-GCM y clave externa en
   `/etc/issabel/endpoint-configurator.key`;
-- instalador idempotente de clave con permisos 0600;
+- instalador idempotente de clave `root:apache:0640`, legible únicamente por
+  root y el proceso web de Issabel;
+- menú de seguridad administrativa con guard CSRF;
+- contraseña global y override por MAC cifrados, ambos inicialmente `PENDING`;
 - auditoría estática `tests/audit/test_endpoint_credential_foundation.py`.
 
-Todavía no existe menú, override conectado al detalle, importación masiva,
-rotación, rollback ni integración del vendor con esta bóveda. No se ha aplicado
-la migración, no se ha generado ninguna clave en una PBX y no se ha modificado
-producción. El Test 67 queda en implementación hasta completar la UI y el flujo
-controlado en LAB.
+Test 67, run `34681386727`, completó `LAB-SCHEMA-CYCLE-PASS`: creó, verificó y
+eliminó las tres tablas sin dejar cambios persistentes. El run `34681677185`
+demostró que el runner seguía operativo y falló exclusivamente porque el grant
+DDL temporal ya había sido retirado; el static audit y helper sync pasaron.
+
+Test 68 queda reservado para la instalación persistente del esquema/runtime en
+LAB y un smoke autenticado read-only contra el GRP2601P exacto
+`EC:74:D7:1E:E8:E3`. La credencial entra por stdin, se cifra con AES-256-GCM,
+se recupera solo en memoria para el challenge del teléfono y se marca
+`VALIDATED` únicamente después de login y lectura exitosos. No cambia el
+teléfono ni ejecuta Configure. Requiere reactivar DDL mínimo solo durante la
+creación inicial de tablas y retirarlo inmediatamente después.
+
+Pendientes posteriores a esta fundación: importación masiva, aplicación de una
+contraseña final, rotación/rollback por lote, extensiones/registro en la tabla y
+consumo normal desde todos los vendors. Producción permanece intacta.
 
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
@@ -95,12 +108,13 @@ La implementación debe mantenerse separada de **Batch of Extensions** y usar
 Asterisk como fuente autoritativa del registro.
 
 La rama `feature/endpoint-credential-foundation` ya contiene el esquema cifrado,
-la bóveda externa y la primera pantalla global con guard CSRF. Guardar la
-contraseña solo crea una rotación `PENDING`; no aplica cambios a teléfonos.
+la bóveda externa, la pantalla global con guard CSRF y el override por MAC.
+Guardar una contraseña crea estado `PENDING`; la validación read-only de Test 68
+puede promover el override a `VALIDATED`, pero no aplica cambios al teléfono.
 
-Pendiente para cerrar Test 67: ejecutar la auditoría en LAB, conectar el override
-por MAC, importación masiva, rotación/rollback y el consumo del vendor. Producción
-continúa intacta.
+Test 67 cerró el ciclo reversible del esquema. Test 68 debe cerrar el runtime
+real de esta fundación en LAB; importación, rotación/rollback y consumo normal
+del vendor quedan como bloques posteriores. Producción continúa intacta.
 
 
 ## Test 57 GXP1630 — ciclo controlado — 2026-09-11

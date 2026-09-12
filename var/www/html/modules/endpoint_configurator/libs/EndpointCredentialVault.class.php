@@ -227,7 +227,44 @@ class EndpointCredentialVault
         $correlation = substr($rawCorrelation, 0, 8) . '-' . substr($rawCorrelation, 8, 4) . '-' . substr($rawCorrelation, 12, 4) . '-' . substr($rawCorrelation, 16, 4) . '-' . substr($rawCorrelation, 20, 12);
         if (!$this->_db->genQuery(
             'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-            array((int)$idEndpoint, 'CLEAR_OVERRIDE', 'PENDING', substr((string)$actor, 0, 191), $correlation, $now)
+            array((int)$idEndpoint, 'CLEAR_OVERRIDE', 'CLEARED', substr((string)$actor, 0, 191), $correlation, $now)
+        )) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    public function pendingCredentialForValidation($idEndpoint)
+    {
+        if ($this->_db === NULL || !ctype_digit((string)$idEndpoint)) return NULL;
+        $row = $this->_db->getFirstRowQuery(
+            "SELECT ciphertext FROM endpoint_admin_credential WHERE id_endpoint = ? AND source = 'OVERRIDE' AND validation_status = 'PENDING' LIMIT 1",
+            TRUE, array((int)$idEndpoint)
+        );
+        if (!is_array($row) || count($row) === 0) {
+            $this->_errMsg = is_array($row) ? 'Pending endpoint credential is unavailable.' : $this->_db->errMsg;
+            return NULL;
+        }
+        return $this->decrypt($row['ciphertext']);
+    }
+
+    public function markEndpointValidated($idEndpoint, $actor = 'credential-validator')
+    {
+        if ($this->_db === NULL || !ctype_digit((string)$idEndpoint)) return FALSE;
+        $now = date('Y-m-d H:i:s');
+        if (!$this->_db->genQuery(
+            "UPDATE endpoint_admin_credential SET validation_status = 'VALIDATED', last_validated_at = ?, rotation_status = 'NONE', updated_at = ? WHERE id_endpoint = ? AND source = 'OVERRIDE' AND validation_status = 'PENDING'",
+            array($now, $now, (int)$idEndpoint)
+        )) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        $rawCorrelation = function_exists('openssl_random_pseudo_bytes') ? bin2hex(openssl_random_pseudo_bytes(16)) : md5(uniqid('', TRUE));
+        $correlation = substr($rawCorrelation, 0, 8) . '-' . substr($rawCorrelation, 8, 4) . '-' . substr($rawCorrelation, 12, 4) . '-' . substr($rawCorrelation, 16, 4) . '-' . substr($rawCorrelation, 20, 12);
+        if (!$this->_db->genQuery(
+            'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            array((int)$idEndpoint, 'VALIDATE_OVERRIDE', 'VALIDATED', substr((string)$actor, 0, 191), $correlation, $now)
         )) {
             $this->_errMsg = $this->_db->errMsg;
             return FALSE;

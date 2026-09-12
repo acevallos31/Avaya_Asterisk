@@ -24,9 +24,13 @@ GRANDSTREAM_LOGIN_PATCH_BACKUP="$STATE_DIR/Grandstream.py.pre-g10-14"
 HTTP_STATE_DIR="$STATE_DIR/httpd"
 HTTP_CONF_DST="/etc/httpd/conf.d/avaya-j129-provisioning.conf"
 AMPORTAL_CONF="/etc/amportal.conf"
+ENDPOINT_CREDENTIAL_RUNTIME_STATE="$STATE_DIR/endpoint-credential-runtime"
+ENDPOINT_CREDENTIAL_MODULE="/var/www/html/modules/endpoint_configurator"
+ENDPOINT_CREDENTIAL_CLI="/usr/local/libexec/issabel-endpoint-credential-vault"
+RUNNER_WORKSPACE="/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix] | {install-endpoint-credentials|rollback-endpoint-credentials}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {install-endpoint-credential-runtime|verify-endpoint-credential-runtime} <workspace> | rollback-endpoint-credential-runtime | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix] | {install-endpoint-credentials|ensure-endpoint-credentials|rollback-endpoint-credentials|credential-smoke-grp2601p}" >&2
   exit 2
 }
 
@@ -60,15 +64,26 @@ SQL
 
 
 run_endpoint_credentials_install() {
-  local defaults_file count state_file="$STATE_DIR/endpoint-credentials.state" admin_mode=0
+  local mode="${1:-cycle}" defaults_file count existing=0 state_file="$STATE_DIR/endpoint-credentials.state" admin_mode=0
+  local persistent_state="$STATE_DIR/endpoint-credentials.persistent"
   if mysql --protocol=socket -uroot --batch --skip-column-names -e "SELECT 1" >/dev/null 2>&1; then admin_mode=1; fi
   if [ "$admin_mode" -eq 1 ]; then defaults_file=""; else defaults_file="$(make_db_defaults_file)"; fi
   trap 'rm -f "$defaults_file"' RETURN EXIT
   install -d -m 0755 "$STATE_DIR"
   for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
     if [ "$admin_mode" -eq 1 ]; then count="$(mysql --protocol=socket -uroot --batch --skip-column-names endpointconfig -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; else count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; fi
-    [ "$count" -eq 0 ] || { echo "ERROR: $table ya existe; instalación cancelada" >&2; exit 1; }
+    existing=$((existing + count))
   done
+  [ "$existing" -eq 0 ] || [ "$existing" -eq 3 ] || { echo 'ERROR: esquema parcial de credenciales detectado' >&2; exit 1; }
+  if [ "$existing" -eq 3 ]; then
+    if [ "$mode" = 'persistent' ]; then
+      printf 'persistent_install=1\n' > "$persistent_state"; chmod 0600 "$persistent_state"
+      rm -f "$state_file"
+    fi
+    rm -f "$defaults_file"; trap - RETURN EXIT
+    echo 'ENDPOINT-CREDENTIALS-SCHEMA-PRESENT'
+    return 0
+  fi
   if [ "$admin_mode" -eq 1 ]; then mysql_cmd=(mysql --protocol=socket -uroot endpointconfig); else mysql_cmd=(mysql --defaults-extra-file="$defaults_file" endpointconfig); fi
   cat <<'SQL' | "${mysql_cmd[@]}"
 CREATE TABLE pbx_admin_password_policy (
@@ -112,7 +127,12 @@ CREATE TABLE endpoint_credential_event (
     CONSTRAINT fk_endpoint_credential_event_endpoint FOREIGN KEY (id_endpoint) REFERENCES endpoint(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SQL
-  printf 'created_by_helper=1\n' > "$state_file"; chmod 0600 "$state_file"
+  if [ "$mode" = 'persistent' ]; then
+    printf 'persistent_install=1\n' > "$persistent_state"; chmod 0600 "$persistent_state"
+    rm -f "$state_file"
+  else
+    printf 'created_by_helper=1\n' > "$state_file"; chmod 0600 "$state_file"
+  fi
   for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
     if [ "$admin_mode" -eq 1 ]; then count="$(mysql --protocol=socket -uroot --batch --skip-column-names endpointconfig -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; else count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"; fi
     [ "$count" -eq 1 ] || { echo "ERROR: verificación falló para $table" >&2; exit 1; }
@@ -123,6 +143,7 @@ SQL
 
 run_endpoint_credentials_rollback() {
   local defaults_file state_file="$STATE_DIR/endpoint-credentials.state" admin_mode=0
+  [ ! -f "$STATE_DIR/endpoint-credentials.persistent" ] || { echo 'ERROR: rollback rechazado para instalación persistente' >&2; exit 1; }
   [ -f "$state_file" ] || { echo 'ENDPOINT-CREDENTIALS-ROLLBACK-SKIP no state created'; return 0; }
   defaults_file="$(make_db_defaults_file)"
   trap 'rm -f "$defaults_file"' RETURN EXIT
@@ -144,6 +165,165 @@ SQL
   done
   rm -f "$state_file" "$defaults_file"; trap - RETURN EXIT
   echo 'ENDPOINT-CREDENTIALS-ROLLBACK-PASS'
+}
+
+require_runner_workspace() {
+  local workspace="$1"
+  [ "$workspace" = "$RUNNER_WORKSPACE" ] || {
+    echo 'ERROR: workspace no autorizado para runtime de credenciales' >&2
+    exit 2
+  }
+  [ -f "$workspace/.github/workflows/lab-endpoint-credential-test68.yml" ] || {
+    echo 'ERROR: checkout del runner no identificado' >&2
+    exit 2
+  }
+}
+
+install_endpoint_credential_runtime() {
+  local workspace="$1" backup="$ENDPOINT_CREDENTIAL_RUNTIME_STATE/backup" manifest="$ENDPOINT_CREDENTIAL_RUNTIME_STATE/manifest"
+  local source destination relative owner
+  require_runner_workspace "$workspace"
+  install -d -m 0700 "$ENDPOINT_CREDENTIAL_RUNTIME_STATE" "$backup"
+
+  for source in \
+    "$workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php" \
+    "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" \
+    "$workspace/deploy/endpoint-configurator/bin/install-key.sh" \
+    "$workspace/var/www/html/modules/endpoint_configurator/index.php" \
+    "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" \
+    "$workspace/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js"; do
+    [ "$(stat -c '%U' "$source")" = 'github-runner' ] || {
+      echo "ERROR: propietario inesperado de runtime: $source" >&2
+      exit 1
+    }
+  done
+
+  php -l "$workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php" >/dev/null
+  php -l "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" >/dev/null
+  php -l "$workspace/var/www/html/modules/endpoint_configurator/index.php" >/dev/null
+  bash -n "$workspace/deploy/endpoint-configurator/bin/install-key.sh"
+
+  if [ ! -f "$manifest" ]; then
+    : > "$manifest"
+    chmod 0600 "$manifest"
+    for destination in \
+      "$ENDPOINT_CREDENTIAL_MODULE/index.php" \
+      "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php" \
+      "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl" \
+      "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js" \
+      "$ENDPOINT_CREDENTIAL_CLI"; do
+      relative="${destination#/}"
+      if [ -e "$destination" ]; then
+        install -d -m 0700 "$backup/$(dirname "$relative")"
+        cp -a "$destination" "$backup/$relative"
+        printf 'PRESENT %s\n' "$destination" >> "$manifest"
+      else
+        printf 'ABSENT %s\n' "$destination" >> "$manifest"
+      fi
+    done
+  fi
+
+  "$workspace/deploy/endpoint-configurator/bin/install-key.sh"
+  install -d -o root -g apache -m 0750 "$ENDPOINT_CREDENTIAL_MODULE/libs"
+  install -d -o root -g root -m 0755 /usr/local/libexec
+
+  while read -r source destination; do
+    install -o root -g apache -m 0640 "$source" "$destination"
+  done <<EOF
+$workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php $ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php
+$workspace/var/www/html/modules/endpoint_configurator/index.php $ENDPOINT_CREDENTIAL_MODULE/index.php
+EOF
+
+  install -o root -g root -m 0644 "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"
+  install -o root -g root -m 0644 "$workspace/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js"
+  install -o root -g apache -m 0750 "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" "$ENDPOINT_CREDENTIAL_CLI"
+
+  apachectl -t >/dev/null
+  systemctl reload httpd
+  verify_endpoint_credential_runtime "$workspace"
+  echo 'ENDPOINT-CREDENTIAL-RUNTIME-INSTALL-PASS'
+}
+
+rollback_endpoint_credential_runtime() {
+  local backup="$ENDPOINT_CREDENTIAL_RUNTIME_STATE/backup" manifest="$ENDPOINT_CREDENTIAL_RUNTIME_STATE/manifest"
+  local state destination relative
+  [ -f "$manifest" ] || { echo 'ERROR: runtime manifest ausente' >&2; exit 1; }
+  while read -r state destination; do
+    case "$destination" in
+      "$ENDPOINT_CREDENTIAL_MODULE/index.php"|\
+      "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php"|\
+      "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"|\
+      "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js"|\
+      "$ENDPOINT_CREDENTIAL_CLI") ;;
+      *) echo 'ERROR: destino no permitido en manifest' >&2; exit 1 ;;
+    esac
+    relative="${destination#/}"
+    if [ "$state" = 'PRESENT' ]; then
+      [ -e "$backup/$relative" ] || { echo 'ERROR: backup runtime incompleto' >&2; exit 1; }
+      cp -a "$backup/$relative" "$destination"
+    elif [ "$state" = 'ABSENT' ]; then
+      rm -f "$destination"
+    else
+      echo 'ERROR: estado inválido en manifest' >&2
+      exit 1
+    fi
+  done < "$manifest"
+  apachectl -t >/dev/null
+  systemctl reload httpd
+  rm -f "$manifest"
+  echo 'ENDPOINT-CREDENTIAL-RUNTIME-ROLLBACK-PASS'
+}
+
+verify_endpoint_credential_runtime() {
+  local workspace="$1" defaults_file count
+  require_runner_workspace "$workspace"
+  [ "$(stat -c '%U:%G:%a' /etc/issabel/endpoint-configurator.key)" = 'root:apache:640' ] || {
+    echo 'ERROR: ownership/mode inválido para clave de credenciales' >&2
+    exit 1
+  }
+  cmp -s "$workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php" "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php"
+  cmp -s "$workspace/var/www/html/modules/endpoint_configurator/index.php" "$ENDPOINT_CREDENTIAL_MODULE/index.php"
+  cmp -s "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"
+  cmp -s "$workspace/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js"
+  cmp -s "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" "$ENDPOINT_CREDENTIAL_CLI"
+  php -l "$ENDPOINT_CREDENTIAL_MODULE/index.php" >/dev/null
+  php -l "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php" >/dev/null
+  php -l "$ENDPOINT_CREDENTIAL_CLI" >/dev/null
+
+  defaults_file="$(make_db_defaults_file)"
+  trap 'rm -f "$defaults_file"' RETURN EXIT
+  for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
+    count="$(mysql_scalar "$defaults_file" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='endpointconfig' AND table_name='$table';")"
+    [ "$count" -eq 1 ] || { echo "ERROR: tabla runtime ausente: $table" >&2; exit 1; }
+  done
+  rm -f "$defaults_file"; trap - RETURN EXIT
+  echo 'ENDPOINT-CREDENTIAL-RUNTIME-VERIFY-PASS'
+}
+
+credential_smoke_grp2601p() {
+  local password report
+  report="$(mktemp /tmp/test68-grp2601p.XXXXXX)"
+  chmod 0600 "$report"
+  trap 'unset password PHONE_PASSWORD; rm -f "$report"' RETURN EXIT
+
+  "$ENDPOINT_CREDENTIAL_CLI" store-override EC:74:D7:1E:E8:E3
+  password="$(ENDPOINT_CREDENTIAL_ALLOW_EMIT=1 "$ENDPOINT_CREDENTIAL_CLI" emit-pending EC:74:D7:1E:E8:E3)"
+  [ -n "$password" ] || { echo 'ERROR: credencial descifrada vacía' >&2; exit 1; }
+  export PHONE_PASSWORD="$password"
+  PHONE_IP='192.168.1.176' PHONE_USERNAME='admin' PBX_IP='192.168.1.10' \
+    CREDENTIAL_SOURCE='ENCRYPTED_MAC_OVERRIDE' CONTRACT_ONLY='0' REPORT_PATH="$report" \
+    python3 "$RUNNER_WORKSPACE/endpoint-lab/grandstream/test64-grp2601p-auth-read.py" >/dev/null
+  unset password PHONE_PASSWORD
+  grep -Fq 'login=SUCCESS' "$report"
+  grep -Fq 'read=SUCCESS' "$report"
+  grep -Fq 'TEST64-GRP2601P-AUTH-READ=PASS' "$report"
+  ! grep -Fq 'TEST64-GRP2601P-AUTH-READ=FAILED' "$report"
+  "$ENDPOINT_CREDENTIAL_CLI" mark-validated EC:74:D7:1E:E8:E3
+  "$ENDPOINT_CREDENTIAL_CLI" status EC:74:D7:1E:E8:E3
+  echo 'credential_transport=ENCRYPTED_DB_TO_PROCESS_MEMORY'
+  echo 'phone_write=NO'
+  echo 'TEST68-ENDPOINT-CREDENTIAL-GRP2601P-SMOKE=PASS'
+  rm -f "$report"; trap - RETURN EXIT
 }
 
 run_manufacturer_inspection() {
@@ -1212,7 +1392,12 @@ PY
 case "$ACTION" in
   inspect-db) [ -z "$OVERLAY_ROOT" ] || usage; run_db_inspection ;;
   install-endpoint-credentials) [ -z "$OVERLAY_ROOT" ] || usage; run_endpoint_credentials_install ;;
+  ensure-endpoint-credentials) [ -z "$OVERLAY_ROOT" ] || usage; run_endpoint_credentials_install persistent ;;
   rollback-endpoint-credentials) [ -z "$OVERLAY_ROOT" ] || usage; run_endpoint_credentials_rollback ;;
+  install-endpoint-credential-runtime) [ -n "$OVERLAY_ROOT" ] || usage; install_endpoint_credential_runtime "$OVERLAY_ROOT" ;;
+  verify-endpoint-credential-runtime) [ -n "$OVERLAY_ROOT" ] || usage; verify_endpoint_credential_runtime "$OVERLAY_ROOT" ;;
+  rollback-endpoint-credential-runtime) [ -z "$OVERLAY_ROOT" ] || usage; rollback_endpoint_credential_runtime ;;
+  credential-smoke-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; credential_smoke_grp2601p ;;
   inspect-manufacturer) run_manufacturer_inspection "${2:-}" "${3:-}" "${4:-}" ;;
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;

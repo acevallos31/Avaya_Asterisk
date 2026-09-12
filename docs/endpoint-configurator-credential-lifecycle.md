@@ -1,7 +1,7 @@
 # Endpoint Configurator — ciclo de credenciales administrativas
 
-Estado: diseño aprobado para implementación en LAB  
-Rama de trabajo: `Audit`  
+Estado: diseño aprobado para implementación en LAB
+Rama de trabajo: `feature/endpoint-credential-foundation`
 Fecha: 2026-09-12
 
 ## Objetivo
@@ -147,4 +147,3 @@ No se habilita Configure para un modelo que requiere autenticación Web si:
 - la credencial no fue validada;
 - el endpoint tiene conflicto de MAC/IP;
 - la rotación anterior quedó pendiente o fallida.
-

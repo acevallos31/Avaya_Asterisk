@@ -21,6 +21,34 @@ NOT-TESTED
 
 ---
 
+## 2026-09-12 — Codex — preparación Test 68 runtime real de credenciales
+
+Se separó la semántica del Test 67 reversible de la instalación funcional. En
+push, Test 67 ejecuta solo la auditoría estática; el ciclo DDL con rollback queda
+manual. Se reservó Test 68 para instalar de forma persistente en LAB las tres
+tablas, la clave externa y el runtime del Endpoint Configurator, y validar el
+override cifrado contra el GRP2601P mediante login/read-only.
+
+Correcciones previas al despliegue:
+
+- el token CSRF ahora se recupera dentro del scope que renderiza la plantilla;
+- la clave cambió de `0600` a `root:apache:0640`, porque Apache debe poder
+  cifrar desde la UI sin hacer el archivo público;
+- el helper distingue instalación DDL persistente de un ciclo reversible y
+  rechaza rollback sobre el estado persistente;
+- se añadió un CLI restringido: secreto por stdin, descifrado solo en memoria,
+  estado sanitizado y evento `VALIDATE_OVERRIDE`;
+- el smoke no escribe en el teléfono, no ejecuta Configure y usa exclusivamente
+  el runner `issabel-lab`.
+
+Validación local disponible: 9/9 pruebas Python PASS, `bash -n` PASS, YAML PASS
+y `git diff --check` PASS. El contenedor local no dispone de PHP; `php -l` queda
+como guard obligatorio del job estático y del propio runner LAB.
+
+Bloqueo operativo esperado: el grant DDL de `asteriskuser` fue retirado después
+del run `34681386727`. Test 68 necesita ese permiso mínimo solamente para crear
+las tablas una vez; después debe revocarse. Producción no fue tocada.
+
 ## 2026-09-12 — Seguridad administrativa: UI global parcial
 
 La segunda fase de `feature/endpoint-credential-foundation` conectó la bóveda con

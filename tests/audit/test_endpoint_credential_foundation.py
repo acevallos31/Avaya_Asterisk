@@ -7,6 +7,9 @@ ROOT = Path(__file__).resolve().parents[2]
 VAULT = ROOT / "deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php"
 SCHEMA = ROOT / "deploy/endpoint-configurator/db/001_admin_credentials.sql"
 KEY_HELPER = ROOT / "deploy/endpoint-configurator/bin/install-key.sh"
+VAULT_CLI = ROOT / "deploy/endpoint-configurator/bin/credential-vault-cli.php"
+LAB_HELPER = ROOT / "deploy/j129/avaya-j129-lab-deploy"
+RUNTIME_WORKFLOW = ROOT / ".github/workflows/lab-endpoint-credential-test68.yml"
 MODULE_INDEX = ROOT / "var/www/html/modules/endpoint_configurator/index.php"
 MODULE_TEMPLATE = ROOT / "var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl"
 MODULE_JS = ROOT / "var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js"
@@ -35,9 +38,16 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
     def test_key_helper_is_private_and_idempotent(self):
         text = KEY_HELPER.read_text(encoding="utf-8")
         self.assertIn("umask 077", text)
-        self.assertIn("chmod 0600", text)
+        self.assertIn("root:apache:640", text)
+        self.assertIn("chmod 0640", text)
         self.assertIn("if [[ -e", text)
         self.assertNotIn("echo \"$KEY_FILE\"", text)
+
+    def test_csrf_token_is_loaded_in_render_scope(self):
+        index = MODULE_INDEX.read_text(encoding="utf-8")
+        render = index[index.index("function handleHTML_mainReport"):index.index("function handleJSON_unimplemented")]
+        self.assertIn("$_SESSION[$module_name]['credential_csrf']", render)
+        self.assertIn("'CREDENTIAL_CSRF'", render)
 
     def test_global_policy_write_is_csrf_protected_and_pending_only(self):
         index = MODULE_INDEX.read_text(encoding="utf-8")
@@ -67,6 +77,22 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
         self.assertIn("overrideMac", template)
         self.assertIn("saveEndpointOverride", javascript)
         self.assertIn("credential_csrf", javascript)
+
+    def test_runtime_smoke_uses_encrypted_override_and_lab_runner_only(self):
+        vault = VAULT.read_text(encoding="utf-8")
+        cli = VAULT_CLI.read_text(encoding="utf-8")
+        helper = LAB_HELPER.read_text(encoding="utf-8")
+        workflow = RUNTIME_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("pendingCredentialForValidation", vault)
+        self.assertIn("markEndpointValidated", vault)
+        self.assertIn("stream_get_contents(STDIN", cli)
+        self.assertNotIn("echo $password", cli)
+        self.assertIn("credential-smoke-grp2601p", helper)
+        self.assertIn("phone_write=NO", helper)
+        self.assertIn("runs-on: [self-hosted, Linux, X64, issabel-lab]", workflow)
+        self.assertNotIn("j129-production", workflow)
+        self.assertIn("GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD", workflow)
+        self.assertNotIn("rollback-endpoint-credentials", workflow)
 
     def test_security_view_does_not_render_a_secret(self):
         template = MODULE_TEMPLATE.read_text(encoding="utf-8")
