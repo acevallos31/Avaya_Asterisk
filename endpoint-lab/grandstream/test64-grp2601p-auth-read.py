@@ -237,7 +237,7 @@ except Exception:
     data = {}
     read_json_valid = False
 read_response = data.get("response")
-read_payload = data.get("body")
+read_payload = data.get("body") if "body" in data else data.get("configs")
 if isinstance(read_payload, str):
     try:
         nested_payload = json.loads(read_payload)
