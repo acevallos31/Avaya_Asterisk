@@ -223,6 +223,13 @@
         <button type="button" {{action "clearEndpointOverride"}} {{bindAttr disabled="savingOverride"}}>
             {/literal}{$LBL_CLEAR_OVERRIDE}{literal}
         </button>
+        <hr />
+        <h3>{/literal}{$LBL_FACTORY_CSV}{literal}</h3>
+        <p>{/literal}{$LBL_FACTORY_CSV_FORMAT}{literal}</p>
+        <p><input id="credential-factory-csv" type="file" accept=".csv,text/csv" /></p>
+        <button type="button" {{action "importFactoryCsv"}} {{bindAttr disabled="importingFactoryCsv"}}>
+            {/literal}{$LBL_IMPORT_FACTORY_CSV}{literal}
+        </button>
         <button type="button" {{action "savePendingRotation"}} {{bindAttr disabled="savingPolicy"}}>
             {/literal}{$LBL_SAVE_PENDING_ROTATION}{literal}
         </button>
