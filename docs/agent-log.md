@@ -558,3 +558,9 @@ era tratada como un override administrativo final y rechazada por su mínimo de
 flujo `OVERRIDE` final (12–128). La lectura/validación acepta ambos orígenes
 pendientes sin exponer el secreto. No hubo escritura en el teléfono ni cambios
 en producción. Pendiente: publicar y repetir Test 68.
+
+El run `34683934974` confirmó schema/runtime, almacenamiento cifrado, login,
+lectura y `VALIDATED`. El único fallo restante fue la llamada directa al CLI en
+la verificación final, rechazada por sudoers. Se enrutó esa lectura sanitizada
+por `avaya-j129-lab-deploy credential-status-grp2601p`, helper exacto que ya
+está autorizado; no se agregó ningún permiso nuevo.
