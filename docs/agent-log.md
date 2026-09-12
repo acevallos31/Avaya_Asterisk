@@ -21,6 +21,24 @@ NOT-TESTED
 
 ---
 
+## 2026-09-12 — Fundación de credenciales administrativas iniciada
+
+Se abrió `feature/endpoint-credential-foundation` sobre la rama `Audit` para
+implementar el diseño aprobado sin tocar PBX LAB ni producción.
+
+Archivos agregados:
+
+- `deploy/endpoint-configurator/db/001_admin_credentials.sql`;
+- `deploy/endpoint-configurator/db/001_admin_credentials.rollback.sql`;
+- `deploy/endpoint-configurator/bin/install-key.sh`;
+- `deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php`;
+- `tests/audit/test_endpoint_credential_foundation.py`.
+
+La primera fase usa AES-256-GCM y una clave externa con permisos 0600. Aún no se
+habilitó UI, override por MAC, importación masiva, rotación, rollback ni consumo
+desde vendor. No se aplicó SQL, no se generó clave en una PBX y producción no fue
+tocada. Resultado: `NOT-TESTED` hasta ejecutar Test 67 completo en LAB.
+
 ## 2026-09-12 — Operador/Codex — GRP2601P validación física cerrada
 
 El operador confirmó que el Grandstream GRP2601P físico funciona correctamente
