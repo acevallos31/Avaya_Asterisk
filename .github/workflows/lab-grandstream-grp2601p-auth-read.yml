@@ -44,7 +44,7 @@ jobs:
       PHONE_IP: 192.168.1.176
       PHONE_USERNAME: admin
       GRP2601P_PASSWORD: ${{ secrets.GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD }}
-      CONTRACT_ONLY: '1'
+      CONTRACT_ONLY: '0'
       PBX_IP: 192.168.1.10
     steps:
       - uses: actions/checkout@v4
