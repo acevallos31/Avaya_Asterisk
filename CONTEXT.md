@@ -401,3 +401,8 @@ Próximo ID disponible: `49`.
 ## Test 67 — ejecución LAB de fundación de credenciales — 2026-09-12
 
 Run 34679549816 ejecutó la rama aislada feature/endpoint-credential-foundation en el runner exacto issabel-lab-casa, con guard de identidad y hostname LAB PASS. La auditoría estática PASS. La fase de esquema quedó INFRA-BLOCKED: el usuario asteriskuser de endpointconfig no tiene privilegio CREATE; no se creó ninguna tabla. El rollback obligatorio terminó SKIP no state created, sin cambios persistentes. No se tocó producción. Para continuar se requiere una vía DBA/privilegiada allowlisted para DDL en LAB y repetir Test 67.
+
+
+## Test 67 — ciclo LAB completado — 2026-09-12
+
+Run 34681386727: auditoría estática PASS; guard LAB PASS en issabel-lab-casa; aplicación del esquema de las tres tablas PASS; verificación PASS; rollback obligatorio PASS. No quedaron cambios persistentes. El permiso DDL fue temporal y debe revocarse al terminar la sesión DBA. Producción continúa intacta.
