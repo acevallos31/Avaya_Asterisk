@@ -56,11 +56,15 @@ El run `34671167798` es `HARNESS-FAIL`: el probe inicial omitía
 El run final ejecutó rollback de cuenta/selección/cfg de la etapa y luego
 repitió correctamente.
 
-Estado: integración servidor/teléfono/SIP cerrada en LAB. La prueba física
-manual de llamada/audio queda pendiente y no se infiere de la evidencia
-automatizada. Producción permanece bloqueada hasta implementar la UI y el
-almacenamiento cifrado de credenciales administrativas; el puente efímero
-usado por Test 66 es exclusivamente LAB.
+Estado: `LAB-INTEGRATION-PASS` y `PHYSICAL-GRP2601P-PASS`. El
+operador confirmó el 2026-09-12 que el teléfono funciona correctamente después
+del aprovisionamiento como extensión 203. Esta es evidencia física aportada por
+el operador y complementa, sin sustituir, la auditoría automatizada del run
+`34677554254`.
+
+Producción permanece bloqueada hasta implementar la UI y el almacenamiento
+cifrado de credenciales administrativas; el puente efímero usado por Test 66
+es exclusivamente LAB.
 
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
