@@ -78,7 +78,7 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
         self.assertIn("saveEndpointOverride", javascript)
         self.assertIn("credential_csrf", javascript)
 
-    def test_runtime_smoke_uses_encrypted_override_and_lab_runner_only(self):
+    def test_runtime_smoke_uses_encrypted_factory_credential_and_lab_runner_only(self):
         vault = VAULT.read_text(encoding="utf-8")
         cli = VAULT_CLI.read_text(encoding="utf-8")
         helper = LAB_HELPER.read_text(encoding="utf-8")
@@ -87,6 +87,10 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
         self.assertIn("markEndpointValidated", vault)
         self.assertIn("stream_get_contents(STDIN", cli)
         self.assertNotIn("echo $password", cli)
+        self.assertIn("createPendingFactory", vault)
+        self.assertIn("'FACTORY'", vault)
+        self.assertIn("store-factory", cli)
+        self.assertIn("store-factory EC:74:D7:1E:E8:E3", helper)
         self.assertIn("credential-smoke-grp2601p", helper)
         self.assertIn("phone_write=NO", helper)
         self.assertIn("runs-on: [self-hosted, Linux, X64, issabel-lab]", workflow)
