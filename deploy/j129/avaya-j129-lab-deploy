@@ -306,7 +306,7 @@ credential_smoke_grp2601p() {
   chmod 0600 "$report"
   trap 'unset password PHONE_PASSWORD; rm -f "$report"' RETURN EXIT
 
-  "$ENDPOINT_CREDENTIAL_CLI" store-override EC:74:D7:1E:E8:E3
+  "$ENDPOINT_CREDENTIAL_CLI" store-factory EC:74:D7:1E:E8:E3
   password="$(ENDPOINT_CREDENTIAL_ALLOW_EMIT=1 "$ENDPOINT_CREDENTIAL_CLI" emit-pending EC:74:D7:1E:E8:E3)"
   [ -n "$password" ] || { echo 'ERROR: credencial descifrada vacía' >&2; exit 1; }
   export PHONE_PASSWORD="$password"
