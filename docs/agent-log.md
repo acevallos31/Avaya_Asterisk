@@ -21,7 +21,7 @@ NOT-TESTED
 
 ---
 
-## 2026-09-11 — Codex — GRP2601P Tests 62–64
+## 2026-09-12 — Codex — GRP2601P Tests 62–64 cerrados
 
 Se inició el ciclo autorizado sobre un GRP2601P de fábrica. Test 62 run
 `34620373267` identificó de forma read-only `192.168.1.176`,
@@ -34,38 +34,29 @@ no existía. Se amplió el cambio reversible para insertar OUI y modelo. Run
 `34620390872`: OUI APPLY PASS, modelo ID 149, dos cuentas SIP máximas y
 discovery stock exacto PASS; fila única, no seleccionada y sin cuentas.
 
-Antes de modificar el helper se retiraron los triggers por cambios del helper
-de los workflows mutantes GXP1630, evitando repetir Configure accidentalmente.
-Los audits 58/61 se limitaron a activarse por cambios de su propio workflow.
+Test 64 pasó por varias fases de diagnóstico. El run `34620889592` quedó
+`CREDENTIAL-BLOCKED`; `34628195632`/`34628373795` usaron un secret
+incorrecto; `34642689024` confirmó que la contraseña GXP1625 no aplica. Los
+runs `34647374500`/`34647476040` sí usaron el secret de etiqueta
+MAC-bound, pero el harness todavía aplicaba el login heredado GXP y por ello
+clasificó erróneamente la credencial como rechazada.
 
-Test 64 run `34620889592`: preflight server PASS y
-`CREDENTIAL-BLOCKED` por ausencia de
-`GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`. Los runs
-`34628195632`/`34628373795` apuntaron por error a
-`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`; el primero además expuso y permitió
-corregir un `HARNESS-FAIL` del parser. Esa evidencia no evaluaba el secreto
-que indicó el operador.
+Se inspeccionó sin credenciales el JavaScript público del GRP y se reconstruyó
+el contrato real: `/cgi-bin/access` recibe el hash del usuario, devuelve un
+nonce y `/cgi-bin/dologin` recibe `SHA256(password + nonce)`. La contraseña
+nunca se imprimió ni se envió en claro.
 
-El workflow se corrigió para usar
-`GRANDSTREAM_GXP1625_HTTP_PASSWORD`. Run definitivo `34642689024`: identidad
-IP/MAC exacta, preflight server PASS, HTTP 200, `login=FAILED` y
-`TEST64-GRP2601P-AUTH-READ=GXP-CANDIDATE-REJECTED`. No hubo escrituras,
-reinicio, provisioning ni firmware upgrade.
+Run autoritativo `34664338896`: ambos jobs `success`. Evidencia sanitizada:
+`credential_source=GRP2601P_LABEL_MAC_BOUND`, `credential_sent=HASHED`,
+`access_nonce_present=YES`, `login=SUCCESS`, `read=SUCCESS`,
+`read_top_keys=configs`, `read_value_count=12`, `model_match=YES`.
+Estado leído: `P212=EMPTY`, `P237=EMPTY`; no hay prefijo/postfijo ni
+credenciales HTTP de provisioning. `phone_write=NO`,
+`endpointconfig_write=NO`, `firmware_upgrade=NO`.
 
-Estado actual: Endpoint Configurator ya detecta GRP2601P. La contraseña del
-GXP1625 tampoco autentica este equipo; se requiere la contraseña aleatoria de
-la etiqueta en el secret GRP dedicado. Provisioning autenticado, cfg/XML y SIP
-siguen `NOT-TESTED` hasta cerrar Test 64.
-
-La credencial de etiqueta se cargó posteriormente en el secret MAC-bound
-`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`. Run `34647374500`:
-secret presente e identidad exacta, pero login falló. Para excluir una
-diferencia de formato del SID se añadió clasificación sanitizada y se repitió
-sin escrituras. Run confirmatorio `34647476040`: HTTP 200,
-`login_response_class=ERROR`, cuerpo string y `login=FAILED`. El teléfono
-rechazó explícitamente la credencial. Se suspenden más intentos hasta verificar
-visualmente caracteres y copia del valor de la etiqueta.
-
+Resultado: Test 64 `LAB-READ-PASS`. La credencial de la etiqueta es válida;
+el fallo anterior era de contrato del harness. Queda habilitado Test 65 para
+bootstrap controlado y reversible del servidor de configuración.
 
 ## 2026-09-12 — Codex — diseño de credenciales Endpoint Configurator
 
