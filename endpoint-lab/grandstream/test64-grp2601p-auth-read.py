@@ -128,21 +128,18 @@ log("contract_dologin_present=" + ("YES" if "dologin" in contract_text else "NO"
 log("contract_challenge_present=" + ("YES" if "challenge" in contract_text or "nonce" in contract_text else "NO"))
 log("contract_hash_present=" + ("YES" if "sha256" in contract_text or "md5" in contract_text else "NO"))
 
-if CONTRACT_ONLY:
-    log("credential_sent=NO")
-    log("TEST64-GRP2601P-CONTRACT-READ=PASS")
-    raise SystemExit(0)
-
 will_status, _, _ = request(conn, "GET", "/api-will_login", None, headers)
 log("will_login_http=" + str(will_status))
 
 access_digest = hashlib.sha256(USERNAME.encode("utf-8")).hexdigest()
 access_body_encoded = urllib.parse.urlencode({"access": access_digest})
-access_status, access_raw, _ = request(conn, "POST", "/access", access_body_encoded, headers)
+access_status, access_raw, access_headers = request(conn, "POST", "/access", access_body_encoded, headers)
 try:
     access_reply = json.loads(access_raw)
+    access_json_valid = isinstance(access_reply, dict)
 except Exception:
     access_reply = {}
+    access_json_valid = False
 access_response = access_reply.get("response")
 access_payload = access_reply.get("body")
 if isinstance(access_payload, str):
@@ -150,16 +147,42 @@ if isinstance(access_payload, str):
 elif isinstance(access_payload, dict):
     nonce = str(access_payload.get("nonce") or access_payload.get("challenge") or "").strip()
 else:
-    nonce = ""
+    nonce = str(
+        access_reply.get("nonce")
+        or access_reply.get("challenge")
+        or access_reply.get("access")
+        or ""
+    ).strip()
+if not nonce and not access_json_valid:
+    plain_candidate = access_raw.strip()
+    if 4 <= len(plain_candidate) <= 256 and "<" not in plain_candidate:
+        nonce = plain_candidate
+content_type = next(
+    (value.split(";", 1)[0] for name, value in access_headers if name.lower() == "content-type"),
+    "MISSING",
+)
 log("access_http=" + str(access_status))
+log("access_content_type=" + content_type)
+log("access_json_valid=" + ("YES" if access_json_valid else "NO"))
+log("access_top_keys=" + (
+    ",".join(sorted(str(key) for key in access_reply.keys()))
+    if access_json_valid else "NONE"
+))
 log("access_response_class=" + (
     "SUCCESS" if access_response == "success"
     else "ERROR" if access_response == "error"
     else "MISSING" if access_response is None
     else "OTHER"
 ))
+log("access_body_type=" + type(access_payload).__name__.upper())
 log("access_nonce_present=" + ("YES" if nonce else "NO"))
-if access_status != 200 or access_response != "success" or not nonce:
+
+if CONTRACT_ONLY:
+    log("credential_sent=NO")
+    log("TEST64-GRP2601P-CONTRACT-READ=PASS")
+    raise SystemExit(0)
+
+if access_status != 200 or access_response == "error" or not nonce:
     log("credential_sent=NO")
     log("diagnostic=GRP_ACCESS_CHALLENGE_FAILED")
     log("TEST64-GRP2601P-AUTH-READ=FAILED")
