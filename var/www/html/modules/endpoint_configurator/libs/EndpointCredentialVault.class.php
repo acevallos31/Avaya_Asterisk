@@ -132,7 +132,7 @@ class EndpointCredentialVault
         );
     }
 
-    public function createPendingGlobal($pbxIdentity, $password)
+    public function createPendingGlobal($pbxIdentity, $password, $actor = 'issabel-ui')
     {
         if ($this->_db === NULL || !$this->validatePassword($password)) return FALSE;
         $encrypted = $this->encrypt($password);
@@ -147,6 +147,14 @@ class EndpointCredentialVault
             'ON DUPLICATE KEY UPDATE pbx_identity = VALUES(pbx_identity), pending_version = VALUES(pending_version), ' .
             'ciphertext = VALUES(ciphertext), key_reference = VALUES(key_reference), status = VALUES(status), created_at = VALUES(created_at)';
         if (!$this->_db->genQuery($sql, array($pbxIdentity, $current['active_version'], $next, $encrypted, self::KEY_REFERENCE, 'PENDING', $now))) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        $correlation = sprintf('%08x-%04x-%04x-%04x-%012x', mt_rand(0, 0xffffffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffffffffffff));
+        if (!$this->_db->genQuery(
+            'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (NULL, ?, ?, ?, ?, ?)',
+            array('CREATE_PENDING', 'PENDING', substr((string)$actor, 0, 191), $correlation, $now)
+        )) {
             $this->_errMsg = $this->_db->errMsg;
             return FALSE;
         }
