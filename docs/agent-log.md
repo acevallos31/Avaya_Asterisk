@@ -58,6 +58,75 @@ Resultado: Test 64 `LAB-READ-PASS`. La credencial de la etiqueta es válida;
 el fallo anterior era de contrato del harness. Queda habilitado Test 65 para
 bootstrap controlado y reversible del servidor de configuración.
 
+## 2026-09-12 — Codex — GRP2601P Tests 65–66
+
+Se completó el ciclo autorizado desde teléfono de fábrica usando únicamente
+`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`.
+
+Test 65:
+
+- run `34670448152`: preflight autenticado read-only PASS; confirmó
+  `/cgi-bin/config_get` y descubrió `PUT /cgi-bin/config_update`;
+- run `34670575973`: bootstrap controlado PASS; escritura limitada a
+  P212/P237, lectura posterior exacta, reboot aceptado, caída/retorno HTTP y
+  persistencia post-reboot PASS;
+- no se asignó extensión, no se ejecutó Configure y no hubo firmware upgrade.
+
+Test 66:
+
+- run `34670740654`: preflight PASS; endpoint ID 8 exacto, sin cuentas,
+  extensión 203 presente/libre/no registrada;
+- run `34671167798`: `HARNESS-FAIL`; el probe GRP omitía `/cgi-bin` y
+  el vendor cayó en GXP140x. Issabel devolvió exit 0 aunque el endpoint falló,
+  dejando selección/cuenta/cfg de etapa;
+- run `34677542766`: fallo seguro del preflight por detectar esa etapa;
+- se añadió recuperación exacta, detección del mensaje interno de fallo y
+  rollback aunque `issabel-endpointconfig` retorne 0;
+- run autoritativo `34677554254`: los cinco jobs terminaron success.
+  Recuperación PASS, preflight PASS, patch GRP26xx v2 PASS, Configure 203 PASS
+  y auditoría E2E PASS.
+
+Evidencia final:
+
+```text
+credential_transport=STDIN_EPHEMERAL
+model_password_restored=YES
+endpoint_account=203
+binary_cfg_present=YES
+xml_cfg_present=YES
+endpoint_count=1
+selected=0
+account_count=1
+sip_203_ip=192.168.1.176
+phone_http=200
+GRP2601P-POST-CONFIG-AUDIT-PASS
+```
+
+Se agregó soporte reversible al vendor live para challenge
+`access -> nonce -> dologin`, escritura JSON `config_update` y reboot con
+SID. El primer patch v1 fue revertido y reemplazado por v2 al corregir la ruta
+`/cgi-bin/api-will_login`. SHA live final sanitizado:
+`5ccad4c3bd7f53a6bddf51d09e9b60c686b5c421d640cc2a24f097600d2b55ac`.
+
+Archivos principales modificados:
+
+```text
+endpoint-lab/grandstream/test65-grp2601p-bootstrap.py
+.github/workflows/lab-grandstream-grp2601p-bootstrap.yml
+.github/workflows/lab-grandstream-grp2601p-configure.yml
+deploy/j129/avaya-j129-lab-deploy
+AGENTS.md
+CONTEXT.md
+docs/j129-test-registry.md
+docs/grandstream-grp2601p-cycle.md
+docs/agent-log.md
+```
+
+Estado: `LAB-INTEGRATION-PASS`; llamada/audio física `NOT-TESTED`. El
+puente de contraseña por stdin y sustitución temporal/restaurada del
+model_property se limita a LAB. Producción sigue bloqueada hasta implementar
+almacenamiento cifrado y entrada de credenciales desde la UI.
+
 ## 2026-09-12 — Codex — diseño de credenciales Endpoint Configurator
 
 Se formalizó `docs/endpoint-configurator-credential-lifecycle.md` para la
