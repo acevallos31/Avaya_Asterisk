@@ -110,6 +110,13 @@ caracteres. Se corrigió el modelo: la credencial inicial queda como `FACTORY`,
 cifrada y ligada a la MAC, mientras que `OVERRIDE` conserva la política fuerte
 de contraseña administrativa final. No hubo escritura en el teléfono.
 
+Run `34683934974`: esquema/runtime PASS y smoke autenticado PASS con la
+credencial `FACTORY`; el teléfono aceptó login y lectura sin escritura. La
+última verificación falló únicamente porque intentaba ejecutar el CLI interno
+directamente con `sudo`, fuera del allowlist existente. Se cambió a la acción
+sanitizada `credential-status-grp2601p` del helper ya autorizado, sin ampliar
+sudoers.
+
 Decisión operativa: no repetir grant/revoke en cada despliegue. `asteriskuser`
 conserva `CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
 credenciales y `REFERENCES` sobre la tabla padre `endpoint`; no recibe `DROP`,
