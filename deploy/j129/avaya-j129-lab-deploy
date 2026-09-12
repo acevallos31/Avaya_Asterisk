@@ -30,7 +30,7 @@ ENDPOINT_CREDENTIAL_CLI="/usr/local/libexec/issabel-endpoint-credential-vault"
 RUNNER_WORKSPACE="/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {install-endpoint-credential-runtime|verify-endpoint-credential-runtime} <workspace> | rollback-endpoint-credential-runtime | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix] | {install-endpoint-credentials|ensure-endpoint-credentials|rollback-endpoint-credentials|credential-smoke-grp2601p}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {install-endpoint-credential-runtime|verify-endpoint-credential-runtime} <workspace> | rollback-endpoint-credential-runtime | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix] | {install-endpoint-credentials|ensure-endpoint-credentials|rollback-endpoint-credentials|credential-smoke-grp2601p|credential-status-grp2601p}" >&2
   exit 2
 }
 
@@ -324,6 +324,10 @@ credential_smoke_grp2601p() {
   echo 'phone_write=NO'
   echo 'TEST68-ENDPOINT-CREDENTIAL-GRP2601P-SMOKE=PASS'
   rm -f "$report"; trap - RETURN EXIT
+}
+
+credential_status_grp2601p() {
+  "$ENDPOINT_CREDENTIAL_CLI" status EC:74:D7:1E:E8:E3
 }
 
 run_manufacturer_inspection() {
@@ -1398,6 +1402,7 @@ case "$ACTION" in
   verify-endpoint-credential-runtime) [ -n "$OVERLAY_ROOT" ] || usage; verify_endpoint_credential_runtime "$OVERLAY_ROOT" ;;
   rollback-endpoint-credential-runtime) [ -z "$OVERLAY_ROOT" ] || usage; rollback_endpoint_credential_runtime ;;
   credential-smoke-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; credential_smoke_grp2601p ;;
+  credential-status-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; credential_status_grp2601p ;;
   inspect-manufacturer) run_manufacturer_inspection "${2:-}" "${3:-}" "${4:-}" ;;
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;
