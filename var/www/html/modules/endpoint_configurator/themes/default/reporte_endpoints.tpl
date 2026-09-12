@@ -203,7 +203,7 @@
             <label>{/literal}{$LBL_CONFIRM_GLOBAL_PASSWORD}{literal}</label><br />
             {{view Ember.TextField type="password" valueBinding="globalPasswordConfirmation" autocomplete="new-password"}}
         </p>
-        <button type="button" {{action "savePendingRotation"}} disabled="{{savingPolicy}}">
+        <button type="button" {{action "savePendingRotation"}} {{bindAttr disabled="savingPolicy"}}>
             {/literal}{$LBL_SAVE_PENDING_ROTATION}{literal}
         </button>
         <button type="button" {{action "cancelSecurity"}}>Back</button>
@@ -232,5 +232,6 @@
 
 <script type="text/javascript">
 var lastop_error_message = {$LASTOP_ERROR_MESSAGE};
+var credential_csrf = {$CREDENTIAL_CSRF};
 var arrLang_main = {$ARRLANG_MAIN};
 </script>
