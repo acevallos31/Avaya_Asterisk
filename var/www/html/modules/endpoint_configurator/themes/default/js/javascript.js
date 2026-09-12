@@ -722,6 +722,51 @@ $(document).ready(function() {
 				this.set('saveError', 'Unable to save administrative credential policy.');
 			}.bind(this));
 		},
+		overrideMac: '',
+		overridePassword: '',
+		overridePasswordConfirmation: '',
+		savingOverride: false,
+
+		saveEndpointOverride: function() {
+			this.set('savingOverride', true);
+			$.post('index.php?menu=' + module_name + '&rawmode=yes', {
+				menu: module_name, rawmode: 'yes',
+				action: 'saveEndpointCredentialOverride',
+				mac_address: this.get('overrideMac'),
+				override_password: this.get('overridePassword'),
+				override_password_confirmation: this.get('overridePasswordConfirmation'),
+				credential_csrf: credential_csrf
+			}, function(respuesta) {
+				this.set('savingOverride', false);
+				if (respuesta.status == 'error') {
+					this.set('saveError', respuesta.message);
+					return;
+				}
+				this.set('overridePassword', '').set('overridePasswordConfirmation', '');
+				this.set('saveMessage', respuesta.message);
+			}.bind(this)).fail(function() {
+				this.set('savingOverride', false);
+				this.set('saveError', 'Unable to save endpoint override.');
+			}.bind(this));
+		},
+
+		clearEndpointOverride: function() {
+			this.set('savingOverride', true);
+			$.post('index.php?menu=' + module_name + '&rawmode=yes', {
+				menu: module_name, rawmode: 'yes',
+				action: 'clearEndpointCredentialOverride',
+				mac_address: this.get('overrideMac'),
+				credential_csrf: credential_csrf
+			}, function(respuesta) {
+				this.set('savingOverride', false);
+				if (respuesta.status == 'error') this.set('saveError', respuesta.message);
+				else this.set('saveMessage', respuesta.message);
+			}.bind(this)).fail(function() {
+				this.set('savingOverride', false);
+				this.set('saveError', 'Unable to clear endpoint override.');
+			}.bind(this));
+		},
+
 		cancelSecurity: function() {
 			this.get('target.router').transitionTo('endpoints.index');
 		}
