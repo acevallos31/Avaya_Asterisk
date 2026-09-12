@@ -500,3 +500,8 @@ siguiente actividad acordada: prueba de llamada en LAB
 ## 2026-09-12 — Test 67: bloqueo de privilegios DDL en LAB
 
 Run 34679549816 confirmó el selector correcto issabel-lab, el runner issabel-lab-casa, el guard de entorno y la auditoría estática PASS. La aplicación del esquema no pudo comenzar porque asteriskuser recibió MySQL 1142 CREATE command denied sobre endpointconfig. El rollback se ejecutó y confirmó que no había estado creado. Resultado: INFRA-BLOCKED; no se declara PASS de migración y no hubo cambios en producción. Pendiente: habilitar un helper DBA root-owned y allowlisted para DDL de esta migración, o conceder temporalmente el privilegio mínimo solo en LAB.
+
+
+## 2026-09-12 — Test 67 cerrado en LAB
+
+Run 34681386727 completó el ciclo de fundación de credenciales: static audit PASS, helper restringido sincronizado, DDL de las tres tablas aplicado y verificado, y rollback obligatorio PASS. No se tocaron teléfonos ni producción. El resultado queda como LAB-SCHEMA-CYCLE-PASS; el grant DDL debe retirarse después de la validación.
