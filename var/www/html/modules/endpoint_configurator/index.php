@@ -64,6 +64,12 @@ function _moduleContent(&$smarty, $module_name)
     $smarty->assign('LASTOP_ERROR_MESSAGE', 'null');
 
     // Inicialización del estado del módulo
+    if (!isset($_SESSION[$module_name]['credential_csrf'])) {
+        $bytes = function_exists('openssl_random_pseudo_bytes') ? openssl_random_pseudo_bytes(24) : uniqid('', TRUE);
+        $_SESSION[$module_name]['credential_csrf'] = bin2hex($bytes);
+    }
+    $credentialCsrf = $_SESSION[$module_name]['credential_csrf'];
+
     if (!isset($_SESSION[$module_name])) $_SESSION[$module_name] = array(
         'estadoCliente'     =>  NULL,
         'estadoClienteHash' =>  NULL,
@@ -114,6 +120,7 @@ function handleHTML_mainReport($smarty, $module_name, $local_templates_dir, $dlg
     $json = new Services_JSON();
     $smarty->assign(array(
         'title'                     =>  _tr('Endpoint Configurator'),
+        'CREDENTIAL_CSRF'           =>  $json->encode($credentialCsrf),
         'icon'                      =>  'modules/'.$module_name.'/images/pbx_endpoint_configurator.png',
         'showing'                   =>  _tr('Showing'),
         'of'                        =>  _tr('of'),
@@ -226,7 +233,12 @@ function handleJSON_saveCredentialPolicy($smarty, $module_name, $local_templates
     $respuesta = array('status' => 'success', 'message' => '(no message)');
     $password = isset($_REQUEST['global_password']) ? (string)$_REQUEST['global_password'] : '';
     $confirmation = isset($_REQUEST['global_password_confirmation']) ? (string)$_REQUEST['global_password_confirmation'] : '';
-    if ($password === '' || $password !== $confirmation) {
+    $csrf = isset($_REQUEST['credential_csrf']) ? (string)$_REQUEST['credential_csrf'] : '';
+    $expectedCsrf = isset($_SESSION[$module_name]['credential_csrf']) ? $_SESSION[$module_name]['credential_csrf'] : '';
+    if ($expectedCsrf === '' || !function_exists('hash_equals') || !hash_equals($expectedCsrf, $csrf)) {
+        $respuesta['status'] = 'error';
+        $respuesta['message'] = _tr('Invalid security token.');
+    } elseif ($password === '' || $password !== $confirmation) {
         $respuesta['status'] = 'error';
         $respuesta['message'] = _tr('Administrative passwords must be present and match.');
     } else {
