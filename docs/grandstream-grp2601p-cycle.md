@@ -49,34 +49,70 @@ a ciegas.
 6. Validación física manual de llamadas/audio por el operador.
 
 
-Los Tests 62–64 están cerrados. Test 65 queda habilitado para el bootstrap
-controlado; Test 66 permanece reservado hasta validar ese cambio.
+Los Tests 62–66 están cerrados en LAB. La validación física manual de
+llamadas/audio permanece pendiente.
 
 ## Reglas de seguridad
 
-- Rama `Audit` y runner `issabel-lab` exclusivamente.
-- No imprimir contraseñas, cookies, SID, nonces ni secretos SIP.
+- Rama `Audit` y runners LAB etiquetados exclusivamente.
+- No imprimir contraseñas, cookies, SID, nonces, hashes ni secretos SIP.
 - No probar listas de contraseñas.
-- No escribir teléfono/DB durante Test 62 o Test 64.
 - No actualizar firmware automáticamente.
-- Toda escritura posterior requiere IP/MAC/modelo inequívocos y rollback.
-- Asterisk será la fuente autoritativa del registro SIP.
+- Toda escritura requiere IP/MAC/modelo inequívocos, verificación y rollback.
+- Asterisk es la fuente autoritativa del registro SIP.
+- El bridge de contraseña por stdin y sustitución temporal del model_property
+  es solo para LAB; producción exige almacenamiento cifrado y UI.
 
 ## Evidencia ejecutada
 
 | Test | Run | Resultado |
 |---:|---:|---|
 | 62 | 34620373267 | LAB-READ-PASS: IP/MAC/modelo exactos; OUI y modelo ausentes en DB stock |
-| 63 inicial | 34620205736 | Detención segura antes de escritura: OUI ausente |
-| 63 corregido | 34620390872 | LAB-FIX-PASS: OUI + modelo ID 149; discovery stock exacto |
-| 64 inicial | 34620889592 | Server preflight PASS; CREDENTIAL-BLOCKED por secret GRP ausente |
-| 64 parser | 34628195632 | HARNESS-FAIL y secret equivocado |
-| 64 candidato GXP1625 | 34642689024 | Credencial GXP1625 rechazada; no aplica al GRP |
-| 64 contrato heredado | 34647374500 / 34647476040 | Secret de etiqueta presente, pero harness usó login GXP directo incompatible |
-| 64 contrato público | 34663567407–34664179623 | Inspección sin credencial reconstruyó challenge `access` + nonce/SHA-256 |
-| 64 autoritativo | 34664338896 | LAB-READ-PASS: ambos jobs success, login/read/model match PASS, sin escrituras |
+| 63 | 34620390872 | LAB-FIX-PASS: OUI + modelo ID 149; discovery stock exacto |
+| 64 | 34664338896 | LAB-READ-PASS: contraseña de etiqueta válida con nonce/SHA-256; lectura sin escrituras |
+| 65 preflight | 34670448152 | Contrato público GRP: `config_update`, no `api.values.post` |
+| 65 | 34670575973 | LAB-FIX-PASS: P212/P237, reboot y persistencia PASS |
+| 66 preflight | 34670740654 | Endpoint exacto limpio; SIP 203 presente, libre y no registrado |
+| 66 intento 1 | 34671167798 | HARNESS-FAIL: probe sin `/cgi-bin`; ruta GXP usada por error |
+| 66 recuperación inicial | 34677542766 | Preflight detuvo la repetición por etapa pendiente |
+| 66 autoritativo | 34677554254 | LAB-INTEGRATION-PASS: recovery, patch v2, Apply, cfg/XML, HTTP y SIP 203 PASS |
 
-Estado del endpoint después de Test 64:
+## Contrato GRP2601P comprobado
+
+```text
+POST /cgi-bin/access
+  access = SHA256(username)
+  response.body = nonce
+
+POST /cgi-bin/dologin
+  username = admin
+  password = SHA256(label_password + nonce)
+  response.body = SID
+
+PUT /cgi-bin/config_update
+  Content-Type: application/json
+  body = {"alias": {}, "pvalue": {...}}
+
+GET /cgi-bin/api-sys_operation?request=REBOOT&sid=<SID>
+```
+
+El teléfono nunca recibe la contraseña administrativa en texto claro durante
+el challenge. Los reportes no contienen contraseña, nonce, hash, SID, cookie ni
+secreto SIP.
+
+## Hallazgos del harness
+
+Issabel puede devolver exit code 0 aunque un endpoint individual termine con
+`failed configuration`. Test 66 ahora trata ese mensaje como fallo, elimina
+cuenta/selección/cfg de etapa y conserva un recovery idempotente antes de cada
+reintento.
+
+El patch GRP26xx es reversible y se instala únicamente si el SHA del
+`Grandstream.py` live coincide con el baseline comprobado. El patch v1 fue
+revertido antes de instalar v2 porque el probe debía consultar
+`/cgi-bin/api-will_login`.
+
+## Estado final LAB
 
 ```text
 IP=192.168.1.176
@@ -87,50 +123,29 @@ model_id=149
 max_accounts=2
 max_sip_accounts=2
 selected=0
-account_count=0
-P212=EMPTY
-P237=EMPTY
+account_count=1
+account=203
+P212=0
+P237=192.168.1.10
+binary_cfg_present=YES
+xml_cfg_present=YES
+phone_http=200
+sip_203_ip=192.168.1.176
 ```
 
-La causa de la falta de detección quedó cerrada: Issabel no contenía la OUI
-`EC:74:D7` ni el modelo `GRP2601P`. Ambos fueron agregados con estado de
-rollback. El teléfono no ha sido configurado ni reiniciado.
-
-## Contrato de autenticación comprobado
-
-El GRP2601P no acepta el POST heredado GXP con contraseña directa. Su interfaz
-Web ejecuta este challenge:
-
-1. `POST /cgi-bin/access` con `SHA256(username)`.
-2. La respuesta entrega un nonce.
-3. `POST /cgi-bin/dologin` con el usuario y
-   `SHA256(password + nonce)`.
-4. La sesión autenticada permite `GET /cgi-bin/config_get`.
-
-El harness solo registra clasificaciones y estados sanitizados. La contraseña
-de etiqueta, el nonce, el hash y las cookies no se publican.
+Las extensiones 201 y 202 no fueron desplazadas al GRP. El password temporal
+del modelo fue restaurado después de Apply.
 
 ## Gate vigente
 
-Test 64 está cerrado con la credencial específica
-`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`:
+Estado técnico: `LAB-INTEGRATION-PASS`.
 
-```text
-credential_source=GRP2601P_LABEL_MAC_BOUND
-credential_sent=HASHED
-access_nonce_present=YES
-login=SUCCESS
-read=SUCCESS
-model_match=YES
-P212=EMPTY
-P237=EMPTY
-phone_write=NO
-endpointconfig_write=NO
-firmware_upgrade=NO
-```
+Pendiente antes de producción:
 
-El gate para Test 65 está abierto. El bootstrap deberá limitarse al teléfono
-exacto `192.168.1.176` / `EC:74:D7:1E:E8:E3`, escribir únicamente los
-P-values de servidor de configuración previamente definidos, verificar la
-lectura posterior y conservar rollback. No asignará extensión ni ejecutará
-Configure todavía.
+1. confirmar físicamente llamada entrante/saliente y audio con la extensión 203;
+2. implementar almacenamiento cifrado de credenciales administrativas;
+3. agregar captura manual y carga masiva por MAC desde Endpoint Configurator;
+4. definir contraseña administrativa final global por PBX y override por
+   endpoint;
+5. repetir el flujo desde la UI y documentar la evidencia;
+6. preparar después un canario productivo con preflight y rollback propios.
