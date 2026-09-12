@@ -548,3 +548,13 @@ Run 34679549816 confirmó el selector correcto issabel-lab, el runner issabel-la
 ## 2026-09-12 — Test 67 cerrado en LAB
 
 Run 34681386727 completó el ciclo de fundación de credenciales: static audit PASS, helper restringido sincronizado, DDL de las tres tablas aplicado y verificado, y rollback obligatorio PASS. No se tocaron teléfonos ni producción. El resultado queda como LAB-SCHEMA-CYCLE-PASS; el grant DDL debe retirarse después de la validación.
+## 2026-09-12 — Codex — Test 68: DDL resuelto y credencial FACTORY
+
+Se relanzaron únicamente los jobs fallidos del run `34683238936`. Los grants
+permanentes limitados funcionaron: esquema persistente y runtime quedaron PASS.
+El smoke se detuvo antes del login porque la credencial de etiqueta GRP2601P
+era tratada como un override administrativo final y rechazada por su mínimo de
+12 caracteres. Se separó el flujo `FACTORY` (8–128, cifrada y ligada a MAC) del
+flujo `OVERRIDE` final (12–128). La lectura/validación acepta ambos orígenes
+pendientes sin exponer el secreto. No hubo escritura en el teléfono ni cambios
+en producción. Pendiente: publicar y repetir Test 68.
