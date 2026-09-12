@@ -90,6 +90,12 @@ for source in script_sources[:12]:
         if "dologin" in markers or "challenge" in markers or "nonce" in markers:
             safe_name = os.path.basename(parsed.path or script_path)
             log("contract_asset=" + safe_name + ";markers=" + ",".join(markers))
+            if "dologin" in markers:
+                pos = script_lower.find("dologin")
+                snippet = script_raw[max(0, pos - 900):pos + 1400]
+                snippet = re.sub(r"\\s+", " ", snippet)
+                snippet = re.sub(r"(?i)[0-9a-f]{32,}", "<HEX>", snippet)
+                log("contract_dologin_context=" + snippet)
 log("root_local_script_count=" + str(local_script_count))
 log("contract_dologin_present=" + ("YES" if "dologin" in contract_text else "NO"))
 log("contract_challenge_present=" + ("YES" if "challenge" in contract_text or "nonce" in contract_text else "NO"))
