@@ -1,15 +1,15 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
-## Grandstream GRP2601P — Tests 62–64 — 2026-09-11
+## Grandstream GRP2601P — Tests 62–64 — 2026-09-12
 
-Ciclo LAB iniciado sobre el equipo de fábrica detectado en
-`192.168.1.176`, MAC `EC:74:D7:1E:E8:E3`.
+Ciclo LAB sobre el equipo de fábrica detectado en `192.168.1.176`, MAC
+`EC:74:D7:1E:E8:E3`.
 
 Test 62 autoritativo, run `34620373267`: `LAB-READ-PASS`. Identidad
 GRP2601P única, HTTP 200, firmware no expuesto sin autenticación. La DB stock
 no contenía ni la OUI `EC:74:D7` ni el modelo. El run inicial
-`34619751876` tuvo una clasificación OUI falsa positiva por buscar el prefijo
-en el encabezado del reporte; se corrigió el parser y se repitió sin escrituras.
+`34619751876` tuvo una clasificación OUI falsa positiva; se corrigió el
+parser y se repitió sin escrituras.
 
 Test 63: el primer run `34620205736` falló seguro antes de escribir al
 confirmar que faltaba la OUI. El run corregido `34620390872` agregó
@@ -18,30 +18,30 @@ reversiblemente OUI y modelo ID 149, `max_accounts=2`,
 Grandstream/GRP2601P en `.176`, `selected=0`, cero cuentas. Estado
 `LAB-FIX-PASS`.
 
-Test 64: el run `34620889592` dejó server preflight PASS y
-`CREDENTIAL-BLOCKED` por ausencia del secret GRP. Los runs
-`34628195632`/`34628373795` usaron por error
-`GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`; sirven para validar el parser y el
-rechazo de esa credencial, pero no evaluaban el secreto indicado por el
-operador. Corregido el workflow, el run definitivo `34642689024` usó
-`GRANDSTREAM_GXP1625_HTTP_PASSWORD` y confirmó identidad exacta, server
-preflight PASS, HTTP 200 y `login=FAILED`/`GXP-CANDIDATE-REJECTED`.
-No hubo escritura, reinicio, provisioning ni firmware upgrade.
+Test 64 quedó cerrado con `LAB-READ-PASS` en el run autoritativo
+`34664338896`. Ambos jobs terminaron en `success`: preflight exacto de la
+fila del Endpoint Configurator y lectura autenticada del teléfono. Se usó
+exclusivamente el secret MAC-bound
+`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD`, correspondiente a la
+contraseña de la etiqueta.
 
-Próximo paso: leer la contraseña administrativa aleatoria de la etiqueta del
-GRP2601P y cargarla en `GRANDSTREAM_GRP_HTTP_DEFAULT_PASSWORD`; luego repetir
-Test 64. Solo después de `login=SUCCESS` y lectura de P212/P237 se
-implementará bootstrap/Configure.
+La investigación del contrato Web demostró que los runs
+`34647374500`/`34647476040` no probaron correctamente la credencial:
+intentaban el login heredado GXP en texto directo. El GRP2601P requiere
+`POST /cgi-bin/access` con hash del usuario, recibe un nonce y luego
+`POST /cgi-bin/dologin` con `SHA256(password + nonce)`. Con ese contrato,
+el run final obtuvo `access_http=200`, `access_nonce_present=YES`,
+`credential_sent=HASHED`, `login=SUCCESS`, `read=SUCCESS` y
+`model_match=YES`.
 
-Actualización Test 64: el secret específico
-`GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD` fue probado en el run
-`34647374500`. Tras ampliar solo la clasificación sanitizada del contrato,
-el run confirmatorio `34647476040` devolvió HTTP 200,
-`login_response_class=ERROR`, `login_body_type=STR` y `login=FAILED`.
-Esto confirma rechazo explícito de la credencial, no un problema de parser o
-SID. Sin escrituras. Se detienen los intentos hasta verificar visualmente y
-volver a copiar la contraseña de la etiqueta.
+La lectura confirmó estado de fábrica: `P212=EMPTY`, `P237=EMPTY`, sin
+prefijo/postfijo de configuración y sin credenciales HTTP de provisioning
+expuestas. Firmware y hardware no fueron expuestos por esta API. No hubo
+escritura, reinicio, provisioning ni upgrade de firmware.
 
+Próximo paso autorizado del ciclo: Test 65, bootstrap controlado y reversible
+del servidor de configuración sobre la identidad exacta del GRP2601P. Test 66
+seguirá reservado para Configure, artefactos cfg/XML, SIP y auditoría E2E.
 
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
