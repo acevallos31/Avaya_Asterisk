@@ -66,6 +66,20 @@ sin escrituras. Run confirmatorio `34647476040`: HTTP 200,
 rechazó explícitamente la credencial. Se suspenden más intentos hasta verificar
 visualmente caracteres y copia del valor de la etiqueta.
 
+
+## 2026-09-12 — Codex — diseño de credenciales Endpoint Configurator
+
+Se formalizó `docs/endpoint-configurator-credential-lifecycle.md` para la
+contraseña administrativa final global por PBX y el override opcional por MAC.
+El diseño separa credencial inicial, contraseña Web Admin final y secretos SIP;
+define cifrado en reposo, importación masiva sin persistir CSV, rotación por
+lotes, rollback y estados de registro SIP consultados desde Asterisk.
+
+Se actualizó `AGENTS.md` con las reglas de seguridad correspondientes. No se
+modificó código operativo ni se ejecutó Configure; el siguiente paso es
+implementar el almacenamiento cifrado y el menú en LAB.
+
+
 ## 2026-09-11 — Codex — inicia Test 57 GXP1630 provisioning cycle
 
 El operador autorizó completar y documentar el ciclo LAB sin nuevas preguntas.
