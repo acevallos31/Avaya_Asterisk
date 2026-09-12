@@ -580,3 +580,8 @@ respuesta no devuelve contraseñas. No se invoca Configure ni se contacta ningú
 teléfono. Auditoría local: 10/10 PASS; el lint PHP queda cubierto por la
 validación estática remota. Pendiente: Test LAB de importación con archivo de
 prueba controlado, sin producción.
+
+Run `34698714634` terminó PASS: auditoría estática, instalación del runtime,
+lint PHP en LAB y smoke autenticado read-only GRP2601P. La carga CSV real no se
+incluyó porque requiere un archivo de credenciales válido suministrado por el
+operador; no hubo cambio de contraseña ni escritura a teléfonos.
