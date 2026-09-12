@@ -705,7 +705,8 @@ $(document).ready(function() {
 				rawmode: 'yes',
 				action: 'saveCredentialPolicy',
 				global_password: this.get('globalPassword'),
-				global_password_confirmation: this.get('globalPasswordConfirmation')
+				global_password_confirmation: this.get('globalPasswordConfirmation'),
+				credential_csrf: credential_csrf
 			}, function(respuesta) {
 				this.set('savingPolicy', false);
 				if (respuesta.status == 'error') {
