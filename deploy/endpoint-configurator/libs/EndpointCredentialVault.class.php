@@ -162,6 +162,79 @@ class EndpointCredentialVault
         return $next;
     }
 
+    public function findEndpointIdByMac($macAddress)
+    {
+        if ($this->_db === NULL || !is_string($macAddress)) return NULL;
+        $normalized = strtoupper(preg_replace('/[^0-9A-F]/', '', $macAddress));
+        if (!preg_match('/^[0-9A-F]{12}$/', $normalized)) {
+            $this->_errMsg = 'Invalid endpoint MAC address.';
+            return NULL;
+        }
+        $row = $this->_db->getFirstRowQuery(
+            "SELECT id FROM endpoint WHERE REPLACE(REPLACE(UPPER(mac_address), ':', ''), '-', '') = ? LIMIT 1",
+            TRUE, array($normalized)
+        );
+        if (!is_array($row)) {
+            $this->_errMsg = $this->_db->errMsg;
+            return NULL;
+        }
+        return count($row) ? (int)$row['id'] : NULL;
+    }
+
+    public function createPendingOverride($idEndpoint, $password, $actor = 'issabel-ui')
+    {
+        if ($this->_db === NULL || !ctype_digit((string)$idEndpoint) || !$this->validatePassword($password)) return FALSE;
+        $encrypted = $this->encrypt($password);
+        if ($encrypted === NULL) return FALSE;
+        $current = $this->endpointStatus((int)$idEndpoint);
+        if ($current === NULL) return FALSE;
+        $next = ((int)$current['version']) + 1;
+        $now = date('Y-m-d H:i:s');
+        $sql = 'INSERT INTO endpoint_admin_credential ' .
+            '(id_endpoint, source, ciphertext, key_reference, version, validation_status, rotation_status, updated_at) ' .
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?) ' .
+            'ON DUPLICATE KEY UPDATE source = VALUES(source), ciphertext = VALUES(ciphertext), ' .
+            'key_reference = VALUES(key_reference), version = VALUES(version), validation_status = VALUES(validation_status), ' .
+            'rotation_status = VALUES(rotation_status), updated_at = VALUES(updated_at)';
+        if (!$this->_db->genQuery($sql, array((int)$idEndpoint, 'OVERRIDE', $encrypted, self::KEY_REFERENCE, $next, 'PENDING', 'PENDING', $now))) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        $rawCorrelation = function_exists('openssl_random_pseudo_bytes') ? bin2hex(openssl_random_pseudo_bytes(16)) : md5(uniqid('', TRUE));
+        $correlation = substr($rawCorrelation, 0, 8) . '-' . substr($rawCorrelation, 8, 4) . '-' . substr($rawCorrelation, 12, 4) . '-' . substr($rawCorrelation, 16, 4) . '-' . substr($rawCorrelation, 20, 12);
+        if (!$this->_db->genQuery(
+            'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            array((int)$idEndpoint, 'CREATE_OVERRIDE', 'PENDING', substr((string)$actor, 0, 191), $correlation, $now)
+        )) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        return $next;
+    }
+
+    public function clearOverride($idEndpoint, $actor = 'issabel-ui')
+    {
+        if ($this->_db === NULL || !ctype_digit((string)$idEndpoint)) return FALSE;
+        $now = date('Y-m-d H:i:s');
+        if (!$this->_db->genQuery(
+            "DELETE FROM endpoint_admin_credential WHERE id_endpoint = ? AND source = 'OVERRIDE'",
+            array((int)$idEndpoint)
+        )) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        $rawCorrelation = function_exists('openssl_random_pseudo_bytes') ? bin2hex(openssl_random_pseudo_bytes(16)) : md5(uniqid('', TRUE));
+        $correlation = substr($rawCorrelation, 0, 8) . '-' . substr($rawCorrelation, 8, 4) . '-' . substr($rawCorrelation, 12, 4) . '-' . substr($rawCorrelation, 16, 4) . '-' . substr($rawCorrelation, 20, 12);
+        if (!$this->_db->genQuery(
+            'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            array((int)$idEndpoint, 'CLEAR_OVERRIDE', 'PENDING', substr((string)$actor, 0, 191), $correlation, $now)
+        )) {
+            $this->_errMsg = $this->_db->errMsg;
+            return FALSE;
+        }
+        return TRUE;
+    }
+
     public function endpointStatus($idEndpoint)
     {
         if ($this->_db === NULL) return NULL;
