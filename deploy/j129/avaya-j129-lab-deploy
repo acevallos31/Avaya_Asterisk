@@ -812,6 +812,215 @@ inspect_grandstream_grp2601p_configure_preflight() {
   echo 'GRP2601P-CONFIGURE-PREFLIGHT-PASS'
 }
 
+configure_grandstream_grp2601p_203() {
+  local d id model_id other_selected accounts assigned peer http_password old_password old_hex new_hex
+  local bin xml raw rc selected_after password_swapped
+  d="$(make_db_defaults_file)"
+  trap 'rm -f "$d"' RETURN EXIT
+
+  IFS= read -r http_password || true
+  [ -n "$http_password" ] || {
+    echo 'ERROR: GRP2601P label password missing on stdin' >&2
+    exit 1
+  }
+  grep -Fq 'GRP26XX-NONCE-CONFIG-UPDATE' "$GRANDSTREAM_PY" || {
+    echo 'ERROR: GRP26xx vendor patch not installed' >&2
+    exit 1
+  }
+
+  id="$(mysql_scalar "$d" "SELECT e.id FROM endpoint e JOIN manufacturer mf ON mf.id=e.id_manufacturer JOIN model m ON m.id=e.id_model WHERE mf.name='Grandstream' AND m.name='GRP2601P' AND UPPER(e.mac_address)='EC:74:D7:1E:E8:E3' AND e.last_known_ipv4='192.168.1.176' LIMIT 1;")"
+  [[ "$id" =~ ^[0-9]+$ ]] || {
+    echo 'ERROR: exact GRP2601P endpoint missing' >&2
+    exit 1
+  }
+  model_id="$(mysql_scalar "$d" "SELECT id_model FROM endpoint WHERE id=$id;")"
+  [ "$model_id" = '149' ] || {
+    echo "ERROR: unexpected GRP2601P model id=$model_id" >&2
+    exit 1
+  }
+  other_selected="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE selected=1 AND id<>$id;")"
+  accounts="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id;")"
+  assigned="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE tech='sip' AND account='203';")"
+  [ "$other_selected" -eq 0 ] && [ "$accounts" -eq 0 ] && [ "$assigned" -eq 0 ] || {
+    echo "ERROR: unsafe selection/account state other=$other_selected accounts=$accounts assigned203=$assigned" >&2
+    exit 1
+  }
+  peer="$(asterisk -rx 'sip show peer 203' 2>/dev/null || true)"
+  grep -Eq 'Name[[:space:]]*:[[:space:]]*203([[:space:]]|$)' <<<"$peer" || {
+    echo 'ERROR: SIP 203 missing' >&2
+    exit 1
+  }
+
+  bin='/tftpboot/cfgec74d71ee8e3'
+  xml='/tftpboot/cfgec74d71ee8e3.xml'
+  [ ! -e "$bin" ] && [ ! -e "$xml" ] || {
+    echo 'ERROR: GRP2601P provisioning files already exist; configure cancelled' >&2
+    exit 1
+  }
+  [ ! -e "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE" ] || {
+    echo 'ERROR: pending GRP2601P configure state exists' >&2
+    exit 1
+  }
+
+  old_password="$(mysql_scalar "$d" "SELECT property_value FROM model_properties WHERE id_model=$model_id AND property_key='http_password' LIMIT 1;")"
+  old_hex="$(printf '%s' "$old_password" | od -An -tx1 | tr -d ' \n')"
+  new_hex="$(printf '%s' "$http_password" | od -An -tx1 | tr -d ' \n')"
+  [ -n "$new_hex" ] || {
+    echo 'ERROR: label password encoding failed' >&2
+    exit 1
+  }
+
+  set_model_password_hex() {
+    local value_hex="$1"
+    if [ -n "$value_hex" ]; then
+      printf "UPDATE model_properties SET property_value=CONVERT(0x%s USING utf8mb4) WHERE id_model=%s AND property_key='http_password';\n" "$value_hex" "$model_id" |
+        mysql --defaults-extra-file="$d" endpointconfig
+    else
+      printf "UPDATE model_properties SET property_value='' WHERE id_model=%s AND property_key='http_password';\n" "$model_id" |
+        mysql --defaults-extra-file="$d" endpointconfig
+    fi
+  }
+
+  password_swapped=0
+  restore_model_password() {
+    if [ "$password_swapped" -eq 1 ]; then
+      set_model_password_hex "$old_hex" >/dev/null 2>&1 || true
+      password_swapped=0
+    fi
+  }
+  trap 'restore_model_password; rm -f "$d"' RETURN EXIT
+
+  printf 'endpoint_id=%s\naccount=203\n' "$id" > "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE"
+  chmod 0600 "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE"
+  mysql --defaults-extra-file="$d" endpointconfig <<SQL
+START TRANSACTION;
+INSERT INTO endpoint_account (id_endpoint,tech,account,priority)
+VALUES ($id,'sip','203',1);
+UPDATE endpoint SET selected=1 WHERE id=$id;
+COMMIT;
+SQL
+
+  set_model_password_hex "$new_hex" >/dev/null
+  password_swapped=1
+  raw="$(mktemp /tmp/test66-grp2601p-apply.XXXXXX)"
+  set +e
+  /usr/bin/issabel-endpointconfig --applyconfig >"$raw" 2>&1
+  rc=$?
+  set -e
+  restore_model_password
+
+  sed -E 's/(password|secret|sid|cookie)[^ ]*/\1=***OCULTO***/Ig' "$raw" | tail -n 100
+  if [ "$rc" -ne 0 ]; then
+    mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='203'; UPDATE endpoint SET selected=0 WHERE id=$id;"
+    rm -f "$bin" "$xml" "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE" "$raw"
+    echo 'GRP2601P-CONFIGURE-ROLLBACK-PASS'
+    return 1
+  fi
+  rm -f "$raw"
+
+  selected_after="$(mysql_scalar "$d" "SELECT selected FROM endpoint WHERE id=$id;")"
+  [ "$selected_after" -eq 0 ] || {
+    echo 'ERROR: endpoint selection not cleared after Apply' >&2
+    exit 1
+  }
+  [ -s "$bin" ] && [ -s "$xml" ] || {
+    echo 'ERROR: GRP2601P cfg/XML missing after Apply' >&2
+    exit 1
+  }
+  python3 -B - "$xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+config = root.find('config')
+values = {item.tag: (item.text or '') for item in config}
+assert (root.findtext('mac') or '').lower() == 'ec74d71ee8e3'
+assert values.get('P35') == '203'
+assert values.get('P36') == '203'
+assert bool(values.get('P34'))
+assert values.get('P47') == '192.168.1.10'
+assert values.get('P212') == '0'
+assert values.get('P237') == '192.168.1.10'
+PY
+
+  rm -f "$GRANDSTREAM_GRP2601P_STAGE_STATE_FILE" "$d"
+  trap - RETURN EXIT
+  echo 'credential_transport=STDIN_EPHEMERAL'
+  echo 'model_password_restored=YES'
+  echo 'endpoint_account=203'
+  echo 'binary_cfg_present=YES'
+  echo 'xml_cfg_present=YES'
+  echo 'GRP2601P-CONFIGURE-SERVER-PASS'
+}
+
+inspect_grandstream_grp2601p_configured() {
+  local d count id ip model selected accounts a203 bin xml peers p203 p201 p202 http
+  d="$(make_db_defaults_file)"
+  trap 'rm -f "$d"' RETURN EXIT
+  count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3';")"
+  id="$(mysql_scalar "$d" "SELECT COALESCE(id,'') FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3' LIMIT 1;")"
+  [[ "$id" =~ ^[0-9]+$ ]] || {
+    echo 'ERROR: GRP2601P endpoint missing during audit' >&2
+    exit 1
+  }
+  ip="$(mysql_scalar "$d" "SELECT COALESCE(last_known_ipv4,'') FROM endpoint WHERE id=$id;")"
+  model="$(mysql_scalar "$d" "SELECT COALESCE(m.name,'') FROM endpoint e JOIN model m ON m.id=e.id_model WHERE e.id=$id;")"
+  selected="$(mysql_scalar "$d" "SELECT selected FROM endpoint WHERE id=$id;")"
+  accounts="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id;")"
+  a203="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='203';")"
+  bin='/tftpboot/cfgec74d71ee8e3'
+  xml='/tftpboot/cfgec74d71ee8e3.xml'
+  peers="$(asterisk -rx 'sip show peers' 2>/dev/null || true)"
+  p203="$(printf '%s\n' "$peers" | awk '$1 ~ /^203(\/|$)/ {print $2; exit}')"
+  p201="$(printf '%s\n' "$peers" | awk '$1 ~ /^201(\/|$)/ {print $2; exit}')"
+  p202="$(printf '%s\n' "$peers" | awk '$1 ~ /^202(\/|$)/ {print $2; exit}')"
+  http="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 http://192.168.1.176/ || true)"
+
+  echo "endpoint_count=$count"
+  echo "endpoint_ip=$ip"
+  echo "model=$model"
+  echo "selected=$selected"
+  echo "account_count=$accounts"
+  echo "account_203_count=$a203"
+  echo "sip_203_ip=${p203:-UNREGISTERED}"
+  echo "sip_201_at_grp=NO"
+  echo "sip_202_at_grp=NO"
+  echo "phone_http=$http"
+  echo "binary_cfg_present=$([ -s "$bin" ] && echo YES || echo NO)"
+  echo "xml_cfg_present=$([ -s "$xml" ] && echo YES || echo NO)"
+
+  [ "$count" -eq 1 ] &&
+    [ "$ip" = '192.168.1.176' ] &&
+    [ "$model" = 'GRP2601P' ] &&
+    [ "$selected" -eq 0 ] &&
+    [ "$accounts" -eq 1 ] &&
+    [ "$a203" -eq 1 ] &&
+    [ -s "$bin" ] &&
+    [ -s "$xml" ] &&
+    [ "$p203" = '192.168.1.176' ] &&
+    [ "$p201" != '192.168.1.176' ] &&
+    [ "$p202" != '192.168.1.176' ] &&
+    [ "$http" = '200' ] || {
+      echo 'GRP2601P-POST-CONFIG-AUDIT-FAIL'
+      exit 1
+    }
+
+  python3 -B - "$xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+config = root.find('config')
+values = {item.tag: (item.text or '') for item in config}
+assert (root.findtext('mac') or '').lower() == 'ec74d71ee8e3'
+assert values.get('P35') == '203'
+assert values.get('P36') == '203'
+assert bool(values.get('P34'))
+assert values.get('P47') == '192.168.1.10'
+PY
+  rm -f "$d"
+  trap - RETURN EXIT
+  echo 'GRP2601P-POST-CONFIG-AUDIT-PASS'
+}
+
 configure_grandstream_gxp1630_201() {
   local d id other_selected accounts peer raw bin xml
   d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
@@ -902,6 +1111,8 @@ case "$ACTION" in
   rollback-grandstream-grp26xx-patch) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_grp26xx_patch ;;
   inspect-grandstream-grp2601p-vendor-contract) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_vendor_contract ;;
   inspect-grandstream-grp2601p-configure-preflight) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configure_preflight ;;
+  configure-grandstream-grp2601p-203) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_grp2601p_203 ;;
+  inspect-grandstream-grp2601p-configured) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configured ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
   inspect-grandstream-gxp1630-configured) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_gxp1630_configured ;;
   install-http) install_http_j129 ;;
