@@ -504,9 +504,9 @@ inspect_grandstream_grp2601p_vendor_contract() {
   [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
   echo '=== GRANDSTREAM VENDOR CONTRACT (CODIGO, SIN VALORES DE CREDENCIALES) ==='
   echo "grandstream_py_sha256=$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
-  grep -nE '(^[[:space:]]*def |dologin|api\.values|config_update|urlopen|Request\(|urlencode|_http_password|_http_username|P212|P237)' "$GRANDSTREAM_PY" |
-    sed -E 's/([Pp]assword[[:space:]]*=[[:space:]]*)[^,})]+/\1***OCULTO***/g' |
-    head -n 160
+  nl -ba "$GRANDSTREAM_PY" |
+    sed -n '180,390p;700,770p' |
+    sed -E 's/([Pp]assword[[:space:]]*=[[:space:]]*)[^,})]+/\1***OCULTO***/g'
   echo 'GRP2601P-VENDOR-CONTRACT-INSPECT-PASS'
 }
 
