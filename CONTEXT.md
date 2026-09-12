@@ -134,6 +134,20 @@ Pendientes posteriores a esta fundación: importación masiva, aplicación de un
 contraseña final, rotación/rollback por lote, extensiones/registro en la tabla y
 consumo normal desde todos los vendors. Producción permanece intacta.
 
+## Importación segura de credenciales FACTORY — implementación inicial
+
+La pantalla de Seguridad administrativa incorpora importación CSV de credenciales
+de fábrica por MAC. El único formato admitido es `mac_address,password`, con
+hasta 100 endpoints ya existentes; el archivo se valida completo antes de abrir
+la transacción, se cifra fila por fila como `FACTORY`/`PENDING` y se elimina al
+terminar la petición. Cualquier fila inválida, MAC duplicada o MAC no presente
+cancela el lote sin cambios. No aplica Configure ni escribe al teléfono.
+
+La contraseña administrativa final global y el override individual continúan
+con mínimo de 12 caracteres. La importación por lote está destinada a las claves
+iniciales de etiqueta, que pueden tener desde 8 caracteres. La prueba física de
+carga CSV queda pendiente para LAB; producción no cambia.
+
 ## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
 
 Se aprobó el documento `docs/endpoint-configurator-credential-lifecycle.md`.
