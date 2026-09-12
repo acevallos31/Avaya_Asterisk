@@ -500,6 +500,76 @@ discover_grandstream_gxp1630() {
   echo 'GXP1630-DISCOVERY-PASS'
 }
 
+inspect_grandstream_grp2601p_configure_preflight() {
+  local d id endpoint_count ip model manufacturer selected accounts other_selected ext peer present assigned candidate status
+  d="$(make_db_defaults_file)"
+  trap 'rm -f "$d"' RETURN EXIT
+
+  endpoint_count="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3';")"
+  id="$(mysql_scalar "$d" "SELECT COALESCE(id,'') FROM endpoint WHERE UPPER(mac_address)='EC:74:D7:1E:E8:E3' LIMIT 1;")"
+  [[ "$id" =~ ^[0-9]+$ ]] || { echo 'ERROR: exact GRP2601P endpoint missing' >&2; exit 1; }
+  ip="$(mysql_scalar "$d" "SELECT COALESCE(last_known_ipv4,'') FROM endpoint WHERE id=$id;")"
+  model="$(mysql_scalar "$d" "SELECT COALESCE(m.name,'') FROM endpoint e LEFT JOIN model m ON m.id=e.id_model WHERE e.id=$id;")"
+  manufacturer="$(mysql_scalar "$d" "SELECT COALESCE(mf.name,'') FROM endpoint e LEFT JOIN manufacturer mf ON mf.id=e.id_manufacturer WHERE e.id=$id;")"
+  selected="$(mysql_scalar "$d" "SELECT COALESCE(selected,-1) FROM endpoint WHERE id=$id;")"
+  accounts="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id;")"
+  other_selected="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE selected=1 AND id<>$id;")"
+
+  echo "endpoint_count=$endpoint_count"
+  echo "endpoint_id=$id"
+  echo "endpoint_ip=$ip"
+  echo "manufacturer=$manufacturer"
+  echo "model=$model"
+  echo "selected=$selected"
+  echo "account_count=$accounts"
+  echo "other_selected_count=$other_selected"
+
+  [ "$endpoint_count" -eq 1 ] &&
+    [ "$ip" = '192.168.1.176' ] &&
+    [ "$manufacturer" = 'Grandstream' ] &&
+    [ "$model" = 'GRP2601P' ] &&
+    [ "$selected" -eq 0 ] &&
+    [ "$accounts" -eq 0 ] &&
+    [ "$other_selected" -eq 0 ] || {
+      echo 'ERROR: unsafe GRP2601P Endpoint Configurator state' >&2
+      exit 1
+    }
+
+  candidate=''
+  for ext in $(seq 203 209); do
+    peer="$(asterisk -rx "sip show peer $ext" 2>/dev/null || true)"
+    if grep -Eq "Name[[:space:]]*:[[:space:]]*$ext([[:space:]]|$)" <<<"$peer"; then
+      present=YES
+    else
+      present=NO
+    fi
+    assigned="$(mysql_scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE tech='sip' AND account='$ext';")"
+    if grep -Eq 'Status[[:space:]]*:[[:space:]]*OK' <<<"$peer"; then
+      status=REGISTERED
+    elif grep -Eq 'Status[[:space:]]*:' <<<"$peer"; then
+      status=NOT_REGISTERED
+    else
+      status=NOT_PRESENT
+    fi
+    echo "extension_${ext}_present=$present"
+    echo "extension_${ext}_endpoint_assignments=$assigned"
+    echo "extension_${ext}_registration=$status"
+    if [ -z "$candidate" ] && [ "$present" = YES ] && [ "$assigned" -eq 0 ]; then
+      candidate="$ext"
+    fi
+  done
+
+  echo "candidate_extension=${candidate:-NONE}"
+  [ -n "$candidate" ] || {
+    echo 'GRP2601P-CONFIGURE-PREFLIGHT-NO-FREE-EXTENSION'
+    exit 1
+  }
+
+  rm -f "$d"
+  trap - RETURN EXIT
+  echo 'GRP2601P-CONFIGURE-PREFLIGHT-PASS'
+}
+
 configure_grandstream_gxp1630_201() {
   local d id other_selected accounts peer raw bin xml
   d="$(make_db_defaults_file)"; trap 'rm -f "$d"' RETURN EXIT
@@ -586,6 +656,7 @@ case "$ACTION" in
   discover-grandstream-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_grp2601p ;;
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
+  inspect-grandstream-grp2601p-configure-preflight) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configure_preflight ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
   inspect-grandstream-gxp1630-configured) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_gxp1630_configured ;;
   install-http) install_http_j129 ;;
