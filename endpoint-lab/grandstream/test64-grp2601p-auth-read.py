@@ -90,6 +90,12 @@ for source in script_sources[:12]:
         if "dologin" in markers or "challenge" in markers or "nonce" in markers:
             safe_name = os.path.basename(parsed.path or script_path)
             log("contract_asset=" + safe_name + ";markers=" + ",".join(markers))
+            interesting_strings = sorted(set(
+                value for value in re.findall(r"""["']([^"'\\r\\n]{1,160})["']""", script_raw)
+                if any(term in value.lower() for term in ("login", "access", "nonce", "challenge", "cgi-bin"))
+            ))
+            for value in interesting_strings[:40]:
+                log("contract_string=" + safe_name + ";" + value)
             if "dologin" in markers:
                 pos = script_lower.find("dologin")
                 snippet = script_raw[max(0, pos - 900):pos + 1400]
