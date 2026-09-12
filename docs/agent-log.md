@@ -21,6 +21,17 @@ NOT-TESTED
 
 ---
 
+## 2026-09-12 — Operador/Codex — GRP2601P validación física cerrada
+
+El operador confirmó que el Grandstream GRP2601P físico funciona correctamente
+después del aprovisionamiento en LAB como extensión SIP 203. Se registra el
+resultado como `PHYSICAL-GRP2601P-PASS`, complementando la evidencia automatizada
+`LAB-INTEGRATION-PASS` del Test 66, run `34677554254`.
+
+Esta confirmación cierra el ciclo físico del modelo en laboratorio. No se realizó
+ningún cambio en la PBX de producción; el despliegue controlado continúa bloqueado
+hasta implementar el manejo seguro de credenciales en la interfaz.
+
 ## 2026-09-12 — Codex — GRP2601P Tests 62–64 cerrados
 
 Se inició el ciclo autorizado sobre un GRP2601P de fábrica. Test 62 run
