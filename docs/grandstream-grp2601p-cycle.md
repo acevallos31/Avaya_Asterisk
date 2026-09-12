@@ -46,11 +46,12 @@ a ciegas.
 3. Test 64: autenticación y lectura de provisioning, con secret GRP separado.
 4. Test 65: bootstrap controlado del servidor de configuración.
 5. Test 66: Configure, cfg/XML, SIP y auditoría E2E.
-6. Validación física manual de llamadas/audio por el operador.
+6. Validación física manual por el operador: cerrada satisfactoriamente el 2026-09-12.
 
 
-Los Tests 62–66 están cerrados en LAB. La validación física manual de
-llamadas/audio permanece pendiente.
+Los Tests 62–66 están cerrados en LAB. El operador confirmó que el teléfono
+físico funciona correctamente después del aprovisionamiento como extensión SIP
+203 (`PHYSICAL-GRP2601P-PASS`).
 
 ## Reglas de seguridad
 
@@ -138,14 +139,16 @@ del modelo fue restaurado después de Apply.
 
 ## Gate vigente
 
-Estado técnico: `LAB-INTEGRATION-PASS`.
+Estado técnico: `LAB-INTEGRATION-PASS` + `PHYSICAL-GRP2601P-PASS`.
+
+La operación física correcta fue confirmada por el operador el 2026-09-12
+después del aprovisionamiento como extensión SIP 203.
 
 Pendiente antes de producción:
 
-1. confirmar físicamente llamada entrante/saliente y audio con la extensión 203;
-2. implementar almacenamiento cifrado de credenciales administrativas;
-3. agregar captura manual y carga masiva por MAC desde Endpoint Configurator;
-4. definir contraseña administrativa final global por PBX y override por
+1. implementar almacenamiento cifrado de credenciales administrativas;
+2. agregar captura manual y carga masiva por MAC desde Endpoint Configurator;
+3. definir contraseña administrativa final global por PBX y override por
    endpoint;
-5. repetir el flujo desde la UI y documentar la evidencia;
-6. preparar después un canario productivo con preflight y rollback propios.
+4. repetir el flujo desde la UI y documentar la evidencia;
+5. preparar después un canario productivo con preflight y rollback propios.
