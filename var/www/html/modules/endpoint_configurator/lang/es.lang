@@ -106,5 +106,6 @@ $arrLangModule = array(
     "Pending rotation created. No endpoint was changed." => "Rotación pendiente creada. No se modificó ningún endpoint.",
     "Administrative passwords must be present and match." => "Las contraseñas administrativas deben existir y coincidir.",
     "No password is displayed. Saving creates a pending rotation only." => "La contraseña nunca se muestra. Guardar solo crea una rotación pendiente.",
+    "Invalid security token." => "Token de seguridad inválido.",
 );
 ?>
