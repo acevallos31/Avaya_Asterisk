@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   preflight:
-    name: Select unused LAB SIP extension without writes
+    name: Verify exact endpoint and unused SIP 203
     runs-on: [self-hosted, Linux, X64, issabel-lab]
     timeout-minutes: 6
     steps:
@@ -30,34 +30,118 @@ jobs:
         run: |
           set -euo pipefail
           report="$RUNNER_TEMP/test66-grp2601p-preflight.txt"
-          sudo -n /usr/local/sbin/avaya-j129-lab-deploy             inspect-grandstream-grp2601p-configure-preflight | tee "$report"
-          grep -Fq 'GRP2601P-CONFIGURE-PREFLIGHT-PASS' "$report"
-          grep -Eq '^candidate_extension=20[3-9]$' "$report"
-          echo 'TEST66-GRP2601P-CONFIGURE-PREFLIGHT=PASS' | tee -a "$report"
-      - name: Inspect live Grandstream vendor contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          report="$RUNNER_TEMP/test66-grandstream-vendor-contract.txt"
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
-            inspect-grandstream-grp2601p-vendor-contract | tee "$report"
-          grep -Fq 'GRP2601P-VENDOR-CONTRACT-INSPECT-PASS' "$report"
-      - name: Publish sanitized evidence
+            inspect-grandstream-grp2601p-configure-preflight | tee "$report"
+          grep -Fq 'candidate_extension=203' "$report"
+          grep -Fq 'GRP2601P-CONFIGURE-PREFLIGHT-PASS' "$report"
+          echo 'TEST66-GRP2601P-CONFIGURE-PREFLIGHT=PASS' | tee -a "$report"
+      - name: Publish preflight evidence
         if: always()
         shell: bash
         run: |
           {
             echo '## Test 66 — GRP2601P Configure preflight'
             cat "$RUNNER_TEMP/test66-grp2601p-preflight.txt" 2>/dev/null || true
-            cat "$RUNNER_TEMP/test66-grandstream-vendor-contract.txt" 2>/dev/null || true
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload sanitized evidence
+
+  vendor-patch:
+    name: Install reversible GRP26xx vendor contract
+    needs: preflight
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Apply exact guarded patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/test66-grp26xx-patch.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            apply-grandstream-grp26xx-patch | tee "$report"
+          grep -Eq 'GRP26XX-PATCH-(APPLY-PASS|ALREADY-PRESENT)' "$report"
+          echo 'TEST66-GRP26XX-VENDOR-PATCH=PASS' | tee -a "$report"
+      - name: Publish patch evidence
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test66-grp2601p-preflight-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/test66-grp2601p-preflight.txt
-            ${{ runner.temp }}/test66-grandstream-vendor-contract.txt
-          if-no-files-found: warn
-          retention-days: 30
+        shell: bash
+        run: |
+          {
+            echo '## Test 66 — reversible GRP26xx vendor patch'
+            cat "$RUNNER_TEMP/test66-grp26xx-patch.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  configure:
+    name: Configure exact GRP2601P as SIP 203
+    needs: vendor-patch
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    env:
+      PHONE_PASSWORD: ${{ secrets.GRANDSTREAM_GRP2601P_EC74D71EE8E3_HTTP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PHONE_PASSWORD"
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Run standard Issabel Apply with ephemeral label credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/test66-grp2601p-configure.txt"
+          printf '%s\n' "$PHONE_PASSWORD" |
+            sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+              configure-grandstream-grp2601p-203 | tee "$report"
+          grep -Fq 'credential_transport=STDIN_EPHEMERAL' "$report"
+          grep -Fq 'model_password_restored=YES' "$report"
+          grep -Fq 'endpoint_account=203' "$report"
+          grep -Fq 'GRP2601P-CONFIGURE-SERVER-PASS' "$report"
+          echo 'TEST66-GRP2601P-CONFIGURE=PASS' | tee -a "$report"
+      - name: Publish Configure evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 66 — GRP2601P Configure 203'
+            cat "$RUNNER_TEMP/test66-grp2601p-configure.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  e2e-audit:
+    name: Verify cfg XML HTTP and SIP 203
+    needs: configure
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync restricted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$(sudo -n /usr/local/sbin/avaya-j129-helper-sync)"
+          grep -Fq 'HELPER-SYNC-ALL-PASS' <<<"$out"
+      - name: Wait and audit end to end
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 90
+          report="$RUNNER_TEMP/test66-grp2601p-e2e.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            inspect-grandstream-grp2601p-configured | tee "$report"
+          grep -Fq 'sip_203_ip=192.168.1.176' "$report"
+          grep -Fq 'GRP2601P-POST-CONFIG-AUDIT-PASS' "$report"
+          echo 'TEST66-GRP2601P-E2E=PASS' | tee -a "$report"
+      - name: Publish E2E evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Test 66 — GRP2601P E2E audit'
+            cat "$RUNNER_TEMP/test66-grp2601p-e2e.txt" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
