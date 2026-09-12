@@ -48,6 +48,26 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
         self.assertIn("'status' => 'PENDING'", index)
         self.assertNotIn("applyconfig", index[index.index("handleJSON_saveCredentialPolicy"):index.index("function handleJSON_configStart")])
 
+    def test_mac_override_is_encrypted_csrf_protected_and_pending_only(self):
+        vault = VAULT.read_text(encoding="utf-8")
+        index = MODULE_INDEX.read_text(encoding="utf-8")
+        template = MODULE_TEMPLATE.read_text(encoding="utf-8")
+        javascript = MODULE_JS.read_text(encoding="utf-8")
+        self.assertIn("findEndpointIdByMac", vault)
+        self.assertIn("createPendingOverride", vault)
+        self.assertIn("clearOverride", vault)
+        self.assertIn("CREATE_OVERRIDE", vault)
+        self.assertIn("saveEndpointCredentialOverride", index)
+        self.assertIn("clearEndpointCredentialOverride", index)
+        override = index[index.index("function handleJSON_saveEndpointCredentialOverride"):index.index("function handleJSON_loadStatus")]
+        self.assertIn("REQUEST_METHOD", override)
+        self.assertIn("hash_equals", override)
+        self.assertIn("findEndpointIdByMac", override)
+        self.assertNotIn("applyconfig", override)
+        self.assertIn("overrideMac", template)
+        self.assertIn("saveEndpointOverride", javascript)
+        self.assertIn("credential_csrf", javascript)
+
     def test_security_view_does_not_render_a_secret(self):
         template = MODULE_TEMPLATE.read_text(encoding="utf-8")
         javascript = MODULE_JS.read_text(encoding="utf-8")
