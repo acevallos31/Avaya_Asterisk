@@ -57,6 +57,11 @@
 	        {{/unless}}
         {{/if}}
         {{#unless uiblock }}
+        {{#linkTo "endpoints.security"}}
+        <div class="neo-table-header-row-filter" title="{/literal}{$LBL_SECURITY}{literal}">
+            <button class="neo-table-action" type="button">🔒</button>
+        </div>
+        {{/linkTo}}
             {{#linkTo "endpoints.getconfiglog"}}
             <div class="neo-table-header-row-filter" title="{/literal}{$LBL_VIEW_LOG}{literal}">
                 <button class="neo-table-action" ><img align="absmiddle" src="images/list.png"/></button>
@@ -178,6 +183,34 @@
     </p>
 </div>
 {literal}{{outlet}}{/literal}
+</script>
+
+<script type="text/x-handlebars" data-template-name="endpoints/security">
+<div class="endpointconfig-security" style="padding: 24px;">
+    <h2>{/literal}{$LBL_SECURITY}{literal}</h2>
+    <p>{/literal}{$MSG_NO_PASSWORD_DISPLAY}{literal}</p>
+    {{#if loadingPolicy}}
+        <p>Loading...</p>
+    {{else}}
+        <p>Status: <b>{{policy.status}}</b></p>
+        <p>Active version: {{policy.active_version}} &nbsp; Pending version: {{policy.pending_version}}</p>
+        <p>Key reference: {{policy.key_reference}}</p>
+        <p>
+            <label>{/literal}{$LBL_GLOBAL_PASSWORD}{literal}</label><br />
+            {{view Ember.TextField type="password" valueBinding="globalPassword" autocomplete="new-password"}}
+        </p>
+        <p>
+            <label>{/literal}{$LBL_CONFIRM_GLOBAL_PASSWORD}{literal}</label><br />
+            {{view Ember.TextField type="password" valueBinding="globalPasswordConfirmation" autocomplete="new-password"}}
+        </p>
+        <button type="button" {{action "savePendingRotation"}} disabled="{{savingPolicy}}">
+            {/literal}{$LBL_SAVE_PENDING_ROTATION}{literal}
+        </button>
+        <button type="button" {{action "cancelSecurity"}}>Back</button>
+        {{#if saveMessage}}<p class="ui-state-highlight">{{saveMessage}}</p>{{/if}}
+        {{#if saveError}}<p class="ui-state-error">{{saveError}}</p>{{/if}}
+    {{/if}}
+</div>
 </script>
 
 <script type="text/x-handlebars" data-template-name="endpoints/getconfiglog">
