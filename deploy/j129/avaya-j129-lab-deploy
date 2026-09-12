@@ -502,6 +502,236 @@ discover_grandstream_gxp1630() {
   echo 'GXP1630-DISCOVERY-PASS'
 }
 
+apply_grandstream_grp26xx_patch() {
+  [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
+  install -d -o root -g root -m 0700 "$STATE_DIR"
+  local marker_count before_sha after_sha tmp
+  marker_count="$(grep -Fc 'GRP26XX-NONCE-CONFIG-UPDATE' "$GRANDSTREAM_PY" || true)"
+  if [ "$marker_count" -ge 1 ]; then
+    echo 'GRP26XX-PATCH-ALREADY-PRESENT'
+    return 0
+  fi
+  before_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  [ "$before_sha" = 'b4d22520a65023456525c16f9756b77ab3ea65687a1ee0dd44a9776daf1421f3' ] || {
+    echo "ERROR: Grandstream.py baseline inesperado sha=$before_sha" >&2
+    exit 1
+  }
+  [ ! -e "$GRANDSTREAM_GRP26XX_PATCH_BACKUP" ] || {
+    echo 'ERROR: existe backup GRP26xx pendiente' >&2
+    exit 1
+  }
+  cp -a "$GRANDSTREAM_PY" "$GRANDSTREAM_GRP26XX_PATCH_BACKUP"
+  chmod 0600 "$GRANDSTREAM_GRP26XX_PATCH_BACKUP"
+  tmp="$(mktemp "$STATE_DIR/Grandstream.py.grp26xx.XXXXXX")"
+  python3 -B - "$GRANDSTREAM_PY" "$tmp" <<'PY'
+import sys
+
+src, dst = sys.argv[1], sys.argv[2]
+text = open(src, 'r', encoding='utf-8').read()
+
+import_anchor = "import http.client\n"
+if text.count(import_anchor) != 1 or "import hashlib\n" in text:
+    raise SystemExit("unexpected hashlib import baseline")
+text = text.replace(import_anchor, import_anchor + "import hashlib\n", 1)
+
+static_anchor = "    def _enableStaticProvisioning(self, vars):\n\n"
+static_probe = """        # GRP26XX-NONCE-CONFIG-UPDATE: identify the carrier-grade JSON API
+        # before trying legacy GXP/BT/GXV contracts.
+        try:
+            grp_probe = http.client.HTTPConnection(self._ip)
+            grp_probe.request('GET', '/api-will_login')
+            grp_response = grp_probe.getresponse()
+            grp_content_type = grp_response.getheader('Content-Type', '').split(';', 1)[0]
+            grp_response.read()
+            if grp_response.status == 200 and grp_content_type == 'application/json':
+                logging.info('Endpoint %s@%s appears to have GRP26xx JSON interface...' %
+                             (self._vendorname, self._ip))
+                return self._enableStaticProvisioning_GRP26xx(vars)
+        except Exception:
+            pass
+
+"""
+if text.count(static_anchor) != 1:
+    raise SystemExit("static provisioning anchor mismatch")
+text = text.replace(static_anchor, static_anchor + static_probe, 1)
+
+method_anchor = "    def _enableStaticProvisioning_GXP140x(self, vars):\n"
+grp_methods = """    def _loginGRP26xx(self, conn, headers):
+        # GRP26XX-NONCE-CONFIG-UPDATE: the label password is never sent in clear.
+        conn.request('GET', '/', headers=headers)
+        root_response = conn.getresponse()
+        root_response.read()
+        cookie_parts = []
+        for header_name, header_value in root_response.getheaders():
+            if header_name.lower() == 'set-cookie':
+                cookie_pair = header_value.split(';', 1)[0].strip()
+                if cookie_pair:
+                    cookie_parts.append(cookie_pair)
+        if cookie_parts:
+            headers['Cookie'] = '; '.join(cookie_parts)
+
+        access_payload = urlencode({
+            'access': hashlib.sha256(self._http_username.encode('utf-8')).hexdigest(),
+        })
+        conn.request('POST', '/cgi-bin/access', body=access_payload, headers=headers)
+        access_response = conn.getresponse()
+        access_data = json.loads(access_response.read().decode('utf-8'))
+        nonce = access_data.get('body', '')
+        if access_response.status != 200 or access_data.get('response') != 'success' or not isinstance(nonce, str) or not nonce:
+            return None
+
+        password_hash = hashlib.sha256(
+            (self._http_password + nonce).encode('utf-8')
+        ).hexdigest()
+        login_payload = urlencode({
+            'username': self._http_username,
+            'password': password_hash,
+        })
+        conn.request('POST', '/cgi-bin/dologin', body=login_payload, headers=headers)
+        login_response = conn.getresponse()
+        login_data = json.loads(login_response.read().decode('utf-8'))
+        login_body = login_data.get('body')
+        if isinstance(login_body, dict):
+            sid = login_body.get('sid', '')
+        elif isinstance(login_body, str):
+            sid = login_body
+        else:
+            sid = ''
+        if login_response.status != 200 or login_data.get('response') != 'success' or not sid:
+            return None
+
+        for header_name, header_value in login_response.getheaders():
+            if header_name.lower() == 'set-cookie':
+                cookie_pair = header_value.split(';', 1)[0].strip()
+                if cookie_pair and not cookie_pair.lower().startswith('session-identity='):
+                    cookie_parts.append(cookie_pair)
+        cookie_parts.append('session-identity=' + sid)
+        headers['Cookie'] = '; '.join(cookie_parts)
+        return sid
+
+    def _enableStaticProvisioning_GRP26xx(self, vars):
+        try:
+            conn = http.client.HTTPConnection(self._ip)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': '*/*',
+                'Host': self._ip,
+                'Referer': 'http://%s/' % self._ip,
+            }
+            sid = self._loginGRP26xx(conn, headers)
+            if not sid:
+                logging.error('Endpoint %s@%s GRP26xx challenge login failed' %
+                              (self._vendorname, self._ip))
+                return False
+
+            pvalues = {}
+            for key, value in vars.items():
+                key = str(key)
+                pvalues[key[1:] if key.startswith('P') else key] = value
+            payload = json.dumps({'alias': {}, 'pvalue': pvalues})
+            headers['Content-Type'] = 'application/json'
+            conn.request('PUT', '/cgi-bin/config_update', body=payload, headers=headers)
+            response = conn.getresponse()
+            result = json.loads(response.read().decode('utf-8'))
+            if response.status != 200 or result.get('response') != 'success':
+                logging.error('Endpoint %s@%s GRP26xx rejected config update' %
+                              (self._vendorname, self._ip))
+                return False
+            return True
+        except Exception as e:
+            logging.error('Endpoint %s@%s GRP26xx provisioning failed - %s' %
+                          (self._vendorname, self._ip, str(e)))
+            return False
+
+"""
+if text.count(method_anchor) != 1:
+    raise SystemExit("GXP140x method anchor mismatch")
+text = text.replace(method_anchor, grp_methods + method_anchor, 1)
+
+reboot_start = text.index("    def _rebootbyhttp(self):\n")
+reboot_end = text.index("    def _hashTableGrandstreamConfig(self):\n", reboot_start)
+legacy_reboot = text[reboot_start:reboot_end]
+new_reboot = """    def _rebootbyhttp(self):
+        # GRP26XX-NONCE-CONFIG-UPDATE: prefer the authenticated session contract.
+        try:
+            conn = http.client.HTTPConnection(self._ip)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': '*/*',
+                'Host': self._ip,
+                'Referer': 'http://%s/' % self._ip,
+            }
+            sid = self._loginGRP26xx(conn, headers)
+            if sid:
+                url = '/cgi-bin/api-sys_operation?' + urlencode({
+                    'request': 'REBOOT',
+                    'sid': sid,
+                })
+                conn.request('GET', url, headers=headers)
+                response = conn.getresponse()
+                data = json.loads(response.read().decode('utf-8'))
+                if response.status == 200 and data.get('response') == 'success':
+                    return True
+        except Exception:
+            pass
+
+        try:
+            conn = http.client.HTTPConnection(self._ip)
+            url = '/cgi-bin/api-sys_operation?passcode=' + self._http_password + '&request=REBOOT'
+            conn.request('GET', url)
+            response = conn.getresponse()
+            data = json.loads(response.read().decode('utf-8'))
+            if not ('response' in data and data['response'] == 'success'):
+                logging.error('Endpoint %s@%s unimplemented reboot by HTTP' %
+                              (self._vendorname, self._ip))
+                return False
+            return True
+        except Exception as e:
+            logging.error('Endpoint %s@%s HTTP reboot failed' %
+                          (self._vendorname, self._ip))
+            return False
+
+"""
+if "GRP26XX-NONCE-CONFIG-UPDATE" in legacy_reboot:
+    raise SystemExit("GRP26xx reboot patch already present")
+text = text[:reboot_start] + new_reboot + text[reboot_end:]
+
+open(dst, 'w', encoding='utf-8').write(text)
+PY
+  python3 -B -m py_compile "$tmp"
+  install -o root -g root -m 0644 "$tmp" "$GRANDSTREAM_PY"
+  rm -f "$tmp" "$tmp"c "$GRANDSTREAM_PY"c 2>/dev/null || true
+  after_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  [ "$before_sha" != "$after_sha" ] || {
+    echo 'ERROR: GRP26xx patch no cambió el archivo' >&2
+    exit 1
+  }
+  grep -Fq 'GRP26XX-NONCE-CONFIG-UPDATE' "$GRANDSTREAM_PY"
+  echo "before_sha256=$before_sha"
+  echo "after_sha256=$after_sha"
+  echo 'GRP26XX-PATCH-APPLY-PASS'
+}
+
+rollback_grandstream_grp26xx_patch() {
+  [ -f "$GRANDSTREAM_GRP26XX_PATCH_BACKUP" ] || {
+    echo 'ERROR: no existe backup GRP26xx' >&2
+    exit 1
+  }
+  [ -f "$GRANDSTREAM_PY" ] || {
+    echo "ERROR: no existe $GRANDSTREAM_PY" >&2
+    exit 1
+  }
+  grep -Fq 'GRP26XX-NONCE-CONFIG-UPDATE' "$GRANDSTREAM_PY" || {
+    echo 'ERROR: patch GRP26xx no está presente; rollback cancelado' >&2
+    exit 1
+  }
+  python3 -B -m py_compile "$GRANDSTREAM_GRP26XX_PATCH_BACKUP"
+  install -o root -g root -m 0644 "$GRANDSTREAM_GRP26XX_PATCH_BACKUP" "$GRANDSTREAM_PY"
+  rm -f "$GRANDSTREAM_GRP26XX_PATCH_BACKUP" "$GRANDSTREAM_PY"c 2>/dev/null || true
+  echo "restored_sha256=$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+  echo 'GRP26XX-PATCH-ROLLBACK-PASS'
+}
+
 inspect_grandstream_grp2601p_vendor_contract() {
   [ -f "$GRANDSTREAM_PY" ] || { echo "ERROR: no existe $GRANDSTREAM_PY" >&2; exit 1; }
   echo '=== GRANDSTREAM VENDOR CONTRACT (CODIGO, SIN VALORES DE CREDENCIALES) ==='
@@ -668,6 +898,8 @@ case "$ACTION" in
   discover-grandstream-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_grp2601p ;;
   rollback-grandstream-gxp1630-model) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_gxp1630_model ;;
   discover-grandstream-gxp1630) [ -z "$OVERLAY_ROOT" ] || usage; discover_grandstream_gxp1630 ;;
+  apply-grandstream-grp26xx-patch) [ -z "$OVERLAY_ROOT" ] || usage; apply_grandstream_grp26xx_patch ;;
+  rollback-grandstream-grp26xx-patch) [ -z "$OVERLAY_ROOT" ] || usage; rollback_grandstream_grp26xx_patch ;;
   inspect-grandstream-grp2601p-vendor-contract) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_vendor_contract ;;
   inspect-grandstream-grp2601p-configure-preflight) [ -z "$OVERLAY_ROOT" ] || usage; inspect_grandstream_grp2601p_configure_preflight ;;
   configure-grandstream-gxp1630-201) [ -z "$OVERLAY_ROOT" ] || usage; configure_grandstream_gxp1630_201 ;;
