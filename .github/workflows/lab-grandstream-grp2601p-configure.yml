@@ -34,6 +34,14 @@ jobs:
           grep -Fq 'GRP2601P-CONFIGURE-PREFLIGHT-PASS' "$report"
           grep -Eq '^candidate_extension=20[3-9]$' "$report"
           echo 'TEST66-GRP2601P-CONFIGURE-PREFLIGHT=PASS' | tee -a "$report"
+      - name: Inspect live Grandstream vendor contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/test66-grandstream-vendor-contract.txt"
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy \
+            inspect-grandstream-grp2601p-vendor-contract | tee "$report"
+          grep -Fq 'GRP2601P-VENDOR-CONTRACT-INSPECT-PASS' "$report"
       - name: Publish sanitized evidence
         if: always()
         shell: bash
@@ -41,12 +49,15 @@ jobs:
           {
             echo '## Test 66 — GRP2601P Configure preflight'
             cat "$RUNNER_TEMP/test66-grp2601p-preflight.txt" 2>/dev/null || true
+            cat "$RUNNER_TEMP/test66-grandstream-vendor-contract.txt" 2>/dev/null || true
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload sanitized evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test66-grp2601p-preflight-${{ github.run_id }}
-          path: ${{ runner.temp }}/test66-grp2601p-preflight.txt
+          path: |
+            ${{ runner.temp }}/test66-grp2601p-preflight.txt
+            ${{ runner.temp }}/test66-grandstream-vendor-contract.txt
           if-no-files-found: warn
           retention-days: 30
