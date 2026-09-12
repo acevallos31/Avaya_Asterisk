@@ -153,6 +153,31 @@ Limitación confirmada del scanner stock de Issabel: `detect_endpoints` usa Nmap
 
 No modificar core para resolverlo. El diseño de v0.2.x debe aceptar inicialmente `IP + MAC` confiables y permitir fuentes futuras como ARP/DHCP/router/API.
 
+## Grandstream GRP26xx
+
+La familia GRP26xx no debe usar el contrato Web heredado GXP como fallback
+silencioso. El flujo comprobado en GRP2601P es:
+
+```text
+POST /cgi-bin/access con SHA256(username)
+-> nonce
+-> POST /cgi-bin/dologin con SHA256(password + nonce)
+-> PUT /cgi-bin/config_update con JSON
+```
+
+Reglas:
+
+- la contraseña inicial de etiqueta debe ser un secret individual ligado a MAC;
+- no enviar esa contraseña en texto claro al teléfono ni incluirla en URL;
+- no imprimir password, nonce, hash, SID o cookies;
+- `api.values.post` continúa siendo la ruta GXP y no prueba compatibilidad GRP;
+- cualquier puente LAB que entregue temporalmente la credencial al Endpoint
+  Configurator debe restaurar el valor anterior inmediatamente y no se autoriza
+  para producción;
+- la integración productiva queda bloqueada hasta disponer de almacenamiento
+  cifrado, captura desde UI e historial de rotación;
+- firmware upgrade permanece separado de provisioning.
+
 ## Scripts operativos
 
 `scripts/` es catálogo permanente para automatización de bootstrap, deploy, diagnóstico, mantenimiento, seguridad y testing. No limitarlo a pruebas.
