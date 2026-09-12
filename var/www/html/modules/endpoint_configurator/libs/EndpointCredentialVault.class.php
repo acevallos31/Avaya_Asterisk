@@ -150,7 +150,8 @@ class EndpointCredentialVault
             $this->_errMsg = $this->_db->errMsg;
             return FALSE;
         }
-        $correlation = sprintf('%08x-%04x-%04x-%04x-%012x', mt_rand(0, 0xffffffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffffffffffff));
+        $rawCorrelation = function_exists('openssl_random_pseudo_bytes') ? bin2hex(openssl_random_pseudo_bytes(16)) : md5(uniqid('', TRUE));
+        $correlation = substr($rawCorrelation, 0, 8) . '-' . substr($rawCorrelation, 8, 4) . '-' . substr($rawCorrelation, 12, 4) . '-' . substr($rawCorrelation, 16, 4) . '-' . substr($rawCorrelation, 20, 12);
         if (!$this->_db->genQuery(
             'INSERT INTO endpoint_credential_event (id_endpoint, operation, result, actor, correlation_id, created_at) VALUES (NULL, ?, ?, ?, ?, ?)',
             array('CREATE_PENDING', 'PENDING', substr((string)$actor, 0, 191), $correlation, $now)
