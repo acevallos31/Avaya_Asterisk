@@ -187,6 +187,7 @@
 
 <script type="text/x-handlebars" data-template-name="endpoints/security">
 <div class="endpointconfig-security" style="padding: 24px;">
+{literal}
     <h2>{/literal}{$LBL_SECURITY}{literal}</h2>
     <p>{/literal}{$MSG_NO_PASSWORD_DISPLAY}{literal}</p>
     {{#if loadingPolicy}}
@@ -238,6 +239,7 @@
         {{#if saveError}}<p class="ui-state-error">{{saveError}}</p>{{/if}}
     {{/if}}
 </div>
+{/literal}
 </script>
 
 <script type="text/x-handlebars" data-template-name="endpoints/getconfiglog">
@@ -262,3 +264,4 @@ var lastop_error_message = {$LASTOP_ERROR_MESSAGE};
 var credential_csrf = {$CREDENTIAL_CSRF};
 var arrLang_main = {$ARRLANG_MAIN};
 </script>
+
