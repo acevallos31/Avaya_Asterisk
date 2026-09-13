@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/lab-pbx-web-recovery-test69.yml"
       - "deploy/j129/avaya-j129-lab-deploy"
+      - "var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl"
   workflow_dispatch:
     inputs:
       confirmation:
@@ -40,6 +41,13 @@ jobs:
         run: |
           set -euo pipefail
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-web-interface
+      - name: Validate Endpoint Configurator route
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 -H 'Host: pbx.nocpbx.com' 'http://127.0.0.1/index.php?menu=endpoint_configurator' || true)"
+          echo "endpoint_configurator_http_status=${status:-000}"
+          test "${status:-000}" -lt 500
       - name: Restore Endpoint Configurator library traversal
         shell: bash
         run: |
