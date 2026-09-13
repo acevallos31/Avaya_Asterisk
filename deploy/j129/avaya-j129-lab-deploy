@@ -30,7 +30,7 @@ ENDPOINT_CREDENTIAL_CLI="/usr/local/libexec/issabel-endpoint-credential-vault"
 RUNNER_WORKSPACE="/opt/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk"
 
 usage() {
-  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {install-endpoint-credential-runtime|verify-endpoint-credential-runtime} <workspace> | rollback-endpoint-credential-runtime | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix] | {install-endpoint-credentials|ensure-endpoint-credentials|rollback-endpoint-credentials|credential-smoke-grp2601p|credential-status-grp2601p}" >&2
+  echo "Uso: $0 {install|rollback|install-http|rollback-http} <overlay-root> | {install-endpoint-credential-runtime|verify-endpoint-credential-runtime} <workspace> | rollback-endpoint-credential-runtime | {inspect-db|inspect-provisioning|inspect-http-requests|inspect-sip-registration|inspect-web-interface|install-db|rollback-db|apply-grandstream-oui|rollback-grandstream-oui|inspect-login-patch|apply-login-patch|rollback-login-patch} | inspect-manufacturer <manufacturer> [model] [mac-prefix] | {install-endpoint-credentials|ensure-endpoint-credentials|rollback-endpoint-credentials|credential-smoke-grp2601p|credential-status-grp2601p}" >&2
   exit 2
 }
 
@@ -328,6 +328,23 @@ credential_smoke_grp2601p() {
 
 credential_status_grp2601p() {
   "$ENDPOINT_CREDENTIAL_CLI" status EC:74:D7:1E:E8:E3
+}
+
+inspect_web_interface() {
+  local unit http conf log
+  unit="$(systemctl is-active httpd 2>/dev/null || true)"
+  conf="$(apachectl -t 2>&1 || true)"
+  http="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 8 -H 'Host: pbx.nocpbx.com' http://127.0.0.1/ || true)"
+  echo "httpd_state=${unit:-unknown}"
+  printf '%s\n' "$conf" | sed -E '/(password|secret|token|authorization|cookie|ampdbpass)/Id'
+  echo "local_http_status=${http:-000}"
+  for log in /var/log/httpd/error_log /var/log/httpd/ssl_error_log; do
+    [ -r "$log" ] || continue
+    echo "log=$(basename "$log")"
+    tail -n 80 "$log" | sed -E '/(password|secret|token|authorization|cookie|ampdbpass)/Id'
+  done
+  [ "$unit" = active ] && printf '%s\n' "$conf" | grep -Fq 'Syntax OK' && [ "$http" -ge 200 ] 2>/dev/null && [ "$http" -lt 500 ] 2>/dev/null
+  echo 'WEB-INTERFACE-INSPECTION-PASS'
 }
 
 run_manufacturer_inspection() {
@@ -1403,6 +1420,7 @@ case "$ACTION" in
   rollback-endpoint-credential-runtime) [ -z "$OVERLAY_ROOT" ] || usage; rollback_endpoint_credential_runtime ;;
   credential-smoke-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; credential_smoke_grp2601p ;;
   credential-status-grp2601p) [ -z "$OVERLAY_ROOT" ] || usage; credential_status_grp2601p ;;
+  inspect-web-interface) [ -z "$OVERLAY_ROOT" ] || usage; inspect_web_interface ;;
   inspect-manufacturer) run_manufacturer_inspection "${2:-}" "${3:-}" "${4:-}" ;;
   inspect-provisioning) [ -z "$OVERLAY_ROOT" ] || usage; run_provisioning_inspection ;;
   inspect-http-requests) [ -z "$OVERLAY_ROOT" ] || usage; run_http_request_inspection ;;
