@@ -85,6 +85,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 66 | `lab-grp2601p-e2e.yml` | `66 | Issabel Lab | GRP2601P | Full Provisioning E2E` | `LAB-INTEGRATION-PASS` run `34677554254`: recovery, preflight exacto para extensión 203, parche reversible de vendor, aprovisionamiento y auditoría E2E; `endpoint_count=1`, cuenta SIP 203 única, HTTP 200 y `cfg<MAC>` binario/XML presentes. `PHYSICAL-GRP2601P-PASS`: el operador confirmó el 2026-09-12 que el teléfono funciona correctamente. Producción no tocada. |
 | 67 | `lab-endpoint-credential-test67.yml` | `67 | Issabel Lab | Endpoint Credentials | Foundation` | `LAB-SCHEMA-CYCLE-PASS` run `34681386727`: auditoría estática, DDL de tres tablas, verificación y rollback PASS. En push queda static-only; el ciclo DDL reversible requiere dispatch manual. Run `34681677185`: static/helper PASS y DDL bloqueado correctamente tras retirar el grant temporal. |
 | 68 | `lab-endpoint-credential-test68.yml` | `68 | Issabel Lab | Endpoint Credentials | Runtime Smoke` | `LAB-RUNTIME-SMOKE-PASS` run `34684066307`: static, esquema/runtime persistentes, credencial `FACTORY` cifrada por MAC, login/lectura read-only del GRP2601P, estado `VALIDATED` y verificación sanitizada PASS. Sin permisos sudo nuevos, escritura al teléfono, Configure ni cambios en producción. |
+| 69 | `lab-pbx-web-recovery-test69.yml` | `69 | Issabel Lab | PBX Web Interface | Diagnosis` | `LAB-FIX-PASS` run `34769273874`: detectó PHP-FPM `asterisk` sin recorrido sobre `libs` y restauró solo el directorio a `root:root:0755`; HTTP local 302. La corrección persistente de clave/runtime fue validada por Test 68 `34769381087`. |
 
 ## Reglas de runners
 
@@ -120,7 +121,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `69`.
+Próximo ID disponible: `70`.
 
 ## Subpruebas Grandstream G10
 
