@@ -40,3 +40,8 @@ jobs:
         run: |
           set -euo pipefail
           sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-web-interface
+      - name: Restore Endpoint Configurator library traversal
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy recover-web-interface
