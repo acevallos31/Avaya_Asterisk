@@ -2,11 +2,12 @@
 
 ## 2026-09-13 — Codex — incidente HTTP 500 interfaz LAB
 
-Se registró el Test 69 de diagnóstico manual. Sin conceder permisos nuevos, el
-runner sincroniza el helper ya allowlisted y ejecuta únicamente una inspección:
-estado de `httpd`, `apachectl -t`, HTTP local con Host `pbx.nocpbx.com` y colas
-de error filtradas para no exponer secretos. No hay reinicio ni modificación de
-Apache/PHP durante esta etapa.
+Test 69 run `34769273874` identificó el PHP fatal: PHP-FPM usa `asterisk` y no
+podía recorrer `modules/endpoint_configurator/libs`, instalado como
+`root:apache:0750`. Se restauró ese directorio a `root:root:0755`, sin reinicio,
+y la respuesta local volvió a HTTP 302. La corrección permanente se desplegó en
+Test 68 run `34769381087`: clave `root:asterisk:0640`, runtime y smoke PASS.
+No se tocaron teléfonos ni producción.
 
 Registro compartido de trabajo humano/IA en `Avaya_Asterisk`. Consultar primero `AGENTS.md`, `CONTEXT.md` y `docs/j129-test-registry.md`. No almacenar secretos reales.
 
@@ -40,7 +41,7 @@ override cifrado contra el GRP2601P mediante login/read-only.
 Correcciones previas al despliegue:
 
 - el token CSRF ahora se recupera dentro del scope que renderiza la plantilla;
-- la clave cambió de `0600` a `root:apache:0640`, porque Apache debe poder
+- la clave cambió de `0600` a `root:asterisk:0640`, porque PHP-FPM de Issabel debe poder
   cifrar desde la UI sin hacer el archivo público;
 - el helper distingue instalación DDL persistente de un ciclo reversible y
   rechaza rollback sobre el estado persistente;
