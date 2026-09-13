@@ -1,5 +1,13 @@
 # Agent Audit Log
 
+## 2026-09-13 — Codex — incidente HTTP 500 interfaz LAB
+
+Se registró el Test 69 de diagnóstico manual. Sin conceder permisos nuevos, el
+runner sincroniza el helper ya allowlisted y ejecuta únicamente una inspección:
+estado de `httpd`, `apachectl -t`, HTTP local con Host `pbx.nocpbx.com` y colas
+de error filtradas para no exponer secretos. No hay reinicio ni modificación de
+Apache/PHP durante esta etapa.
+
 Registro compartido de trabajo humano/IA en `Avaya_Asterisk`. Consultar primero `AGENTS.md`, `CONTEXT.md` y `docs/j129-test-registry.md`. No almacenar secretos reales.
 
 Estados usados:
