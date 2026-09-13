@@ -1,5 +1,12 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Incidente LAB — interfaz web PBX HTTP 500 — 2026-09-13
+
+El operador reportó `pbx.nocpbx.com` con HTTP 500. Se reservó Test 69 para un
+diagnóstico manual y restringido: estado Apache, sintaxis, respuesta local con
+el host real y últimos errores sanitizados. No reinicia servicios ni cambia
+configuración hasta identificar una causa concreta. Producción no afectada.
+
 ## Grandstream GRP2601P — ciclo LAB Tests 62–66 — 2026-09-12
 
 Equipo exacto: `192.168.1.176`, MAC `EC:74:D7:1E:E8:E3`.
