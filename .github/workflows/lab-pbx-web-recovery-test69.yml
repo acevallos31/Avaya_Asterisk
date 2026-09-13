@@ -1,0 +1,42 @@
+name: "69 | Issabel Lab | PBX Web Interface | Diagnosis"
+
+on:
+  push:
+    branches:
+      - feature/endpoint-credential-foundation
+    paths:
+      - ".github/workflows/lab-pbx-web-recovery-test69.yml"
+      - "deploy/j129/avaya-j129-lab-deploy"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Escriba DIAGNOSE-LAB-WEB-INTERFACE"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Diagnose local PBX web interface
+    runs-on: [self-hosted, Linux, X64, issabel-lab]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard LAB and sync allowlisted helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "feature/endpoint-credential-foundation"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            test "${{ inputs.confirmation }}" = "DIAGNOSE-LAB-WEB-INTERFACE"
+          fi
+          test "$(id -un)" = "github-runner"
+          ! hostname | grep -Eqi 'prod|cei-pbx02'
+          sudo -n /usr/local/sbin/avaya-j129-helper-sync
+      - name: Inspect Apache and local web response
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/avaya-j129-lab-deploy inspect-web-interface
