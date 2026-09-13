@@ -38,7 +38,7 @@ class EndpointCredentialFoundationTests(unittest.TestCase):
     def test_key_helper_is_private_and_idempotent(self):
         text = KEY_HELPER.read_text(encoding="utf-8")
         self.assertIn("umask 077", text)
-        self.assertIn("root:apache:640", text)
+        self.assertIn("root:asterisk:640", text)
         self.assertIn("chmod 0640", text)
         self.assertIn("if [[ -e", text)
         self.assertNotIn("echo \"$KEY_FILE\"", text)
