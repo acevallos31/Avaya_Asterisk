@@ -2,10 +2,15 @@
 
 ## Incidente LAB — interfaz web PBX HTTP 500 — 2026-09-13
 
-El operador reportó `pbx.nocpbx.com` con HTTP 500. Se reservó Test 69 para un
-diagnóstico manual y restringido: estado Apache, sintaxis, respuesta local con
-el host real y últimos errores sanitizados. No reinicia servicios ni cambia
-configuración hasta identificar una causa concreta. Producción no afectada.
+El operador reportó `pbx.nocpbx.com` con HTTP 500. Test 69 run `34769273874`
+identificó el fallo: PHP-FPM corre como `asterisk`, pero el directorio
+`modules/endpoint_configurator/libs` se instaló como `root:apache:0750`, lo que
+impedía al cargador general de Issabel recorrerlo. Se restauró el directorio a
+`root:root:0755`; Apache estaba activo y respondió localmente HTTP 302.
+
+La corrección permanente se validó en Test 68 run `34769381087`: la clave queda
+`root:asterisk:0640`, el directorio es recorrible sin exponer secretos y el
+runtime/smoke GRP2601P completó PASS. Producción no afectada.
 
 ## Grandstream GRP2601P — ciclo LAB Tests 62–66 — 2026-09-12
 
@@ -81,7 +86,7 @@ La rama `feature/endpoint-credential-foundation` contiene:
   para política global por PBX, credencial por endpoint/MAC y eventos;
 - bóveda PHP con AES-256-GCM y clave externa en
   `/etc/issabel/endpoint-configurator.key`;
-- instalador idempotente de clave `root:apache:0640`, legible únicamente por
+- instalador idempotente de clave `root:asterisk:0640`, legible únicamente por
   root y el proceso web de Issabel;
 - menú de seguridad administrativa con guard CSRF;
 - contraseña global y override por MAC cifrados, ambos inicialmente `PENDING`;
