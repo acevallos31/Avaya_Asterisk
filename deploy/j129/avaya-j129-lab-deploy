@@ -224,11 +224,11 @@ install_endpoint_credential_runtime() {
   fi
 
   "$workspace/deploy/endpoint-configurator/bin/install-key.sh"
-  install -d -o root -g apache -m 0750 "$ENDPOINT_CREDENTIAL_MODULE/libs"
+  install -d -o root -g root -m 0755 "$ENDPOINT_CREDENTIAL_MODULE/libs"
   install -d -o root -g root -m 0755 /usr/local/libexec
 
   while read -r source destination; do
-    install -o root -g apache -m 0640 "$source" "$destination"
+    install -o root -g root -m 0644 "$source" "$destination"
   done <<EOF
 $workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php $ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php
 $workspace/var/www/html/modules/endpoint_configurator/index.php $ENDPOINT_CREDENTIAL_MODULE/index.php
@@ -236,7 +236,7 @@ EOF
 
   install -o root -g root -m 0644 "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"
   install -o root -g root -m 0644 "$workspace/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js"
-  install -o root -g apache -m 0750 "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" "$ENDPOINT_CREDENTIAL_CLI"
+  install -o root -g asterisk -m 0750 "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" "$ENDPOINT_CREDENTIAL_CLI"
 
   apachectl -t >/dev/null
   systemctl reload httpd
@@ -277,7 +277,7 @@ rollback_endpoint_credential_runtime() {
 verify_endpoint_credential_runtime() {
   local workspace="$1" defaults_file count
   require_runner_workspace "$workspace"
-  [ "$(stat -c '%U:%G:%a' /etc/issabel/endpoint-configurator.key)" = 'root:apache:640' ] || {
+  [ "$(stat -c '%U:%G:%a' /etc/issabel/endpoint-configurator.key)" = 'root:asterisk:640' ] || {
     echo 'ERROR: ownership/mode inválido para clave de credenciales' >&2
     exit 1
   }
