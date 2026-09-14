@@ -1,5 +1,42 @@
 # CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
 
+## Endpoint Configurator — cierre visual LAB y gate de producción — 2026-09-14
+
+La fundación de credenciales administrativas y la columna
+`Extension / Registration` quedaron desplegadas y validadas en LAB. Test 68 run
+`34805839845` terminó PASS con runtime actualizado, esquema/clave verificados y
+smoke autenticado read-only del GRP2601P; `phone_write=NO` y producción no fue
+tocada.
+
+El operador confirmó visualmente la pantalla principal del Endpoint
+Configurator el 2026-09-13 (hora local). Se observaron cuatro endpoints y sus
+cuentas como `Registered`:
+
+```text
+GXP1630   192.168.1.169   201
+GXP1625   192.168.1.168   202
+J129      192.168.1.170   200
+GRP2601P  192.168.1.176   203
+```
+
+La evidencia visual confirma que el resumen de cuenta/registro funciona sobre
+los fabricantes del LAB sin entrar a `Configure` por cada teléfono.
+
+Se documentó el rollout en
+`docs/endpoint-configurator-production-rollout.md` y se reservó Test 70:
+
+```text
+70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
+```
+
+Test 70 todavía no tiene workflow activo y no autoriza instalación. Su primer
+gate debe ser exclusivamente read-only sobre `cei-pbx02`, con guard exacto del
+runner `github-runner-prod`, auditoría de salud/inventario y comparación de
+drift de `index.php`, `reporte_endpoints.tpl` y `javascript.js` contra la base
+`Audit`. Si ese preflight pasa, el siguiente ID disponible es 71 para preparar
+la instalación controlada del runtime con helper productivo root-owned dedicado,
+backup/manifest y rollback de archivos. Producción permanece sin cambios.
+
 ## Incidente LAB — interfaz web PBX HTTP 500 — 2026-09-13
 
 El operador reportó `pbx.nocpbx.com` con HTTP 500. Test 69 run `34769273874`
@@ -215,7 +252,7 @@ se exponen sin autenticación; la próxima prueba requiere una credencial Web
 Admin suministrada como Repository Secret, sin probar contraseñas por defecto.
 
 Run `34583242705`: authenticated read PASS usando la credencial de fábrica
-desde `GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`. Login/SID y lectura de P-values
+desde `GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`. Login/SID y lectura P-values
 son compatibles con el contrato GXP1625. P212/P237 y parámetros de autenticación
 de provisioning están vacíos: bootstrap requerido. No hubo escrituras.
 
