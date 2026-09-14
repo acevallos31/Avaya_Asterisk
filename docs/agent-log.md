@@ -1,5 +1,59 @@
 # Agent Audit Log
 
+## 2026-09-14 — OpenAI GPT-5.6 Sol — cierre visual LAB y gate de producción
+
+Test 68 run `34805839845` completó PASS con el runtime actualizado del Endpoint
+Configurator, esquema/clave verificados, lint PHP y smoke autenticado read-only
+del GRP2601P. Los marcadores conservaron `phone_write=NO` y
+`production_touched=NO`.
+
+El operador confirmó visualmente la tabla principal en LAB. La nueva columna
+`Extension / Registration` mostró correctamente:
+
+```text
+GXP1630   192.168.1.169   201   Registered
+GXP1625   192.168.1.168   202   Registered
+J129      192.168.1.170   200   Registered
+GRP2601P  192.168.1.176   203   Registered
+```
+
+La validación demuestra el resumen visible de cuenta/registro en la pantalla
+principal sin abrir `Configure` por cada teléfono. La capacidad multicuenta está
+implementada en el runtime, aunque esta captura concreta muestra una cuenta por
+equipo.
+
+Se creó `docs/endpoint-configurator-production-rollout.md` con la secuencia de
+promoción, guardas y rollback. `docs/j129-test-registry.md` reservó Test 70:
+
+```text
+70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
+```
+
+Test 70 queda reservado y todavía no dispone de workflow activo. El contrato
+exige `github-runner-prod@cei-pbx02`, cero escrituras, reutilización exclusiva
+del helper productivo root-owned existente para auditorías, comparación de
+drift de `index.php`, `reporte_endpoints.tpl` y `javascript.js`, salud HTTP y
+evidencia sanitizada. Cualquier drift debe detener el despliegue.
+
+La instalación controlada queda separada para un Test 71 posterior y solo podrá
+prepararse después de un Test 70 PASS. Debe usar helper productivo dedicado,
+root-owned, backup/manifest, verificación Apache y rollback de runtime; no se
+permitirá que el runner productivo autoactualice helpers privilegiados desde el
+workspace público.
+
+Documentación publicada en esta preparación:
+
+```text
+docs/endpoint-configurator-production-rollout.md  95f3480bb68a3db099d05a148fb9918a77e1753c
+docs/j129-test-registry.md                        0efa2244a01a9259ad1b88878e0b962e07b6b1e9
+CONTEXT.md                                        135be9588f978ebd66691795bbac789427258f61
+```
+
+No se ejecutó ningún job sobre producción, no se instaló runtime en `cei-pbx02`
+y no se contactaron teléfonos productivos. Siguiente paso: implementar/activar
+Test 70 como preflight estrictamente read-only y ejecutarlo antes de preparar
+Test 71.
+
 ## 2026-09-13 — Codex — incidente HTTP 500 interfaz LAB
 
 Test 69 run `34769273874` identificó el PHP fatal: PHP-FPM usa `asterisk` y no
@@ -485,7 +539,7 @@ Reservado:
 NOT-TESTED
 ```
 
-Objetivo: investigar primero en LAB si el propio J129 puede iniciar/controlar remotamente una llamada hacia otra extensión, diferenciando ese flujo de un originate generado por Asterisk. No se hará en producción hasta tener evidencia LAB y un procedimiento controlado.
+Objetivo: investigar primero en LAB si el propio J129 puede iniciar/controlar remotamente una llamada hacia otra extensión, diferenciando ese flujo de un originate generado únicamente por Asterisk. No se hará en producción hasta tener evidencia LAB y un procedimiento controlado.
 
 Decisión de secuencia actual: después de actualizar documentación/roadmap de v0.2.x, continuar con esta prueba en el ambiente de laboratorio.
 
@@ -587,7 +641,7 @@ transacción para crear credenciales `FACTORY` cifradas y `PENDING`, con evento
 por endpoint. El temporal de subida se borra al finalizar la petición y la
 respuesta no devuelve contraseñas. No se invoca Configure ni se contacta ningún
 teléfono. Auditoría local: 10/10 PASS; el lint PHP queda cubierto por la
-validación estática remota. Pendiente: Test LAB de importación con archivo de
+validación estáática remota. Pendiente: Test LAB de importación con archivo de
 prueba controlado, sin producción.
 
 Run `34698714634` terminó PASS: auditoría estática, instalación del runtime,
