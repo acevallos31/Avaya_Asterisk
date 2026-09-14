@@ -1,0 +1,11 @@
+<?php
+global $arrLangModule;
+$arrLangModule = array(
+    "Extension / Registration" => "Extension / Registration",
+    "Not assigned" => "Not assigned",
+    "Registered" => "Registered",
+    "Not registered" => "Not registered",
+    "Registration unknown" => "Registration unknown",
+    "Registered at" => "Registered at",
+);
+?>
