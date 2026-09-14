@@ -51,7 +51,7 @@ Runner:  github-runner-prod
 Labels:  self-hosted, Linux, X64, j129-production, cei-pbx02
 ```
 
-La primera ejecución productiva será **read-only** y queda reservada como Test
+La primera ejecución productiva será **read-only** y queda registrada como Test
 70.
 
 ## Test 70 — preflight read-only
@@ -62,7 +62,9 @@ Nombre normalizado:
 70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
 ```
 
-Estado actual: `HARNESS-STAGED`. El harness read-only quedó versionado en:
+Estado actual: `READY / NOT-TESTED`.
+
+El harness read-only quedó versionado en:
 
 ```text
 scripts/prod-endpoint-credential-preflight.sh
@@ -70,9 +72,28 @@ commit: 207c58e315e36184091ed5cd37080842434215ab
 blob:   7545b2e14981da8ca07446ef2ec8d6200ddf4f9b
 ```
 
-El script no instala archivos, no ejecuta migraciones, no modifica
-`endpointconfig`, no contacta teléfonos y no llama `Configure`. Solo usa el
-helper productivo root-owned existente en la acción read-only `fleet-audit`.
+El workflow manual-only quedó activo en `main`:
+
+```text
+.github/workflows/prod-endpoint-credential-test70.yml
+commit: 2af14e5b7a5baa76b5640935a3475407e5e75d09
+```
+
+El workflow exige ejecutarse desde `main`, usa exclusivamente el runner exacto
+`[self-hosted, Linux, X64, j129-production, cei-pbx02]`, valida
+`github-runner-prod@cei-pbx02`, pinnea el harness por commit y blob, ejecuta
+`bash -n` antes de usarlo y conserva un artifact sanitizado por 90 días.
+
+Confirmación manual requerida:
+
+```text
+PREFLIGHT-ENDPOINT-CREDENTIALS-PROD
+```
+
+Ni el workflow ni el harness instalan archivos, ejecutan migraciones, modifican
+`endpointconfig`, contactan teléfonos o llaman `Configure`. El único acceso
+privilegiado del harness reutiliza el helper productivo root-owned existente en
+la acción read-only `fleet-audit`.
 
 ### Baseline inmutable para detección de drift
 
@@ -95,7 +116,7 @@ La comparación usa `git hash-object` y nunca imprime el contenido de los
 archivos. Cualquier diferencia produce `TEST70-DRIFT-BLOCK` y detiene el gate.
 No se debe forzar un deploy hasta explicar ese drift.
 
-### Controles incluidos en el harness
+### Controles incluidos
 
 1. identidad exacta `github-runner-prod@cei-pbx02`;
 2. helper `/usr/local/sbin/avaya-j129-prod-validation` presente como
@@ -106,12 +127,13 @@ No se debe forzar un deploy hasta explicar ese drift.
 5. salud HTTPS local de Issabel sin respuesta 5xx;
 6. inventario informativo de los paths nuevos del runtime, sin crearlos ni
    modificarlos;
-7. reporte sanitizado en `/tmp/test70-endpoint-credential-preflight.txt`.
+7. reporte sanitizado que el workflow publica como artifact.
 
 Marcadores esperados:
 
 ```text
 TEST70-PROD-RUNNER-GUARD-PASS
+TEST70-HARNESS-INTEGRITY-PASS
 TEST70-PROD-ENDPOINT-BASELINE-PASS
 J129-PROD-FLEET-AUDIT-PASS
 TEST70-PROD-WEB-HEALTH-PASS
@@ -120,27 +142,6 @@ production_runtime_write=NO
 endpointconfig_write=NO
 phone_write=NO
 ```
-
-### Wrapper de GitHub Actions pendiente
-
-El harness ya está preparado, pero el workflow
-`.github/workflows/prod-endpoint-credential-test70.yml` todavía no está activo.
-El wrapper final debe vivir en `main`, ser `workflow_dispatch`, exigir la
-confirmación exacta:
-
-```text
-PREFLIGHT-ENDPOINT-CREDENTIALS-PROD
-```
-
-y usar el runner exacto:
-
-```yaml
-runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
-```
-
-El wrapper debe ejecutar primero la auditoría productiva existente de la release
-J129 congelada y después ejecutar **el harness pinneado por commit/blob**, no una
-versión flotante tomada de una rama. No debe ampliar sudo ni instalar helpers.
 
 ## Gate posterior — Test 71
 
@@ -179,7 +180,7 @@ como parte del rollback de runtime.
 ```text
 LAB visual PASS
 -> harness Test 70 read-only STAGED
--> activar wrapper Test 70 en main
+-> workflow Test 70 activo en main
 -> ejecutar Test 70 en Ceiba
 -> revisar drift / salud / inventario
 -> preparar e instalar helper productivo dedicado
