@@ -19,7 +19,7 @@ jobs:
           ref: feature/endpoint-credential-foundation
           fetch-depth: 0
 
-      - name: Patch runtime helper and TEST68
+      - name: Patch runtime helper
         shell: bash
         run: |
           set -euo pipefail
@@ -70,21 +70,6 @@ jobs:
                   raise SystemExit(f'helper patch anchor count={count}: {old[:90]!r}')
               text = text.replace(old, new, 1)
           helper.write_text(text, encoding='utf-8')
-
-          wf = Path('.github/workflows/lab-endpoint-credential-test68.yml')
-          w = wf.read_text(encoding='utf-8')
-          old = '      - "tests/audit/test_endpoint_credential_foundation.py"'
-          new = old + '\n      - "tests/audit/test_endpoint_main_account_status.py"'
-          if w.count(old) != 1:
-              raise SystemExit('TEST68 path anchor mismatch')
-          w = w.replace(old, new, 1)
-
-          old = '          python3 -m unittest tests.audit.test_endpoint_credential_foundation -v\n          bash -n deploy/j129/avaya-j129-lab-deploy'
-          new = '          python3 -m unittest tests.audit.test_endpoint_credential_foundation tests.audit.test_endpoint_main_account_status -v\n          php -l var/www/html/modules/endpoint_configurator/dialogs/summary/index.php\n          bash -n deploy/j129/avaya-j129-lab-deploy'
-          if w.count(old) != 1:
-              raise SystemExit('TEST68 audit anchor mismatch')
-          w = w.replace(old, new, 1)
-          wf.write_text(w, encoding='utf-8')
           PY
 
           python3 -m unittest tests.audit.test_endpoint_credential_foundation tests.audit.test_endpoint_main_account_status -v
@@ -92,13 +77,12 @@ jobs:
           bash -n deploy/j129/avaya-j129-lab-deploy
           git diff --check
 
-      - name: Commit patch and remove temporary workflow
+      - name: Commit helper patch
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/patch-endpoint-summary-deploy.yml
-          git add deploy/j129/avaya-j129-lab-deploy .github/workflows/lab-endpoint-credential-test68.yml
+          git add deploy/j129/avaya-j129-lab-deploy
           git commit -m "fix(endpoint): deploy account registration summary"
           git push origin HEAD:feature/endpoint-credential-foundation
