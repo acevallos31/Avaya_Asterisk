@@ -130,6 +130,7 @@
     <td class="neo-table-title-row">{$LBL_CURRENT_IP}</td>
     <td class="neo-table-title-row">{$LBL_MANUFACTURER}</td>
     <td class="neo-table-title-row">{$LBL_MODEL}</td>
+    <td class="neo-table-title-row endpoint-account-summary-header">Extension / Registration</td>
     <td class="neo-table-title-row">{$LBL_OPTIONS}</td>
 </tr>
 
@@ -152,13 +153,17 @@
         optionLabelPath="content.name_model"
         valueBinding="endpoint.id_model"
         disabledBinding="scanInProgress"}}</td>
+    <td class="neo-table-data-row endpoint-account-summary">
+        <span class="endpoint-account-summary-id" style="display:none">{{endpoint.id_endpoint}}</span>
+        <span class="endpoint-account-summary-body">Loading...</span>
+    </td>
     <td class="neo-table-data-row">
         {{#linkTo "endpoints.endpointconfig" endpoint }}[{/literal}{$LBL_CONFIGURE}{literal} {{endpoint.last_known_ipv4}}]{{/linkTo}}
     </td>
 </tr>
 {{else}}
 <tr class="neo-table-data-row">
-    <td class="neo-table-data-row" colspan="7">{/literal}{$MSG_NO_ENDPOINTS}{literal}</td>
+    <td class="neo-table-data-row" colspan="8">{/literal}{$MSG_NO_ENDPOINTS}{literal}</td>
 </tr>
 {{/each}}
 {{/view}}{/literal}
@@ -263,5 +268,104 @@
 var lastop_error_message = {$LASTOP_ERROR_MESSAGE};
 var credential_csrf = {$CREDENTIAL_CSRF};
 var arrLang_main = {$ARRLANG_MAIN};
+</script>
+
+<script type="text/javascript">
+{literal}
+(function($) {
+    var summaryByEndpoint = null;
+    var summaryLabels = {
+        header: 'Extension / Registration',
+        not_assigned: 'Not assigned',
+        registered: 'Registered',
+        not_registered: 'Not registered',
+        registration_unknown: 'Registration unknown',
+        registered_at: 'Registered at'
+    };
+    var summaryLoading = false;
+    var summaryLoadedAt = 0;
+
+    function indexSummary(response) {
+        var indexed = {};
+        if (!response || !response.endpoints) return indexed;
+        for (var i = 0; i < response.endpoints.length; i++) {
+            indexed[String(response.endpoints[i].id_endpoint)] = response.endpoints[i];
+        }
+        return indexed;
+    }
+
+    function renderAccountSummary() {
+        if (summaryByEndpoint === null) return;
+
+        $('.endpoint-account-summary-header').text(summaryLabels.header);
+        $('.endpoint-account-summary').each(function() {
+            var $cell = $(this);
+            var endpointId = $.trim($cell.find('.endpoint-account-summary-id').text());
+            var $body = $cell.find('.endpoint-account-summary-body');
+            var endpoint = summaryByEndpoint[endpointId];
+            var signature = JSON.stringify(endpoint || {});
+
+            if ($body.data('summary-signature') === signature) return;
+            $body.data('summary-signature', signature);
+            $body.empty();
+
+            if (!endpoint || !endpoint.accounts || endpoint.accounts.length === 0) {
+                $('<span/>').css('color', '#777').text(summaryLabels.not_assigned).appendTo($body);
+                return;
+            }
+
+            for (var i = 0; i < endpoint.accounts.length; i++) {
+                var account = endpoint.accounts[i];
+                var $line = $('<div/>').css('white-space', 'nowrap').appendTo($body);
+                $('<strong/>').text(account.extension || account.account).appendTo($line);
+                $line.append(document.createTextNode(' — '));
+
+                if (!account.registration_known) {
+                    $('<span/>').css('color', '#8a6d3b').text(summaryLabels.registration_unknown).appendTo($line);
+                } else if (account.registered) {
+                    var $registered = $('<span/>').css('color', '#3c763d').text(summaryLabels.registered).appendTo($line);
+                    if (account.registerip) {
+                        $registered.attr('title', summaryLabels.registered_at + ': ' + account.registerip);
+                    }
+                } else {
+                    $('<span/>').css('color', '#a94442').text(summaryLabels.not_registered).appendTo($line);
+                }
+            }
+        });
+    }
+
+    function loadAccountSummary() {
+        if (summaryLoading || $('.endpoint-account-summary').length === 0) return;
+        summaryLoading = true;
+
+        $.get('index.php', {
+            menu: module_name,
+            rawmode: 'yes',
+            action: 'summary_loadAll'
+        }, function(response) {
+            if (response && response.status === 'success') {
+                summaryByEndpoint = indexSummary(response);
+                if (response.labels) summaryLabels = response.labels;
+                summaryLoadedAt = new Date().getTime();
+                renderAccountSummary();
+            }
+        }).always(function() {
+            summaryLoading = false;
+        });
+    }
+
+    $(document).ready(function() {
+        window.setInterval(function() {
+            if ($('.endpoint-account-summary').length === 0) return;
+
+            renderAccountSummary();
+            var now = new Date().getTime();
+            if (summaryByEndpoint === null || (now - summaryLoadedAt) >= 15000) {
+                loadAccountSummary();
+            }
+        }, 1000);
+    });
+})(jQuery);
+{/literal}
 </script>
 
