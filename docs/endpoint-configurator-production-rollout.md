@@ -51,29 +51,30 @@ Runner:  github-runner-prod
 Labels:  self-hosted, Linux, X64, j129-production, cei-pbx02
 ```
 
-La primera ejecución productiva es **read-only** y se registra como Test 70.
+La primera ejecución productiva será **read-only** y queda reservada como Test
+70. En este punto se documenta el contrato del gate; no existe todavía un
+workflow activo ni se ha tocado producción.
 
-## Test 70 — preflight read-only
+## Test 70 — preflight read-only reservado
 
-Workflow:
+Nombre normalizado:
 
 ```text
-.github/workflows/prod-endpoint-credential-test70.yml
 70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
 ```
 
-Requiere dispatch manual desde la rama
-`feature/endpoint-credential-foundation` y confirmación exacta:
+El workflow futuro deberá ser `workflow_dispatch` manual y exigir confirmación
+exacta:
 
 ```text
 PREFLIGHT-ENDPOINT-CREDENTIALS-PROD
 ```
 
-El workflow debe abortar si el host, usuario, rama o labels no corresponden a
-producción. No concede sudo nuevo y únicamente reutiliza el helper productivo
+Debe abortar si el host, usuario, rama o labels no corresponden a producción.
+No debe conceder sudo nuevo: reutilizará únicamente el helper productivo
 root-owned ya instalado `avaya-j129-prod-validation` para auditorías read-only.
 
-El preflight valida:
+El preflight deberá validar:
 
 1. auditorías estáticas de la fundación de credenciales y del resumen de
    cuentas/registro;
@@ -86,9 +87,9 @@ El preflight valida:
 7. estado HTTP local de Issabel sin respuestas 5xx;
 8. presencia/ausencia informativa de los nuevos paths del runtime, sin
    modificarlos;
-9. evidencia sanitizada como artifact con retención de 90 días.
+9. evidencia sanitizada con retención de 90 días.
 
-Marcadores esperados:
+Marcadores previstos:
 
 ```text
 TEST70-PROD-RUNNER-GUARD-PASS
@@ -102,13 +103,13 @@ endpointconfig_write=NO
 phone_write=NO
 ```
 
-Cualquier drift de los tres archivos live bloquea el despliegue. No se debe
-forzar la instalación hasta explicar la diferencia.
+Cualquier drift de los tres archivos live debe bloquear el despliegue. No se
+debe forzar la instalación hasta explicar la diferencia.
 
 ## Gate posterior — Test 71
 
 Test 71 **no se ejecuta ni se considera autorizado** hasta que Test 70 termine
-PASS y se revise su artifact.
+PASS y se revise su evidencia.
 
 El diseño previsto para Test 71 es una instalación controlada con:
 
@@ -141,7 +142,8 @@ como parte del rollback de runtime.
 
 ```text
 LAB visual PASS
--> Test 70 preflight read-only en Ceiba
+-> implementar Test 70 read-only
+-> ejecutar Test 70 en Ceiba
 -> revisar drift / salud / inventario
 -> preparar e instalar helper productivo dedicado
 -> Test 71 controlled runtime install
