@@ -23,11 +23,23 @@ record() {
   printf '%s\n' "$*" | tee -a "$REPORT"
 }
 
+git_blob_sha() {
+  python3 - "$1" <<'PY'
+import hashlib
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+data = path.read_bytes()
+print(hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest())
+PY
+}
+
 check_live_blob() {
   local relative="$1" expected="$2" live actual
   live="$MODULE/$relative"
   [ -f "$live" ] || fail "live file missing: $relative"
-  actual="$(git hash-object "$live")"
+  actual="$(git_blob_sha "$live")"
   if [ "$actual" != "$expected" ]; then
     record "TEST70-DRIFT-BLOCK path=$relative expected_blob=$expected actual_blob=$actual"
     exit 1
@@ -40,7 +52,7 @@ chmod 0600 "$REPORT"
 
 [ "$(id -un)" = "$EXPECTED_USER" ] || fail 'unexpected runner user'
 [ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail 'unexpected production host'
-command -v git >/dev/null 2>&1 || fail 'git is required for immutable blob comparison'
+command -v python3 >/dev/null 2>&1 || fail 'python3 is required for immutable blob comparison'
 command -v curl >/dev/null 2>&1 || fail 'curl is required for local web health'
 [ -x "$PROD_HELPER" ] || fail 'production validation helper missing'
 [ "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755' ] || fail 'production helper ownership/mode mismatch'
