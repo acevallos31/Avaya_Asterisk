@@ -190,6 +190,8 @@ install_endpoint_credential_runtime() {
     "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" \
     "$workspace/deploy/endpoint-configurator/bin/install-key.sh" \
     "$workspace/var/www/html/modules/endpoint_configurator/index.php" \
+    "$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php" \
+    "$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang" \
     "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" \
     "$workspace/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js"; do
     [ "$(stat -c '%U' "$source")" = 'github-runner' ] || {
@@ -201,6 +203,7 @@ install_endpoint_credential_runtime() {
   php -l "$workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php" >/dev/null
   php -l "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" >/dev/null
   php -l "$workspace/var/www/html/modules/endpoint_configurator/index.php" >/dev/null
+  php -l "$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php" >/dev/null
   bash -n "$workspace/deploy/endpoint-configurator/bin/install-key.sh"
 
   if [ ! -f "$manifest" ]; then
@@ -209,6 +212,8 @@ install_endpoint_credential_runtime() {
     for destination in \
       "$ENDPOINT_CREDENTIAL_MODULE/index.php" \
       "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php" \
+      "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/index.php" \
+      "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/lang/en.lang" \
       "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl" \
       "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js" \
       "$ENDPOINT_CREDENTIAL_CLI"; do
@@ -225,6 +230,7 @@ install_endpoint_credential_runtime() {
 
   "$workspace/deploy/endpoint-configurator/bin/install-key.sh"
   install -d -o root -g root -m 0755 "$ENDPOINT_CREDENTIAL_MODULE/libs"
+  install -d -o root -g root -m 0755 "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/lang"
   install -d -o root -g root -m 0755 /usr/local/libexec
 
   while read -r source destination; do
@@ -232,6 +238,8 @@ install_endpoint_credential_runtime() {
   done <<EOF
 $workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php $ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php
 $workspace/var/www/html/modules/endpoint_configurator/index.php $ENDPOINT_CREDENTIAL_MODULE/index.php
+$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php $ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/index.php
+$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang $ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/lang/en.lang
 EOF
 
   install -o root -g root -m 0644 "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"
@@ -252,6 +260,8 @@ rollback_endpoint_credential_runtime() {
     case "$destination" in
       "$ENDPOINT_CREDENTIAL_MODULE/index.php"|\
       "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php"|\
+      "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/index.php"|\
+      "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/lang/en.lang"|\
       "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"|\
       "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js"|\
       "$ENDPOINT_CREDENTIAL_CLI") ;;
@@ -283,10 +293,13 @@ verify_endpoint_credential_runtime() {
   }
   cmp -s "$workspace/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php" "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php"
   cmp -s "$workspace/var/www/html/modules/endpoint_configurator/index.php" "$ENDPOINT_CREDENTIAL_MODULE/index.php"
+  cmp -s "$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php" "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/index.php"
+  cmp -s "$workspace/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang" "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/lang/en.lang"
   cmp -s "$workspace/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/reporte_endpoints.tpl"
   cmp -s "$workspace/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js" "$ENDPOINT_CREDENTIAL_MODULE/themes/default/js/javascript.js"
   cmp -s "$workspace/deploy/endpoint-configurator/bin/credential-vault-cli.php" "$ENDPOINT_CREDENTIAL_CLI"
   php -l "$ENDPOINT_CREDENTIAL_MODULE/index.php" >/dev/null
+  php -l "$ENDPOINT_CREDENTIAL_MODULE/dialogs/summary/index.php" >/dev/null
   php -l "$ENDPOINT_CREDENTIAL_MODULE/libs/EndpointCredentialVault.class.php" >/dev/null
   php -l "$ENDPOINT_CREDENTIAL_CLI" >/dev/null
 
