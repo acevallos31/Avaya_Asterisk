@@ -88,6 +88,7 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 69 | `lab-pbx-web-recovery-test69.yml` | `69 | Issabel Lab | PBX Web Interface | Diagnosis` | `LAB-FIX-PASS` run `34769273874`: detectó PHP-FPM `asterisk` sin recorrido sobre `libs` y restauró solo el directorio a `root:root:0755`; HTTP local 302. La corrección persistente de clave/runtime fue validada por Test 68 `34769381087`. |
 | 70 | `prod-endpoint-credential-test70.yml` | `70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight` | `PRODUCTION-SERVER-PASS`, run `35123613203`. Guard, payload, baseline revisado de Ceiba, `fleet-audit`, HTTPS 200 e inventario runtime PASS. Confirmó `production_runtime_write=NO`, `endpointconfig_write=NO`, `phone_write=NO`; runtime de credenciales aún ausente antes de Test 71. |
 | 71 | `prod-endpoint-credential-test71.yml` | `71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install` | `PRODUCTION-SERVER-PASS`, run `35138230754`. Guard, helper root-owned, payload, baseline, grants DDL mínimos, backup manifest, esquema 3/3, clave `root:asterisk:0640`, runtime, lint/Apache, HTTPS 200 y `fleet-audit` PASS. Marcadores `TEST71-PROD-ENDPOINT-CREDENTIAL-RUNTIME=PASS`, `TEST71-PROD-CONTROLLED-INSTALL=PASS`, `phone_write=NO`. Runs `35130705534` y `35131492883` fallaron antes de preflight por bootstrap incompleto del helper y no escribieron producción. |
+| 72 | `prod-grandstream-fleet-test72.yml` | `72 | Ceiba Production | Grandstream Fleet | Read-Only Discovery Audit` | READY / `NOT-TESTED`. Workflow manual-only en `main`, commit `3bfad09b95fbdae47e609ea1ff67f96177989a93`. Audita sin escrituras la visibilidad L2/HTTP de GXP1625 `C0:74:AD:E8:66:06`/4450, GRP2601P `EC:74:D7:5D:2C:F5`/4453 y GRP2602G `EC:74:D7:65:FE:08`/4452 sobre `10.3.40.0/24`, y compara contra inventario Endpoint Configurator mediante `fleet-audit`. `phone_write=NO`, `endpointconfig_write=NO`. |
 
 ## Reglas de runners
 
@@ -123,7 +124,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `72`.
+Próximo ID disponible: `73`.
 
 ## Subpruebas Grandstream G10
 
