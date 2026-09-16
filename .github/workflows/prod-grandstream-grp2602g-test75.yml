@@ -1,0 +1,65 @@
+name: 75 | Ceiba Production | GRP2602G 4452 | Controlled Endpoint Adoption
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type CONFIGURE-GRP2602G-4452'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grandstream-grp2602g-ceiba-production
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    name: Adopt GRP2602G into Endpoint Configurator preserving extension 4452
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 15
+    env:
+      PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
+    steps:
+      - name: Guard exact production canary
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'CONFIGURE-GRP2602G-4452'
+          test "$(id -un)" = 'github-runner-prod'
+          test "$(hostname -s)" = 'cei-pbx02'
+          test -x "$PROD_HELPER"
+          echo 'expected_model=GRP2602G'
+          echo 'expected_mac=EC:74:D7:65:FE:08'
+          echo 'expected_ip=10.3.40.43'
+          echo 'required_extension_before=4452'
+          echo 'required_extension_after=4452'
+          echo 'TEST75-PROD-RUNNER-GUARD-PASS'
+
+      - name: Controlled Configure preserving 4452
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test75-grp2602g-4452.txt"
+          : > "$REPORT"
+          chmod 0600 "$REPORT"
+          sudo -n "$PROD_HELPER" configure-grp2602g CONFIGURE-GRP2602G-4452 | tee -a "$REPORT"
+          grep -Fq 'GRP2602G-PROD-AUTH-READ-PASS' "$REPORT"
+          grep -Fq 'GRP2602G-PROD-CONFIGURE-4452-PASS' "$REPORT"
+          grep -Fq 'preserved_extension_grp2602g=4452' "$REPORT"
+          grep -Fq 'phone_write=YES' "$REPORT"
+          echo 'TEST75-PROD-GRP2602G-4452=PASS' | tee -a "$REPORT"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test75-grp2602g-4452-${{ github.run_id }}
+          path: ${{ runner.temp }}/test75-grp2602g-4452.txt
+          if-no-files-found: ignore
+          retention-days: 90

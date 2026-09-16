@@ -1,0 +1,9 @@
+Cmnd_Alias ISSABEL_GRANDSTREAM_PROD = \
+  /usr/local/sbin/issabel-grandstream-prod preflight, \
+  /usr/local/sbin/issabel-grandstream-prod install DEPLOY-GRANDSTREAM-PROD, \
+  /usr/local/sbin/issabel-grandstream-prod verify, \
+  /usr/local/sbin/issabel-grandstream-prod auth-read-grp2602g, \
+  /usr/local/sbin/issabel-grandstream-prod configure-grp2602g CONFIGURE-GRP2602G-4452, \
+  /usr/local/sbin/issabel-grandstream-prod rollback-runtime DEPLOY-GRANDSTREAM-PROD
+
+github-runner-prod ALL=(root) NOPASSWD: ISSABEL_GRANDSTREAM_PROD

@@ -1,0 +1,67 @@
+name: 74 | Ceiba Production | GRP2602G | Authenticated Read-Only Contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type AUDIT-GRP2602G-4452'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grandstream-grp2602g-ceiba-production
+  cancel-in-progress: false
+
+jobs:
+  authenticated-read:
+    name: Verify GRP2602G contract and preserve SIP 4452 baseline
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 10
+    env:
+      PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
+    steps:
+      - name: Guard exact production canary
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'AUDIT-GRP2602G-4452'
+          test "$(id -un)" = 'github-runner-prod'
+          test "$(hostname -s)" = 'cei-pbx02'
+          test -x "$PROD_HELPER"
+          echo 'expected_model=GRP2602G'
+          echo 'expected_mac=EC:74:D7:65:FE:08'
+          echo 'expected_ip=10.3.40.43'
+          echo 'preserved_extension=4452'
+          echo 'phone_write=NO'
+          echo 'TEST74-PROD-RUNNER-GUARD-PASS'
+
+      - name: Authenticated read-only contract audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test74-grp2602g-auth-read.txt"
+          : > "$REPORT"
+          chmod 0600 "$REPORT"
+          sudo -n "$PROD_HELPER" auth-read-grp2602g | tee -a "$REPORT"
+          grep -Fq 'GRP2602G-PROD-AUTH-READ-PASS' "$REPORT"
+          grep -Fq 'model_match=YES' "$REPORT"
+          grep -Fq 'extension_match=YES' "$REPORT"
+          grep -Fq 'sip_secret_match=YES' "$REPORT"
+          grep -Fq 'sip_server_match=YES' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+          echo 'TEST74-PROD-GRP2602G-AUTH-READ=PASS' | tee -a "$REPORT"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test74-grp2602g-auth-read-${{ github.run_id }}
+          path: ${{ runner.temp }}/test74-grp2602g-auth-read.txt
+          if-no-files-found: ignore
+          retention-days: 90
