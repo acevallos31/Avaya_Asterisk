@@ -157,16 +157,17 @@ owner/mode de `/usr/local/libexec` cuando ese directorio ya existe.
 
 ### Bootstrap único previo
 
-Antes del primer run de Test 71 hay que instalar manualmente el helper y el
-sudoers root-owned una sola vez. Procedimiento exacto:
+Antes del primer run de Test 71 hay que completar una sola vez el procedimiento
+`docs/endpoint-configurator-prod-helper-bootstrap.md`. Instala el helper y
+sudoers root-owned y aplica los grants DDL permanentes de mínimo privilegio a
+`asteriskuser@localhost` sobre las tres tablas de credenciales, más
+`REFERENCES` sobre `endpoint`.
 
-```text
-docs/endpoint-configurator-prod-helper-bootstrap.md
-```
-
-Este bootstrap **no** instala runtime, no modifica DB y no contacta teléfonos.
-No se repetirá el ciclo de conceder/retirar sudo por cada despliegue: queda una
-allowlist persistente, estrecha y específica para este helper.
+El bootstrap **no crea las tablas, no instala el runtime y no contacta
+telefonos**. Sí modifica una sola vez la metadata de privilegios MariaDB; esos
+grants quedan permanentes para evitar grant/revoke en cada despliegue. No se
+autoriza `DROP`, `ALL PRIVILEGES`, `CREATE USER` ni DDL general sobre
+`endpointconfig.*`.
 
 ### Confirmación para ejecutar Test 71
 
@@ -222,7 +223,7 @@ El runner solo puede invocar esa forma exacta mediante sudoers.
 LAB schema/runtime/visual PASS
 -> Test 70 production read-only PASS (35123613203)
 -> Test 71 helper/workflow STAGED
--> bootstrap único helper + sudoers en cei-pbx02
+-> bootstrap único helper + sudoers + grants DDL mínimos en cei-pbx02
 -> ejecutar Test 71 controlled install
 -> validar UI productiva manualmente
 -> canario de credencial real en una fase posterior separada
