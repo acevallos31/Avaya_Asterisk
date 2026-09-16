@@ -4,7 +4,7 @@ umask 077
 
 EXPECTED_HOST='cei-pbx02'
 REPO='acevallos31/Avaya_Asterisk'
-SYNC_BLOB='51facf6ee2114cb535b6d9b8665818d15ab2d9c5'
+SYNC_BLOB='c5e68b4ab9edcd7f6ca13e11b812e055c146cdad'
 SYNC_DST='/usr/local/sbin/issabel-prod-helper-sync'
 SYNC_SUDOERS='/etc/sudoers.d/issabel-prod-helper-sync'
 GRANDSTREAM_SUDOERS='/etc/sudoers.d/issabel-grandstream-prod'
@@ -47,6 +47,10 @@ bash -n "$SYNC_SRC"
 grep -Fq "RUNNER_USER='github-runner-prod'" "$SYNC_SRC" || fail 'runner guard missing in sync helper'
 grep -Fq "EXPECTED_HOST='cei-pbx02'" "$SYNC_SRC" || fail 'host guard missing in sync helper'
 grep -Fq "CANDIDATE_ROOT='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate'" "$SYNC_SRC" || fail 'candidate-root guard missing in sync helper'
+grep -Fq "BLOB_HELPER='4b4c14a5418eb550bc8a11ff60121a71541db34c'" "$SYNC_SRC" || fail 'Grandstream helper blob pin missing'
+grep -Fq "BLOB_PATCHER='ba0d3d956ad6eb90c376dea5c32398486298f9a6'" "$SYNC_SRC" || fail 'Grandstream patcher blob pin missing'
+grep -Fq "BLOB_AUTH='f51447ea83cf34d387b61233e3080018e59d346e'" "$SYNC_SRC" || fail 'GRP26xx auth blob pin missing'
+grep -Fq "BLOB_SQL='0abdabcc1e9b21a5ae8f202c6c1e2163b0377719'" "$SYNC_SRC" || fail 'Grandstream catalog blob pin missing'
 
 install -o root -g root -m 0755 "$SYNC_SRC" "$SYNC_DST"
 [ "$(stat -c '%U:%G:%a' "$SYNC_DST")" = 'root:root:755' ] || fail 'installed sync helper metadata mismatch'
