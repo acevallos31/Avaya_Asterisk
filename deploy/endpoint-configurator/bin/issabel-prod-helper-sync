@@ -16,42 +16,47 @@ PATCHER_DST='/usr/local/libexec/issabel-grandstream-vendor-patch'
 AUTH_DST='/usr/local/libexec/issabel-grp26xx-auth-read'
 SQL_DST='/usr/local/share/issabel-grandstream-prod/catalog.sql'
 
+# Reviewed production payload blobs from main 8e3f6d12792bd837fb542cc4ffe7c4aa5d391e0c.
+# These are Git blob SHAs, so archive-based actions/checkout is safe even when .git is absent.
+BLOB_HELPER='4b4c14a5418eb550bc8a11ff60121a71541db34c'
+BLOB_PATCHER='ba0d3d956ad6eb90c376dea5c32398486298f9a6'
+BLOB_AUTH='f51447ea83cf34d387b61233e3080018e59d346e'
+BLOB_SQL='0abdabcc1e9b21a5ae8f202c6c1e2163b0377719'
+
 fail(){ printf 'PROD-HELPER-SYNC-FAIL: %s\n' "$*" >&2; exit 1; }
 mark(){ printf '%s\n' "$*"; }
 
 need_root(){ [ "${EUID}" -eq 0 ] || fail 'must run as root'; }
 verify_caller(){
-  [ "${SUDO_USER:-}" = "$RUNNER_USER" ] || fail 'unauthorized caller';
-  [ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail 'unexpected host';
+  [ "${SUDO_USER:-}" = "$RUNNER_USER" ] || fail 'unauthorized caller'
+  [ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail 'unexpected host'
 }
 
-require_regular_runner_file(){
-  local path="$1"
+git_blob_sha(){
+  python3 - "$1" <<'PY'
+import hashlib
+import pathlib
+import sys
+p = pathlib.Path(sys.argv[1])
+data = p.read_bytes()
+print(hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest())
+PY
+}
+
+require_blob(){
+  local path="$1" expected="$2" actual
   [ -f "$path" ] || fail "missing candidate file: ${path#$CANDIDATE_ROOT/}"
   [ ! -L "$path" ] || fail "candidate symlink rejected: ${path#$CANDIDATE_ROOT/}"
   [ "$(stat -c '%U' "$path")" = "$RUNNER_USER" ] || fail "unexpected candidate owner: ${path#$CANDIDATE_ROOT/}"
-}
-
-verify_checkout(){
-  [ -d "$CANDIDATE_ROOT/.git" ] || fail 'candidate checkout missing .git'
-  local head origin dirty
-  head="$(git -C "$CANDIDATE_ROOT" rev-parse HEAD 2>/dev/null || true)"
-  origin="$(git -C "$CANDIDATE_ROOT" rev-parse refs/remotes/origin/main 2>/dev/null || true)"
-  [ -n "$head" ] && [ "$head" = "$origin" ] || fail "candidate is not exact origin/main head=$head origin=$origin"
-  dirty="$(git -C "$CANDIDATE_ROOT" status --porcelain --untracked-files=no)"
-  [ -z "$dirty" ] || fail 'candidate checkout has tracked modifications'
-  case "$head" in
-    [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
-    *) fail 'invalid candidate commit' ;;
-  esac
-  mark "PROD-HELPER-SYNC-CANDIDATE=$head"
+  actual="$(git_blob_sha "$path")"
+  [ "$actual" = "$expected" ] || fail "candidate blob mismatch: ${path#$CANDIDATE_ROOT/} expected=$expected actual=$actual"
 }
 
 verify_payload(){
-  require_regular_runner_file "$HELPER_SRC"
-  require_regular_runner_file "$PATCHER_SRC"
-  require_regular_runner_file "$AUTH_SRC"
-  require_regular_runner_file "$SQL_SRC"
+  require_blob "$HELPER_SRC" "$BLOB_HELPER"
+  require_blob "$PATCHER_SRC" "$BLOB_PATCHER"
+  require_blob "$AUTH_SRC" "$BLOB_AUTH"
+  require_blob "$SQL_SRC" "$BLOB_SQL"
 
   bash -n "$HELPER_SRC"
   python3 - "$PATCHER_SRC" "$AUTH_SRC" <<'PY'
@@ -74,6 +79,11 @@ PY
   if grep -Eiq '\b(DROP|TRUNCATE|GRANT|REVOKE|CREATE[[:space:]]+USER|ALTER[[:space:]]+USER)\b' "$SQL_SRC"; then
     fail 'forbidden SQL operation in production catalog payload'
   fi
+
+  mark "PROD-HELPER-SYNC-BLOB-HELPER=$BLOB_HELPER"
+  mark "PROD-HELPER-SYNC-BLOB-PATCHER=$BLOB_PATCHER"
+  mark "PROD-HELPER-SYNC-BLOB-AUTH=$BLOB_AUTH"
+  mark "PROD-HELPER-SYNC-BLOB-SQL=$BLOB_SQL"
   mark 'PROD-HELPER-SYNC-PAYLOAD-AUDIT-PASS'
 }
 
@@ -87,7 +97,6 @@ install_atomic(){
 }
 
 sync_grandstream(){
-  verify_checkout
   verify_payload
   install_atomic "$HELPER_SRC" "$HELPER_DST" 0755
   install_atomic "$PATCHER_SRC" "$PATCHER_DST" 0755
