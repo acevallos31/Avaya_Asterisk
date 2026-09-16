@@ -1,5 +1,6 @@
 -- Endpoint Configurator administrative credential foundation.
--- Apply only in LAB during Test 67. Values are always ciphertext; plaintext is never stored.
+-- Apply only through an approved controlled helper (Test 67 LAB / Test 71 production).
+-- Values are always ciphertext; plaintext is never stored.
 CREATE TABLE IF NOT EXISTS pbx_admin_password_policy (
     id TINYINT UNSIGNED NOT NULL,
     pbx_identity VARCHAR(191) NOT NULL,
