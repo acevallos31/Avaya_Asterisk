@@ -1,6 +1,11 @@
 name: 73 | Ceiba Production | Grandstream Support | Controlled Server Rollout
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'deploy/endpoint-configurator/**'
+      - '.github/workflows/prod-grandstream-rollout-test73.yml'
   workflow_dispatch:
     inputs:
       confirm:
@@ -56,6 +61,7 @@ jobs:
           echo 'TEST73-STATIC-PASS'
 
   production-rollout:
+    if: github.event_name == 'workflow_dispatch'
     name: Ceiba controlled Grandstream server rollout
     needs: static-audit
     runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
