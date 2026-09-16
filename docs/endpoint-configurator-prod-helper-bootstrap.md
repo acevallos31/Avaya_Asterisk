@@ -1,9 +1,16 @@
 # Test 71 — bootstrap único del helper productivo
 
-Este paso se ejecuta **una sola vez** como `root` en `cei-pbx02` antes del primer
-run de Test 71. No instala todavía el runtime de credenciales, no modifica la DB
-y no contacta teléfonos. Solo instala el helper root-owned y su allowlist sudo
-restringida.
+Este procedimiento se ejecuta **una sola vez** como `root`/DBA en `cei-pbx02`
+antes del primer run de Test 71. Tiene dos partes:
+
+1. instalar el helper root-owned y su allowlist sudo restringida;
+2. conceder a `asteriskuser@localhost` únicamente el DDL mínimo permanente que
+   Test 71 necesita sobre las tres tablas de credenciales y `REFERENCES` sobre
+   la tabla padre `endpoint`.
+
+No instala todavía el runtime de credenciales, no crea las tres tablas y no
+contacta teléfonos. Los grants son permanentes y limitados precisamente para no
+repetir ciclos de grant/revoke en cada despliegue.
 
 ## Artefactos congelados
 
@@ -13,9 +20,9 @@ helper git blob:  3c16593a0f2490e00ad912838ec32eed2b35e26a
 sudoers git blob: d82b28e335802034df4c11dae2780e164c823ab3
 ```
 
-## Comandos en cei-pbx02
+## Paso 1 — instalar helper y sudoers
 
-Ejecutar como `root`:
+Ejecutar como `root` en `cei-pbx02`:
 
 ```bash
 set -euo pipefail
@@ -63,6 +70,41 @@ root:root:440 /etc/sudoers.d/issabel-endpoint-credential-prod
 
 El helper **no se autoactualiza** desde el checkout del runner. Una versión
 posterior exige otro bootstrap explícito con blobs nuevos y revisión previa.
+
+## Paso 2 — grants DDL mínimos permanentes
+
+Primero comprobar que la cuenta de Endpoint Configurator sigue siendo la
+esperada:
+
+```bash
+DBUSER="$(sed -n 's/^AMPDBUSER=//p' /etc/amportal.conf | head -n1)"
+DBHOST="$(sed -n 's/^AMPDBHOST=//p' /etc/amportal.conf | head -n1)"
+printf 'AMPDBUSER=%s AMPDBHOST=%s\n' "$DBUSER" "$DBHOST"
+test "$DBUSER" = 'asteriskuser'
+test -z "$DBHOST" || test "$DBHOST" = 'localhost'
+```
+
+Después, desde una sesión MySQL/MariaDB con privilegios DBA, ejecutar exactamente:
+
+```sql
+GRANT CREATE, ALTER, INDEX, REFERENCES ON endpointconfig.pbx_admin_password_policy TO 'asteriskuser'@'localhost';
+GRANT CREATE, ALTER, INDEX, REFERENCES ON endpointconfig.endpoint_admin_credential TO 'asteriskuser'@'localhost';
+GRANT CREATE, ALTER, INDEX, REFERENCES ON endpointconfig.endpoint_credential_event TO 'asteriskuser'@'localhost';
+GRANT REFERENCES ON endpointconfig.endpoint TO 'asteriskuser'@'localhost';
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR 'asteriskuser'@'localhost';
+```
+
+No conceder `DROP`, `ALL PRIVILEGES`, `CREATE USER` ni DDL a nivel
+`endpointconfig.*`. Test 71 vuelve a verificar estos grants con
+`SHOW GRANTS FOR CURRENT_USER` antes de crear cualquier tabla y aborta si falta
+alguno o detecta privilegios amplios sobre las tres tablas nuevas.
+
+Marcador esperado durante Test 71:
+
+```text
+TEST71-LIMITED-DDL-GRANTS-PASS
+```
 
 ## Después del bootstrap
 
