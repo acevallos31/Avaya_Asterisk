@@ -117,14 +117,14 @@ Workflow manual-only activo en `main`:
 
 ```text
 .github/workflows/prod-endpoint-credential-test71.yml
-main commit: 6b9cfa9b87be72173d74519d1e6e77ed88f21682
+main commit: 7aba3f2ed5a78cf8d0433283d592ec20043b5acf
 ```
 
 Candidato inmutable del workflow:
 
 ```text
-candidate commit: 8458bd3d194c607363179569ee1f4ef2208c5061
-helper blob:      ea5dce972dd436b4ff2a70e940e6b635d2a039b5
+candidate commit: ef176c99935af5f833248358c4daf7b4ca0dde6a
+helper blob:      3c16593a0f2490e00ad912838ec32eed2b35e26a
 ```
 
 Helper dedicado:
@@ -152,7 +152,8 @@ confirmación explícita.
 Para la clave productiva, el helper no reutiliza el `install-key.sh` de LAB: si
 `/etc/issabel` ya existe, conserva sus owner/mode actuales y crea únicamente
 `endpoint-configurator.key` con `root:asterisk:0640`. Esto evita modificar el
-directorio compartido de Issabel durante Test 71.
+directorio compartido de Issabel durante Test 71. Del mismo modo, no altera
+owner/mode de `/usr/local/libexec` cuando ese directorio ya existe.
 
 ### Bootstrap único previo
 
@@ -180,18 +181,22 @@ INSTALL-ENDPOINT-CREDENTIALS-PROD
 3. revalidación del baseline productivo inmediatamente antes de escribir;
 4. `apachectl -t` y salud HTTPS antes del install;
 5. esquema: acepta solo estado `0/3` o `3/3`; un esquema parcial aborta;
-6. el SQL se aplica usando la cuenta DB local configurada por Issabel; el helper
+6. antes de DDL, el helper ejecuta `SHOW GRANTS FOR CURRENT_USER` y exige
+   `CREATE, ALTER, INDEX, REFERENCES` sobre las tres tablas de credenciales y
+   `REFERENCES` sobre `endpoint`; rechaza `ALL PRIVILEGES` o `DROP` en esas
+   tablas. Marcador esperado: `TEST71-LIMITED-DDL-GRANTS-PASS`;
+7. el SQL se aplica usando la cuenta DB local configurada por Issabel; el helper
    no concede privilegios ni abre DDL global;
-7. creación/preservación de la clave externa `root:asterisk:0640` sin cambiar
+8. creación/preservación de la clave externa `root:asterisk:0640` sin cambiar
    permisos del directorio `/etc/issabel` si ya existe;
-8. manifest y backup root-only antes de reemplazar runtime;
-9. instalación de Vault, CLI, `index.php`, diálogo `summary`, template y JS con
-   modos fijos;
-10. `apachectl -t`, reload y verificación byte a byte contra el candidato;
-11. verificación de las tres tablas y salud HTTPS;
-12. `fleet-audit` read-only posterior;
-13. evidencia sanitizada como artifact por 90 días;
-14. `phone_write=NO` durante todo Test 71.
+9. manifest y backup root-only antes de reemplazar runtime;
+10. instalación de Vault, CLI, `index.php`, diálogo `summary`, template y JS con
+    modos fijos;
+11. `apachectl -t`, reload y verificación byte a byte contra el candidato;
+12. verificación de las tres tablas y salud HTTPS;
+13. `fleet-audit` read-only posterior;
+14. evidencia sanitizada como artifact por 90 días;
+15. `phone_write=NO` durante todo Test 71.
 
 ## Rollback
 
