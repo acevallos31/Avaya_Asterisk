@@ -18,7 +18,7 @@ Secuencia vigente:
 LAB schema/runtime/visual PASS
 -> Test 70 Ceiba read-only PASS
 -> Test 71 controlled install STAGED / NOT-TESTED
--> bootstrap único del helper productivo
+-> bootstrap único del helper + grants DDL mínimos
 -> ejecutar Test 71
 -> validación visual productiva
 -> canario real de credencial en una fase posterior separada
@@ -236,14 +236,16 @@ Rollback: solo runtime. Las tablas y la clave se conservan. No se ejecuta
 
 ### Bootstrap único pendiente
 
-Antes del primer run Test71 hay que instalar una sola vez el helper root-owned y
-su sudoers exacto en `cei-pbx02`. Documento autoritativo:
+Antes del primer run Test71 hay que ejecutar una sola vez el procedimiento
+`docs/endpoint-configurator-prod-helper-bootstrap.md` en `cei-pbx02`. Instala el
+helper + sudoers root-owned y configura los grants DDL permanentes de mínimo
+privilegio para `asteriskuser@localhost`.
 
-```text
-docs/endpoint-configurator-prod-helper-bootstrap.md
-```
+El bootstrap no crea las tres tablas, no instala el runtime y no contacta
+telefonos. Sí modifica una sola vez la metadata de privilegios MariaDB; no se
+concede `DROP`, `ALL PRIVILEGES`, `CREATE USER` ni DDL general sobre
+`endpointconfig.*`.
 
-Este bootstrap no modifica DB, no instala el runtime y no contacta teléfonos.
 Después se ejecutará Test71 desde `main` con confirmación exacta:
 
 ```text
