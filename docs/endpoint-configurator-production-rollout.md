@@ -117,14 +117,14 @@ Workflow manual-only activo en `main`:
 
 ```text
 .github/workflows/prod-endpoint-credential-test71.yml
-main commit: 58fe365413481ffbdd7317617062ddd9129b13a6
+main commit: 6b9cfa9b87be72173d74519d1e6e77ed88f21682
 ```
 
 Candidato inmutable del workflow:
 
 ```text
-candidate commit: 6fc9334130b8867d7dc1722bfe35fd895e30d321
-helper blob:      6e3a8b63253a4a2477340f5d6522b4a6481f2ebf
+candidate commit: 8458bd3d194c607363179569ee1f4ef2208c5061
+helper blob:      ea5dce972dd436b4ff2a70e940e6b635d2a039b5
 ```
 
 Helper dedicado:
@@ -148,6 +148,11 @@ el root exacto `_test71_candidate`, valida cada archivo por Git blob SHA y
 rechaza symlinks o propietario inesperado. El sudoers permite únicamente cuatro
 formas exactas: `preflight`, `install`, `verify` y rollback de runtime con
 confirmación explícita.
+
+Para la clave productiva, el helper no reutiliza el `install-key.sh` de LAB: si
+`/etc/issabel` ya existe, conserva sus owner/mode actuales y crea únicamente
+`endpoint-configurator.key` con `root:asterisk:0640`. Esto evita modificar el
+directorio compartido de Issabel durante Test 71.
 
 ### Bootstrap único previo
 
@@ -177,7 +182,8 @@ INSTALL-ENDPOINT-CREDENTIALS-PROD
 5. esquema: acepta solo estado `0/3` o `3/3`; un esquema parcial aborta;
 6. el SQL se aplica usando la cuenta DB local configurada por Issabel; el helper
    no concede privilegios ni abre DDL global;
-7. creación/preservación de la clave externa `root:asterisk:0640`;
+7. creación/preservación de la clave externa `root:asterisk:0640` sin cambiar
+   permisos del directorio `/etc/issabel` si ya existe;
 8. manifest y backup root-only antes de reemplazar runtime;
 9. instalación de Vault, CLI, `index.php`, diálogo `summary`, template y JS con
    modos fijos;
