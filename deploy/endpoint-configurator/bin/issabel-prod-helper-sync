@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+RUNNER_USER='github-runner-prod'
+EXPECTED_HOST='cei-pbx02'
+CANDIDATE_ROOT='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate'
+
+HELPER_SRC="$CANDIDATE_ROOT/deploy/endpoint-configurator/bin/grandstream-prod-deploy"
+PATCHER_SRC="$CANDIDATE_ROOT/deploy/endpoint-configurator/bin/grandstream-vendor-patch.py"
+AUTH_SRC="$CANDIDATE_ROOT/deploy/endpoint-configurator/bin/grp26xx-prod-auth-read.py"
+SQL_SRC="$CANDIDATE_ROOT/deploy/endpoint-configurator/sql/grandstream-prod-catalog.sql"
+
+HELPER_DST='/usr/local/sbin/issabel-grandstream-prod'
+PATCHER_DST='/usr/local/libexec/issabel-grandstream-vendor-patch'
+AUTH_DST='/usr/local/libexec/issabel-grp26xx-auth-read'
+SQL_DST='/usr/local/share/issabel-grandstream-prod/catalog.sql'
+
+fail(){ printf 'PROD-HELPER-SYNC-FAIL: %s\n' "$*" >&2; exit 1; }
+mark(){ printf '%s\n' "$*"; }
+
+need_root(){ [ "${EUID}" -eq 0 ] || fail 'must run as root'; }
+verify_caller(){
+  [ "${SUDO_USER:-}" = "$RUNNER_USER" ] || fail 'unauthorized caller';
+  [ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail 'unexpected host';
+}
+
+require_regular_runner_file(){
+  local path="$1"
+  [ -f "$path" ] || fail "missing candidate file: ${path#$CANDIDATE_ROOT/}"
+  [ ! -L "$path" ] || fail "candidate symlink rejected: ${path#$CANDIDATE_ROOT/}"
+  [ "$(stat -c '%U' "$path")" = "$RUNNER_USER" ] || fail "unexpected candidate owner: ${path#$CANDIDATE_ROOT/}"
+}
+
+verify_checkout(){
+  [ -d "$CANDIDATE_ROOT/.git" ] || fail 'candidate checkout missing .git'
+  local head origin dirty
+  head="$(git -C "$CANDIDATE_ROOT" rev-parse HEAD 2>/dev/null || true)"
+  origin="$(git -C "$CANDIDATE_ROOT" rev-parse refs/remotes/origin/main 2>/dev/null || true)"
+  [ -n "$head" ] && [ "$head" = "$origin" ] || fail "candidate is not exact origin/main head=$head origin=$origin"
+  dirty="$(git -C "$CANDIDATE_ROOT" status --porcelain --untracked-files=no)"
+  [ -z "$dirty" ] || fail 'candidate checkout has tracked modifications'
+  case "$head" in
+    [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
+    *) fail 'invalid candidate commit' ;;
+  esac
+  mark "PROD-HELPER-SYNC-CANDIDATE=$head"
+}
+
+verify_payload(){
+  require_regular_runner_file "$HELPER_SRC"
+  require_regular_runner_file "$PATCHER_SRC"
+  require_regular_runner_file "$AUTH_SRC"
+  require_regular_runner_file "$SQL_SRC"
+
+  bash -n "$HELPER_SRC"
+  python3 - "$PATCHER_SRC" "$AUTH_SRC" <<'PY'
+import ast
+import pathlib
+import sys
+for name in sys.argv[1:]:
+    ast.parse(pathlib.Path(name).read_text(encoding='utf-8'), filename=name)
+PY
+
+  grep -Fq "RUNNER_USER='github-runner-prod'" "$HELPER_SRC" || fail 'Grandstream helper runner guard missing'
+  grep -Fq "EXPECTED_HOST='cei-pbx02'" "$HELPER_SRC" || fail 'Grandstream helper host guard missing'
+  grep -Fq $'GXP1625\tC0:74:AD:E8:66:06\t10.3.40.29\t4450' "$HELPER_SRC" || fail 'GXP1625 production invariant missing'
+  grep -Fq $'GRP2601P\tEC:74:D7:5D:2C:F5\t10.3.40.42\t4453' "$HELPER_SRC" || fail 'GRP2601P production invariant missing'
+  grep -Fq $'GRP2602G\tEC:74:D7:65:FE:08\t10.3.40.43\t4452' "$HELPER_SRC" || fail 'GRP2602G production invariant missing'
+  grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$PATCHER_SRC" || fail 'Grandstream vendor patch marker missing'
+  grep -Fq "'GRP2601P','GRP2601P',2" "$SQL_SRC" || fail 'GRP2601P catalog contract missing'
+  grep -Fq "'GRP2602G','GRP2602G',4" "$SQL_SRC" || fail 'GRP2602G catalog contract missing'
+
+  if grep -Eiq '\b(DROP|TRUNCATE|GRANT|REVOKE|CREATE[[:space:]]+USER|ALTER[[:space:]]+USER)\b' "$SQL_SRC"; then
+    fail 'forbidden SQL operation in production catalog payload'
+  fi
+  mark 'PROD-HELPER-SYNC-PAYLOAD-AUDIT-PASS'
+}
+
+install_atomic(){
+  local source="$1" destination="$2" mode="$3" tmp
+  install -d -o root -g root -m 0755 "$(dirname "$destination")"
+  tmp="$(mktemp "$(dirname "$destination")/.sync.$(basename "$destination").XXXXXX")"
+  install -o root -g root -m "$mode" "$source" "$tmp"
+  mv -f "$tmp" "$destination"
+  [ "$(stat -c '%U:%G' "$destination")" = 'root:root' ] || fail "ownership verification failed: $destination"
+}
+
+sync_grandstream(){
+  verify_checkout
+  verify_payload
+  install_atomic "$HELPER_SRC" "$HELPER_DST" 0755
+  install_atomic "$PATCHER_SRC" "$PATCHER_DST" 0755
+  install_atomic "$AUTH_SRC" "$AUTH_DST" 0755
+  install_atomic "$SQL_SRC" "$SQL_DST" 0644
+  bash -n "$HELPER_DST"
+  python3 - "$PATCHER_DST" "$AUTH_DST" <<'PY'
+import ast
+import pathlib
+import sys
+for name in sys.argv[1:]:
+    ast.parse(pathlib.Path(name).read_text(encoding='utf-8'), filename=name)
+PY
+  mark 'production_runtime_write=HELPER_PAYLOAD_ONLY'
+  mark 'endpointconfig_write=NO'
+  mark 'phone_write=NO'
+  mark 'PROD-HELPER-SYNC-GRANDSTREAM=PASS'
+}
+
+need_root
+verify_caller
+[ "$#" -eq 0 ] || fail 'this synchronizer accepts no arguments'
+sync_grandstream
