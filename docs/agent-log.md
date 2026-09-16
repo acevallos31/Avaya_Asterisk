@@ -1,5 +1,57 @@
 # Agent Audit Log
 
+## 2026-09-16 — OpenAI GPT-5.6 Sol — Test70 cerrado y Test71 preparado
+
+Test 70 quedó cerrado con `PRODUCTION-SERVER-PASS` en el run `35123613203`.
+El runner/host guard, integridad del harness, baseline productivo, `fleet-audit`,
+HTTPS local `200` e inventario del runtime terminaron PASS. Los marcadores
+finales fueron `production_runtime_write=NO`, `endpointconfig_write=NO`,
+`phone_write=NO` y `TEST70-PROD-ENDPOINT-CREDENTIAL-PREFLIGHT=PASS`.
+
+Se aceptó como baseline productivo de `index.php` únicamente el blob exacto
+`60bb6aaa461e72979cfd40551b9ef78e81c75656` después de auditar el drift de
+Ceiba. `reporte_endpoints.tpl` y `javascript.js` continúan contra los blobs Audit
+`d979762079d4dcc2874759881104b3287fea71c2` y
+`44bea8adac8bd15d9b8548922d032fcf924edfc1`.
+
+Se preparó Test 71 sin ejecutarlo. Workflow manual-only:
+
+```text
+71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install
+.github/workflows/prod-endpoint-credential-test71.yml
+main commit: 7aba3f2ed5a78cf8d0433283d592ec20043b5acf
+candidate: ef176c99935af5f833248358c4daf7b4ca0dde6a
+helper blob: 3c16593a0f2490e00ad912838ec32eed2b35e26a
+```
+
+Se agregó helper productivo dedicado
+`deploy/endpoint-configurator/bin/endpoint-credential-prod-deploy` y sudoers
+exacto `deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod`.
+El helper exige `github-runner-prod@cei-pbx02`, root exacto del checkout,
+artefactos con Git blob SHA pinneado, sin symlinks y sin autoactualización desde
+el workspace. Acciones permitidas: `preflight`, `install`, `verify` y
+`rollback-runtime` con argumentos exactos.
+
+Hardening previo a producción:
+
+- key `root:asterisk:0640` creada sin cambiar owner/mode de `/etc/issabel` si
+  el directorio ya existe;
+- `/usr/local/libexec` tampoco se repermisa si ya existe;
+- schema permite solo estado `0/3` o `3/3`;
+- `SHOW GRANTS FOR CURRENT_USER` debe confirmar `CREATE, ALTER, INDEX,
+  REFERENCES` sobre las tres tablas de credenciales y `REFERENCES` sobre
+  `endpoint`, rechazando `ALL PRIVILEGES`/`DROP` sobre esas tablas;
+- manifest/backup root-only antes de reemplazar runtime;
+- rollback automático/manual restaura runtime, pero conserva key y tablas;
+- Apache syntax, HTTPS, PHP lint, blobs instalados y `fleet-audit` se verifican
+  después del install;
+- Test71 no contacta teléfonos y exige `phone_write=NO`.
+
+Se documentó el bootstrap único root-owned en
+`docs/endpoint-configurator-prod-helper-bootstrap.md`. Ese bootstrap solo instala
+helper + sudoers; no toca DB, runtime ni teléfonos. Test71 permanece
+`STAGED / NOT-TESTED`; producción no recibió escrituras durante esta preparación.
+
 ## 2026-09-14 — OpenAI GPT-5.6 Sol — cierre visual LAB y gate de producción
 
 Test 68 run `34805839845` completó PASS con el runtime actualizado del Endpoint
@@ -288,7 +340,6 @@ lotes, rollback y estados de registro SIP consultados desde Asterisk.
 Se actualizó `AGENTS.md` con las reglas de seguridad correspondientes. No se
 modificó código operativo ni se ejecutó Configure; el siguiente paso es
 implementar el almacenamiento cifrado y el menú en LAB.
-
 
 ## 2026-09-11 — Codex — inicia Test 57 GXP1630 provisioning cycle
 
@@ -602,15 +653,14 @@ Test 48: reservado / NOT-TESTED
 siguiente actividad acordada: prueba de llamada en LAB
 ```
 
-
 ## 2026-09-12 — Test 67: bloqueo de privilegios DDL en LAB
 
 Run 34679549816 confirmó el selector correcto issabel-lab, el runner issabel-lab-casa, el guard de entorno y la auditoría estática PASS. La aplicación del esquema no pudo comenzar porque asteriskuser recibió MySQL 1142 CREATE command denied sobre endpointconfig. El rollback se ejecutó y confirmó que no había estado creado. Resultado: INFRA-BLOCKED; no se declara PASS de migración y no hubo cambios en producción. Pendiente: habilitar un helper DBA root-owned y allowlisted para DDL de esta migración, o conceder temporalmente el privilegio mínimo solo en LAB.
 
-
 ## 2026-09-12 — Test 67 cerrado en LAB
 
 Run 34681386727 completó el ciclo de fundación de credenciales: static audit PASS, helper restringido sincronizado, DDL de las tres tablas aplicado y verificado, y rollback obligatorio PASS. No se tocaron teléfonos ni producción. El resultado queda como LAB-SCHEMA-CYCLE-PASS; el grant DDL debe retirarse después de la validación.
+
 ## 2026-09-12 — Codex — Test 68: DDL resuelto y credencial FACTORY
 
 Se relanzaron únicamente los jobs fallidos del run `34683238936`. Los grants
@@ -632,6 +682,7 @@ Run final `34684066307`: ambos jobs PASS y todas las etapas PASS. Resultado
 `LAB-RUNTIME-SMOKE-PASS`. La fundación queda instalada persistentemente en LAB,
 la credencial `FACTORY` está cifrada y `VALIDATED`, y el acceso al teléfono fue
 exclusivamente read-only. Producción permanece intacta.
+
 ## 2026-09-12 — Codex — importación CSV FACTORY por MAC
 
 Se añadió el primer flujo de importación masiva en Seguridad administrativa.
