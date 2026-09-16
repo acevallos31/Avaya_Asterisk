@@ -7,12 +7,16 @@ EXPECTED_HOST='cei-pbx02'
 PROD_HELPER='/usr/local/sbin/avaya-j129-prod-validation'
 MODULE='/var/www/html/modules/endpoint_configurator'
 REPORT="${REPORT:-/tmp/test70-endpoint-credential-preflight.txt}"
+BASELINE_ROOT="${BASELINE_ROOT:-}"
 
 # Git blob SHAs from the exact Audit baseline commit
 # ce90056c652c7e3a280fc8a1416580e6172dcc01.
 EXPECTED_INDEX_BLOB='b68103a3c28265b3ef2619f663b0f6ed87ffa89f'
 EXPECTED_TEMPLATE_BLOB='d979762079d4dcc2874759881104b3287fea71c2'
 EXPECTED_JS_BLOB='44bea8adac8bd15d9b8548922d032fcf924edfc1'
+
+DRIFT_FOUND=0
+DRIFT_PATHS=()
 
 fail() {
   printf 'TEST70-FAIL: %s\n' "$*" | tee -a "$REPORT" >&2
@@ -42,9 +46,54 @@ check_live_blob() {
   actual="$(git_blob_sha "$live")"
   if [ "$actual" != "$expected" ]; then
     record "TEST70-DRIFT-BLOCK path=$relative expected_blob=$expected actual_blob=$actual"
-    exit 1
+    DRIFT_FOUND=1
+    DRIFT_PATHS+=("$relative")
+    return 0
   fi
   record "TEST70-DRIFT-PASS path=$relative blob=$actual"
+}
+
+append_sanitized_diff() {
+  local relative="$1" baseline live
+  [ -n "$BASELINE_ROOT" ] || return 0
+  baseline="$BASELINE_ROOT/$relative"
+  live="$MODULE/$relative"
+  [ -f "$baseline" ] || { record "TEST70-DRIFT-DIFF-UNAVAILABLE path=$relative reason=baseline_missing"; return 0; }
+
+  python3 - "$baseline" "$live" "$relative" >> "$REPORT" <<'PY'
+import difflib
+import pathlib
+import re
+import sys
+
+baseline = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlines(True)
+live = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8", errors="replace").splitlines(True)
+relative = sys.argv[3]
+
+secret_patterns = [
+    re.compile(r"(?i)(password|passwd|secret|token|api[_-]?key|private[_-]?key)(\s*[:=]\s*)([^\s,;]+)"),
+    re.compile(r"(?i)(authorization\s*:\s*(?:basic|bearer)\s+)([^\s]+)"),
+]
+
+def sanitize(line):
+    out = line
+    out = secret_patterns[0].sub(lambda m: m.group(1) + m.group(2) + "[REDACTED]", out)
+    out = secret_patterns[1].sub(lambda m: m.group(1) + "[REDACTED]", out)
+    if len(out) > 1200:
+        out = out[:1200] + "...[TRUNCATED]\n"
+    return out
+
+print("TEST70-DRIFT-DIFF-BEGIN path=%s" % relative)
+count = 0
+for line in difflib.unified_diff(baseline, live, fromfile="Audit/%s" % relative,
+                                 tofile="production/%s" % relative, n=3):
+    print(sanitize(line), end="")
+    count += 1
+    if count >= 400:
+        print("TEST70-DRIFT-DIFF-TRUNCATED path=%s" % relative)
+        break
+print("TEST70-DRIFT-DIFF-END path=%s lines=%d" % (relative, count))
+PY
 }
 
 : > "$REPORT"
@@ -64,10 +113,22 @@ record "host=$(hostname -s)"
 record "runner_user=$(id -un)"
 record 'baseline_commit=ce90056c652c7e3a280fc8a1416580e6172dcc01'
 
-# Do not print file contents. A mismatch is a hard stop before any deployment.
+# Compare every protected live file before stopping, so one run shows the full
+# drift surface. No live content is changed.
 check_live_blob 'index.php' "$EXPECTED_INDEX_BLOB"
 check_live_blob 'themes/default/reporte_endpoints.tpl' "$EXPECTED_TEMPLATE_BLOB"
 check_live_blob 'themes/default/js/javascript.js' "$EXPECTED_JS_BLOB"
+
+if [ "$DRIFT_FOUND" -ne 0 ]; then
+  record "TEST70-DRIFT-SUMMARY count=${#DRIFT_PATHS[@]}"
+  for relative in "${DRIFT_PATHS[@]}"; do
+    append_sanitized_diff "$relative"
+  done
+  record 'production_runtime_write=NO'
+  record 'endpointconfig_write=NO'
+  record 'phone_write=NO'
+  fail 'Endpoint Configurator drift detected; deployment remains blocked'
+fi
 record 'TEST70-PROD-ENDPOINT-BASELINE-PASS'
 
 # Existing root-owned helper; fleet-audit is read-only and sanitizes credentials.
