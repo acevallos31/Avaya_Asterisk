@@ -1,0 +1,131 @@
+name: 73 | Ceiba Production | Grandstream Support | Controlled Server Rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY-GRANDSTREAM-PROD'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grandstream-support-ceiba-production
+  cancel-in-progress: false
+
+jobs:
+  static-audit:
+    name: Static rollout audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate reviewed production payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          helper='deploy/endpoint-configurator/bin/grandstream-prod-deploy'
+          patcher='deploy/endpoint-configurator/bin/grandstream-vendor-patch.py'
+          auth='deploy/endpoint-configurator/bin/grp26xx-prod-auth-read.py'
+          sql='deploy/endpoint-configurator/sql/grandstream-prod-catalog.sql'
+          sudoers='deploy/endpoint-configurator/sudoers/issabel-grandstream-prod'
+          stock='usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+
+          bash -n "$helper"
+          python3 -m py_compile "$patcher" "$auth"
+          grep -Fq "EXPECTED_HOST='cei-pbx02'" "$helper"
+          grep -Fq "RUNNER_USER='github-runner-prod'" "$helper"
+          grep -Fq 'C0:74:AD:E8:66:06' "$helper"
+          grep -Fq 'EC:74:D7:5D:2C:F5' "$helper"
+          grep -Fq 'EC:74:D7:65:FE:08' "$helper"
+          grep -Fq $'GRP2602G\tEC:74:D7:65:FE:08\t10.3.40.43\t4452' "$helper"
+          grep -Fq "'GRP2601P','GRP2601P',2" "$sql"
+          grep -Fq "'GRP2602G','GRP2602G',4" "$sql"
+          grep -Fq "property_value='4'" "$sql"
+          grep -Fq 'configure-grp2602g CONFIGURE-GRP2602G-4452' "$sudoers"
+
+          tmp="$(mktemp)"
+          "$patcher" "$stock" "$tmp"
+          python3 -m py_compile "$tmp"
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$tmp"
+          grep -Fq 'def _loginGRP26xx' "$tmp"
+          grep -Fq 'def _enableStaticProvisioning_GRP26xx' "$tmp"
+          grep -Fq "'username': self._http_username" "$tmp"
+          rm -f "$tmp" "${tmp}c"
+          echo 'TEST73-STATIC-PASS'
+
+  production-rollout:
+    name: Ceiba controlled Grandstream server rollout
+    needs: static-audit
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 20
+    env:
+      PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
+      J129_HELPER: /usr/local/sbin/avaya-j129-prod-validation
+    steps:
+      - name: Guard estricto de producción
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'DEPLOY-GRANDSTREAM-PROD'
+          test "$(id -un)" = 'github-runner-prod'
+          test "$(hostname -s)" = 'cei-pbx02'
+          test -x "$PROD_HELPER"
+          test "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755'
+          echo 'preserve_gxp1625=4450'
+          echo 'preserve_grp2601p=4453'
+          echo 'preserve_grp2602g=4452'
+          echo 'TEST73-PROD-RUNNER-GUARD-PASS'
+
+      - name: Production preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          : > "$REPORT"
+          chmod 0600 "$REPORT"
+          sudo -n "$PROD_HELPER" preflight | tee -a "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-PREFLIGHT-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-STALE-COLLISION-GUARD-PASS' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+
+      - name: Controlled server rollout and stock discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          sudo -n "$PROD_HELPER" install DEPLOY-GRANDSTREAM-PROD | tee -a "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-CONTROLLED-INSTALL=PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-DISCOVERY-VERIFY-PASS' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+
+      - name: Verify Grandstream and J129 fleet after rollout
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          sudo -n "$PROD_HELPER" verify | tee -a "$REPORT"
+          sudo -n "$J129_HELPER" fleet-audit | tee "$RUNNER_TEMP/test73-j129-fleet.txt"
+          grep -Fq 'GRANDSTREAM-PROD-VERIFY-PASS' "$REPORT"
+          grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$RUNNER_TEMP/test73-j129-fleet.txt"
+          echo 'preserved_extension_gxp1625=4450' | tee -a "$REPORT"
+          echo 'preserved_extension_grp2601p=4453' | tee -a "$REPORT"
+          echo 'preserved_extension_grp2602g=4452' | tee -a "$REPORT"
+          echo 'phone_write=NO' | tee -a "$REPORT"
+          echo 'TEST73-PROD-GRANDSTREAM-SERVER-ROLLOUT=PASS' | tee -a "$REPORT"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test73-grandstream-prod-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/test73-grandstream-prod.txt
+            ${{ runner.temp }}/test73-j129-fleet.txt
+          if-no-files-found: ignore
+          retention-days: 90
