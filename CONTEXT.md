@@ -1,343 +1,27 @@
-# CONTEXT.md — Estado consolidado Avaya J129 / Issabel 5
+# CONTEXT.md — Estado consolidado Avaya Asterisk / Issabel 5
 
-## Endpoint Configurator — cierre visual LAB y gate de producción — 2026-09-14
+Actualizado: 2026-09-16. Este archivo resume el estado operativo vigente para
+retomar el proyecto sin reconstruir la historia. No contiene secretos reales.
+La historia detallada permanece en `docs/agent-log.md`,
+`docs/j129-test-registry.md` y los documentos específicos de cada bloque.
 
-La fundación de credenciales administrativas y la columna
-`Extension / Registration` quedaron desplegadas y validadas en LAB. Test 68 run
-`34805839845` terminó PASS con runtime actualizado, esquema/clave verificados y
-smoke autenticado read-only del GRP2601P; `phone_write=NO` y producción no fue
-tocada.
+## Prioridad actual — Endpoint Configurator
 
-El operador confirmó visualmente la pantalla principal del Endpoint
-Configurator el 2026-09-13 (hora local). Se observaron cuatro endpoints y sus
-cuentas como `Registered`:
+La prioridad inmediata es promover a producción la fundación de credenciales
+administrativas y el resumen visible `Extension / Registration`, ya validados en
+LAB. La release J129 `v0.1.0` permanece congelada y no debe modificarse para
+hacer este rollout.
 
-```text
-GXP1630   192.168.1.169   201
-GXP1625   192.168.1.168   202
-J129      192.168.1.170   200
-GRP2601P  192.168.1.176   203
-```
-
-La evidencia visual confirma que el resumen de cuenta/registro funciona sobre
-los fabricantes del LAB sin entrar a `Configure` por cada teléfono.
-
-Se documentó el rollout en
-`docs/endpoint-configurator-production-rollout.md` y se reservó Test 70:
+Secuencia vigente:
 
 ```text
-70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
-```
-
-Test 70 todavía no tiene workflow activo y no autoriza instalación. Su primer
-gate debe ser exclusivamente read-only sobre `cei-pbx02`, con guard exacto del
-runner `github-runner-prod`, auditoría de salud/inventario y comparación de
-drift de `index.php`, `reporte_endpoints.tpl` y `javascript.js` contra la base
-`Audit`. Si ese preflight pasa, el siguiente ID disponible es 71 para preparar
-la instalación controlada del runtime con helper productivo root-owned dedicado,
-backup/manifest y rollback de archivos. Producción permanece sin cambios.
-
-## Incidente LAB — interfaz web PBX HTTP 500 — 2026-09-13
-
-El operador reportó `pbx.nocpbx.com` con HTTP 500. Test 69 run `34769273874`
-identificó el fallo: PHP-FPM corre como `asterisk`, pero el directorio
-`modules/endpoint_configurator/libs` se instaló como `root:apache:0750`, lo que
-impedía al cargador general de Issabel recorrerlo. Se restauró el directorio a
-`root:root:0755`; Apache estaba activo y respondió localmente HTTP 302.
-
-La corrección permanente se validó en Test 68 run `34769381087`: la clave queda
-`root:asterisk:0640`, el directorio es recorrible sin exponer secretos y el
-runtime/smoke GRP2601P completó PASS. Producción no afectada.
-
-## Grandstream GRP2601P — ciclo LAB Tests 62–66 — 2026-09-12
-
-Equipo exacto: `192.168.1.176`, MAC `EC:74:D7:1E:E8:E3`.
-
-- Test 62, run `34620373267`: `LAB-READ-PASS`; identificó el teléfono y
-  confirmó que la OUI/modelo no existían en la DB stock.
-- Test 63, run `34620390872`: `LAB-FIX-PASS`; agregó reversiblemente OUI
-  `EC:74:D7` y modelo ID 149 con dos cuentas SIP; discovery creó una fila
-  exacta sin cuentas.
-- Test 64, run `34664338896`: `LAB-READ-PASS`; validó la contraseña de
-  etiqueta mediante challenge nonce/SHA-256 y leyó la configuración sin
-  escrituras.
-- Test 65 preflight, run `34670448152`: confirmó que GRP usa
-  `PUT /cgi-bin/config_update`, no `api.values.post`.
-- Test 65 autoritativo, run `34670575973`: bootstrap P212/P237,
-  `write_response=SUCCESS`, reinicio aceptado, caída/retorno HTTP observados
-  y persistencia posterior PASS.
-- Test 66 preflight, run `34670740654`: fila exacta limpia y extensión SIP
-  203 existente, libre y no registrada.
-- Test 66 autoritativo, run `34677554254`: `LAB-INTEGRATION-PASS`.
-  Recuperó la etapa fallida previa, instaló el patch GRP26xx reversible,
-  ejecutó Apply estándar de Issabel con la credencial transportada por stdin,
-  restauró inmediatamente el password de modelo, generó cfg/XML y registró
-  SIP 203 desde `192.168.1.176`.
-
-Contrato comprobado:
-
-```text
-POST /cgi-bin/access       SHA256(username) -> nonce
-POST /cgi-bin/dologin      SHA256(password + nonce) -> SID
-PUT  /cgi-bin/config_update JSON alias/pvalue
-GET  /cgi-bin/api-sys_operation?request=REBOOT&sid=...
-```
-
-Evidencia final Test 66:
-
-```text
-endpoint_count=1
-model=GRP2601P
-selected=0
-account_count=1
-account_203_count=1
-binary_cfg_present=YES
-xml_cfg_present=YES
-phone_http=200
-sip_203_ip=192.168.1.176
-sip_201_at_grp=NO
-sip_202_at_grp=NO
-```
-
-El run `34671167798` es `HARNESS-FAIL`: el probe inicial omitía
-`/cgi-bin`, cayó en la ruta GXP y no configuró el teléfono. El run
-`34677542766` falló antes del preflight porque existía esa etapa pendiente.
-El run final ejecutó rollback de cuenta/selección/cfg de la etapa y luego
-repitió correctamente.
-
-Estado: `LAB-INTEGRATION-PASS` y `PHYSICAL-GRP2601P-PASS`. El
-operador confirmó el 2026-09-12 que el teléfono funciona correctamente después
-del aprovisionamiento como extensión 203. Esta es evidencia física aportada por
-el operador y complementa, sin sustituir, la auditoría automatizada del run
-`34677554254`.
-
-Producción permanece bloqueada hasta implementar la UI y el almacenamiento
-cifrado de credenciales administrativas; el puente efímero usado por Test 66
-es exclusivamente LAB.
-
-## Fundación de credenciales administrativas — Tests 67–68 — 2026-09-12
-
-La rama `feature/endpoint-credential-foundation` contiene:
-
-- esquema reversible `deploy/endpoint-configurator/db/001_admin_credentials.sql`
-  para política global por PBX, credencial por endpoint/MAC y eventos;
-- bóveda PHP con AES-256-GCM y clave externa en
-  `/etc/issabel/endpoint-configurator.key`;
-- instalador idempotente de clave `root:asterisk:0640`, legible únicamente por
-  root y el proceso web de Issabel;
-- menú de seguridad administrativa con guard CSRF;
-- contraseña global y override por MAC cifrados, ambos inicialmente `PENDING`;
-- auditoría estática `tests/audit/test_endpoint_credential_foundation.py`.
-
-Test 67, run `34681386727`, completó `LAB-SCHEMA-CYCLE-PASS`: creó, verificó y
-eliminó las tres tablas sin dejar cambios persistentes. El run `34681677185`
-demostró que el runner seguía operativo y falló exclusivamente porque el grant
-DDL temporal ya había sido retirado; el static audit y helper sync pasaron.
-
-Test 68 queda reservado para la instalación persistente del esquema/runtime en
-LAB y un smoke autenticado read-only contra el GRP2601P exacto
-`EC:74:D7:1E:E8:E3`. La credencial entra por stdin, se cifra con AES-256-GCM,
-se recupera solo en memoria para el challenge del teléfono y se marca
-`VALIDATED` únicamente después de login y lectura exitosos. No cambia el
-teléfono ni ejecuta Configure. Requiere reactivar DDL mínimo solo durante la
-creación inicial de tablas y retirarlo inmediatamente después.
-
-Primer run Test 68 `34683238936`: auditoría estática PASS, guardas LAB PASS y
-helper sync PASS. Se detuvo de forma segura antes de instalar el runtime por
-MySQL 1142 `CREATE command denied`; no hubo archivos instalados, clave creada,
-override almacenado ni acceso al teléfono. Estado `INFRA-BLOCKED` hasta
-conceder una sola vez DDL permanente por tabla —sin DDL global sobre
-`endpointconfig`— y reejecutar únicamente el job fallido. Test 67 run
-`34683238910` quedó verde con static PASS y su ciclo DDL correctamente omitido
-en push.
-
-Segundo intento del mismo run: después del grant permanente por tabla, la
-instalación persistente del esquema y del runtime terminó PASS. La etapa de
-almacenamiento se detuvo antes de acceder al teléfono porque trataba la
-contraseña corta de etiqueta como un override final sujeto al mínimo de 12
-caracteres. Se corrigió el modelo: la credencial inicial queda como `FACTORY`,
-cifrada y ligada a la MAC, mientras que `OVERRIDE` conserva la política fuerte
-de contraseña administrativa final. No hubo escritura en el teléfono.
-
-Run `34683934974`: esquema/runtime PASS y smoke autenticado PASS con la
-credencial `FACTORY`; el teléfono aceptó login y lectura sin escritura. La
-última verificación falló únicamente porque intentaba ejecutar el CLI interno
-directamente con `sudo`, fuera del allowlist existente. Se cambió a la acción
-sanitizada `credential-status-grp2601p` del helper ya autorizado, sin ampliar
-sudoers.
-
-Run autoritativo `34684066307`: ambos jobs y todas las etapas PASS. Quedaron
-confirmados esquema y runtime persistentes, clave externa protegida,
-credencial de fábrica cifrada por MAC, login/lectura read-only del GRP2601P,
-promoción a `VALIDATED` y verificación final mediante helper allowlisted.
-`phone_write=NO`; producción no fue tocada. Test 68 queda
-`LAB-RUNTIME-SMOKE-PASS`.
-
-Decisión operativa: no repetir grant/revoke en cada despliegue. `asteriskuser`
-conserva `CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
-credenciales y `REFERENCES` sobre la tabla padre `endpoint`; no recibe `DROP`,
-`CREATE USER`, acceso a otras bases ni DDL general. El helper sigue ejecutando
-SQL allowlisted y versionado.
-
-Pendientes posteriores a esta fundación: importación masiva, aplicación de una
-contraseña final, rotación/rollback por lote, extensiones/registro en la tabla y
-consumo normal desde todos los vendors. Producción permanece intacta.
-
-## Importación segura de credenciales FACTORY — implementación inicial
-
-La pantalla de Seguridad administrativa incorpora importación CSV de credenciales
-de fábrica por MAC. El único formato admitido es `mac_address,password`, con
-hasta 100 endpoints ya existentes; el archivo se valida completo antes de abrir
-la transacción, se cifra fila por fila como `FACTORY`/`PENDING` y se elimina al
-terminar la petición. Cualquier fila inválida, MAC duplicada o MAC no presente
-cancela el lote sin cambios. No aplica Configure ni escribe al teléfono.
-
-La contraseña administrativa final global y el override individual continúan
-con mínimo de 12 caracteres. La importación por lote está destinada a las claves
-iniciales de etiqueta, que pueden tener desde 8 caracteres. La prueba física de
-carga CSV queda pendiente para LAB; producción no cambia.
-
-Run `34698714634`: static audit, instalación runtime, lint PHP remoto y smoke
-read-only del GRP2601P PASS con esta versión. La importación CSV no se ejecutó
-contra datos reales en ese run, por diseño; la siguiente prueba LAB debe usar
-un archivo controlado con MACs existentes y contraseñas de etiqueta válidas.
-
-## Diseño aprobado — ciclo de credenciales administrativas — 2026-09-12
-
-Se aprobó el documento `docs/endpoint-configurator-credential-lifecycle.md`.
-La contraseña administrativa final será global por PBX, con override opcional por
-endpoint/MAC. La contraseña inicial de fábrica seguirá siendo individual y solo
-servirá para el primer acceso. Se añadieron reglas de cifrado, rotación,
-rollback, importación masiva segura y visualización de extensiones/registro SIP.
-La implementación debe mantenerse separada de **Batch of Extensions** y usar
-Asterisk como fuente autoritativa del registro.
-
-La rama `feature/endpoint-credential-foundation` ya contiene el esquema cifrado,
-la bóveda externa, la pantalla global con guard CSRF y el override por MAC.
-Guardar una contraseña crea estado `PENDING`; la validación read-only de Test 68
-puede promover el override a `VALIDATED`, pero no aplica cambios al teléfono.
-
-Test 67 cerró el ciclo reversible del esquema. Test 68 debe cerrar el runtime
-real de esta fundación en LAB; importación, rotación/rollback y consumo normal
-del vendor quedan como bloques posteriores. Producción continúa intacta.
-
-
-## Test 57 GXP1630 — ciclo controlado — 2026-09-11
-
-Autorizado ciclo completo sin preguntas adicionales. La primera fase mutante
-limita la escritura a P212=TFTP y P237=192.168.1.10 sobre el equipo exacto
-`192.168.1.169` / `C0:74:AD:B4:AD:70`; no asigna extensión ni resetea.
-
-Ciclo server-side cerrado: bootstrap/reinicio PASS run `34584178016`; modelo
-ID 148 y discovery PASS run `34585294581`; Configure SIP 201 PASS run
-`34585596964`; E2E server PASS run `34585916245`. GXP1630 registrado en
-`.169`, GXP1625/202 permanece en `.168`, cfg/XML y MAC validados.
-Validación física de llamada/audio pendiente.
-
-## Test 56 GXP1630 — descubrimiento de fábrica — 2026-09-11
-
-Hay un Grandstream GXP1630 de fábrica conectado a la red LAB. Test 56 inicia
-con discovery automático read-only en `192.168.1.0/24` y compara las superficies
-de detección HTTP con la lógica validada para GXP1625. No aplica Configure, no
-escribe DB y no reinicia el teléfono.
-
-Run `34578860986`: PASS. Se encontró exactamente un GXP1630 en
-`192.168.1.169`, MAC `C0:74:AD:B4:AD:70`. La ruta legacy `/manager` no respondió,
-pero `api.values.get` sí identificó el modelo. Esto demuestra compatibilidad con
-la superficie moderna de detección, no todavía con login, generación cfg/XML ni
-activación nativa.
-
-Run `34580059714` confirmó nuevamente el discovery PASS. Firmware y hardware no
-se exponen sin autenticación; la próxima prueba requiere una credencial Web
-Admin suministrada como Repository Secret, sin probar contraseñas por defecto.
-
-Run `34583242705`: authenticated read PASS usando la credencial de fábrica
-desde `GRANDSTREAM_GXP_HTTP_DEFAULT_PASSWORD`. Login/SID y lectura P-values
-son compatibles con el contrato GXP1625. P212/P237 y parámetros de autenticación
-de provisioning están vacíos: bootstrap requerido. No hubo escrituras.
-
-## Test 55 GXP1625 — E2E manual cerrado — 2026-09-11
-
-La IP anterior `192.168.1.167` fue reasignada por DHCP a un DVR Hikvision; el
-GXP1625 exacto `C0:74:AD:E8:66:09` fue redescubierto en `192.168.1.168` por el
-run read-only `34541156644`.
-
-El run `34541419730` confirmó físicamente el factory reset del teléfono: control
-exacto localizado, confirmación enviada, HTTP cayó y volvió. Su job final quedó
-rojo porque Endpoint Configurator volvió a descubrir automáticamente una fila,
-no porque fallara el reset.
-
-El run read-only `34542431592` cerró el baseline post-reset con
-`TEST55-POST-RESET-AUDIT=PASS`: una fila Grandstream/GXP1625 en `.168`,
-`selected=0`, cero cuentas, cero override `http_password`, ambos archivos cfg
-ausentes, extensiones 201/202 conservadas y HTTP 200. Asterisk aún conserva
-`.168` como dirección del peer 202 con estado sanitizado `UNKNOWN`; se trata
-como binding posiblemente cacheado y no como evidencia de registro activo.
-
-El workflow de Test 55 quedó manual-only. Permite auditoría read-only
-`post-config-audit`, auditoría `post-reset-audit` o `factory-reset`; el reset
-requiere confirmación exacta por MAC. Producción no fue tocada.
-
-La configuración manual ya fue ejecutada y corroborada en el run read-only
-`34543757258`: `account_count=1`, asociación SIP 202 exacta, `cfg` binario y
-XML presentes, XML ligado a la MAC con P35/P36=202, PBX `.10` y Ashly, HTTP 200,
-peer 202 en `.168` y 201 fuera de esa IP. La auditoría general del repositorio
-también pasó en `34543757263`.
-
-El operador confirmó que la prueba manual fue satisfactoria y que el teléfono
-se configuró correctamente. Test 55 queda `LAB-INTEGRATION-PASS` y
-`PHYSICAL-GXP1625-PASS`, cerrado. Siguiente paso: preparar el paquete RC y el
-preflight controlado de Ceiba; producción continúa sin cambios y se mantiene el
-guardrail de 300 s entre Configure.
-
-## Actualización Grandstream GXP1625 — 2026-09-10
-
-El GXP1625 físico con firmware `1.0.7.70` alcanzó cierre E2E nativo en Issabel
-LAB. H8J-a2 validó y retuvo la integración sin Chromium. H8L run
-`34506170492` demostró que no se requiere User-Agent explícito. H8M run
-`34507118291` completó dos Configure nativos separados 300 segundos, regeneró
-`cfg<MAC>` y `cfg<MAC>.xml`, mantuvo 202/Ashly `OK` desde `192.168.1.167` y
-confirmó que 201 ya no usa esa IP.
-
-Estado: `LAB-INTEGRATION-PASS` para GXP1625 `1.0.7.70`. El parche mínimo
-H6+H8J/H8M permanece activo en LAB. La ejecución H8M a 60 segundos falló de
-forma segura y revirtió el cambio, por lo que producción debe iniciar con un
-guardrail de 300 segundos entre Configure del mismo teléfono.
-
-Siguiente paso: empaquetar install/verify/rollback, validar el paquete exacto
-en LAB, congelar checksums y ejecutar preflight read-only en la PBX productiva
-seleccionada. GXP1630 todavía requiere E2E físico independiente.
-
-Actualizado: 2026-09-02
-
-Este archivo resume el estado operativo vigente para retomar el proyecto sin reconstruir la historia. No contiene secretos reales.
-
-## Objetivo actual
-
-La release `v0.1.0` ya está instalada y validada server-side y físicamente en producción. El J129 registró, el operador confirmó funcionamiento correcto y la señalización de llamada Asterisk -> J129 quedó comprobada automáticamente.
-
-La prioridad inmediata es iniciar la planificación/implementación de `v0.2.x` del Endpoint Configurator sobre una base estable, sin modificar la release congelada v0.1.0.
-
-Arquitectura objetivo:
-
-```text
-Discovery -> fabricante/modelo -> capabilities -> Accounts estándar -> Apply Issabel
--> Extension/setAccountList -> vendor -> provisioning -> SIP
-```
-
-Para J129:
-
-```text
-Discovery -> Avaya/J129 -> Accounts estándar -> Apply Issabel
--> Extension/setAccountList -> Avaya vendor -> provisioning
--> J100Supgrade.txt -> 46xxsettings.txt -> <mac>.txt -> SIP
-```
-
-## Release congelada
-
-```text
-rama: release/j129-v0.1.0
-commit: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
+LAB schema/runtime/visual PASS
+-> Test 70 Ceiba read-only PASS
+-> Test 71 controlled install STAGED / NOT-TESTED
+-> bootstrap único del helper productivo
+-> ejecutar Test 71
+-> validación visual productiva
+-> canario real de credencial en una fase posterior separada
 ```
 
 ## Producción
@@ -352,176 +36,259 @@ Usuario:    github-runner-prod
 Labels:     self-hosted, Linux, X64, j129-production, cei-pbx02
 ```
 
-Workflow 15:
+Reglas permanentes:
+
+- no usar selector genérico `self-hosted` para producción;
+- no conceder `sudo asterisk`, shell root ni comandos genéricos;
+- cualquier operación privilegiada debe pasar por helper root-owned,
+  allowlisted y con caller/host/argumentos exactos;
+- el runner productivo no puede autoactualizar helpers privilegiados desde el
+  workspace público;
+- no publicar secretos, passwords, tokens ni contenido de claves en logs.
+
+## Release J129 v0.1.0 congelada
 
 ```text
-audit                PASS  run 33692817597
-preflight            PASS  run 33694718272
-verify               PASS  run 33695299816
-install-idempotency  PASS  run 33695636455
+rama:   release/j129-v0.1.0
+commit: 74d3f4cc1c2d5a432ad69e3c105b7fd3db00b6f3
 ```
 
-Prueba física manual:
+Evidencia productiva previa:
 
 ```text
-45 | Production | J129 Physical Validation | Registration & Operation
-PRODUCTION-PHYSICAL-PASS
+15  server validation                  PASS
+45  physical registration/operation    PRODUCTION-PHYSICAL-PASS
+46  read-only E2E                      run 33702529808 PASS
+47  controlled signalling              run 33711068591 PASS
 ```
 
-## Auditoría post-implementación — Test 46
+La señalización Asterisk -> J129 quedó comprobada; la prueba física histórica
+confirma operación real. El helper existente
+`/usr/local/sbin/avaya-j129-prod-validation` se mantiene congelado para la
+release J129 y se reutiliza solo en sus acciones allowlisted, incluido
+`fleet-audit`.
+
+## Endpoint Configurator — credenciales administrativas
+
+La rama `feature/endpoint-credential-foundation` contiene:
+
+- esquema versionado para política global, credencial por endpoint/MAC y eventos;
+- bóveda PHP AES-256-GCM;
+- clave externa `/etc/issabel/endpoint-configurator.key`;
+- contraseña administrativa global por PBX;
+- override opcional por MAC;
+- credencial inicial `FACTORY` por MAC;
+- importación CSV `mac_address,password` acotada y transaccional;
+- CSRF en operaciones de escritura de la UI;
+- CLI interno que recibe secretos por stdin y nunca los imprime;
+- diálogo `summary` read-only;
+- columna `Extension / Registration` en la tabla principal;
+- soporte visible para varias cuentas por endpoint;
+- Asterisk como fuente autoritativa del estado de registro.
+
+Guardar políticas/overrides crea estado `PENDING`; esta fundación no cambia por
+sí sola la contraseña del teléfono y no ejecuta `Configure`.
+
+## LAB — estado validado
+
+### Test 67
 
 ```text
-46 | J129 Production | v0.1.0 End-to-End | Read-Only Audit
-run: 33702529808
-resultado: PRODUCTION-END-TO-END-SERVER-AUDIT-PASS
+67 | Issabel Lab | Endpoint Credentials | Foundation
+run 34681386727
+LAB-SCHEMA-CYCLE-PASS
 ```
 
-Validó paquete congelado, DB, Apache, provisioning global, HTTP, verify oficial y provisioning per-MAC para `C8:1F:EA:C3:D6:B2`.
+Creó, verificó y revirtió las tres tablas. Se adoptó después un modelo de DDL de
+mínimo privilegio permanente para evitar grant/revoke en cada despliegue:
+`CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
+credenciales y `REFERENCES` sobre la tabla padre `endpoint`; sin `DROP`, sin
+`ALL PRIVILEGES` y sin DDL general sobre la base.
 
-## Cierre de llamada controlada — Test 47
+### Test 68
 
 ```text
-47 | J129 Production | Physical Call | Controlled E2E
-workflow: .github/workflows/prod-j129-physical-call-e2e.yml
+68 | Issabel Lab | Endpoint Credentials | Runtime Smoke
+run 34805839845
+LAB-RUNTIME-SMOKE-PASS
 ```
 
-Historia relevante:
+Validó esquema, clave, Vault, CLI, lint PHP y smoke autenticado read-only del
+GRP2601P. La credencial FACTORY se transportó por stdin, se cifró en reposo y se
+descifró solo en memoria. Marcador: `phone_write=NO`.
+
+Validación visual del operador en LAB:
 
 ```text
-33703875115  INFRA-BLOCKED: runner sin acceso directo al socket CLI
-33710642058  preflight PASS usando helper privilegiado restringido
-33711068591  llamada automatizada PASS
+GXP1630   192.168.1.169   extensión 201   Registered
+GXP1625   192.168.1.168   extensión 202   Registered
+J129      192.168.1.170   extensión 200   Registered
+GRP2601P  192.168.1.176   extensión 203   Registered
 ```
 
-La llamada del run `33711068591` validó:
+### Test 69
 
 ```text
-peer SIP: 4455 READY
-J129 IP: 10.3.40.32
-MAC: C8:1F:EA:C3:D6:B2
-respuesta SIP: 100 Trying -> 180 Ringing
-Asterisk: SIP/4455 en Ringing
-cleanup de SIP/RTP debug y verbose: PASS
+69 | Issabel Lab | PBX Web Interface | Diagnosis
+run 34769273874
+LAB-FIX-PASS
 ```
 
-No había operador físicamente junto al teléfono, por lo que `answer` y audio de ese run quedaron `NOT-TESTED`. Test 47 se considera CERRADO para v0.1.0 junto con la prueba física 45 ya completada.
+El HTTP 500 del LAB se atribuyó a permisos de recorrido del directorio
+`modules/endpoint_configurator/libs` para PHP-FPM `asterisk`. Se corrigió a
+`root:root:0755`; Test 68 posterior `34769381087` confirmó runtime/clave/web.
 
-## J129 v0.2.x — Sprint 1
+## Test 70 — Ceiba production preflight
 
-Documento autoritativo de planificación:
+```text
+70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
+run: 35123613203
+resultado: PRODUCTION-SERVER-PASS
+```
+
+Marcadores confirmados:
+
+```text
+TEST70-PROD-RUNNER-GUARD-PASS
+TEST70-HARNESS-INTEGRITY-PASS
+TEST70-PROD-ENDPOINT-BASELINE-PASS
+J129-PROD-FLEET-AUDIT-PASS
+TEST70-PROD-WEB-HEALTH-PASS
+TEST70-PROD-ENDPOINT-CREDENTIAL-PREFLIGHT=PASS
+production_runtime_write=NO
+endpointconfig_write=NO
+phone_write=NO
+```
+
+HTTPS local respondió `200`. El inventario previo confirmó que la clave,
+`EndpointCredentialVault`, diálogo `summary` y CLI productiva todavía estaban
+ausentes.
+
+Baselines productivos aprobados:
+
+```text
+index.php              60bb6aaa461e72979cfd40551b9ef78e81c75656
+reporte_endpoints.tpl  d979762079d4dcc2874759881104b3287fea71c2
+javascript.js          44bea8adac8bd15d9b8548922d032fcf924edfc1
+```
+
+El `index.php` de Ceiba difería de Audit únicamente en la forma de cargar
+librerías; el diff se revisó antes de aceptar ese blob exacto. No se relajó el
+gate con wildcard.
+
+Flota observada por `fleet-audit` en el run PASS: 19 J129, 14 configurados, 12
+registrados, 2 provisionados/no registrados y 5 `DETECTED_ONLY`. Es inventario
+read-only.
+
+## Test 71 — instalación controlada STAGED
+
+```text
+71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install
+estado: STAGED / NOT-TESTED
+workflow: .github/workflows/prod-endpoint-credential-test71.yml
+main commit: 7aba3f2ed5a78cf8d0433283d592ec20043b5acf
+candidate: ef176c99935af5f833248358c4daf7b4ca0dde6a
+helper blob: 3c16593a0f2490e00ad912838ec32eed2b35e26a
+```
+
+Helper dedicado preparado:
+
+```text
+repo: deploy/endpoint-configurator/bin/endpoint-credential-prod-deploy
+prod: /usr/local/sbin/issabel-endpoint-credential-prod
+owner/mode esperado: root:root:0755
+```
+
+Sudoers preparado:
+
+```text
+repo: deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod
+prod: /etc/sudoers.d/issabel-endpoint-credential-prod
+owner/mode esperado: root:root:0440
+```
+
+El helper acepta únicamente el root exacto del checkout Test71, valida todos los
+artefactos por Git blob SHA, rechaza symlinks y propietario inesperado, y tiene
+acciones exactas `preflight`, `install`, `verify` y `rollback-runtime`.
+
+Antes de crear tablas ejecuta `SHOW GRANTS FOR CURRENT_USER` y exige los grants
+DDL limitados definidos para este módulo. El marcador de seguridad esperado es:
+
+```text
+TEST71-LIMITED-DDL-GRANTS-PASS
+```
+
+El install:
+
+- vuelve a validar los blobs productivos de Test70 antes de escribir;
+- acepta únicamente esquema `0/3` o `3/3`; esquema parcial bloquea;
+- crea/preserva la key `root:asterisk:0640` sin cambiar owner/mode de
+  `/etc/issabel` si ese directorio ya existe;
+- no cambia owner/mode de `/usr/local/libexec` si ya existe;
+- crea manifest y backup root-only antes de reemplazar runtime;
+- instala Vault, CLI, `index.php`, diálogo `summary`, template y JavaScript;
+- ejecuta lint PHP, `apachectl -t`, reload, verificación byte a byte, esquema,
+  HTTPS y `fleet-audit`;
+- no contacta teléfonos: `phone_write=NO`.
+
+Rollback: solo runtime. Las tablas y la clave se conservan. No se ejecuta
+`DROP TABLE`, factory reset, cambio de contraseña ni `Configure`.
+
+### Bootstrap único pendiente
+
+Antes del primer run Test71 hay que instalar una sola vez el helper root-owned y
+su sudoers exacto en `cei-pbx02`. Documento autoritativo:
+
+```text
+docs/endpoint-configurator-prod-helper-bootstrap.md
+```
+
+Este bootstrap no modifica DB, no instala el runtime y no contacta teléfonos.
+Después se ejecutará Test71 desde `main` con confirmación exacta:
+
+```text
+INSTALL-ENDPOINT-CREDENTIALS-PROD
+```
+
+A la fecha de este contexto, **Test71 no ha sido ejecutado y la preparación no
+ha escrito el nuevo runtime en producción**.
+
+## Grandstream — estado relevante
+
+- GXP1625: `LAB-INTEGRATION-PASS` + validación física satisfactoria; Test55.
+- GXP1630: ciclo server-side completo en LAB; bootstrap/model/configure/E2E PASS.
+- GRP2601P `EC:74:D7:1E:E8:E3`: Tests62–66 completos; Test66 run
+  `34677554254` `LAB-INTEGRATION-PASS` y validación física positiva como ext 203.
+- La autenticación GRP2601P usa challenge nonce/SHA-256 y
+  `PUT /cgi-bin/config_update`; la credencial de etiqueta se modela como
+  `FACTORY`, separada de la contraseña administrativa final.
+
+Producción Grandstream sigue separada de este rollout; Test71 no aprovisiona ni
+escribe teléfonos.
+
+## J129 v0.2.x / arquitectura futura
+
+Documento de planificación:
 
 ```text
 docs/j129-v0.2.0-sprint-1.md
 ```
 
-Prioridades del Sprint 1:
+Prioridades: discovery inter-VLAN IP+MAC, idempotencia/colisiones, capabilities,
+idioma/locale, Web UI enable/disable, softkeys, conferencia, BLF/presencia,
+TLS/certificados, branding, Auto Answer/3PCC y codecs/DTMF/QoS.
 
-```text
-1. discovery/importación inter-VLAN mediante IP+MAC confiables
-2. idempotencia y manejo explícito de colisiones IP/MAC
-3. base de capabilities por modelo
-4. idioma/locale seleccionable
-5. habilitar/deshabilitar Web UI desde Endpoint Configurator
-6. mapear softkeys/menú local
-7. investigar/documentar conferencia tripartita
-8. investigar presencia/BLF con Asterisk
-9. investigar SIP TLS y certificados
-10. investigar background/branding personalizado
-11. investigar Auto Answer/3PCC
-12. inventariar codecs/DTMF/QoS y parámetros avanzados
-```
-
-No todo debe implementarse en un único sprint, pero cada capacidad debe quedar clasificada y respaldada por evidencia antes de declararse soportada.
-
-## Discovery inter-VLAN — limitación confirmada
-
-El scanner stock `/usr/share/issabel/privileged/detect_endpoints` solo procesa endpoints cuando Nmap entrega `MAC Address:`. En misma VLAN/L2 discovery funciona; inter-VLAN/L3 responde host pero no hay MAC L2.
-
-Sprint 1 debe agregar una vía complementaria basada inicialmente en `IP + MAC`, sin reemplazar el discovery local stock ni meter lógica de discovery en `Avaya.py`.
-
-Fuentes futuras posibles: ARP del gateway, DHCP, MikroTik RouterOS/API o inventario confiable.
-
-## Test 48 reservado para LAB
-
-```text
-48 | Issabel Lab | J129 Remote-Originated Call | 3PCC/Control Probe
-estado: NOT-TESTED
-```
-
-Objetivo: probar en Asterisk LAB si es posible hacer que el J129 origine o participe en una llamada controlada hacia otra extensión, diferenciando claramente una llamada realmente originada/controlada por el teléfono de un originate hecho únicamente por Asterisk.
-
-Decisión de secuencia: primero terminar esta actualización documental y la planificación de v0.2.x; después continuar con Test 48 en el ambiente de laboratorio.
-
-## Modelos futuros
-
-Se usarán ramas feature temporales para nuevos modelos, con convención conceptual:
-
-```text
-feature/avaya-j129-v0.2
-feature/avaya-<modelo>
-feature/<fabricante>-<modelo>
-```
-
-No mantener implementaciones divergentes permanentes por rama. La lógica común debe converger en vendor/capabilities/plantillas reutilizables.
-
-## Scripts operativos y gestión futura de flota PBX
-
-`scripts/` es catálogo permanente, no solo de pruebas. Los scripts futuros cubrirán bootstrap, deploy, diagnóstico, mantenimiento, seguridad y testing.
-
-Visión futura documentada en:
-
-```text
-docs/pbx-fleet-control-roadmap.md
-```
-
-Objetivo de largo plazo: servidor local de distribución/control para múltiples PBX Issabel, con releases versionadas, preflight/deploy/verify/rollback, inventario, diagnóstico remoto y bootstrap de nuevas PBX, con trazabilidad similar a GitHub Actions dentro de infraestructura propia.
-
-Esto queda como roadmap; no desplaza la optimización inmediata de Endpoint Configurator.
-
-## Seguridad de runners
-
-```yaml
-# LAB
-runs-on: [self-hosted, Linux, X64, issabel-lab]
-
-# Producción
-runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
-```
-
-No se permite `sudo asterisk` ni shell root genérico. Las excepciones privilegiadas de producción deben ser helpers root-owned, allowlisted y con validación estricta de caller/host/argumentos.
+El scanner stock depende de MAC L2; inter-VLAN requiere una fuente
+complementaria confiable (ARP/DHCP/router/inventario) y no debe resolverse
+metiendo discovery en `Avaya.py`.
 
 ## Numeración
 
-Fuente autoritativa: `docs/j129-test-registry.md`.
+Fuente autoritativa:
 
 ```text
-45 validación física de producción — PASS
-46 auditoría post-implementación read-only — PASS
-47 llamada controlada — CERRADA para v0.1.0; signalling PASS, answer/audio del run NOT-TESTED
-48 remote-originated call/3PCC — RESERVADA para v0.2.x LAB
+docs/j129-test-registry.md
 ```
 
-Próximo ID disponible: `49`.
-
-## Próxima secuencia
-
-```text
-1. mantener v0.1.0 congelada
-2. crear/iniciar rama feature J129 v0.2.x cuando comience implementación
-3. implementar primero discovery inter-VLAN + base de capabilities
-4. continuar idioma/Web UI y capacidades avanzadas según evidencia
-5. luego retomar Test 48 de llamada remota en LAB
-6. después avanzar con otro modelo Avaya y posteriormente otros fabricantes
-7. seguir convirtiendo procedimientos útiles en scripts reutilizables
-8. PBX Fleet Controller queda como roadmap posterior
-```
-
-
-## Test 67 — ejecución LAB de fundación de credenciales — 2026-09-12
-
-Run 34679549816 ejecutó la rama aislada feature/endpoint-credential-foundation en el runner exacto issabel-lab-casa, con guard de identidad y hostname LAB PASS. La auditoría estática PASS. La fase de esquema quedó INFRA-BLOCKED: el usuario asteriskuser de endpointconfig no tiene privilegio CREATE; no se creó ninguna tabla. El rollback obligatorio terminó SKIP no state created, sin cambios persistentes. No se tocó producción. Para continuar se requiere una vía DBA/privilegiada allowlisted para DDL en LAB y repetir Test 67.
-
-
-## Test 67 — ciclo LAB completado — 2026-09-12
-
-Run 34681386727: auditoría estática PASS; guard LAB PASS en issabel-lab-casa; aplicación del esquema de las tres tablas PASS; verificación PASS; rollback obligatorio PASS. No quedaron cambios persistentes. El permiso DDL fue temporal y debe revocarse al terminar la sesión DBA. Producción continúa intacta.
+Test70 está cerrado PASS, Test71 está reservado y staged. Próximo ID disponible:
+`72`.
