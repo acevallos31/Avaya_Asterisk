@@ -51,7 +51,7 @@ jobs:
           grep -Fq 'configure-grp2602g CONFIGURE-GRP2602G-4452' "$sudoers"
 
           tmp="$(mktemp)"
-          "$patcher" "$stock" "$tmp"
+          python3 "$patcher" "$stock" "$tmp"
           python3 -m py_compile "$tmp"
           grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$tmp"
           grep -Fq 'def _loginGRP26xx' "$tmp"
