@@ -49,21 +49,13 @@ Labels:  self-hosted, Linux, X64, j129-production, cei-pbx02
 
 ## Test 70 — preflight read-only
 
-Nombre:
-
 ```text
 70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
+run: 35123613203
+estado: PRODUCTION-SERVER-PASS
 ```
 
-Estado: **CERRADO / PRODUCTION-SERVER-PASS**.
-
-Run autoritativo:
-
-```text
-35123613203
-```
-
-Resultado confirmado:
+Marcadores principales:
 
 ```text
 TEST70-PROD-RUNNER-GUARD-PASS
@@ -77,154 +69,115 @@ endpointconfig_write=NO
 phone_write=NO
 ```
 
-La salud HTTPS local fue `200`. El inventario previo confirmó que la nueva
-clave, Vault, diálogo `summary` y CLI productiva todavía estaban ausentes.
-
-### Baseline revisado de Ceiba
-
-Los primeros runs de Test 70 detectaron que `index.php` productivo difería del
-commit Audit únicamente en la forma de cargar librerías. Se auditó el diff y se
-aprobó el archivo productivo exacto, sin wildcard ni relajación del gate.
-
-Baselines de preinstalación aceptados:
+Baseline preinstall aprobado:
 
 ```text
-index.php                                60bb6aaa461e72979cfd40551b9ef78e81c75656
-reporte_endpoints.tpl                    d979762079d4dcc2874759881104b3287fea71c2
-javascript.js                            44bea8adac8bd15d9b8548922d032fcf924edfc1
+index.php              60bb6aaa461e72979cfd40551b9ef78e81c75656
+reporte_endpoints.tpl  d979762079d4dcc2874759881104b3287fea71c2
+javascript.js          44bea8adac8bd15d9b8548922d032fcf924edfc1
 ```
-
-El `index.php` usa el blob exacto revisado de Ceiba; template y JavaScript
-continúan contra la referencia Audit `ce90056c652c7e3a280fc8a1416580e6172dcc01`.
-La comparación se realiza como Git blob SHA-1 calculado con Python, sin depender
-de `git` instalado en el runner.
-
-La flota observada en el run PASS fue 19 Avaya J129: 14 configurados, 12
-registrados, 2 provisionados/no registrados y 5 `DETECTED_ONLY`. Esa auditoría
-es inventario y no implica escritura a teléfonos.
 
 ## Test 71 — instalación controlada
 
-Nombre:
-
 ```text
 71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install
+run autoritativo: 35138230754
+estado: PRODUCTION-SERVER-PASS
+workflow head: c2946b390ae2f68529dff20fced9708765c5a44a
+candidate: ef176c99935af5f833248358c4daf7b4ca0dde6a
+helper blob: 3c16593a0f2490e00ad912838ec32eed2b35e26a
 ```
 
-Estado: **STAGED / NOT-TESTED**.
-
-Workflow manual-only activo en `main`:
+Runs previos seguros:
 
 ```text
-.github/workflows/prod-endpoint-credential-test71.yml
-main commit: 7aba3f2ed5a78cf8d0433283d592ec20043b5acf
+35130705534  FAIL antes de preflight; ningún cambio productivo
+35131492883  FAIL antes de preflight; helper productivo todavía ausente
+35138230754  PASS autoritativo
 ```
 
-Candidato inmutable del workflow:
+El bootstrap único dejó:
 
 ```text
-candidate commit: ef176c99935af5f833248358c4daf7b4ca0dde6a
-helper blob:      3c16593a0f2490e00ad912838ec32eed2b35e26a
+/usr/local/sbin/issabel-endpoint-credential-prod           root:root:0755
+/etc/sudoers.d/issabel-endpoint-credential-prod            root:root:0440
 ```
 
-Helper dedicado:
+El sudoers permite únicamente `preflight`, `install`, `verify` y
+`rollback-runtime` con rutas/argumentos exactos. Los grants DDL permanentes se
+limitan a `CREATE, ALTER, INDEX, REFERENCES` sobre las tres tablas nuevas y
+`REFERENCES` sobre `endpoint`; sin `DROP`, `ALL PRIVILEGES`, `CREATE USER` ni DDL
+general sobre `endpointconfig.*`.
+
+### Resultado del run PASS
+
+Preflight inmediatamente anterior a la escritura:
 
 ```text
-deploy/endpoint-configurator/bin/endpoint-credential-prod-deploy
-instalación final: /usr/local/sbin/issabel-endpoint-credential-prod
-owner/mode: root:root:0755
+TEST71-PAYLOAD-INTEGRITY-PASS
+TEST71-WEB-HEALTH-PASS status=200
+TEST71-LIMITED-DDL-GRANTS-PASS
+TEST71-SCHEMA-STATE=ABSENT
+TEST71-KEY-STATE=ABSENT
+TEST71-PREINSTALL-BASELINE-PASS
+TEST71-RUNTIME-STATE=ABSENT
+phone_write=NO
+TEST71-PREFLIGHT-PASS
 ```
 
-Sudoers restringido:
+Install y verificación:
 
 ```text
-deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod
-instalación final: /etc/sudoers.d/issabel-endpoint-credential-prod
-owner/mode: root:root:0440
+TEST71-BACKUP-MANIFEST-PASS
+TEST71-SCHEMA-INSTALL-PASS
+TEST71-SCHEMA-VERIFY-PASS
+TEST71-KEY-INSTALL-PASS existing=NO
+TEST71-PROD-ENDPOINT-CREDENTIAL-RUNTIME=PASS
+TEST71-CONTROLLED-INSTALL-PASS
+TEST71-WEB-HEALTH-PASS status=200
+J129-PROD-FLEET-AUDIT-PASS
+TEST71-PROD-CONTROLLED-INSTALL=PASS
+phone_write=NO
 ```
 
-El helper no puede autoactualizarse desde el workspace público. Acepta únicamente
-el root exacto `_test71_candidate`, valida cada archivo por Git blob SHA y
-rechaza symlinks o propietario inesperado. El sudoers permite únicamente cuatro
-formas exactas: `preflight`, `install`, `verify` y rollback de runtime con
-confirmación explícita.
+Quedaron instalados server-side las tres tablas de credenciales, la clave externa
+`root:asterisk:0640`, Vault, CLI productiva, `index.php`, diálogo `summary`,
+`en.lang`, template y JavaScript del candidato. Antes de reemplazar archivos se
+creó manifest/backup root-only. PHP/Apache pasaron lint, Apache recargó y HTTPS
+local continuó en `200`.
 
-Para la clave productiva, el helper no reutiliza el `install-key.sh` de LAB: si
-`/etc/issabel` ya existe, conserva sus owner/mode actuales y crea únicamente
-`endpoint-configurator.key` con `root:asterisk:0640`. Esto evita modificar el
-directorio compartido de Issabel durante Test 71. Del mismo modo, no altera
-owner/mode de `/usr/local/libexec` cuando ese directorio ya existe.
+El `fleet-audit` posterior conservó el inventario: 19 J129, 14 configurados, 12
+registrados, 2 provisionados/no registrados y 5 `DETECTED_ONLY`. Test71 no
+contactó ni reconfiguró teléfonos.
 
-### Bootstrap único previo
-
-Antes del primer run de Test 71 hay que completar una sola vez el procedimiento
-`docs/endpoint-configurator-prod-helper-bootstrap.md`. Instala el helper y
-sudoers root-owned y aplica los grants DDL permanentes de mínimo privilegio a
-`asteriskuser@localhost` sobre las tres tablas de credenciales, más
-`REFERENCES` sobre `endpoint`.
-
-El bootstrap **no crea las tablas, no instala el runtime y no contacta
-telefonos**. Sí modifica una sola vez la metadata de privilegios MariaDB; esos
-grants quedan permanentes para evitar grant/revoke en cada despliegue. No se
-autoriza `DROP`, `ALL PRIVILEGES`, `CREATE USER` ni DDL general sobre
-`endpointconfig.*`.
-
-### Confirmación para ejecutar Test 71
+Evidencia sanitizada:
 
 ```text
-INSTALL-ENDPOINT-CREDENTIALS-PROD
+artifact: test71-endpoint-credential-prod-35138230754
+artifact id: 10464202042
+sha256(zip): 63d4c189ca23574520b2783f2c333722c9333769a7993eff18a44befffbdc0d6
+retención: 90 días
 ```
-
-### Controles del install
-
-1. workflow solo manual desde `main` y runner exacto de Ceiba;
-2. candidate commit y helper blob pinneados;
-3. revalidación del baseline productivo inmediatamente antes de escribir;
-4. `apachectl -t` y salud HTTPS antes del install;
-5. esquema: acepta solo estado `0/3` o `3/3`; un esquema parcial aborta;
-6. antes de DDL, el helper ejecuta `SHOW GRANTS FOR CURRENT_USER` y exige
-   `CREATE, ALTER, INDEX, REFERENCES` sobre las tres tablas de credenciales y
-   `REFERENCES` sobre `endpoint`; rechaza `ALL PRIVILEGES` o `DROP` en esas
-   tablas. Marcador esperado: `TEST71-LIMITED-DDL-GRANTS-PASS`;
-7. el SQL se aplica usando la cuenta DB local configurada por Issabel; el helper
-   no concede privilegios ni abre DDL global;
-8. creación/preservación de la clave externa `root:asterisk:0640` sin cambiar
-   permisos del directorio `/etc/issabel` si ya existe;
-9. manifest y backup root-only antes de reemplazar runtime;
-10. instalación de Vault, CLI, `index.php`, diálogo `summary`, template y JS con
-    modos fijos;
-11. `apachectl -t`, reload y verificación byte a byte contra el candidato;
-12. verificación de las tres tablas y salud HTTPS;
-13. `fleet-audit` read-only posterior;
-14. evidencia sanitizada como artifact por 90 días;
-15. `phone_write=NO` durante todo Test 71.
 
 ## Rollback
 
 El rollback productivo es deliberadamente de **runtime**, no de datos.
-
-Si el install falla después de comenzar a reemplazar archivos, el helper restaura
-los archivos desde el manifest, valida Apache y hace reload. Las tablas y la
-clave se conservan. No se ejecuta `DROP TABLE`, factory reset, cambio de
-contraseña ni `Configure`.
-
-Rollback manual, solo si se autoriza explícitamente:
 
 ```text
 /usr/local/sbin/issabel-endpoint-credential-prod rollback-runtime \
   ROLLBACK-ENDPOINT-CREDENTIAL-RUNTIME-PROD
 ```
 
-El runner solo puede invocar esa forma exacta mediante sudoers.
+Restaura los archivos desde el manifest, valida Apache y recarga el servicio.
+Las tablas y la clave se conservan. No ejecuta `DROP TABLE`, factory reset,
+cambio de contraseña ni `Configure`.
 
 ## Secuencia actual
 
 ```text
 LAB schema/runtime/visual PASS
 -> Test 70 production read-only PASS (35123613203)
--> Test 71 helper/workflow STAGED
--> bootstrap único helper + sudoers + grants DDL mínimos en cei-pbx02
--> ejecutar Test 71 controlled install
+-> Test 71 controlled install PASS (35138230754)
 -> validar UI productiva manualmente
 -> canario de credencial real en una fase posterior separada
 ```
