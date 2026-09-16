@@ -1,0 +1,227 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+RUNNER_USER='github-runner-prod'
+EXPECTED_HOST='cei-pbx02'
+STATE_DIR='/var/lib/issabel-grandstream-prod/v1'
+BACKUP_DIR="$STATE_DIR/backup"
+AMPORTAL_CONF='/etc/amportal.conf'
+GRANDSTREAM_PY='/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+PATCHER='/usr/local/libexec/issabel-grandstream-vendor-patch'
+CATALOG_SQL='/usr/local/share/issabel-grandstream-prod/catalog.sql'
+CREDENTIAL_CLI='/usr/local/libexec/issabel-endpoint-credential-vault'
+AUTH_READER='/usr/local/libexec/issabel-grp26xx-auth-read'
+STOCK_SHA256='b4d22520a65023456525c16f9756b77ab3ea65687a1ee0dd44a9776daf1421f3'
+TOKEN='DEPLOY-GRANDSTREAM-PROD'
+SUBNET='10.3.40.0/24'
+
+fail(){ echo "GRANDSTREAM-PROD-FAIL: $*" >&2; exit 1; }
+mark(){ echo "$*"; }
+need_root(){ [ "$EUID" -eq 0 ] || fail 'helper must run as root'; }
+verify_caller(){ [ "${SUDO_USER:-}" = "$RUNNER_USER" ] || fail 'unauthorized caller'; [ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail 'unexpected host'; }
+require_token(){ [ "${1:-}" = "$TOKEN" ] || fail 'invalid confirmation token'; }
+read_amp(){ sed -n "s/^$1=//p" "$AMPORTAL_CONF" | head -n1; }
+escape_mysql(){ local v="$1"; v="${v//\\/\\\\}"; v="${v//\"/\\\"}"; printf '%s' "$v"; }
+make_defaults(){
+  local u p h f; u="$(read_amp AMPDBUSER)"; p="$(read_amp AMPDBPASS)"; h="$(read_amp AMPDBHOST)"; [ -n "$u" ] && [ -n "$p" ] || fail 'DB credentials unavailable'; [ -n "$h" ] || h=localhost
+  f="$(mktemp /tmp/grandstream-prod.XXXXXX.cnf)"; chmod 0600 "$f"
+  { echo '[client]'; printf 'user="%s"\n' "$(escape_mysql "$u")"; printf 'password="%s"\n' "$(escape_mysql "$p")"; printf 'host="%s"\n' "$(escape_mysql "$h")"; } > "$f"; printf '%s' "$f"
+}
+scalar(){ mysql --defaults-extra-file="$1" --batch --skip-column-names endpointconfig -e "$2"; }
+db_scalar(){ mysql --defaults-extra-file="$1" --batch --skip-column-names "$2" -e "$3" 2>/dev/null | head -n1; }
+normalize_mac(){ printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr -cd '0-9A-F'; }
+canaries(){ cat <<'DATA'
+GXP1625	C0:74:AD:E8:66:06	10.3.40.29	4450
+GRP2601P	EC:74:D7:5D:2C:F5	10.3.40.42	4453
+GRP2602G	EC:74:D7:65:FE:08	10.3.40.43	4452
+DATA
+}
+peer_addr(){ /usr/sbin/asterisk -rx "sip show peer $1" 2>/dev/null | sed -n -E 's/^[[:space:]]*Addr->IP[[:space:]]*:[[:space:]]*([^[:space:]]+).*/\1/p' | head -n1; }
+peer_status(){ /usr/sbin/asterisk -rx "sip show peer $1" 2>/dev/null | sed -n -E 's/^[[:space:]]*Status[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1; }
+refresh_neighbor(){ ping -c1 -W1 "$1" >/dev/null 2>&1 || true; curl -sS -o /dev/null --connect-timeout 2 --max-time 3 "http://$1/" >/dev/null 2>&1 || curl -ksS -o /dev/null --connect-timeout 2 --max-time 3 "https://$1/" >/dev/null 2>&1 || true; }
+neighbor_mac(){ ip neigh show "$1" 2>/dev/null | awk '{for(i=1;i<=NF;i++)if($i=="lladdr"){print toupper($(i+1));exit}}'; }
+
+verify_canaries(){
+  local model mac ipaddr ext observed addr status failures=0
+  while IFS=$'\t' read -r model mac ipaddr ext; do
+    refresh_neighbor "$ipaddr"; observed="$(neighbor_mac "$ipaddr")"; addr="$(peer_addr "$ext")"; status="$(peer_status "$ext")"
+    if [ "$(normalize_mac "$observed")" != "$(normalize_mac "$mac")" ] || [ "$addr" != "$ipaddr" ] || [[ "$status" != OK* ]]; then
+      mark "CANARY-FAIL model=$model mac=$mac ip=$ipaddr extension=$ext observed_mac=${observed:-NONE} sip_ip=${addr:-NONE} sip_status=${status:-UNKNOWN}"; failures=$((failures+1))
+    else
+      mark "CANARY-PASS model=$model mac=$mac ip=$ipaddr extension=$ext sip_status=REGISTERED"
+    fi
+  done < <(canaries)
+  [ "$failures" -eq 0 ] || fail "$failures production canary guard(s) failed"
+  mark 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS'
+}
+
+verify_catalog_base(){
+  local d mf gxp conflicts
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  mf="$(scalar "$d" "SELECT COUNT(*) FROM manufacturer WHERE name='Grandstream';")"; gxp="$(scalar "$d" "SELECT COUNT(*) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GXP1625';")"
+  conflicts="$(scalar "$d" "SELECT COUNT(*) FROM mac_prefix p LEFT JOIN manufacturer f ON f.id=p.id_manufacturer WHERE UPPER(p.mac_prefix) IN ('C0:74:AD','EC:74:D7') AND COALESCE(f.name,'')<>'Grandstream';")"
+  [ "$mf" = 1 ] && [ "$gxp" = 1 ] && [ "$conflicts" = 0 ] || fail "catalog base mismatch manufacturer=$mf gxp1625=$gxp conflicts=$conflicts"
+  rm -f "$d"; trap - RETURN EXIT; mark 'GRANDSTREAM-PROD-CATALOG-BASE-PASS'
+}
+
+verify_stale_collisions(){
+  local d rows id mac ipaddr accounts ext addr
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  rows="$(mysql --defaults-extra-file="$d" --batch --skip-column-names endpointconfig -e "SELECT e.id,e.mac_address,e.last_known_ipv4,COALESCE(GROUP_CONCAT(a.account ORDER BY a.priority SEPARATOR ','),'') FROM endpoint e LEFT JOIN endpoint_account a ON a.id_endpoint=e.id WHERE e.last_known_ipv4 IN ('10.3.40.29','10.3.40.42','10.3.40.43') AND UPPER(REPLACE(REPLACE(e.mac_address,':',''),'-','')) NOT IN ('C074ADE86606','EC74D75D2CF5','EC74D765FE08') GROUP BY e.id,e.mac_address,e.last_known_ipv4;")"
+  while IFS=$'\t' read -r id mac ipaddr accounts; do
+    [ -n "$id" ] || continue; mark "STALE-ENDPOINT id=$id mac=$mac ip=$ipaddr accounts=${accounts:-NONE}"
+    IFS=',' read -ra arr <<<"${accounts:-}"; for ext in "${arr[@]}"; do [ -n "$ext" ] || continue; addr="$(peer_addr "$ext")"; [ "$addr" != "$ipaddr" ] || fail "stale collision has active SIP peer $ext at $ipaddr"; done
+  done <<< "$rows"
+  rm -f "$d"; trap - RETURN EXIT; mark 'GRANDSTREAM-PROD-STALE-COLLISION-GUARD-PASS'
+}
+
+verify_catalog(){
+  local d c1 c2 m1 m2 max1 max2 p1 p2
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  c1="$(scalar "$d" "SELECT COUNT(*) FROM mac_prefix p JOIN manufacturer f ON f.id=p.id_manufacturer WHERE f.name='Grandstream' AND UPPER(p.mac_prefix)='C0:74:AD';")"; c2="$(scalar "$d" "SELECT COUNT(*) FROM mac_prefix p JOIN manufacturer f ON f.id=p.id_manufacturer WHERE f.name='Grandstream' AND UPPER(p.mac_prefix)='EC:74:D7';")"
+  m1="$(scalar "$d" "SELECT COUNT(*) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2601P';")"; m2="$(scalar "$d" "SELECT COUNT(*) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2602G';")"
+  max1="$(scalar "$d" "SELECT COALESCE(MAX(m.max_accounts),-1) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2601P';")"; max2="$(scalar "$d" "SELECT COALESCE(MAX(m.max_accounts),-1) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2602G';")"
+  p1="$(scalar "$d" "SELECT COALESCE(MAX(p.property_value),'-1') FROM model_properties p JOIN model m ON m.id=p.id_model JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2601P' AND p.property_key='max_sip_accounts';")"; p2="$(scalar "$d" "SELECT COALESCE(MAX(p.property_value),'-1') FROM model_properties p JOIN model m ON m.id=p.id_model JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2602G' AND p.property_key='max_sip_accounts';")"
+  [ "$c1,$c2,$m1,$m2,$max1,$max2,$p1,$p2" = '1,1,1,1,2,4,2,4' ] || fail "catalog verify mismatch $c1,$c2,$m1,$m2,$max1,$max2,$p1,$p2"
+  rm -f "$d"; trap - RETURN EXIT; mark 'GRANDSTREAM-PROD-CATALOG-VERIFY-PASS'
+}
+
+verify_discovery(){
+  local d model mac ipaddr ext n observed_model observed_ip failures=0 norm
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  while IFS=$'\t' read -r model mac ipaddr ext; do
+    norm="$(normalize_mac "$mac")"; n="$(scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(REPLACE(REPLACE(mac_address,':',''),'-',''))='$norm';")"; observed_model="$(scalar "$d" "SELECT COALESCE(m.name,'') FROM endpoint e LEFT JOIN model m ON m.id=e.id_model WHERE UPPER(REPLACE(REPLACE(e.mac_address,':',''),'-',''))='$norm' LIMIT 1;")"; observed_ip="$(scalar "$d" "SELECT COALESCE(last_known_ipv4,'') FROM endpoint WHERE UPPER(REPLACE(REPLACE(mac_address,':',''),'-',''))='$norm' LIMIT 1;")"
+    if [ "$n" != 1 ] || [ "$observed_model" != "$model" ] || [ "$observed_ip" != "$ipaddr" ]; then mark "DISCOVERY-FAIL model=$model mac=$mac ip=$ipaddr count=$n observed_model=${observed_model:-NONE} observed_ip=${observed_ip:-NONE}"; failures=$((failures+1)); else mark "DISCOVERY-PASS model=$model mac=$mac ip=$ipaddr preserved_extension=$ext"; fi
+  done < <(canaries)
+  rm -f "$d"; trap - RETURN EXIT; [ "$failures" = 0 ] || fail "$failures discovery assertion(s) failed"; verify_canaries; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-DISCOVERY-VERIFY-PASS'
+}
+
+preflight(){
+  [ -x "$PATCHER" ] && [ -r "$CATALOG_SQL" ] && [ -x "$CREDENTIAL_CLI" ] && [ -x "$AUTH_READER" ] || fail 'production payload/helper missing'; [ -f "$GRANDSTREAM_PY" ] || fail 'Grandstream.py missing'
+  python3 -B -m py_compile "$GRANDSTREAM_PY"; verify_catalog_base; verify_canaries; verify_stale_collisions
+  local sha; sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"; if grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY"; then mark "GRANDSTREAM-PROD-VENDOR-STATE=INSTALLED sha256=$sha"; else [ "$sha" = "$STOCK_SHA256" ] || fail "unsupported Grandstream.py baseline sha=$sha"; mark "GRANDSTREAM-PROD-VENDOR-STATE=STOCK sha256=$sha"; fi
+  mark 'production_runtime_write=NO'; mark 'endpointconfig_write=NO'; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-PREFLIGHT-PASS'
+}
+
+install_all(){
+  require_token "$1"; preflight; install -d -o root -g root -m0700 "$STATE_DIR" "$BACKUP_DIR"; canaries > "$STATE_DIR/canaries.tsv"; chmod 0600 "$STATE_DIR/canaries.tsv"
+  if ! grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY"; then cp -a "$GRANDSTREAM_PY" "$BACKUP_DIR/Grandstream.py"; chmod 0600 "$BACKUP_DIR/Grandstream.py"; tmp="$(mktemp "$STATE_DIR/Grandstream.py.XXXXXX")"; "$PATCHER" "$GRANDSTREAM_PY" "$tmp"; python3 -B -m py_compile "$tmp"; install -o root -g root -m0644 "$tmp" "$GRANDSTREAM_PY"; rm -f "$tmp" "$GRANDSTREAM_PY"c 2>/dev/null || true; fi
+  d="$(make_defaults)"; mysql --defaults-extra-file="$d" endpointconfig < "$CATALOG_SQL"; rm -f "$d"; verify_catalog
+  /usr/bin/issabel-helper detect_endpoints "$SUBNET" >/dev/null; sleep 30; verify_discovery
+  date -u +'%Y-%m-%dT%H:%M:%SZ' > "$STATE_DIR/installed.version"; chmod 0600 "$STATE_DIR/installed.version"; mark 'production_runtime_write=YES'; mark 'endpointconfig_write=YES'; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-CONTROLLED-INSTALL=PASS'
+}
+verify_all(){ grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY" || fail 'vendor marker absent'; python3 -B -m py_compile "$GRANDSTREAM_PY"; verify_catalog; verify_discovery; mark 'GRANDSTREAM-PROD-VERIFY-PASS'; }
+
+require_grp2602g_row(){
+  local d n model ip account_count exact_account
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  n="$(scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE UPPER(REPLACE(REPLACE(mac_address,':',''),'-',''))='EC74D765FE08';")"
+  model="$(scalar "$d" "SELECT COALESCE(m.name,'') FROM endpoint e LEFT JOIN model m ON m.id=e.id_model WHERE UPPER(REPLACE(REPLACE(e.mac_address,':',''),'-',''))='EC74D765FE08' LIMIT 1;")"
+  ip="$(scalar "$d" "SELECT COALESCE(last_known_ipv4,'') FROM endpoint WHERE UPPER(REPLACE(REPLACE(mac_address,':',''),'-',''))='EC74D765FE08' LIMIT 1;")"
+  account_count="$(scalar "$d" "SELECT COUNT(*) FROM endpoint_account a JOIN endpoint e ON e.id=a.id_endpoint WHERE UPPER(REPLACE(REPLACE(e.mac_address,':',''),'-',''))='EC74D765FE08';")"
+  exact_account="$(scalar "$d" "SELECT COUNT(*) FROM endpoint_account a JOIN endpoint e ON e.id=a.id_endpoint WHERE UPPER(REPLACE(REPLACE(e.mac_address,':',''),'-',''))='EC74D765FE08' AND a.tech='sip' AND a.account='4452';")"
+  [ "$n" = 1 ] && [ "$model" = 'GRP2602G' ] && [ "$ip" = '10.3.40.43' ] || fail "GRP2602G endpoint mismatch count=$n model=${model:-NONE} ip=${ip:-NONE}"
+  [ "$account_count" = 0 ] || { [ "$account_count" = 1 ] && [ "$exact_account" = 1 ]; } || fail "GRP2602G account state unsafe total=$account_count exact4452=$exact_account"
+  rm -f "$d"; trap - RETURN EXIT
+  mark "GRP2602G-ENDPOINT-ROW-PASS account_count=$account_count extension=4452"
+}
+
+pbx_sip_secret(){
+  local d secret
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  secret="$(db_scalar "$d" asterisk "SELECT data FROM sip WHERE id='$1' AND keyword='secret' LIMIT 1;" || true)"
+  rm -f "$d"; trap - RETURN EXIT
+  [ -n "$secret" ] || fail "PBX SIP secret unavailable for extension $1"
+  printf '%s' "$secret"
+}
+
+auth_read_grp2602g(){
+  verify_canaries
+  require_grp2602g_row
+  local web sip
+  web="$(ENDPOINT_CREDENTIAL_ALLOW_EMIT=1 "$CREDENTIAL_CLI" emit-pending 'EC:74:D7:65:FE:08' 2>/dev/null)" || fail 'GRP2602G pending admin credential unavailable in vault'
+  [ -n "$web" ] || fail 'GRP2602G pending admin credential empty'
+  sip="$(pbx_sip_secret 4452)"
+  printf '%s\0%s' "$web" "$sip" | "$AUTH_READER" '10.3.40.43' 'GRP2602G' '4452' '10.3.40.2'
+  unset web sip
+  mark 'GRP2602G-PROD-AUTH-READ-PASS'
+}
+
+configure_grp2602g(){
+  local configure_token="$1"
+  [ "$configure_token" = 'CONFIGURE-GRP2602G-4452' ] || fail 'invalid GRP2602G configure token'
+  auth_read_grp2602g
+  local d id accounts exact_account assigned_other other_selected cfg xml raw rc created_account=0 selected_after loops addr status
+  d="$(make_defaults)"; trap 'rm -f "$d"' RETURN EXIT
+  id="$(scalar "$d" "SELECT e.id FROM endpoint e JOIN model m ON m.id=e.id_model JOIN manufacturer f ON f.id=e.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2602G' AND UPPER(REPLACE(REPLACE(e.mac_address,':',''),'-',''))='EC74D765FE08' AND e.last_known_ipv4='10.3.40.43' LIMIT 1;")"
+  [[ "$id" =~ ^[0-9]+$ ]] || fail 'exact GRP2602G endpoint missing'
+  accounts="$(scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id;")"
+  exact_account="$(scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='4452';")"
+  assigned_other="$(scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE tech='sip' AND account='4452' AND id_endpoint<>$id;")"
+  other_selected="$(scalar "$d" "SELECT COUNT(*) FROM endpoint WHERE selected=1 AND id<>$id;")"
+  [ "$assigned_other" = 0 ] && [ "$other_selected" = 0 ] || fail "unsafe Endpoint Configurator state assigned_other=$assigned_other other_selected=$other_selected"
+  if [ "$accounts" = 0 ]; then
+    created_account=1
+  elif [ "$accounts" = 1 ] && [ "$exact_account" = 1 ]; then
+    created_account=0
+  else
+    fail "unexpected GRP2602G account state total=$accounts exact4452=$exact_account"
+  fi
+  cfg='/tftpboot/cfgec74d765fe08'; xml='/tftpboot/cfgec74d765fe08.xml'
+  if [ "$created_account" = 1 ]; then
+    [ ! -e "$cfg" ] && [ ! -e "$xml" ] || fail 'GRP2602G provisioning files pre-exist before first controlled adoption'
+    mysql --defaults-extra-file="$d" endpointconfig -e "START TRANSACTION; INSERT INTO endpoint_account (id_endpoint,tech,account,priority) VALUES ($id,'sip','4452',1); UPDATE endpoint SET selected=1 WHERE id=$id; COMMIT;"
+  else
+    mysql --defaults-extra-file="$d" endpointconfig -e "UPDATE endpoint SET selected=1 WHERE id=$id;"
+  fi
+  raw="$(mktemp /tmp/grp2602g-apply.XXXXXX)"; chmod 0600 "$raw"
+  set +e
+  /usr/bin/issabel-endpointconfig --applyconfig >"$raw" 2>&1
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ] || grep -Fq 'failed configuration for endpoint Grandstream@10.3.40.43' "$raw"; then
+    mysql --defaults-extra-file="$d" endpointconfig -e "UPDATE endpoint SET selected=0 WHERE id=$id;"
+    if [ "$created_account" = 1 ]; then mysql --defaults-extra-file="$d" endpointconfig -e "DELETE FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='4452';"; rm -f "$cfg" "$xml"; fi
+    rm -f "$raw"
+    fail 'Issabel Apply failed for GRP2602G; server-side stage rolled back'
+  fi
+  rm -f "$raw"
+  selected_after="$(scalar "$d" "SELECT selected FROM endpoint WHERE id=$id;")"
+  exact_account="$(scalar "$d" "SELECT COUNT(*) FROM endpoint_account WHERE id_endpoint=$id AND tech='sip' AND account='4452';")"
+  [ "$selected_after" = 0 ] && [ "$exact_account" = 1 ] || fail "post-Apply DB invariant failed selected=$selected_after account4452=$exact_account"
+  [ -s "$cfg" ] && [ -s "$xml" ] || fail 'GRP2602G cfg/XML missing after Apply'
+  python3 -B - "$xml" <<'PYXML'
+import sys, xml.etree.ElementTree as ET
+root=ET.parse(sys.argv[1]).getroot(); config=root.find('config'); values={i.tag:(i.text or '') for i in config}
+assert (root.findtext('mac') or '').lower() == 'ec74d765fe08'
+assert values.get('P35') == '4452'
+assert values.get('P36') == '4452'
+assert bool(values.get('P34'))
+assert values.get('P47') in ('10.3.40.2','cei-pbx02.lamundial.hn')
+PYXML
+  rm -f "$d"; trap - RETURN EXIT
+  loops=0
+  while [ "$loops" -lt 36 ]; do
+    addr="$(peer_addr 4452)"; status="$(peer_status 4452)"
+    if [ "$addr" = '10.3.40.43' ] && [[ "$status" == OK* ]]; then break; fi
+    sleep 5; loops=$((loops+1))
+  done
+  [ "$addr" = '10.3.40.43' ] && [[ "$status" == OK* ]] || fail "GRP2602G 4452 did not return registered at original IP; sip_ip=${addr:-NONE} status=${status:-UNKNOWN}"
+  verify_canaries
+  mark 'preserved_extension_grp2602g=4452'
+  mark 'phone_write=YES'
+  mark 'GRP2602G-PROD-CONFIGURE-4452-PASS'
+}
+rollback_runtime(){ require_token "$1"; [ -f "$BACKUP_DIR/Grandstream.py" ] || fail 'vendor backup missing'; install -o root -g root -m0644 "$BACKUP_DIR/Grandstream.py" "$GRANDSTREAM_PY"; python3 -B -m py_compile "$GRANDSTREAM_PY"; mark 'GRANDSTREAM-PROD-RUNTIME-ROLLBACK-PASS'; mark 'catalog_rollback=NO_ADDITIVE_ROWS_RETAINED'; mark 'phone_write=NO'; }
+
+need_root; verify_caller
+case "${1:-}" in
+  preflight) [ "$#" = 1 ] || fail 'preflight takes no args'; preflight ;;
+  install) [ "$#" = 2 ] || fail 'install requires token'; install_all "$2" ;;
+  verify) [ "$#" = 1 ] || fail 'verify takes no args'; verify_all ;;
+  auth-read-grp2602g) [ "$#" = 1 ] || fail 'auth-read-grp2602g takes no args'; auth_read_grp2602g ;;
+  configure-grp2602g) [ "$#" = 2 ] || fail 'configure-grp2602g requires token'; configure_grp2602g "$2" ;;
+  rollback-runtime) [ "$#" = 2 ] || fail 'rollback requires token'; rollback_runtime "$2" ;;
+  *) fail 'unsupported action' ;;
+esac
