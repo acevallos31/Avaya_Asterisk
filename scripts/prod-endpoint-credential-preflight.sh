@@ -9,9 +9,11 @@ MODULE='/var/www/html/modules/endpoint_configurator'
 REPORT="${REPORT:-/tmp/test70-endpoint-credential-preflight.txt}"
 BASELINE_ROOT="${BASELINE_ROOT:-}"
 
-# Git blob SHAs from the exact Audit baseline commit
-# ce90056c652c7e3a280fc8a1416580e6172dcc01.
-EXPECTED_INDEX_BLOB='b68103a3c28265b3ef2619f663b0f6ed87ffa89f'
+# Approved production baseline for Ceiba.
+# index.php intentionally differs from Audit only in the stock/production
+# require layout documented by Test70 run 35053114024. Template and JS match
+# Audit commit ce90056c652c7e3a280fc8a1416580e6172dcc01 exactly.
+EXPECTED_INDEX_BLOB='60bb6aaa461e72979cfd40551b9ef78e81c75656'
 EXPECTED_TEMPLATE_BLOB='d979762079d4dcc2874759881104b3287fea71c2'
 EXPECTED_JS_BLOB='44bea8adac8bd15d9b8548922d032fcf924edfc1'
 
@@ -111,7 +113,8 @@ record 'TEST70-PROD-RUNNER-GUARD-PASS'
 record "timestamp_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 record "host=$(hostname -s)"
 record "runner_user=$(id -un)"
-record 'baseline_commit=ce90056c652c7e3a280fc8a1416580e6172dcc01'
+record 'audit_reference_commit=ce90056c652c7e3a280fc8a1416580e6172dcc01'
+record "approved_prod_index_blob=$EXPECTED_INDEX_BLOB"
 
 # Compare every protected live file before stopping, so one run shows the full
 # drift surface. No live content is changed.
