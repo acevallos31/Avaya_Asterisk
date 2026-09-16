@@ -8,8 +8,8 @@ restringida.
 ## Artefactos congelados
 
 ```text
-candidate commit: 60265e874bcd08e329cd3482bd6a06458822975b
-helper git blob:  21c23eb3557a574c7d7e299442f288ce64f6f859
+candidate commit: ef176c99935af5f833248358c4daf7b4ca0dde6a
+helper git blob:  3c16593a0f2490e00ad912838ec32eed2b35e26a
 sudoers git blob: d82b28e335802034df4c11dae2780e164c823ab3
 ```
 
@@ -21,7 +21,7 @@ Ejecutar como `root`:
 set -euo pipefail
 umask 077
 
-COMMIT='60265e874bcd08e329cd3482bd6a06458822975b'
+COMMIT='ef176c99935af5f833248358c4daf7b4ca0dde6a'
 TMP="$(mktemp -d /root/test71-bootstrap.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -30,7 +30,7 @@ curl -fsSL "https://raw.githubusercontent.com/acevallos31/Avaya_Asterisk/${COMMI
 curl -fsSL "https://raw.githubusercontent.com/acevallos31/Avaya_Asterisk/${COMMIT}/deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod" \
   -o "$TMP/sudoers"
 
-python3 - "$TMP/helper" '21c23eb3557a574c7d7e299442f288ce64f6f859' \
+python3 - "$TMP/helper" '3c16593a0f2490e00ad912838ec32eed2b35e26a' \
                  "$TMP/sudoers" 'd82b28e335802034df4c11dae2780e164c823ab3' <<'PY'
 import hashlib
 import pathlib
@@ -79,6 +79,6 @@ INSTALL-ENDPOINT-CREDENTIALS-PROD
 ```
 
 El workflow vuelve a comprobar el helper root-owned, el payload pinneado, el
-baseline productivo, Apache/HTTPS y el esquema antes de instalar. El rollback
-automático ante fallo restaura solo el runtime; no elimina la clave ni las
-tablas.
+baseline productivo, Apache/HTTPS, el esquema y los grants DDL limitados antes
+de instalar. El rollback automático ante fallo restaura solo el runtime; no
+elimina la clave ni las tablas.
