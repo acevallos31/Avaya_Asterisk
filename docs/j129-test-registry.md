@@ -86,7 +86,8 @@ No crear pruebas sin número. No reutilizar números. Los IDs 07–15 quedan con
 | 67 | `lab-endpoint-credential-test67.yml` | `67 | Issabel Lab | Endpoint Credentials | Foundation` | `LAB-SCHEMA-CYCLE-PASS` run `34681386727`: auditoría estática, DDL de tres tablas, verificación y rollback PASS. En push queda static-only; el ciclo DDL reversible requiere dispatch manual. Run `34681677185`: static/helper PASS y DDL bloqueado correctamente tras retirar el grant temporal. |
 | 68 | `lab-endpoint-credential-test68.yml` | `68 | Issabel Lab | Endpoint Credentials | Runtime Smoke` | `LAB-RUNTIME-SMOKE-PASS` run `34805839845`: runtime actualizado, esquema/clave verificados, smoke GRP2601P read-only PASS y resumen de extensión/registro desplegado. Validación visual del operador: 200/J129, 201/GXP1630, 202/GXP1625 y 203/GRP2601P mostraron `Registered`. `phone_write=NO`; producción no tocada. |
 | 69 | `lab-pbx-web-recovery-test69.yml` | `69 | Issabel Lab | PBX Web Interface | Diagnosis` | `LAB-FIX-PASS` run `34769273874`: detectó PHP-FPM `asterisk` sin recorrido sobre `libs` y restauró solo el directorio a `root:root:0755`; HTTP local 302. La corrección persistente de clave/runtime fue validada por Test 68 `34769381087`. |
-| 70 | `prod-endpoint-credential-test70.yml` | `70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight` | READY / `NOT-TESTED`. Workflow manual-only activo en `main` desde commit `2af14e5b7a5baa76b5640935a3475407e5e75d09`. Ejecuta el harness pinneado `207c58e315e36184091ed5cd37080842434215ab` / blob `7545b2e14981da8ca07446ef2ec8d6200ddf4f9b`; valida runner/host, helper productivo, drift inmutable de `index.php`/template/JS, `fleet-audit` y salud web. No autoriza escrituras ni instalación. |
+| 70 | `prod-endpoint-credential-test70.yml` | `70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight` | `PRODUCTION-SERVER-PASS`, run `35123613203`. Guard, payload, baseline revisado de Ceiba, `fleet-audit`, HTTPS 200 e inventario runtime PASS. Confirmó `production_runtime_write=NO`, `endpointconfig_write=NO`, `phone_write=NO`; runtime de credenciales aún ausente antes de Test 71. |
+| 71 | `prod-endpoint-credential-test71.yml` | `71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install` | STAGED / `NOT-TESTED`. Workflow manual-only activo en `main` desde commit `58fe365413481ffbdd7317617062ddd9129b13a6`, candidato pinneado `6fc9334130b8867d7dc1722bfe35fd895e30d321`. Requiere helper root-owned dedicado + sudoers exacto instalados una sola vez; instala esquema/clave/runtime con backup y rollback solo de runtime; no contacta teléfonos. |
 
 ## Reglas de runners
 
@@ -122,7 +123,7 @@ La numeración de 07–15 tiene evidencia histórica. Los IDs restantes formaliz
 
 `00` ya estaba ocupado históricamente por el audit harness del repositorio y `01` por el inventario base LAB. La auditoría integral PBX/runner conserva el ID `52`, pero desde 2026-09-07 es una prueba genérica reutilizable por target. El ID `53` queda retirado y no se reutiliza para conservar trazabilidad.
 
-Próximo ID disponible: `71`.
+Próximo ID disponible: `72`.
 
 ## Subpruebas Grandstream G10
 
