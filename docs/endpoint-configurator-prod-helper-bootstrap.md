@@ -9,9 +9,8 @@ restringida.
 
 ```text
 candidate commit: 6fc9334130b8867d7dc1722bfe35fd895e30d321
-helper git blob: d82? NO — ver valores exactos abajo
-helper:  6e3a8b63253a4a2477340f5d6522b4a6481f2ebf
-sudoers: d82b28e335802034df4c11dae2780e164c823ab3
+helper git blob:  6e3a8b63253a4a2477340f5d6522b4a6481f2ebf
+sudoers git blob: d82b28e335802034df4c11dae2780e164c823ab3
 ```
 
 ## Comandos en cei-pbx02
