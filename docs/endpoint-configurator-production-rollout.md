@@ -1,13 +1,13 @@
 # Endpoint Configurator — plan de despliegue a producción
 
-Fecha de preparación: 2026-09-14.
+Fecha de preparación: 2026-09-14. Actualizado: 2026-09-16.
 
 ## Alcance del candidato
 
 Este gate cubre exclusivamente la fundación de credenciales administrativas del
 Endpoint Configurator y la visualización de cuentas/registro en la tabla
-principal. No autoriza firmware, reset, `Configure`, cambio de extensión ni
-escritura a teléfonos.
+principal. No autoriza firmware, factory reset, cambio de extensión, `Configure`
+ni escritura a teléfonos.
 
 Superficie funcional validada en LAB:
 
@@ -21,7 +21,7 @@ Superficie funcional validada en LAB:
   desde Asterisk;
 - soporte de varias cuentas por endpoint en la misma celda.
 
-## Evidencia LAB que habilita el preflight productivo
+## Evidencia LAB
 
 Test 68 run `34805839845` terminó PASS sobre
 `feature/endpoint-credential-foundation`. La instalación del runtime, lint PHP,
@@ -29,8 +29,7 @@ verificación de esquema, smoke autenticado read-only del GRP2601P y verificaci�
 final terminaron correctamente; `phone_write=NO` y `production_touched=NO`.
 
 El operador validó visualmente la interfaz del Endpoint Configurator el
-2026-09-13 (hora local). La tabla mostró correctamente cuatro endpoints con sus
-cuentas y estado registrado:
+2026-09-13. La tabla mostró correctamente:
 
 ```text
 GXP1630   192.168.1.169   extensión 201   Registered
@@ -38,9 +37,6 @@ GXP1625   192.168.1.168   extensión 202   Registered
 J129      192.168.1.170   extensión 200   Registered
 GRP2601P  192.168.1.176   extensión 203   Registered
 ```
-
-Esta evidencia cierra la validación visual LAB de la nueva columna. No sustituye
-el preflight ni autoriza todavía la instalación en producción.
 
 ## Target productivo
 
@@ -51,85 +47,23 @@ Runner:  github-runner-prod
 Labels:  self-hosted, Linux, X64, j129-production, cei-pbx02
 ```
 
-La primera ejecución productiva será **read-only** y queda registrada como Test
-70.
-
 ## Test 70 — preflight read-only
 
-Nombre normalizado:
+Nombre:
 
 ```text
 70 | Ceiba Production | Endpoint Credentials | Read-Only Preflight
 ```
 
-Estado actual: `READY / NOT-TESTED`.
+Estado: **CERRADO / PRODUCTION-SERVER-PASS**.
 
-El harness read-only quedó versionado en:
-
-```text
-scripts/prod-endpoint-credential-preflight.sh
-commit: 207c58e315e36184091ed5cd37080842434215ab
-blob:   7545b2e14981da8ca07446ef2ec8d6200ddf4f9b
-```
-
-El workflow manual-only quedó activo en `main`:
+Run autoritativo:
 
 ```text
-.github/workflows/prod-endpoint-credential-test70.yml
-commit: 2af14e5b7a5baa76b5640935a3475407e5e75d09
+35123613203
 ```
 
-El workflow exige ejecutarse desde `main`, usa exclusivamente el runner exacto
-`[self-hosted, Linux, X64, j129-production, cei-pbx02]`, valida
-`github-runner-prod@cei-pbx02`, pinnea el harness por commit y blob, ejecuta
-`bash -n` antes de usarlo y conserva un artifact sanitizado por 90 días.
-
-Confirmación manual requerida:
-
-```text
-PREFLIGHT-ENDPOINT-CREDENTIALS-PROD
-```
-
-Ni el workflow ni el harness instalan archivos, ejecutan migraciones, modifican
-`endpointconfig`, contactan teléfonos o llaman `Configure`. El único acceso
-privilegiado del harness reutiliza el helper productivo root-owned existente en
-la acción read-only `fleet-audit`.
-
-### Baseline inmutable para detección de drift
-
-El candidato nació del commit exacto de Audit:
-
-```text
-ce90056c652c7e3a280fc8a1416580e6172dcc01
-```
-
-Test 70 compara los tres archivos live que posteriormente serían reemplazados
-contra sus Git blob SHA exactos de ese baseline:
-
-```text
-index.php                                b68103a3c28265b3ef2619f663b0f6ed87ffa89f
-reporte_endpoints.tpl                    d979762079d4dcc2874759881104b3287fea71c2
-javascript.js                            44bea8adac8bd15d9b8548922d032fcf924edfc1
-```
-
-La comparación usa `git hash-object` y nunca imprime el contenido de los
-archivos. Cualquier diferencia produce `TEST70-DRIFT-BLOCK` y detiene el gate.
-No se debe forzar un deploy hasta explicar ese drift.
-
-### Controles incluidos
-
-1. identidad exacta `github-runner-prod@cei-pbx02`;
-2. helper `/usr/local/sbin/avaya-j129-prod-validation` presente como
-   `root:root:755` y allowlisted en sudoers;
-3. ausencia de drift en `index.php`, `reporte_endpoints.tpl` y
-   `javascript.js` contra el baseline inmutable;
-4. inventario Avaya/registro mediante `fleet-audit`, sin secretos;
-5. salud HTTPS local de Issabel sin respuesta 5xx;
-6. inventario informativo de los paths nuevos del runtime, sin crearlos ni
-   modificarlos;
-7. reporte sanitizado que el workflow publica como artifact.
-
-Marcadores esperados:
+Resultado confirmado:
 
 ```text
 TEST70-PROD-RUNNER-GUARD-PASS
@@ -143,48 +77,142 @@ endpointconfig_write=NO
 phone_write=NO
 ```
 
-## Gate posterior — Test 71
+La salud HTTPS local fue `200`. El inventario previo confirmó que la nueva
+clave, Vault, diálogo `summary` y CLI productiva todavía estaban ausentes.
 
-Test 71 **no se ejecuta ni se considera autorizado** hasta que Test 70 termine
-PASS y se revise su evidencia.
+### Baseline revisado de Ceiba
 
-El diseño previsto para Test 71 es una instalación controlada con:
+Los primeros runs de Test 70 detectaron que `index.php` productivo difería del
+commit Audit únicamente en la forma de cargar librerías. Se auditó el diff y se
+aprobó el archivo productivo exacto, sin wildcard ni relajación del gate.
 
-- helper productivo dedicado, root-owned e instalado una sola vez; el runner no
-  podrá autoactualizar ese helper desde el workspace público;
-- sudoers limitado a acciones allowlisted del helper, nunca shell root genérico;
-- backup/manifest previo de cada archivo reemplazado;
-- aplicación idempotente del esquema de credenciales;
-- creación/preservación de la clave externa con `root:asterisk:0640`;
-- instalación de runtime + `apachectl -t` + reload de Apache;
-- verificación inmediata y rollback de archivos si falla el runtime;
-- cero contacto con teléfonos durante la instalación;
-- validación manual de la UI antes de almacenar o aplicar una credencial real.
+Baselines de preinstalación aceptados:
 
-El helper de producción será distinto del sincronizador LAB: producción no debe
-permitir que un checkout del repositorio reemplace por sí mismo un ejecutable
-root-owned.
+```text
+index.php                                60bb6aaa461e72979cfd40551b9ef78e81c75656
+reporte_endpoints.tpl                    d979762079d4dcc2874759881104b3287fea71c2
+javascript.js                            44bea8adac8bd15d9b8548922d032fcf924edfc1
+```
+
+El `index.php` usa el blob exacto revisado de Ceiba; template y JavaScript
+continúan contra la referencia Audit `ce90056c652c7e3a280fc8a1416580e6172dcc01`.
+La comparación se realiza como Git blob SHA-1 calculado con Python, sin depender
+de `git` instalado en el runner.
+
+La flota observada en el run PASS fue 19 Avaya J129: 14 configurados, 12
+registrados, 2 provisionados/no registrados y 5 `DETECTED_ONLY`. Esa auditoría
+es inventario y no implica escritura a teléfonos.
+
+## Test 71 — instalación controlada
+
+Nombre:
+
+```text
+71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install
+```
+
+Estado: **STAGED / NOT-TESTED**.
+
+Workflow manual-only activo en `main`:
+
+```text
+.github/workflows/prod-endpoint-credential-test71.yml
+main commit: 58fe365413481ffbdd7317617062ddd9129b13a6
+```
+
+Candidato inmutable del workflow:
+
+```text
+candidate commit: 6fc9334130b8867d7dc1722bfe35fd895e30d321
+helper blob:      6e3a8b63253a4a2477340f5d6522b4a6481f2ebf
+```
+
+Helper dedicado:
+
+```text
+deploy/endpoint-configurator/bin/endpoint-credential-prod-deploy
+instalación final: /usr/local/sbin/issabel-endpoint-credential-prod
+owner/mode: root:root:0755
+```
+
+Sudoers restringido:
+
+```text
+deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod
+instalación final: /etc/sudoers.d/issabel-endpoint-credential-prod
+owner/mode: root:root:0440
+```
+
+El helper no puede autoactualizarse desde el workspace público. Acepta únicamente
+el root exacto `_test71_candidate`, valida cada archivo por Git blob SHA y
+rechaza symlinks o propietario inesperado. El sudoers permite únicamente cuatro
+formas exactas: `preflight`, `install`, `verify` y rollback de runtime con
+confirmación explícita.
+
+### Bootstrap único previo
+
+Antes del primer run de Test 71 hay que instalar manualmente el helper y el
+sudoers root-owned una sola vez. Procedimiento exacto:
+
+```text
+docs/endpoint-configurator-prod-helper-bootstrap.md
+```
+
+Este bootstrap **no** instala runtime, no modifica DB y no contacta teléfonos.
+No se repetirá el ciclo de conceder/retirar sudo por cada despliegue: queda una
+allowlist persistente, estrecha y específica para este helper.
+
+### Confirmación para ejecutar Test 71
+
+```text
+INSTALL-ENDPOINT-CREDENTIALS-PROD
+```
+
+### Controles del install
+
+1. workflow solo manual desde `main` y runner exacto de Ceiba;
+2. candidate commit y helper blob pinneados;
+3. revalidación del baseline productivo inmediatamente antes de escribir;
+4. `apachectl -t` y salud HTTPS antes del install;
+5. esquema: acepta solo estado `0/3` o `3/3`; un esquema parcial aborta;
+6. el SQL se aplica usando la cuenta DB local configurada por Issabel; el helper
+   no concede privilegios ni abre DDL global;
+7. creación/preservación de la clave externa `root:asterisk:0640`;
+8. manifest y backup root-only antes de reemplazar runtime;
+9. instalación de Vault, CLI, `index.php`, diálogo `summary`, template y JS con
+   modos fijos;
+10. `apachectl -t`, reload y verificación byte a byte contra el candidato;
+11. verificación de las tres tablas y salud HTTPS;
+12. `fleet-audit` read-only posterior;
+13. evidencia sanitizada como artifact por 90 días;
+14. `phone_write=NO` durante todo Test 71.
 
 ## Rollback
 
-El rollback inicial de producción será de **runtime**, no de datos. Las tablas y
-la clave no se eliminan automáticamente si ya pudieron contener credenciales o
-eventos. La restauración debe usar el manifest creado antes del primer install y
-volver a validar Apache antes del reload.
+El rollback productivo es deliberadamente de **runtime**, no de datos.
 
-No se ejecutará `DROP TABLE`, factory reset, cambio de contraseña o `Configure`
-como parte del rollback de runtime.
+Si el install falla después de comenzar a reemplazar archivos, el helper restaura
+los archivos desde el manifest, valida Apache y hace reload. Las tablas y la
+clave se conservan. No se ejecuta `DROP TABLE`, factory reset, cambio de
+contraseña ni `Configure`.
 
-## Secuencia acordada
+Rollback manual, solo si se autoriza explícitamente:
 
 ```text
-LAB visual PASS
--> harness Test 70 read-only STAGED
--> workflow Test 70 activo en main
--> ejecutar Test 70 en Ceiba
--> revisar drift / salud / inventario
--> preparar e instalar helper productivo dedicado
--> Test 71 controlled runtime install
--> validar UI productiva
--> canario de credencial en una fase posterior separada
+/usr/local/sbin/issabel-endpoint-credential-prod rollback-runtime \
+  ROLLBACK-ENDPOINT-CREDENTIAL-RUNTIME-PROD
+```
+
+El runner solo puede invocar esa forma exacta mediante sudoers.
+
+## Secuencia actual
+
+```text
+LAB schema/runtime/visual PASS
+-> Test 70 production read-only PASS (35123613203)
+-> Test 71 helper/workflow STAGED
+-> bootstrap único helper + sudoers en cei-pbx02
+-> ejecutar Test 71 controlled install
+-> validar UI productiva manualmente
+-> canario de credencial real en una fase posterior separada
 ```
