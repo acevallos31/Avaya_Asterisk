@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+EXPECTED_HOST='cei-pbx02'
+REPO='acevallos31/Avaya_Asterisk'
+SYNC_BLOB='51facf6ee2114cb535b6d9b8665818d15ab2d9c5'
+SYNC_DST='/usr/local/sbin/issabel-prod-helper-sync'
+SYNC_SUDOERS='/etc/sudoers.d/issabel-prod-helper-sync'
+GRANDSTREAM_SUDOERS='/etc/sudoers.d/issabel-grandstream-prod'
+
+fail(){ printf 'PROD-HELPER-BOOTSTRAP-FAIL: %s\n' "$*" >&2; exit 1; }
+mark(){ printf '%s\n' "$*"; }
+
+[ "${EUID}" -eq 0 ] || fail 'run this script through sudo/root'
+[ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail 'unexpected host'
+[ "$#" -eq 1 ] || fail 'usage: bootstrap-prod-helper-sync <40-char-commit-sha>'
+REF="$1"
+[[ "$REF" =~ ^[0-9a-f]{40}$ ]] || fail 'commit SHA must be 40 lowercase hex characters'
+
+for cmd in curl python3 bash install mktemp visudo; do
+  command -v "$cmd" >/dev/null 2>&1 || fail "required command missing: $cmd"
+done
+
+git_blob_sha(){
+  python3 - "$1" <<'PY'
+import hashlib
+import pathlib
+import sys
+p = pathlib.Path(sys.argv[1])
+data = p.read_bytes()
+print(hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\0' + data).hexdigest())
+PY
+}
+
+TMPDIR="$(mktemp -d /tmp/issabel-prod-helper-bootstrap.XXXXXX)"
+trap 'rm -rf "$TMPDIR"' EXIT
+SYNC_SRC="$TMPDIR/issabel-prod-helper-sync"
+
+curl -fsSL --proto '=https' --tlsv1.2 \
+  "https://raw.githubusercontent.com/${REPO}/${REF}/deploy/endpoint-configurator/bin/issabel-prod-helper-sync" \
+  -o "$SYNC_SRC"
+
+actual="$(git_blob_sha "$SYNC_SRC")"
+[ "$actual" = "$SYNC_BLOB" ] || fail "sync helper blob mismatch expected=$SYNC_BLOB actual=$actual"
+bash -n "$SYNC_SRC"
+grep -Fq "RUNNER_USER='github-runner-prod'" "$SYNC_SRC" || fail 'runner guard missing in sync helper'
+grep -Fq "EXPECTED_HOST='cei-pbx02'" "$SYNC_SRC" || fail 'host guard missing in sync helper'
+grep -Fq "CANDIDATE_ROOT='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate'" "$SYNC_SRC" || fail 'candidate-root guard missing in sync helper'
+
+install -o root -g root -m 0755 "$SYNC_SRC" "$SYNC_DST"
+[ "$(stat -c '%U:%G:%a' "$SYNC_DST")" = 'root:root:755' ] || fail 'installed sync helper metadata mismatch'
+
+cat > "$TMPDIR/sync.sudoers" <<'EOF_SYNC'
+github-runner-prod ALL=(root) NOPASSWD: /usr/local/sbin/issabel-prod-helper-sync
+EOF_SYNC
+
+cat > "$TMPDIR/grandstream.sudoers" <<'EOF_GRANDSTREAM'
+Cmnd_Alias ISSABEL_GRANDSTREAM_PROD = \
+  /usr/local/sbin/issabel-grandstream-prod preflight, \
+  /usr/local/sbin/issabel-grandstream-prod install DEPLOY-GRANDSTREAM-PROD, \
+  /usr/local/sbin/issabel-grandstream-prod verify, \
+  /usr/local/sbin/issabel-grandstream-prod auth-read-grp2602g, \
+  /usr/local/sbin/issabel-grandstream-prod configure-grp2602g CONFIGURE-GRP2602G-4452, \
+  /usr/local/sbin/issabel-grandstream-prod rollback-runtime DEPLOY-GRANDSTREAM-PROD
+
+github-runner-prod ALL=(root) NOPASSWD: ISSABEL_GRANDSTREAM_PROD
+EOF_GRANDSTREAM
+
+visudo -cf "$TMPDIR/sync.sudoers" >/dev/null
+visudo -cf "$TMPDIR/grandstream.sudoers" >/dev/null
+install -o root -g root -m 0440 "$TMPDIR/sync.sudoers" "$SYNC_SUDOERS"
+install -o root -g root -m 0440 "$TMPDIR/grandstream.sudoers" "$GRANDSTREAM_SUDOERS"
+visudo -cf "$SYNC_SUDOERS" >/dev/null
+visudo -cf "$GRANDSTREAM_SUDOERS" >/dev/null
+
+mark "PROD-HELPER-BOOTSTRAP-REF=$REF"
+mark "PROD-HELPER-BOOTSTRAP-SYNC-BLOB=$SYNC_BLOB"
+mark 'PROD-HELPER-BOOTSTRAP=PASS'
+mark 'NOTE=this script exits independently; it does not enable errexit in the parent SSH shell'

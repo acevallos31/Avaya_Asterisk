@@ -31,16 +31,22 @@ jobs:
         run: |
           set -euo pipefail
           helper='deploy/endpoint-configurator/bin/grandstream-prod-deploy'
+          sync='deploy/endpoint-configurator/bin/issabel-prod-helper-sync'
+          bootstrap='deploy/endpoint-configurator/bin/bootstrap-prod-helper-sync'
           patcher='deploy/endpoint-configurator/bin/grandstream-vendor-patch.py'
           auth='deploy/endpoint-configurator/bin/grp26xx-prod-auth-read.py'
           sql='deploy/endpoint-configurator/sql/grandstream-prod-catalog.sql'
           sudoers='deploy/endpoint-configurator/sudoers/issabel-grandstream-prod'
           stock='usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
 
-          bash -n "$helper"
-          python3 -m py_compile "$patcher" "$auth"
+          bash -n "$helper" "$sync" "$bootstrap"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$patcher" "$auth"
           grep -Fq "EXPECTED_HOST='cei-pbx02'" "$helper"
           grep -Fq "RUNNER_USER='github-runner-prod'" "$helper"
+          grep -Fq "CANDIDATE_ROOT='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate'" "$sync"
+          grep -Fq "RUNNER_USER='github-runner-prod'" "$sync"
+          grep -Fq "EXPECTED_HOST='cei-pbx02'" "$sync"
+          grep -Fq "SYNC_BLOB='51facf6ee2114cb535b6d9b8665818d15ab2d9c5'" "$bootstrap"
           grep -Fq 'C0:74:AD:E8:66:06' "$helper"
           grep -Fq 'EC:74:D7:5D:2C:F5' "$helper"
           grep -Fq 'EC:74:D7:65:FE:08' "$helper"
@@ -52,7 +58,7 @@ jobs:
 
           tmp="$(mktemp)"
           python3 "$patcher" "$stock" "$tmp"
-          python3 -m py_compile "$tmp"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$tmp"
           grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$tmp"
           grep -Fq 'def _loginGRP26xx' "$tmp"
           grep -Fq 'def _enableStaticProvisioning_GRP26xx' "$tmp"
@@ -67,10 +73,10 @@ jobs:
     runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
     timeout-minutes: 20
     env:
+      PROD_SYNC: /usr/local/sbin/issabel-prod-helper-sync
       PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
       J129_HELPER: /usr/local/sbin/avaya-j129-prod-validation
-      CREDENTIAL_HELPER: /usr/local/sbin/issabel-endpoint-credential-prod
-      TEST71_ROOT: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_test71_candidate
+      PROD_CANDIDATE: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate
     steps:
       - name: Guard estricto de producción
         env:
@@ -88,74 +94,51 @@ jobs:
           echo 'phone_write=NO'
           echo 'TEST73-PROD-RUNNER-GUARD-PASS'
 
-      - name: Audit permanent production helper foundation
+      - name: Checkout reviewed main candidate for permanent synchronizer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          path: _prod_helper_candidate
+          clean: true
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify permanent production sync foundation
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test73-helper-foundation.txt"
           : > "$REPORT"
           chmod 0600 "$REPORT"
-
-          echo 'scope=TEST73_EXISTING_PRIVILEGE_FOUNDATION_READONLY' | tee -a "$REPORT"
+          echo 'scope=TEST73_PERMANENT_HELPER_SYNC' | tee -a "$REPORT"
           echo 'production_runtime_write=NO' | tee -a "$REPORT"
           echo 'endpointconfig_write=NO' | tee -a "$REPORT"
           echo 'phone_write=NO' | tee -a "$REPORT"
-
-          helper_meta() {
-            local label="$1" path="$2"
-            if [ -e "$path" ]; then
-              printf '%s_present=YES\n' "$label" | tee -a "$REPORT"
-              printf '%s_meta=%s\n' "$label" "$(stat -c '%U:%G:%a' "$path")" | tee -a "$REPORT"
-              printf '%s_sha256=%s\n' "$label" "$(sha256sum "$path" | awk '{print $1}')" | tee -a "$REPORT"
-            else
-              printf '%s_present=NO\n' "$label" | tee -a "$REPORT"
-            fi
-          }
-
-          helper_meta grandstream_helper "$PROD_HELPER"
-          helper_meta j129_helper "$J129_HELPER"
-          helper_meta credential_helper "$CREDENTIAL_HELPER"
-
-          for candidate in \
-            /usr/local/sbin/avaya-j129-helper-sync \
-            /usr/local/sbin/avaya-j129-prod-helper-sync \
-            /usr/local/sbin/issabel-helper-sync \
-            /usr/local/sbin/issabel-prod-helper-sync \
-            /usr/local/sbin/endpoint-configurator-helper-sync; do
-            if [ -e "$candidate" ]; then
-              echo "sync_candidate=$(basename "$candidate") meta=$(stat -c '%U:%G:%a' "$candidate") sha256=$(sha256sum "$candidate" | awk '{print $1}')" | tee -a "$REPORT"
-            fi
-          done
-
-          sudo_rules="$(sudo -n -l 2>/dev/null || true)"
-          for marker in \
-            '/usr/local/sbin/issabel-grandstream-prod' \
-            '/usr/local/sbin/avaya-j129-helper-sync' \
-            '/usr/local/sbin/avaya-j129-prod-helper-sync' \
-            '/usr/local/sbin/issabel-helper-sync' \
-            '/usr/local/sbin/issabel-prod-helper-sync' \
-            '/usr/local/sbin/endpoint-configurator-helper-sync' \
-            '/usr/local/sbin/issabel-endpoint-credential-prod' \
-            '/usr/local/sbin/avaya-j129-prod-validation'; do
-            key="$(basename "$marker" | tr '-' '_')"
-            if grep -Fq "$marker" <<<"$sudo_rules"; then
-              echo "sudo_rule_${key}=PRESENT" | tee -a "$REPORT"
-            else
-              echo "sudo_rule_${key}=ABSENT" | tee -a "$REPORT"
-            fi
-          done
-          unset sudo_rules
-
-          if [ -x "$PROD_HELPER" ] && [ "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755' ]; then
-            if sudo -n -l "$PROD_HELPER" preflight >/dev/null 2>&1; then
-              echo 'TEST73-PERMANENT-HELPER-FOUNDATION=READY' | tee -a "$REPORT"
-              exit 0
-            fi
+          test "$PROD_CANDIDATE" = "$GITHUB_WORKSPACE/_prod_helper_candidate"
+          if [ ! -x "$PROD_SYNC" ]; then
+            echo 'TEST73-PROD-SYNC-BOOTSTRAP=REQUIRED' | tee -a "$REPORT"
+            exit 3
           fi
+          meta="$(stat -c '%U:%G:%a' "$PROD_SYNC")"
+          echo "prod_sync_meta=$meta" | tee -a "$REPORT"
+          test "$meta" = 'root:root:755'
+          sudo -n -l "$PROD_SYNC" >/dev/null
+          test -x "$J129_HELPER"
+          echo 'TEST73-PERMANENT-HELPER-SYNC=READY' | tee -a "$REPORT"
 
-          echo 'TEST73-PERMANENT-HELPER-FOUNDATION=DISCOVERY-REQUIRED' | tee -a "$REPORT"
-          echo 'TEST73-INFRA-BLOCKED-BEFORE-WRITE' | tee -a "$REPORT"
-          exit 3
+      - name: Sync reviewed Grandstream helper payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-helper-foundation.txt"
+          sudo -n "$PROD_SYNC" | tee -a "$REPORT"
+          grep -Fq 'PROD-HELPER-SYNC-PAYLOAD-AUDIT-PASS' "$REPORT"
+          grep -Fq 'PROD-HELPER-SYNC-GRANDSTREAM=PASS' "$REPORT"
+          grep -Fq 'endpointconfig_write=NO' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+          test -x "$PROD_HELPER"
+          test "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755'
+          echo 'TEST73-GRANDSTREAM-HELPER-SYNC=PASS' | tee -a "$REPORT"
 
       - name: Production preflight
         shell: bash
