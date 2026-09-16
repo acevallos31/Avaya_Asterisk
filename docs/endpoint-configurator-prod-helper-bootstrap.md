@@ -8,8 +8,8 @@ restringida.
 ## Artefactos congelados
 
 ```text
-candidate commit: 8458bd3d194c607363179569ee1f4ef2208c5061
-helper git blob:  ea5dce972dd436b4ff2a70e940e6b635d2a039b5
+candidate commit: 60265e874bcd08e329cd3482bd6a06458822975b
+helper git blob:  21c23eb3557a574c7d7e299442f288ce64f6f859
 sudoers git blob: d82b28e335802034df4c11dae2780e164c823ab3
 ```
 
@@ -21,7 +21,7 @@ Ejecutar como `root`:
 set -euo pipefail
 umask 077
 
-COMMIT='8458bd3d194c607363179569ee1f4ef2208c5061'
+COMMIT='60265e874bcd08e329cd3482bd6a06458822975b'
 TMP="$(mktemp -d /root/test71-bootstrap.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -30,7 +30,7 @@ curl -fsSL "https://raw.githubusercontent.com/acevallos31/Avaya_Asterisk/${COMMI
 curl -fsSL "https://raw.githubusercontent.com/acevallos31/Avaya_Asterisk/${COMMIT}/deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod" \
   -o "$TMP/sudoers"
 
-python3 - "$TMP/helper" 'ea5dce972dd436b4ff2a70e940e6b635d2a039b5' \
+python3 - "$TMP/helper" '21c23eb3557a574c7d7e299442f288ce64f6f859' \
                  "$TMP/sudoers" 'd82b28e335802034df4c11dae2780e164c823ab3' <<'PY'
 import hashlib
 import pathlib
