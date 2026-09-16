@@ -69,6 +69,8 @@ jobs:
     env:
       PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
       J129_HELPER: /usr/local/sbin/avaya-j129-prod-validation
+      CREDENTIAL_HELPER: /usr/local/sbin/issabel-endpoint-credential-prod
+      TEST71_ROOT: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_test71_candidate
     steps:
       - name: Guard estricto de producción
         env:
@@ -80,12 +82,80 @@ jobs:
           test "$CONFIRM" = 'DEPLOY-GRANDSTREAM-PROD'
           test "$(id -un)" = 'github-runner-prod'
           test "$(hostname -s)" = 'cei-pbx02'
-          test -x "$PROD_HELPER"
-          test "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755'
           echo 'preserve_gxp1625=4450'
           echo 'preserve_grp2601p=4453'
           echo 'preserve_grp2602g=4452'
+          echo 'phone_write=NO'
           echo 'TEST73-PROD-RUNNER-GUARD-PASS'
+
+      - name: Audit permanent production helper foundation
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-helper-foundation.txt"
+          : > "$REPORT"
+          chmod 0600 "$REPORT"
+
+          echo 'scope=TEST73_EXISTING_PRIVILEGE_FOUNDATION_READONLY' | tee -a "$REPORT"
+          echo 'production_runtime_write=NO' | tee -a "$REPORT"
+          echo 'endpointconfig_write=NO' | tee -a "$REPORT"
+          echo 'phone_write=NO' | tee -a "$REPORT"
+
+          helper_meta() {
+            local label="$1" path="$2"
+            if [ -e "$path" ]; then
+              printf '%s_present=YES\n' "$label" | tee -a "$REPORT"
+              printf '%s_meta=%s\n' "$label" "$(stat -c '%U:%G:%a' "$path")" | tee -a "$REPORT"
+              printf '%s_sha256=%s\n' "$label" "$(sha256sum "$path" | awk '{print $1}')" | tee -a "$REPORT"
+            else
+              printf '%s_present=NO\n' "$label" | tee -a "$REPORT"
+            fi
+          }
+
+          helper_meta grandstream_helper "$PROD_HELPER"
+          helper_meta j129_helper "$J129_HELPER"
+          helper_meta credential_helper "$CREDENTIAL_HELPER"
+
+          for candidate in \
+            /usr/local/sbin/avaya-j129-helper-sync \
+            /usr/local/sbin/avaya-j129-prod-helper-sync \
+            /usr/local/sbin/issabel-helper-sync \
+            /usr/local/sbin/issabel-prod-helper-sync \
+            /usr/local/sbin/endpoint-configurator-helper-sync; do
+            if [ -e "$candidate" ]; then
+              echo "sync_candidate=$(basename "$candidate") meta=$(stat -c '%U:%G:%a' "$candidate") sha256=$(sha256sum "$candidate" | awk '{print $1}')" | tee -a "$REPORT"
+            fi
+          done
+
+          sudo_rules="$(sudo -n -l 2>/dev/null || true)"
+          for marker in \
+            '/usr/local/sbin/issabel-grandstream-prod' \
+            '/usr/local/sbin/avaya-j129-helper-sync' \
+            '/usr/local/sbin/avaya-j129-prod-helper-sync' \
+            '/usr/local/sbin/issabel-helper-sync' \
+            '/usr/local/sbin/issabel-prod-helper-sync' \
+            '/usr/local/sbin/endpoint-configurator-helper-sync' \
+            '/usr/local/sbin/issabel-endpoint-credential-prod' \
+            '/usr/local/sbin/avaya-j129-prod-validation'; do
+            key="$(basename "$marker" | tr '-' '_')"
+            if grep -Fq "$marker" <<<"$sudo_rules"; then
+              echo "sudo_rule_${key}=PRESENT" | tee -a "$REPORT"
+            else
+              echo "sudo_rule_${key}=ABSENT" | tee -a "$REPORT"
+            fi
+          done
+          unset sudo_rules
+
+          if [ -x "$PROD_HELPER" ] && [ "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755' ]; then
+            if sudo -n -l "$PROD_HELPER" preflight >/dev/null 2>&1; then
+              echo 'TEST73-PERMANENT-HELPER-FOUNDATION=READY' | tee -a "$REPORT"
+              exit 0
+            fi
+          fi
+
+          echo 'TEST73-PERMANENT-HELPER-FOUNDATION=DISCOVERY-REQUIRED' | tee -a "$REPORT"
+          echo 'TEST73-INFRA-BLOCKED-BEFORE-WRITE' | tee -a "$REPORT"
+          exit 3
 
       - name: Production preflight
         shell: bash
@@ -131,6 +201,7 @@ jobs:
         with:
           name: test73-grandstream-prod-${{ github.run_id }}
           path: |
+            ${{ runner.temp }}/test73-helper-foundation.txt
             ${{ runner.temp }}/test73-grandstream-prod.txt
             ${{ runner.temp }}/test73-j129-fleet.txt
           if-no-files-found: ignore
