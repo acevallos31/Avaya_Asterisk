@@ -7,19 +7,16 @@ La historia detallada permanece en `docs/agent-log.md`,
 
 ## Prioridad actual — Endpoint Configurator
 
-La prioridad inmediata es promover a producción la fundación de credenciales
-administrativas y el resumen visible `Extension / Registration`, ya validados en
-LAB. La release J129 `v0.1.0` permanece congelada y no debe modificarse para
-hacer este rollout.
+La fundación de credenciales administrativas y el resumen visible
+`Extension / Registration` ya están instalados server-side en producción Ceiba.
+La release J129 `v0.1.0` permanece congelada y separada de este rollout.
 
 Secuencia vigente:
 
 ```text
 LAB schema/runtime/visual PASS
 -> Test 70 Ceiba read-only PASS
--> Test 71 controlled install STAGED / NOT-TESTED
--> bootstrap único del helper + grants DDL mínimos
--> ejecutar Test 71
+-> Test 71 Ceiba controlled install PASS
 -> validación visual productiva
 -> canario real de credencial en una fase posterior separada
 ```
@@ -62,11 +59,9 @@ Evidencia productiva previa:
 47  controlled signalling              run 33711068591 PASS
 ```
 
-La señalización Asterisk -> J129 quedó comprobada; la prueba física histórica
-confirma operación real. El helper existente
-`/usr/local/sbin/avaya-j129-prod-validation` se mantiene congelado para la
-release J129 y se reutiliza solo en sus acciones allowlisted, incluido
-`fleet-audit`.
+El helper existente `/usr/local/sbin/avaya-j129-prod-validation` se mantiene
+congelado para la release J129 y se reutiliza solo en sus acciones allowlisted,
+incluido `fleet-audit`.
 
 ## Endpoint Configurator — credenciales administrativas
 
@@ -100,10 +95,9 @@ LAB-SCHEMA-CYCLE-PASS
 ```
 
 Creó, verificó y revirtió las tres tablas. Se adoptó después un modelo de DDL de
-mínimo privilegio permanente para evitar grant/revoke en cada despliegue:
-`CREATE, ALTER, INDEX, REFERENCES` únicamente sobre las tres tablas de
-credenciales y `REFERENCES` sobre la tabla padre `endpoint`; sin `DROP`, sin
-`ALL PRIVILEGES` y sin DDL general sobre la base.
+mínimo privilegio permanente: `CREATE, ALTER, INDEX, REFERENCES` únicamente
+sobre las tres tablas de credenciales y `REFERENCES` sobre `endpoint`; sin
+`DROP`, sin `ALL PRIVILEGES` y sin DDL general sobre la base.
 
 ### Test 68
 
@@ -160,11 +154,7 @@ endpointconfig_write=NO
 phone_write=NO
 ```
 
-HTTPS local respondió `200`. El inventario previo confirmó que la clave,
-`EndpointCredentialVault`, diálogo `summary` y CLI productiva todavía estaban
-ausentes.
-
-Baselines productivos aprobados:
+Baselines productivos aprobados antes del install:
 
 ```text
 index.php              60bb6aaa461e72979cfd40551b9ef78e81c75656
@@ -172,88 +162,107 @@ reporte_endpoints.tpl  d979762079d4dcc2874759881104b3287fea71c2
 javascript.js          44bea8adac8bd15d9b8548922d032fcf924edfc1
 ```
 
-El `index.php` de Ceiba difería de Audit únicamente en la forma de cargar
-librerías; el diff se revisó antes de aceptar ese blob exacto. No se relajó el
-gate con wildcard.
+HTTPS local respondió `200`. El inventario previo confirmó que la clave, Vault,
+diálogo `summary` y CLI productiva todavía estaban ausentes. La flota observada
+fue 19 J129: 14 configurados, 12 registrados, 2 provisionados/no registrados y
+5 `DETECTED_ONLY`.
 
-Flota observada por `fleet-audit` en el run PASS: 19 J129, 14 configurados, 12
-registrados, 2 provisionados/no registrados y 5 `DETECTED_ONLY`. Es inventario
-read-only.
-
-## Test 71 — instalación controlada STAGED
+## Test 71 — instalación controlada PASS
 
 ```text
 71 | Ceiba Production | Endpoint Credentials | Controlled Runtime Install
-estado: STAGED / NOT-TESTED
-workflow: .github/workflows/prod-endpoint-credential-test71.yml
-main commit: 7aba3f2ed5a78cf8d0433283d592ec20043b5acf
+run: 35138230754
+resultado: PRODUCTION-SERVER-PASS
+workflow head: c2946b390ae2f68529dff20fced9708765c5a44a
 candidate: ef176c99935af5f833248358c4daf7b4ca0dde6a
 helper blob: 3c16593a0f2490e00ad912838ec32eed2b35e26a
 ```
 
-Helper dedicado preparado:
+Runs previos:
 
 ```text
-repo: deploy/endpoint-configurator/bin/endpoint-credential-prod-deploy
-prod: /usr/local/sbin/issabel-endpoint-credential-prod
-owner/mode esperado: root:root:0755
+35130705534  FAIL antes de preflight; guard del helper no determinista
+35131492883  FAIL antes de preflight; helper productivo aún ausente/no ejecutable
+35138230754  PASS autoritativo
 ```
 
-Sudoers preparado:
+Los dos fallos previos no llegaron a `preflight`, `install` ni `verify`; no
+escribieron producción.
+
+El run autoritativo confirmó:
 
 ```text
-repo: deploy/endpoint-configurator/sudoers/issabel-endpoint-credential-prod
-prod: /etc/sudoers.d/issabel-endpoint-credential-prod
-owner/mode esperado: root:root:0440
-```
-
-El helper acepta únicamente el root exacto del checkout Test71, valida todos los
-artefactos por Git blob SHA, rechaza symlinks y propietario inesperado, y tiene
-acciones exactas `preflight`, `install`, `verify` y `rollback-runtime`.
-
-Antes de crear tablas ejecuta `SHOW GRANTS FOR CURRENT_USER` y exige los grants
-DDL limitados definidos para este módulo. El marcador de seguridad esperado es:
-
-```text
+TEST71-CANDIDATE-HELPER-INTEGRITY-PASS
+TEST71-INSTALLED-HELPER-META=root:root:755
+TEST71-INSTALLED-HELPER-INTEGRITY-PASS
+TEST71-ROOT-HELPER-GUARD-PASS
+TEST71-PAYLOAD-INTEGRITY-PASS
+TEST71-WEB-HEALTH-PASS status=200
 TEST71-LIMITED-DDL-GRANTS-PASS
+TEST71-PREINSTALL-BASELINE-PASS
+TEST71-BACKUP-MANIFEST-PASS
+TEST71-SCHEMA-INSTALL-PASS
+TEST71-SCHEMA-VERIFY-PASS
+TEST71-KEY-INSTALL-PASS existing=NO
+TEST71-PROD-ENDPOINT-CREDENTIAL-RUNTIME=PASS
+TEST71-CONTROLLED-INSTALL-PASS
+J129-PROD-FLEET-AUDIT-PASS
+TEST71-PROD-CONTROLLED-INSTALL=PASS
+phone_write=NO
 ```
 
-El install:
+Quedaron instalados server-side:
 
-- vuelve a validar los blobs productivos de Test70 antes de escribir;
-- acepta únicamente esquema `0/3` o `3/3`; esquema parcial bloquea;
-- crea/preserva la key `root:asterisk:0640` sin cambiar owner/mode de
-  `/etc/issabel` si ese directorio ya existe;
-- no cambia owner/mode de `/usr/local/libexec` si ya existe;
-- crea manifest y backup root-only antes de reemplazar runtime;
-- instala Vault, CLI, `index.php`, diálogo `summary`, template y JavaScript;
-- ejecuta lint PHP, `apachectl -t`, reload, verificación byte a byte, esquema,
-  HTTPS y `fleet-audit`;
-- no contacta teléfonos: `phone_write=NO`.
+- las tres tablas de credenciales (`3/3` verificadas);
+- la clave externa protegida `root:asterisk:0640`;
+- `EndpointCredentialVault.class.php`;
+- CLI productiva de bóveda;
+- `index.php` del módulo candidato;
+- diálogo `summary` y `en.lang`;
+- `reporte_endpoints.tpl` y `javascript.js` del candidato.
 
-Rollback: solo runtime. Las tablas y la clave se conservan. No se ejecuta
-`DROP TABLE`, factory reset, cambio de contraseña ni `Configure`.
+Antes de reemplazar runtime se creó manifest/backup root-only. Apache pasó lint,
+se recargó correctamente y HTTPS local permaneció `200`. El `fleet-audit`
+posterior volvió a pasar con 19 J129, 14 configurados, 12 registrados, 2
+provisionados/no registrados y 5 `DETECTED_ONLY`. Test71 no contactó ni
+reconfiguró teléfonos: `phone_write=NO`.
 
-### Bootstrap único pendiente
-
-Antes del primer run Test71 hay que ejecutar una sola vez el procedimiento
-`docs/endpoint-configurator-prod-helper-bootstrap.md` en `cei-pbx02`. Instala el
-helper + sudoers root-owned y configura los grants DDL permanentes de mínimo
-privilegio para `asteriskuser@localhost`.
-
-El bootstrap no crea las tres tablas, no instala el runtime y no contacta
-telefonos. Sí modifica una sola vez la metadata de privilegios MariaDB; no se
-concede `DROP`, `ALL PRIVILEGES`, `CREATE USER` ni DDL general sobre
-`endpointconfig.*`.
-
-Después se ejecutará Test71 desde `main` con confirmación exacta:
+Evidencia sanitizada:
 
 ```text
-INSTALL-ENDPOINT-CREDENTIALS-PROD
+artifact: test71-endpoint-credential-prod-35138230754
+artifact id: 10464202042
+sha256(zip): 63d4c189ca23574520b2783f2c333722c9333769a7993eff18a44befffbdc0d6
+retención: 90 días
 ```
 
-A la fecha de este contexto, **Test71 no ha sido ejecutado y la preparación no
-ha escrito el nuevo runtime en producción**.
+Helper dedicado productivo:
+
+```text
+/usr/local/sbin/issabel-endpoint-credential-prod
+root:root:0755
+```
+
+Sudoers:
+
+```text
+/etc/sudoers.d/issabel-endpoint-credential-prod
+root:root:0440
+```
+
+Acciones allowlisted: `preflight`, `install`, `verify` y `rollback-runtime`.
+Los grants DDL mínimos permanentes quedan limitados a las tres tablas del módulo
+más `REFERENCES` sobre `endpoint`.
+
+Rollback disponible: solo runtime. Las tablas y la clave se conservan. No se
+ejecuta `DROP TABLE`, factory reset, cambio de contraseña ni `Configure`.
+
+## Próximo paso
+
+La instalación server-side está cerrada. Falta únicamente la validación visual
+manual de Endpoint Configurator en producción. Después de esa validación, el
+canario real de credencial administrativa debe ejecutarse como una fase separada
+y sobre un solo endpoint seleccionado; no forma parte de Test71.
 
 ## Grandstream — estado relevante
 
@@ -261,12 +270,9 @@ ha escrito el nuevo runtime en producción**.
 - GXP1630: ciclo server-side completo en LAB; bootstrap/model/configure/E2E PASS.
 - GRP2601P `EC:74:D7:1E:E8:E3`: Tests62–66 completos; Test66 run
   `34677554254` `LAB-INTEGRATION-PASS` y validación física positiva como ext 203.
-- La autenticación GRP2601P usa challenge nonce/SHA-256 y
-  `PUT /cgi-bin/config_update`; la credencial de etiqueta se modela como
-  `FACTORY`, separada de la contraseña administrativa final.
 
-Producción Grandstream sigue separada de este rollout; Test71 no aprovisiona ni
-escribe teléfonos.
+Producción Grandstream sigue separada de este rollout; Test71 no aprovisionó ni
+escribió teléfonos.
 
 ## J129 v0.2.x / arquitectura futura
 
@@ -280,10 +286,6 @@ Prioridades: discovery inter-VLAN IP+MAC, idempotencia/colisiones, capabilities,
 idioma/locale, Web UI enable/disable, softkeys, conferencia, BLF/presencia,
 TLS/certificados, branding, Auto Answer/3PCC y codecs/DTMF/QoS.
 
-El scanner stock depende de MAC L2; inter-VLAN requiere una fuente
-complementaria confiable (ARP/DHCP/router/inventario) y no debe resolverse
-metiendo discovery en `Avaya.py`.
-
 ## Numeración
 
 Fuente autoritativa:
@@ -292,5 +294,4 @@ Fuente autoritativa:
 docs/j129-test-registry.md
 ```
 
-Test70 está cerrado PASS, Test71 está reservado y staged. Próximo ID disponible:
-`72`.
+Test70 y Test71 están cerrados PASS. Próximo ID disponible: `72`.
