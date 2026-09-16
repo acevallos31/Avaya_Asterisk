@@ -1,0 +1,166 @@
+name: 72 | Ceiba Production | Grandstream Fleet | Read-Only Discovery Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type AUDIT-GRANDSTREAM-PROD'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  grandstream-readonly-audit:
+    name: Ceiba Grandstream L2 and Endpoint Configurator audit
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 12
+
+    env:
+      PROD_SUBNET: 10.3.40.0/24
+      PROD_PREFIX: 10.3.40
+      PROD_HELPER: /usr/local/sbin/avaya-j129-prod-validation
+
+    steps:
+      - name: Guard estricto de producción
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'AUDIT-GRANDSTREAM-PROD'
+          test "$(id -un)" = 'github-runner-prod'
+          test "$(hostname -s)" = 'cei-pbx02'
+          echo "scope=TEST72_CEIBA_GRANDSTREAM_READONLY"
+          echo "network=$PROD_SUBNET"
+          echo 'production_runtime_write=NO'
+          echo 'endpointconfig_write=NO'
+          echo 'phone_write=NO'
+          echo 'TEST72-PROD-RUNNER-GUARD-PASS'
+
+      - name: Read-only network discovery of known Grandstream MACs
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v curl >/dev/null
+          command -v ip >/dev/null
+          command -v awk >/dev/null
+          command -v grep >/dev/null
+          command -v xargs >/dev/null
+
+          REPORT="$RUNNER_TEMP/test72-grandstream-prod-readonly.txt"
+          : > "$REPORT"
+          chmod 0600 "$REPORT"
+
+          cat > "$RUNNER_TEMP/test72-targets.txt" <<'EOF'
+          GXP1625|C0:74:AD:E8:66:06|4450
+          GRP2601P|EC:74:D7:5D:2C:F5|4453
+          GRP2602G|EC:74:D7:65:FE:08|4452
+          EOF
+
+          {
+            echo 'scope=TEST72_CEIBA_GRANDSTREAM_READONLY'
+            echo "network=$PROD_SUBNET"
+            echo 'discovery_method=ACTIVE_L2_NEIGHBOR_REFRESH_PLUS_HTTP_READ'
+            echo 'phone_write=NO'
+            echo 'endpointconfig_write=NO'
+          } | tee -a "$REPORT"
+
+          # Refresh the local L2 neighbor table without changing endpoint state.
+          if command -v ping >/dev/null 2>&1; then
+            seq 1 254 | xargs -P 48 -I{} sh -c \
+              'ping -c 1 -W 1 "$1.{}" >/dev/null 2>&1 || true' _ "$PROD_PREFIX"
+          fi
+
+          seq 1 254 | xargs -P 32 -I{} sh -c '
+            ip="$1.{}"
+            curl -sS -o /dev/null --connect-timeout 1 --max-time 2 "http://$ip/" >/dev/null 2>&1 ||
+            curl -ksS -o /dev/null --connect-timeout 1 --max-time 2 "https://$ip/" >/dev/null 2>&1 || true
+          ' _ "$PROD_PREFIX"
+
+          ip neigh show > "$RUNNER_TEMP/test72-neigh.txt"
+
+          found=0
+          missing=0
+          while IFS='|' read -r expected_model expected_mac expected_ext; do
+            [ -n "$expected_model" ] || continue
+            ip_addr="$(awk -v mac="$expected_mac" 'toupper($5)==toupper(mac) {print $1; exit}' "$RUNNER_TEMP/test72-neigh.txt")"
+            if [ -z "$ip_addr" ]; then
+              echo "target model=$expected_model mac=$expected_mac extension=$expected_ext l2=NOT_FOUND" | tee -a "$REPORT"
+              missing=$((missing + 1))
+              continue
+            fi
+
+            found=$((found + 1))
+            http_status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 1 --max-time 3 "http://$ip_addr/" 2>/dev/null || true)"
+            https_status="$(curl -ksS -o /dev/null -w '%{http_code}' --connect-timeout 1 --max-time 3 "https://$ip_addr/" 2>/dev/null || true)"
+            root_http="$(curl -sS --connect-timeout 1 --max-time 3 "http://$ip_addr/" 2>/dev/null || true)"
+            root_https="$(curl -ksS --connect-timeout 1 --max-time 3 "https://$ip_addr/" 2>/dev/null || true)"
+            values_http="$(curl -sS --connect-timeout 1 --max-time 3 "http://$ip_addr/cgi-bin/api.values.get?request=phone_model:1395" 2>/dev/null || true)"
+            values_https="$(curl -ksS --connect-timeout 1 --max-time 3 "https://$ip_addr/cgi-bin/api.values.get?request=phone_model:1395" 2>/dev/null || true)"
+            evidence="$root_http $root_https $values_http $values_https"
+            observed_model='NOT_EXPOSED_UNAUTHENTICATED'
+            if grep -Eqi 'GXP[ _-]*1625' <<<"$evidence"; then
+              observed_model='GXP1625'
+            elif grep -Eqi 'GRP[ _-]*2601P' <<<"$evidence"; then
+              observed_model='GRP2601P'
+            elif grep -Eqi 'GRP[ _-]*2602G' <<<"$evidence"; then
+              observed_model='GRP2602G'
+            fi
+
+            echo "target model=$expected_model mac=$expected_mac extension=$expected_ext ip=$ip_addr l2=FOUND http=${http_status:-000} https=${https_status:-000} model_hint=$observed_model" | tee -a "$REPORT"
+          done < "$RUNNER_TEMP/test72-targets.txt"
+
+          echo "known_target_count=3" | tee -a "$REPORT"
+          echo "known_target_l2_found=$found" | tee -a "$REPORT"
+          echo "known_target_l2_missing=$missing" | tee -a "$REPORT"
+
+          if [ "$missing" -eq 0 ]; then
+            echo 'TEST72-GRANDSTREAM-L2-DISCOVERY-PASS' | tee -a "$REPORT"
+          else
+            echo 'TEST72-GRANDSTREAM-L2-DISCOVERY=INCOMPLETE' | tee -a "$REPORT"
+          fi
+
+      - name: Compare against Endpoint Configurator inventory read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test72-grandstream-prod-readonly.txt"
+          test -x "$PROD_HELPER"
+          sudo -n "$PROD_HELPER" fleet-audit | tee "$RUNNER_TEMP/test72-fleet-audit.txt"
+          grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$RUNNER_TEMP/test72-fleet-audit.txt"
+
+          if grep -Fq 'MANUFACTURER name=Grandstream' "$RUNNER_TEMP/test72-fleet-audit.txt"; then
+            echo 'endpointconfig_grandstream_inventory=PRESENT' | tee -a "$REPORT"
+          else
+            echo 'endpointconfig_grandstream_inventory=ABSENT' | tee -a "$REPORT"
+          fi
+
+          found="$(awk -F= '/^known_target_l2_found=/{print $2}' "$REPORT" | tail -n1)"
+          inventory="$(awk -F= '/^endpointconfig_grandstream_inventory=/{print $2}' "$REPORT" | tail -n1)"
+
+          if [ "$found" = '3' ] && [ "$inventory" = 'ABSENT' ]; then
+            echo 'TEST72-DIAGNOSIS=L2_TARGETS_VISIBLE_ENDPOINTCONFIG_GRANDSTREAM_ABSENT' | tee -a "$REPORT"
+          elif [ "$found" = '3' ]; then
+            echo 'TEST72-DIAGNOSIS=L2_TARGETS_VISIBLE_ENDPOINTCONFIG_HAS_GRANDSTREAM_ROWS' | tee -a "$REPORT"
+          else
+            echo 'TEST72-DIAGNOSIS=L2_VISIBILITY_INCOMPLETE' | tee -a "$REPORT"
+          fi
+
+          echo 'production_runtime_write=NO' | tee -a "$REPORT"
+          echo 'endpointconfig_write=NO' | tee -a "$REPORT"
+          echo 'phone_write=NO' | tee -a "$REPORT"
+          echo 'TEST72-PROD-GRANDSTREAM-READONLY-AUDIT=PASS' | tee -a "$REPORT"
+
+      - name: Guardar evidencia sanitizada
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: test72-grandstream-prod-readonly-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/test72-grandstream-prod-readonly.txt
+            ${{ runner.temp }}/test72-fleet-audit.txt
+          if-no-files-found: ignore
+          retention-days: 90
