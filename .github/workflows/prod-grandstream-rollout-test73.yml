@@ -64,6 +64,10 @@ jobs:
           grep -Fq 'COMPARE-GRANDSTREAM-PROD' "$workflow"
           grep -Fq 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK' "$workflow"
           grep -Fq 'LAB_REFERENCE_GRP2601P_TEST66=34677554254' "$workflow"
+          grep -Fq 'TEST73-DEEP-READONLY-PARITY=PASS' "$workflow"
+          grep -Fq 'VENDOR-AST label=' "$workflow"
+          grep -Fq 'STALE-J129-LOCATION' "$workflow"
+          grep -Fq 'ref: Audit' "$workflow"
 
           tmp="$(mktemp)"
           python3 "$patcher" "$stock" "$tmp"
@@ -86,6 +90,7 @@ jobs:
       PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
       J129_HELPER: /usr/local/sbin/avaya-j129-prod-validation
       PROD_CANDIDATE: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate
+      LAB_REFERENCE_ROOT: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_lab_reference
       LAB_REFERENCE_GXP1625_TEST55: '34543757258'
       LAB_REFERENCE_GRP2601P_TEST63: '34620390872'
       LAB_REFERENCE_GRP2601P_TEST66: '34677554254'
@@ -115,6 +120,16 @@ jobs:
         with:
           ref: main
           path: _prod_helper_candidate
+          clean: true
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Checkout known-good LAB reference
+        if: inputs.confirm == 'COMPARE-GRANDSTREAM-PROD'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: Audit
+          path: _lab_reference
           clean: true
           persist-credentials: false
           fetch-depth: 1
@@ -186,15 +201,122 @@ jobs:
             echo 'TEST73-LAB-CEIBA-PARITY-EVIDENCE=PASS'
           } | tee "$RUNNER_TEMP/test73-lab-ceiba-parity.txt"
 
+      - name: Deep read-only vendor and stale J129 comparison
+        if: inputs.confirm == 'COMPARE-GRANDSTREAM-PROD'
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/test73-deep-compare.txt"
+          CEIBA_VENDOR='/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          STOCK_VENDOR="$PROD_CANDIDATE/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py"
+          PATCHER="$PROD_CANDIDATE/deploy/endpoint-configurator/bin/grandstream-vendor-patch.py"
+          TARGET_VENDOR="$RUNNER_TEMP/test73-target-grandstream.py"
+          : > "$OUT"
+          chmod 0600 "$OUT"
+          test -r "$CEIBA_VENDOR"
+          test -r "$STOCK_VENDOR"
+          test -r "$PATCHER"
+          test "$LAB_REFERENCE_ROOT" = "$GITHUB_WORKSPACE/_lab_reference"
+          test -d "$LAB_REFERENCE_ROOT"
+
+          python3 "$PATCHER" "$STOCK_VENDOR" "$TARGET_VENDOR"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$TARGET_VENDOR"
+
+          python3 -B - "$CEIBA_VENDOR" "$STOCK_VENDOR" "$TARGET_VENDOR" <<'PY' | tee -a "$OUT"
+          import ast
+          import hashlib
+          import pathlib
+          import sys
+
+          labels = ('CEIBA', 'STOCK_REPO', 'TARGET_PATCH')
+          interesting = ('login', 'auth', 'config', 'reboot', 'xml', 'http', 'request', 'provision')
+          all_maps = {}
+          for label, filename in zip(labels, sys.argv[1:]):
+              path = pathlib.Path(filename)
+              data = path.read_bytes()
+              tree = ast.parse(data.decode('utf-8'), filename=str(path))
+              methods = {}
+              classes = []
+              for node in tree.body:
+                  if isinstance(node, ast.ClassDef):
+                      classes.append(node.name)
+                      for child in node.body:
+                          if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                              low = child.name.lower()
+                              if any(token in low for token in interesting):
+                                  key = f'{node.name}.{child.name}'
+                                  dump = ast.dump(child, annotate_fields=True, include_attributes=False)
+                                  digest = hashlib.sha256(dump.encode('utf-8')).hexdigest()
+                                  argc = len(child.args.posonlyargs) + len(child.args.args)
+                                  methods[key] = digest
+                                  print(f'VENDOR-AST label={label} method={key} argc={argc} ast_sha256={digest}')
+              all_maps[label] = methods
+              print(f'VENDOR-FILE label={label} sha256={hashlib.sha256(data).hexdigest()} class_count={len(classes)} method_count={len(methods)}')
+              for name in sorted(classes):
+                  print(f'VENDOR-CLASS label={label} name={name}')
+
+          keys = sorted(set().union(*(set(m) for m in all_maps.values())))
+          for key in keys:
+              ceiba = all_maps['CEIBA'].get(key)
+              stock = all_maps['STOCK_REPO'].get(key)
+              target = all_maps['TARGET_PATCH'].get(key)
+              if ceiba is None:
+                  relation = 'CEIBA_MISSING'
+              elif ceiba == target:
+                  relation = 'CEIBA_EQUALS_TARGET'
+              elif ceiba == stock:
+                  relation = 'CEIBA_EQUALS_STOCK'
+              else:
+                  relation = 'CEIBA_DIFFERS'
+              print(f'VENDOR-METHOD-COMPARE method={key} relation={relation} stock_present={"YES" if stock else "NO"} target_present={"YES" if target else "NO"}')
+          print('TEST73-VENDOR-AST-FINGERPRINT=PASS')
+          PY
+
+          for marker in \
+            'G10-19H8J-FINAL-NATIVE-GXP16XX' \
+            'G10-19H6-INTEGRATED-XML-GENERATOR' \
+            'G10-19H8F0-SAFE-ERROR-LOGGING' \
+            'GRP26XX-NONCE-CONFIG-UPDATE'; do
+            matches="$(grep -RIl --exclude-dir=.git -- "$marker" "$LAB_REFERENCE_ROOT" 2>/dev/null || true)"
+            count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+            echo "LAB-MARKER marker=$marker file_count=$count" | tee -a "$OUT"
+            if [ "$count" -gt 0 ]; then
+              printf '%s\n' "$matches" | sed '/^$/d' | sed "s#^$LAB_REFERENCE_ROOT/##" | head -n 5 | while IFS= read -r path; do
+                echo "LAB-MARKER-FILE marker=$marker path=$path" | tee -a "$OUT"
+              done
+            fi
+          done
+
+          # Same read-only L2 refresh method already proven by Test 72.
+          if command -v ping >/dev/null 2>&1; then
+            seq 1 254 | xargs -P 48 -I{} sh -c 'ping -c 1 -W 1 "10.3.40.{}" >/dev/null 2>&1 || true'
+          fi
+          ip neigh show > "$RUNNER_TEMP/test73-neigh.txt"
+          stale_ip="$(awk 'BEGIN{target="C8:1F:EA:C3:D5:8E"} {for(i=1;i<=NF;i++) if($i=="lladdr" && toupper($(i+1))==target){print $1; exit}}' "$RUNNER_TEMP/test73-neigh.txt")"
+          if [ -n "$stale_ip" ]; then
+            echo "STALE-J129-LOCATION mac=C8:1F:EA:C3:D5:8E state=FOUND ip=$stale_ip" | tee -a "$OUT"
+          else
+            echo 'STALE-J129-LOCATION mac=C8:1F:EA:C3:D5:8E state=NOT_FOUND_ON_L2' | tee -a "$OUT"
+          fi
+          echo 'production_runtime_write=NO' | tee -a "$OUT"
+          echo 'endpointconfig_write=NO' | tee -a "$OUT"
+          echo 'phone_write=NO' | tee -a "$OUT"
+          echo 'TEST73-DEEP-READONLY-PARITY=PASS' | tee -a "$OUT"
+          rm -f "$TARGET_VENDOR" "${TARGET_VENDOR}c"
+
       - name: Complete read-only LAB vs Ceiba comparison
         if: inputs.confirm == 'COMPARE-GRANDSTREAM-PROD'
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          DEEP="$RUNNER_TEMP/test73-deep-compare.txt"
           grep -Fq 'production_runtime_write=NO' "$REPORT"
           grep -Fq 'endpointconfig_write=NO' "$REPORT"
           grep -Fq 'phone_write=NO' "$REPORT"
+          grep -Fq 'TEST73-VENDOR-AST-FINGERPRINT=PASS' "$DEEP"
+          grep -Fq 'TEST73-DEEP-READONLY-PARITY=PASS' "$DEEP"
+          grep -Fq 'phone_write=NO' "$DEEP"
           echo 'TEST73-LAB-CEIBA-COMPARE=PASS' | tee -a "$REPORT"
 
       - name: Block destructive stock discovery while stale IP/MAC rows exist
@@ -248,6 +370,8 @@ jobs:
             ${{ runner.temp }}/test73-helper-foundation.txt
             ${{ runner.temp }}/test73-grandstream-prod.txt
             ${{ runner.temp }}/test73-lab-ceiba-parity.txt
+            ${{ runner.temp }}/test73-deep-compare.txt
+            ${{ runner.temp }}/test73-neigh.txt
             ${{ runner.temp }}/test73-j129-fleet.txt
             ${{ runner.temp }}/test73-j129-fleet-after.txt
           if-no-files-found: ignore
