@@ -1,0 +1,200 @@
+name: 74 | Ceiba Production | GXP1625 Native V2 | Controlled Runtime Upgrade
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'deploy/endpoint-configurator/bin/grandstream-vendor-patch.py'
+      - '.github/workflows/prod-grandstream-gxp1625-v2.yml'
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type UPGRADE-GXP1625-PROD-V2 exactly'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grandstream-support-ceiba-production
+  cancel-in-progress: false
+
+env:
+  STOCK_SHA256: 238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7
+  V1_SHA256: 001a2266b20383b77db0a7d757ed92145676d0217701763e78f46a874f5a8309
+
+jobs:
+  static-audit:
+    name: Static V2 audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove stock to V2 transformation
+        shell: bash
+        run: |
+          set -euo pipefail
+          patcher='deploy/endpoint-configurator/bin/grandstream-vendor-patch.py'
+          stock='usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp" "${tmp}c"' EXIT
+
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$patcher"
+          python3 -B "$patcher" "$stock" "$tmp"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$tmp"
+
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$tmp"
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$tmp"
+          test "$(grep -Fc '# G10-19H8J-FINAL-NATIVE-GXP16XX' "$tmp")" -ge 2
+          grep -Fq "'username': self._http_username" "$tmp"
+          grep -Fq "'Accept': '*/*'" "$tmp"
+          grep -Fq "'Host': self._ip" "$tmp"
+          grep -Fq "'Referer': 'http://%s/' % self._ip" "$tmp"
+          grep -Fq "cookie_parts.append('session-identity=' + sid)" "$tmp"
+          grep -Fq "headers['Cookie'] = '; '.join(cookie_parts)" "$tmp"
+
+          # GRP26xx V1 behavior must remain present.
+          grep -Fq 'def _loginGRP26xx' "$tmp"
+          grep -Fq 'def _enableStaticProvisioning_GRP26xx' "$tmp"
+          grep -Fq '/cgi-bin/access' "$tmp"
+          grep -Fq '/cgi-bin/config_update' "$tmp"
+
+          # The final LAB state intentionally has no curl-like User-Agent.
+          ! grep -Fq "'User-Agent': 'curl/8.14.1'" "$tmp"
+          echo "v2_target_sha256=$(sha256sum "$tmp" | awk '{print $1}')"
+          echo 'TEST74-STATIC-V2-PASS'
+
+  production-upgrade:
+    if: github.event_name == 'workflow_dispatch'
+    name: Ceiba guarded V1 to V2 runtime upgrade
+    needs: static-audit
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 15
+    env:
+      PROD_SYNC: /usr/local/sbin/issabel-prod-helper-sync
+      PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
+      GRANDSTREAM_PY: /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py
+      PROD_CANDIDATE: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate
+    steps:
+      - name: Strict production guard
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'UPGRADE-GXP1625-PROD-V2'
+          test "$(id -un)" = 'github-runner-prod'
+          test "$(hostname -s)" = 'cei-pbx02'
+          echo 'target_model=GXP1625'
+          echo 'preserve_extension=4450'
+          echo 'phone_write=NO'
+          echo 'TEST74-PROD-RUNNER-GUARD-PASS'
+
+      - name: Checkout reviewed main candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          path: _prod_helper_candidate
+          clean: true
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Build and validate exact V2 target before any production write
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$PROD_CANDIDATE" = "$GITHUB_WORKSPACE/_prod_helper_candidate"
+          patcher="$PROD_CANDIDATE/deploy/endpoint-configurator/bin/grandstream-vendor-patch.py"
+          stock="$PROD_CANDIDATE/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py"
+          target="$RUNNER_TEMP/test74-grandstream-v2.py"
+          python3 -B "$patcher" "$stock" "$target"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$target"
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$target"
+          test "$(grep -Fc '# G10-19H8J-FINAL-NATIVE-GXP16XX' "$target")" -ge 2
+          grep -Fq "cookie_parts.append('session-identity=' + sid)" "$target"
+          grep -Fq 'def _loginGRP26xx' "$target"
+          sha256sum "$stock" | grep -Fq "$STOCK_SHA256"
+          echo "$(sha256sum "$target" | awk '{print $1}')" > "$RUNNER_TEMP/test74-target.sha"
+          echo 'phone_write=NO'
+          echo 'TEST74-TARGET-BUILD-PASS'
+
+      - name: Sync reviewed production payload and run read-only preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n "$PROD_SYNC" | tee "$RUNNER_TEMP/test74-sync.txt"
+          grep -Fq 'PROD-HELPER-SYNC-GRANDSTREAM=PASS' "$RUNNER_TEMP/test74-sync.txt"
+          sudo -n "$PROD_HELPER" preflight | tee "$RUNNER_TEMP/test74-preflight.txt"
+          grep -Fq 'GRANDSTREAM-PROD-PREFLIGHT-PASS' "$RUNNER_TEMP/test74-preflight.txt"
+          grep -Fq 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS' "$RUNNER_TEMP/test74-preflight.txt"
+          grep -Fq 'GRANDSTREAM-PROD-STALE-COLLISION-GUARD-PASS' "$RUNNER_TEMP/test74-preflight.txt"
+          grep -Fq 'phone_write=NO' "$RUNNER_TEMP/test74-preflight.txt"
+          echo 'TEST74-PREFLIGHT-PASS'
+
+      - name: Verify exact live starting state
+        id: start
+        shell: bash
+        run: |
+          set -euo pipefail
+          live_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+          target_sha="$(cat "$RUNNER_TEMP/test74-target.sha")"
+          echo "live_sha256=$live_sha"
+          echo "target_sha256=$target_sha"
+          if grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$GRANDSTREAM_PY"; then
+            test "$live_sha" = "$target_sha"
+            echo 'already_v2=yes' >> "$GITHUB_OUTPUT"
+            echo 'TEST74-START=ALREADY_V2'
+          else
+            grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY"
+            test "$live_sha" = "$V1_SHA256"
+            echo 'already_v2=no' >> "$GITHUB_OUTPUT"
+            echo 'TEST74-START=EXACT_V1'
+          fi
+          echo 'phone_write=NO'
+
+      - name: Restore reviewed stock runtime
+        if: steps.start.outputs.already_v2 == 'no'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n "$PROD_HELPER" rollback-runtime DEPLOY-GRANDSTREAM-PROD | tee "$RUNNER_TEMP/test74-rollback.txt"
+          grep -Fq 'GRANDSTREAM-PROD-RUNTIME-ROLLBACK-PASS' "$RUNNER_TEMP/test74-rollback.txt"
+          test "$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')" = "$STOCK_SHA256"
+          ! grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY"
+          echo 'phone_write=NO'
+          echo 'TEST74-STOCK-RESTORE-PASS'
+
+      - name: Install V2 through existing reviewed production helper
+        if: steps.start.outputs.already_v2 == 'no'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n "$PROD_HELPER" install DEPLOY-GRANDSTREAM-PROD | tee "$RUNNER_TEMP/test74-install.txt"
+          grep -Fq 'GRANDSTREAM-PROD-CONTROLLED-INSTALL=PASS' "$RUNNER_TEMP/test74-install.txt"
+          grep -Fq 'phone_write=NO' "$RUNNER_TEMP/test74-install.txt"
+          echo 'TEST74-V2-INSTALL-PASS'
+
+      - name: Verify V2 runtime and preserved production canaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$(cat "$RUNNER_TEMP/test74-target.sha")"
+          live_sha="$(sha256sum "$GRANDSTREAM_PY" | awk '{print $1}')"
+          test "$live_sha" = "$target_sha"
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY"
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$GRANDSTREAM_PY"
+          test "$(grep -Fc '# G10-19H8J-FINAL-NATIVE-GXP16XX' "$GRANDSTREAM_PY")" -ge 2
+          grep -Fq "'Accept': '*/*'" "$GRANDSTREAM_PY"
+          grep -Fq "'Host': self._ip" "$GRANDSTREAM_PY"
+          grep -Fq "'Referer': 'http://%s/' % self._ip" "$GRANDSTREAM_PY"
+          grep -Fq "cookie_parts.append('session-identity=' + sid)" "$GRANDSTREAM_PY"
+          grep -Fq "headers['Cookie'] = '; '.join(cookie_parts)" "$GRANDSTREAM_PY"
+          ! grep -Fq "'User-Agent': 'curl/8.14.1'" "$GRANDSTREAM_PY"
+          sudo -n "$PROD_HELPER" verify | tee "$RUNNER_TEMP/test74-verify.txt"
+          grep -Fq 'GRANDSTREAM-PROD-DISCOVERY-VERIFY-PASS' "$RUNNER_TEMP/test74-verify.txt"
+          grep -Fq 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS' "$RUNNER_TEMP/test74-verify.txt"
+          grep -Fq 'phone_write=NO' "$RUNNER_TEMP/test74-verify.txt"
+          echo "v2_live_sha256=$live_sha"
+          echo 'phone_write=NO'
+          echo 'TEST74-GXP1625-V2-RUNTIME-PASS'
