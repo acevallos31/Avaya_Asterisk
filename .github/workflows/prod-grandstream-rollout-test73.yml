@@ -68,6 +68,7 @@ jobs:
           grep -Fq 'VENDOR-AST label=' "$workflow"
           grep -Fq 'STALE-J129-LOCATION' "$workflow"
           grep -Fq 'ref: Audit' "$workflow"
+          grep -Fq "getattr(child.args, 'posonlyargs', [])" "$workflow"
 
           tmp="$(mktemp)"
           python3 "$patcher" "$stock" "$tmp"
@@ -247,7 +248,7 @@ jobs:
                                   key = f'{node.name}.{child.name}'
                                   dump = ast.dump(child, annotate_fields=True, include_attributes=False)
                                   digest = hashlib.sha256(dump.encode('utf-8')).hexdigest()
-                                  argc = len(child.args.posonlyargs) + len(child.args.args)
+                                  argc = len(getattr(child.args, 'posonlyargs', [])) + len(child.args.args)
                                   methods[key] = digest
                                   print(f'VENDOR-AST label={label} method={key} argc={argc} ast_sha256={digest}')
               all_maps[label] = methods
