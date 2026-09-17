@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type DEPLOY-GRANDSTREAM-PROD'
+        description: 'COMPARE-GRANDSTREAM-PROD (read-only) or DEPLOY-GRANDSTREAM-PROD'
         required: true
         type: string
 
@@ -38,6 +38,7 @@ jobs:
           sql='deploy/endpoint-configurator/sql/grandstream-prod-catalog.sql'
           sudoers='deploy/endpoint-configurator/sudoers/issabel-grandstream-prod'
           stock='usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          workflow='.github/workflows/prod-grandstream-rollout-test73.yml'
 
           bash -n "$helper" "$sync" "$bootstrap"
           PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$patcher" "$auth"
@@ -60,6 +61,9 @@ jobs:
           grep -Fq "'GRP2602G','GRP2602G',4" "$sql"
           grep -Fq "property_value='4'" "$sql"
           grep -Fq 'configure-grp2602g CONFIGURE-GRP2602G-4452' "$sudoers"
+          grep -Fq 'COMPARE-GRANDSTREAM-PROD' "$workflow"
+          grep -Fq 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK' "$workflow"
+          grep -Fq 'LAB_REFERENCE_GRP2601P_TEST66=34677554254' "$workflow"
 
           tmp="$(mktemp)"
           python3 "$patcher" "$stock" "$tmp"
@@ -73,7 +77,7 @@ jobs:
 
   production-rollout:
     if: github.event_name == 'workflow_dispatch'
-    name: Ceiba controlled Grandstream server rollout
+    name: Ceiba Grandstream LAB parity / controlled rollout
     needs: static-audit
     runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
     timeout-minutes: 20
@@ -82,6 +86,9 @@ jobs:
       PROD_HELPER: /usr/local/sbin/issabel-grandstream-prod
       J129_HELPER: /usr/local/sbin/avaya-j129-prod-validation
       PROD_CANDIDATE: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_prod_helper_candidate
+      LAB_REFERENCE_GXP1625_TEST55: '34543757258'
+      LAB_REFERENCE_GRP2601P_TEST63: '34620390872'
+      LAB_REFERENCE_GRP2601P_TEST66: '34677554254'
     steps:
       - name: Guard estricto de producción
         env:
@@ -90,9 +97,13 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REF_NAME" = 'main'
-          test "$CONFIRM" = 'DEPLOY-GRANDSTREAM-PROD'
+          case "$CONFIRM" in
+            COMPARE-GRANDSTREAM-PROD|DEPLOY-GRANDSTREAM-PROD) ;;
+            *) echo "invalid confirmation token" >&2; exit 2 ;;
+          esac
           test "$(id -un)" = 'github-runner-prod'
           test "$(hostname -s)" = 'cei-pbx02'
+          echo "test73_mode=$CONFIRM"
           echo 'preserve_gxp1625=4450'
           echo 'preserve_grp2601p=4453'
           echo 'preserve_grp2602g=4452'
@@ -146,20 +157,63 @@ jobs:
           test "$(stat -c '%U:%G:%a' "$PROD_HELPER")" = 'root:root:755'
           echo 'TEST73-GRANDSTREAM-HELPER-SYNC=PASS' | tee -a "$REPORT"
 
-      - name: Production preflight
+      - name: Production preflight and LAB parity evidence
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          FLEET="$RUNNER_TEMP/test73-j129-fleet.txt"
           : > "$REPORT"
           chmod 0600 "$REPORT"
           sudo -n "$PROD_HELPER" preflight | tee -a "$REPORT"
+          sudo -n "$J129_HELPER" fleet-audit | tee "$FLEET"
           grep -Fq 'GRANDSTREAM-PROD-PREFLIGHT-PASS' "$REPORT"
           grep -Fq 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS' "$REPORT"
           grep -Fq 'GRANDSTREAM-PROD-STALE-COLLISION-GUARD-PASS' "$REPORT"
+          grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$FLEET"
           grep -Fq 'phone_write=NO' "$REPORT"
+          {
+            echo "LAB_REFERENCE_GXP1625_TEST55=$LAB_REFERENCE_GXP1625_TEST55"
+            echo "LAB_REFERENCE_GRP2601P_TEST63=$LAB_REFERENCE_GRP2601P_TEST63"
+            echo "LAB_REFERENCE_GRP2601P_TEST66=$LAB_REFERENCE_GRP2601P_TEST66"
+            echo 'lab_grp2601p_max_accounts=2'
+            echo 'lab_grp2601p_discovery_account_count=0'
+            echo 'ceiba_preserve_gxp1625_extension=4450'
+            echo 'ceiba_preserve_grp2601p_extension=4453'
+            echo 'ceiba_preserve_grp2602g_extension=4452'
+            grep -E '^(CANARY-|STALE-ENDPOINT|GRANDSTREAM-PROD-CATALOG-BASE-PASS|GRANDSTREAM-PROD-VENDOR-STATE=)' "$REPORT" || true
+            grep -E '^(AVAYA-ENDPOINT|J129-PROD-FLEET-AUDIT-PASS)' "$FLEET" || true
+            echo 'TEST73-LAB-CEIBA-PARITY-EVIDENCE=PASS'
+          } | tee "$RUNNER_TEMP/test73-lab-ceiba-parity.txt"
+
+      - name: Complete read-only LAB vs Ceiba comparison
+        if: inputs.confirm == 'COMPARE-GRANDSTREAM-PROD'
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          grep -Fq 'production_runtime_write=NO' "$REPORT"
+          grep -Fq 'endpointconfig_write=NO' "$REPORT"
+          grep -Fq 'phone_write=NO' "$REPORT"
+          echo 'TEST73-LAB-CEIBA-COMPARE=PASS' | tee -a "$REPORT"
+
+      - name: Block destructive stock discovery while stale IP/MAC rows exist
+        if: inputs.confirm == 'DEPLOY-GRANDSTREAM-PROD'
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
+          if grep -Eq '^STALE-ENDPOINT ' "$REPORT"; then
+            echo 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK=ACTIVE' | tee -a "$REPORT"
+            echo 'endpointconfig_write=NO' | tee -a "$REPORT"
+            echo 'phone_write=NO' | tee -a "$REPORT"
+            echo 'Refusing stock detect_endpoints: Issabel deletes an existing endpoint when the same IP is observed with a different MAC.' | tee -a "$REPORT"
+            exit 4
+          fi
+          echo 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK=CLEAR' | tee -a "$REPORT"
 
       - name: Controlled server rollout and stock discovery
+        if: inputs.confirm == 'DEPLOY-GRANDSTREAM-PROD'
         shell: bash
         run: |
           set -euo pipefail
@@ -170,14 +224,15 @@ jobs:
           grep -Fq 'phone_write=NO' "$REPORT"
 
       - name: Verify Grandstream and J129 fleet after rollout
+        if: inputs.confirm == 'DEPLOY-GRANDSTREAM-PROD'
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
           sudo -n "$PROD_HELPER" verify | tee -a "$REPORT"
-          sudo -n "$J129_HELPER" fleet-audit | tee "$RUNNER_TEMP/test73-j129-fleet.txt"
+          sudo -n "$J129_HELPER" fleet-audit | tee "$RUNNER_TEMP/test73-j129-fleet-after.txt"
           grep -Fq 'GRANDSTREAM-PROD-VERIFY-PASS' "$REPORT"
-          grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$RUNNER_TEMP/test73-j129-fleet.txt"
+          grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$RUNNER_TEMP/test73-j129-fleet-after.txt"
           echo 'preserved_extension_gxp1625=4450' | tee -a "$REPORT"
           echo 'preserved_extension_grp2601p=4453' | tee -a "$REPORT"
           echo 'preserved_extension_grp2602g=4452' | tee -a "$REPORT"
@@ -192,6 +247,8 @@ jobs:
           path: |
             ${{ runner.temp }}/test73-helper-foundation.txt
             ${{ runner.temp }}/test73-grandstream-prod.txt
+            ${{ runner.temp }}/test73-lab-ceiba-parity.txt
             ${{ runner.temp }}/test73-j129-fleet.txt
+            ${{ runner.temp }}/test73-j129-fleet-after.txt
           if-no-files-found: ignore
           retention-days: 90
