@@ -12,7 +12,7 @@ PATCHER='/usr/local/libexec/issabel-grandstream-vendor-patch'
 CATALOG_SQL='/usr/local/share/issabel-grandstream-prod/catalog.sql'
 CREDENTIAL_CLI='/usr/local/libexec/issabel-endpoint-credential-vault'
 AUTH_READER='/usr/local/libexec/issabel-grp26xx-auth-read'
-STOCK_SHA256='b4d22520a65023456525c16f9756b77ab3ea65687a1ee0dd44a9776daf1421f3'
+STOCK_SHA256='238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
 TOKEN='DEPLOY-GRANDSTREAM-PROD'
 SUBNET='10.3.40.0/24'
 
