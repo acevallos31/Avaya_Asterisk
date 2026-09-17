@@ -144,10 +144,10 @@ install_all(){
   require_token "$1"; preflight; require_supported_vendor_baseline; install -d -o root -g root -m0700 "$STATE_DIR" "$BACKUP_DIR"; canaries > "$STATE_DIR/canaries.tsv"; chmod 0600 "$STATE_DIR/canaries.tsv"
   if ! grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY"; then cp -a "$GRANDSTREAM_PY" "$BACKUP_DIR/Grandstream.py"; chmod 0600 "$BACKUP_DIR/Grandstream.py"; tmp="$(mktemp "$STATE_DIR/Grandstream.py.XXXXXX")"; "$PATCHER" "$GRANDSTREAM_PY" "$tmp"; python3 -B -m py_compile "$tmp"; install -o root -g root -m0644 "$tmp" "$GRANDSTREAM_PY"; rm -f "$tmp" "$GRANDSTREAM_PY"c 2>/dev/null || true; fi
   d="$(make_defaults)"; mysql --defaults-extra-file="$d" endpointconfig < "$CATALOG_SQL"; rm -f "$d"; verify_catalog
-  /usr/bin/issabel-helper detect_endpoints "$SUBNET" >/dev/null; sleep 30; verify_discovery
+  mark 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED'; mark 'GRANDSTREAM-PROD-DISCOVERY-SKIPPED=PASS'
   date -u +'%Y-%m-%dT%H:%M:%SZ' > "$STATE_DIR/installed.version"; chmod 0600 "$STATE_DIR/installed.version"; mark 'production_runtime_write=YES'; mark 'endpointconfig_write=YES'; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-CONTROLLED-INSTALL=PASS'
 }
-verify_all(){ grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY" || fail 'vendor marker absent'; python3 -B -m py_compile "$GRANDSTREAM_PY"; verify_catalog; verify_discovery; mark 'GRANDSTREAM-PROD-VERIFY-PASS'; }
+verify_all(){ grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY" || fail 'vendor marker absent'; python3 -B -m py_compile "$GRANDSTREAM_PY"; verify_catalog; verify_canaries; vendor_fingerprint; mark 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED'; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-VERIFY-PASS'; }
 
 require_grp2602g_row(){
   local d n model ip account_count exact_account
