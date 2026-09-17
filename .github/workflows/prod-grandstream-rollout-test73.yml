@@ -57,12 +57,14 @@ jobs:
           grep -Fq 'EC:74:D7:5D:2C:F5' "$helper"
           grep -Fq 'EC:74:D7:65:FE:08' "$helper"
           grep -Fq $'GRP2602G\tEC:74:D7:65:FE:08\t10.3.40.43\t4452' "$helper"
+          ! grep -Fq 'issabel-helper detect_endpoints' "$helper"
+          grep -Fq 'GRANDSTREAM-PROD-DISCOVERY-SKIPPED=PASS' "$helper"
           grep -Fq "'GRP2601P','GRP2601P',2" "$sql"
           grep -Fq "'GRP2602G','GRP2602G',4" "$sql"
           grep -Fq "property_value='4'" "$sql"
           grep -Fq 'configure-grp2602g CONFIGURE-GRP2602G-4452' "$sudoers"
           grep -Fq 'COMPARE-GRANDSTREAM-PROD' "$workflow"
-          grep -Fq 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK' "$workflow"
+          grep -Fq 'TEST73-DISCOVERY-DEFERRED=PASS' "$workflow"
           grep -Fq 'LAB_REFERENCE_GRP2601P_TEST66=34677554254' "$workflow"
           grep -Fq 'TEST73-DEEP-READONLY-PARITY=PASS' "$workflow"
           grep -Fq 'VENDOR-AST label=' "$workflow"
@@ -320,22 +322,23 @@ jobs:
           grep -Fq 'phone_write=NO' "$DEEP"
           echo 'TEST73-LAB-CEIBA-COMPARE=PASS' | tee -a "$REPORT"
 
-      - name: Block destructive stock discovery while stale IP/MAC rows exist
+      - name: Confirm discovery is deferred for controlled server rollout
         if: inputs.confirm == 'DEPLOY-GRANDSTREAM-PROD'
         shell: bash
         run: |
           set -euo pipefail
           REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
           if grep -Eq '^STALE-ENDPOINT ' "$REPORT"; then
-            echo 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK=ACTIVE' | tee -a "$REPORT"
-            echo 'endpointconfig_write=NO' | tee -a "$REPORT"
-            echo 'phone_write=NO' | tee -a "$REPORT"
-            echo 'Refusing stock detect_endpoints: Issabel deletes an existing endpoint when the same IP is observed with a different MAC.' | tee -a "$REPORT"
-            exit 4
+            echo 'stale_endpoint_evidence=PRESENT_READ_ONLY' | tee -a "$REPORT"
+          else
+            echo 'stale_endpoint_evidence=NONE' | tee -a "$REPORT"
           fi
-          echo 'TEST73-STOCK-DISCOVERY-COLLISION-BLOCK=CLEAR' | tee -a "$REPORT"
+          echo 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED' | tee -a "$REPORT"
+          echo 'endpointconfig_write=NO' | tee -a "$REPORT"
+          echo 'phone_write=NO' | tee -a "$REPORT"
+          echo 'TEST73-DISCOVERY-DEFERRED=PASS' | tee -a "$REPORT"
 
-      - name: Controlled server rollout and stock discovery
+      - name: Controlled server rollout without global discovery
         if: inputs.confirm == 'DEPLOY-GRANDSTREAM-PROD'
         shell: bash
         run: |
@@ -343,7 +346,8 @@ jobs:
           REPORT="$RUNNER_TEMP/test73-grandstream-prod.txt"
           sudo -n "$PROD_HELPER" install DEPLOY-GRANDSTREAM-PROD | tee -a "$REPORT"
           grep -Fq 'GRANDSTREAM-PROD-CONTROLLED-INSTALL=PASS' "$REPORT"
-          grep -Fq 'GRANDSTREAM-PROD-DISCOVERY-VERIFY-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-DISCOVERY-SKIPPED=PASS' "$REPORT"
+          grep -Fq 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED' "$REPORT"
           grep -Fq 'phone_write=NO' "$REPORT"
 
       - name: Verify Grandstream and J129 fleet after rollout
@@ -355,6 +359,8 @@ jobs:
           sudo -n "$PROD_HELPER" verify | tee -a "$REPORT"
           sudo -n "$J129_HELPER" fleet-audit | tee "$RUNNER_TEMP/test73-j129-fleet-after.txt"
           grep -Fq 'GRANDSTREAM-PROD-VERIFY-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS' "$REPORT"
+          grep -Fq 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED' "$REPORT"
           grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$RUNNER_TEMP/test73-j129-fleet-after.txt"
           echo 'preserved_extension_gxp1625=4450' | tee -a "$REPORT"
           echo 'preserved_extension_grp2601p=4453' | tee -a "$REPORT"
