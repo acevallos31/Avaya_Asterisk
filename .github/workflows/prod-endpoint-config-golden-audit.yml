@@ -1,0 +1,384 @@
+name: 76 | Ceiba Production | Endpoint Configuration | Golden Reference Audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/prod-endpoint-config-golden-audit.yml'
+      - 'docs/endpoint-configurator/ceiba-golden-reference-audit.md'
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba AUDIT-CEIBA-ENDPOINT-GOLDEN'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ceiba-endpoint-golden-reference-audit
+  cancel-in-progress: false
+
+env:
+  TEST71_CANDIDATE_SHA: ef176c99935af5f833248358c4daf7b4ca0dde6a
+  TEST71_ROOT: /opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_test71_candidate
+  GRANDSTREAM_EXPECTED_V2_SHA256: f145aa9bba942b9bcd5863bf591e7660e4f805c5a68bbb1b4f235444b99d5441
+
+jobs:
+  static-audit:
+    name: Static read-only audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate workflow is read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          wf='.github/workflows/prod-endpoint-config-golden-audit.yml'
+
+          prod="$RUNNER_TEMP/production-audit.yml"
+          awk '/^  production-audit:/{flag=1} flag' "$wf" > "$prod"
+
+          grep -Fq 'phone_write=NO' "$prod"
+          grep -Fq 'endpointconfig_write=NO' "$prod"
+          grep -Fq 'production_runtime_write=NO' "$prod"
+
+          ! grep -Eq 'issabel-endpointconfig[[:space:]]+--applyconfig' "$prod"
+          ! grep -Eq 'detect_endpoints|configure-grp|rollback-runtime|Controlled runtime install' "$prod"
+          ! grep -Eq 'systemctl[[:space:]]+(restart|reload)|service[[:space:]].*(restart|reload)' "$prod"
+          ! grep -Eq 'mysql .*<.*\.sql|(^|[[:space:]])(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)[[:space:]]' "$prod"
+
+          echo 'GOLDEN-AUDIT-STATIC-READONLY-PASS'
+
+  production-audit:
+    name: Audit cei-pbx02 read-only
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: static-audit
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 20
+
+    steps:
+      - name: Guard estricto de producción
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'AUDIT-CEIBA-ENDPOINT-GOLDEN'
+          test "$(id -un)" = 'github-runner-prod'
+          test "$(hostname -s)" = 'cei-pbx02'
+
+          echo 'scope=CEIBA_ENDPOINT_GOLDEN_REFERENCE'
+          echo 'production_runtime_write=NO'
+          echo 'endpointconfig_write=NO'
+          echo 'phone_write=NO'
+          echo 'GOLDEN-AUDIT-PROD-GUARD-PASS'
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
+          persist-credentials: false
+
+      - name: Checkout immutable credential candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TEST71_CANDIDATE_SHA }}
+          path: _test71_candidate
+          clean: true
+          persist-credentials: false
+
+      - name: Capture platform and helper fingerprints
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+          : > "$REPORT"
+          chmod 0600 "$REPORT"
+
+          {
+            echo '=== CEIBA ENDPOINT CONFIGURATION GOLDEN REFERENCE ==='
+            echo "timestamp_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "host=$(hostname -f 2>/dev/null || hostname)"
+            echo "runner=$(id -un)"
+            echo "kernel=$(uname -srmo)"
+            echo "asterisk_version=$(/usr/sbin/asterisk -V 2>/dev/null || true)"
+            echo "python_version=$(python3 --version 2>&1 || true)"
+            echo "httpd_version=$(httpd -v 2>/dev/null | head -n1 || true)"
+            echo "endpointconfig_rpm=$(rpm -qa 2>/dev/null | grep -i '^issabel-endpointconfig' | sort | tr '\n' ',' || true)"
+            echo
+            echo '=== INSTALLED HELPER FINGERPRINTS ==='
+          } >> "$REPORT"
+
+          for f in             /usr/local/sbin/issabel-endpoint-credential-prod             /usr/local/sbin/issabel-grandstream-prod             /usr/local/sbin/avaya-j129-prod-validation             /usr/local/libexec/issabel-grandstream-vendor-patch             /usr/local/libexec/issabel-grp26xx-auth-read             /usr/local/libexec/issabel-endpoint-credential-vault; do
+            if [ -e "$f" ]; then
+              printf 'HELPER path=%s meta=%s sha256=%s\n'                 "$f" "$(stat -c '%U:%G:%a' "$f")" "$(sha256sum "$f" | awk '{print $1}')" >> "$REPORT"
+            else
+              printf 'HELPER path=%s state=MISSING\n' "$f" >> "$REPORT"
+            fi
+          done
+
+          echo 'GOLDEN-AUDIT-PLATFORM-FINGERPRINT-PASS' | tee -a "$REPORT"
+
+      - name: Compare live runtime against reviewed sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+          EXPECTED_GS="$RUNNER_TEMP/Grandstream.expected.v2.py"
+
+          python3 -B deploy/endpoint-configurator/bin/grandstream-vendor-patch.py             usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py             "$EXPECTED_GS"
+          python3 -B -m py_compile "$EXPECTED_GS"
+
+          compare_file() {
+            label="$1"
+            live="$2"
+            ref="$3"
+            if [ ! -r "$live" ]; then
+              echo "FILE label=$label state=LIVE_UNREADABLE path=$live" >> "$REPORT"
+              return 0
+            fi
+            if [ ! -r "$ref" ]; then
+              echo "FILE label=$label state=REFERENCE_UNREADABLE ref=$ref" >> "$REPORT"
+              return 0
+            fi
+            live_sha="$(sha256sum "$live" | awk '{print $1}')"
+            ref_sha="$(sha256sum "$ref" | awk '{print $1}')"
+            if cmp -s "$live" "$ref"; then match=YES; else match=NO; fi
+            echo "FILE label=$label match=$match live_sha256=$live_sha ref_sha256=$ref_sha live_meta=$(stat -c '%U:%G:%a' "$live")" >> "$REPORT"
+          }
+
+          compare_file grandstream_runtime             /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py             "$EXPECTED_GS"
+
+          live_gs="$(sha256sum /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py | awk '{print $1}')"
+          echo "GRANDSTREAM_EXPECTED_V2_SHA256=$GRANDSTREAM_EXPECTED_V2_SHA256" >> "$REPORT"
+          echo "GRANDSTREAM_LIVE_SHA256=$live_gs" >> "$REPORT"
+
+          compare_file avaya_runtime             /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py             release/endpoint-configuration-v1.0.1-rc1/payload/Avaya.py
+          compare_file avaya_j129_template             /usr/share/issabel/endpoint-classes/tpl/Avaya_J129.tpl             release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_J129.tpl
+          compare_file avaya_global_template             /usr/share/issabel/endpoint-classes/tpl/Avaya_global_SIP.tpl             release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_global_SIP.tpl
+          compare_file avaya_http             /etc/httpd/conf.d/avaya-j129-provisioning.conf             release/endpoint-configuration-v1.0.1-rc1/payload/avaya-j129-provisioning.conf
+
+          compare_file ui_index             /var/www/html/modules/endpoint_configurator/index.php             "$TEST71_ROOT/var/www/html/modules/endpoint_configurator/index.php"
+          compare_file ui_summary             /var/www/html/modules/endpoint_configurator/dialogs/summary/index.php             "$TEST71_ROOT/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php"
+          compare_file ui_summary_lang             /var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang             "$TEST71_ROOT/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang"
+          compare_file ui_template             /var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl             "$TEST71_ROOT/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl"
+          compare_file ui_javascript             /var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js             "$TEST71_ROOT/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js"
+          compare_file credential_vault             /var/www/html/modules/endpoint_configurator/libs/EndpointCredentialVault.class.php             "$TEST71_ROOT/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php"
+
+          compare_file dependency_endpointconfig_bin             /usr/bin/issabel-endpointconfig             usr/bin/issabel-endpointconfig
+          compare_file dependency_base_endpoint             /usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py             usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py
+          compare_file dependency_scan_status             /var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php             var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php
+          compare_file dependency_endpoints_lib             /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php             var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php
+          compare_file dependency_standard_manager             /var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php             var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php
+
+          grep -F "FILE label=grandstream_runtime match=YES" "$REPORT" >/dev/null
+          grep -F "FILE label=ui_index match=YES" "$REPORT" >/dev/null
+          grep -F "FILE label=ui_summary match=YES" "$REPORT" >/dev/null
+          grep -F "FILE label=ui_template match=YES" "$REPORT" >/dev/null
+          grep -F "FILE label=ui_javascript match=YES" "$REPORT" >/dev/null
+          grep -F "FILE label=credential_vault match=YES" "$REPORT" >/dev/null
+
+          echo 'GOLDEN-AUDIT-RUNTIME-PARITY-PASS' | tee -a "$REPORT"
+
+      - name: Verify credential schema and UI foundation
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+
+          test "$GITHUB_WORKSPACE/_test71_candidate" = "$TEST71_ROOT"
+          sudo -n /usr/local/sbin/issabel-endpoint-credential-prod             verify "$TEST71_ROOT" | tee -a "$REPORT"
+
+          grep -Fq 'TEST71-SCHEMA-VERIFY-PASS' "$REPORT"
+          grep -Fq 'TEST71-PROD-ENDPOINT-CREDENTIAL-RUNTIME=PASS' "$REPORT"
+          grep -Fq 'TEST71-WEB-HEALTH-PASS status=200' "$REPORT"
+
+          echo 'GOLDEN-AUDIT-CREDENTIAL-FOUNDATION-PASS' | tee -a "$REPORT"
+
+      - name: Verify Grandstream catalog, runtime and canaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+
+          sudo -n /usr/local/sbin/issabel-grandstream-prod verify | tee -a "$REPORT"
+
+          grep -Fq 'GRANDSTREAM-PROD-CATALOG-VERIFY-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-CANARY-EXTENSION-GUARD-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-VENDOR-FINGERPRINT-PASS' "$REPORT"
+          grep -Fq 'GRANDSTREAM-PROD-VERIFY-PASS' "$REPORT"
+
+          echo 'GOLDEN-AUDIT-GRANDSTREAM-PASS' | tee -a "$REPORT"
+
+      - name: Audit Avaya fleet and manufacturer inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+          FLEET="$RUNNER_TEMP/ceiba-endpoint-golden-fleet.txt"
+
+          sudo -n /usr/local/sbin/avaya-j129-prod-validation fleet-audit | tee "$FLEET"
+          cat "$FLEET" >> "$REPORT"
+
+          grep -Fq 'J129-PROD-FLEET-AUDIT-PASS' "$FLEET"
+          grep -Fq 'J129-PROD-FLEET-MANUFACTURER-SUMMARY-BEGIN' "$FLEET"
+
+          echo 'GOLDEN-AUDIT-FLEET-PASS' | tee -a "$REPORT"
+
+      - name: Capture read-only SIP peer evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+
+          echo '=== SIP CANARY EVIDENCE ===' >> "$REPORT"
+          if /usr/sbin/asterisk -rx 'core show version' >/dev/null 2>&1; then
+            for ext in 4450 4452 4453; do
+              peer="$(
+                /usr/sbin/asterisk -rx "sip show peer $ext" 2>/dev/null || true
+              )"
+              ip="$(printf '%s\n' "$peer" | sed -n -E 's/^[[:space:]]*Addr->IP[[:space:]]*:[[:space:]]*([^[:space:]]+).*/\1/p' | head -n1)"
+              status="$(printf '%s\n' "$peer" | sed -n -E 's/^[[:space:]]*Status[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1)"
+              ua="$(printf '%s\n' "$peer" | sed -n -E 's/^[[:space:]]*Useragent[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1)"
+              printf 'SIP-PEER extension=%s ip=%q status=%q useragent=%q\n'                 "$ext" "${ip:-NONE}" "${status:-UNKNOWN}" "${ua:-UNKNOWN}" >> "$REPORT"
+            done
+            echo 'SIP-PEER-EVIDENCE=AVAILABLE' >> "$REPORT"
+          else
+            echo 'SIP-PEER-EVIDENCE=UNAVAILABLE_TO_RUNNER' >> "$REPORT"
+          fi
+
+      - name: Capture optional endpoint inventory directly
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+
+          echo '=== DIRECT ENDPOINT INVENTORY ===' >> "$REPORT"
+
+          if [ -r /etc/amportal.conf ]; then
+            read_amp(){ sed -n "s/^$1=//p" /etc/amportal.conf | head -n1; }
+            escape_mysql(){ local v="$1"; v="${v//\\/\\\\}"; v="${v//\"/\\\"}"; printf '%s' "$v"; }
+
+            u="$(read_amp AMPDBUSER)"
+            p="$(read_amp AMPDBPASS)"
+            h="$(read_amp AMPDBHOST)"
+            [ -n "$h" ] || h=localhost
+            d="$(mktemp /tmp/golden-audit-db.XXXXXX.cnf)"
+            chmod 0600 "$d"
+            trap 'rm -f "$d"' EXIT
+            {
+              echo '[client]'
+              printf 'user="%s"\n' "$(escape_mysql "$u")"
+              printf 'password="%s"\n' "$(escape_mysql "$p")"
+              printf 'host="%s"\n' "$(escape_mysql "$h")"
+            } > "$d"
+            unset p
+
+            mysql --defaults-extra-file="$d" --batch --skip-column-names endpointconfig -e "
+              SELECT
+                e.id,
+                mf.name,
+                COALESCE(m.name,'UNKNOWN'),
+                e.mac_address,
+                COALESCE(e.last_known_ipv4,''),
+                COALESCE(GROUP_CONCAT(CONCAT(ea.tech,':',ea.account) ORDER BY ea.priority SEPARATOR ','),'')
+              FROM endpoint e
+              JOIN manufacturer mf ON mf.id=e.id_manufacturer
+              LEFT JOIN model m ON m.id=e.id_model
+              LEFT JOIN endpoint_account ea ON ea.id_endpoint=e.id
+              WHERE mf.name IN ('Grandstream','Avaya')
+              GROUP BY e.id,mf.name,m.name,e.mac_address,e.last_known_ipv4
+              ORDER BY mf.name,e.id;
+            " | while IFS=$'\t' read -r id mf model mac ip accounts; do
+              printf 'ENDPOINT id=%s manufacturer=%q model=%q mac=%s ip=%s accounts=%q\n'                 "$id" "$mf" "$model" "$mac" "${ip:-NONE}" "${accounts:-NONE}"
+            done >> "$REPORT"
+
+            mysql --defaults-extra-file="$d" --batch --skip-column-names endpointconfig -e "
+              SELECT mf.name,m.name,m.max_accounts,
+                     COALESCE(MAX(CASE WHEN mp.property_key='max_sip_accounts' THEN mp.property_value END),'')
+              FROM model m
+              JOIN manufacturer mf ON mf.id=m.id_manufacturer
+              LEFT JOIN model_properties mp ON mp.id_model=m.id
+              WHERE mf.name IN ('Grandstream','Avaya')
+                AND m.name IN ('GXP1625','GRP2601P','GRP2602G','J129')
+              GROUP BY mf.name,m.name,m.max_accounts
+              ORDER BY mf.name,m.name;
+            " | while IFS=$'\t' read -r mf model maxa maxsip; do
+              printf 'MODEL manufacturer=%q model=%q max_accounts=%s max_sip=%s\n'                 "$mf" "$model" "$maxa" "${maxsip:-NONE}"
+            done >> "$REPORT"
+
+            mysql --defaults-extra-file="$d" --batch --skip-column-names endpointconfig -e "
+              SELECT mf.name,mp.mac_prefix
+              FROM mac_prefix mp
+              JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+              WHERE mf.name IN ('Grandstream','Avaya')
+                AND UPPER(mp.mac_prefix) IN ('C0:74:AD','EC:74:D7','C8:1F:EA')
+              ORDER BY mf.name,mp.mac_prefix;
+            " | while IFS=$'\t' read -r mf prefix; do
+              printf 'OUI manufacturer=%q prefix=%s\n' "$mf" "$prefix"
+            done >> "$REPORT"
+
+            rm -f "$d"
+            trap - EXIT
+            echo 'DIRECT-ENDPOINT-INVENTORY=AVAILABLE' >> "$REPORT"
+          else
+            echo 'DIRECT-ENDPOINT-INVENTORY=UNAVAILABLE_TO_RUNNER' >> "$REPORT"
+          fi
+
+      - name: Build sanitized Markdown summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+          MD="$RUNNER_TEMP/ceiba-endpoint-golden-reference.md"
+
+          {
+            echo '# Ceiba Endpoint Configuration — Golden Reference Audit'
+            echo
+            echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo 'This audit is read-only. No endpoint configuration, discovery write, runtime install, service reload, or phone write is performed.'
+            echo
+            echo '## Required PASS markers'
+            for marker in               GOLDEN-AUDIT-PROD-GUARD-PASS               GOLDEN-AUDIT-PLATFORM-FINGERPRINT-PASS               GOLDEN-AUDIT-RUNTIME-PARITY-PASS               GOLDEN-AUDIT-CREDENTIAL-FOUNDATION-PASS               GOLDEN-AUDIT-GRANDSTREAM-PASS               GOLDEN-AUDIT-FLEET-PASS; do
+              if grep -Fq "$marker" "$REPORT"; then
+                echo "- PASS $marker"
+              else
+                echo "- FAIL $marker"
+              fi
+            done
+            echo
+            echo '## File parity'
+            grep '^FILE ' "$REPORT" | sed 's/^/- /' || true
+            echo
+            echo '## Grandstream canaries'
+            grep -E '^(CANARY-|GRANDSTREAM-PROD-VENDOR-STATE|SIP-PEER )' "$REPORT" | sed 's/^/- /' || true
+            echo
+            echo '## Endpoint inventory'
+            grep -E '^(ENDPOINT |MODEL |OUI |MANUFACTURER |AVAYA-ENDPOINT )' "$REPORT" | sed 's/^/- /' || true
+            echo
+            echo '## Constraints'
+            echo '- production_runtime_write=NO'
+            echo '- endpointconfig_write=NO'
+            echo '- phone_write=NO'
+          } > "$MD"
+
+          cp "$MD" "$GITHUB_STEP_SUMMARY"
+          echo 'GOLDEN-AUDIT-REPORT-BUILT'
+
+      - name: Upload golden reference evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceiba-endpoint-golden-reference-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/ceiba-endpoint-golden-reference.txt
+            ${{ runner.temp }}/ceiba-endpoint-golden-reference.md
+            ${{ runner.temp }}/ceiba-endpoint-golden-fleet.txt
+          if-no-files-found: ignore
+          retention-days: 90
