@@ -1,0 +1,105 @@
+name: Endpoint Configuration v1.0.1-rc1 | Portable Installer
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/endpoint-configuration-v1.0.1-rc1/**'
+      - 'docs/grandstream/ceiba-production-validation-2026-09-18.md'
+      - '.github/workflows/release-endpoint-configuration-rc1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-audit:
+    name: Static installer audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate installer and payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg='release/endpoint-configuration-v1.0.1-rc1'
+          installer="$pkg/install.sh"
+          payload="$pkg/payload"
+
+          bash -n "$installer"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$payload/grandstream-vendor-patch.py"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$payload/Avaya.py"
+
+          test -s "$payload/Avaya_J129.tpl"
+          test -s "$payload/Avaya_global_SIP.tpl"
+          test -s "$payload/avaya-j129-provisioning.conf"
+          test -s "$payload/grandstream-catalog.sql"
+
+          grep -Fq "VERSION='1.0.1-rc1'" "$installer"
+          grep -Fq 'phone_write=NO' "$installer"
+          grep -Fq 'endpoint_discovery=NO' "$installer"
+          ! grep -Fq 'issabel-helper detect_endpoints' "$installer"
+          ! grep -Fq 'issabel-endpointconfig --applyconfig' "$installer"
+          ! grep -Fq '10.3.40.' "$installer"
+          ! grep -Fq 'cei-pbx02' "$installer"
+          ! grep -Eq '4450|4452|4453' "$installer"
+
+          echo 'INSTALLER-STATIC-SAFETY-PASS'
+
+      - name: Prove Grandstream V2 transformation
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg='release/endpoint-configuration-v1.0.1-rc1'
+          stock='usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          target="$RUNNER_TEMP/Grandstream.v2.py"
+
+          test "$(sha256sum "$stock" | awk '{print $1}')" =             '238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
+
+          python3 -B "$pkg/payload/grandstream-vendor-patch.py" "$stock" "$target"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$target"
+
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$target"
+          grep -Fq "def _loginGRP26xx" "$target"
+          grep -Fq "'Accept': '*/*'" "$target"
+          grep -Fq "cookie_parts.append('session-identity=' + sid)" "$target"
+          grep -Fq "headers['Cookie'] = '; '.join(cookie_parts)" "$target"
+          ! grep -Fq "'User-Agent': 'curl/8.14.1'" "$target"
+
+          echo "target_sha256=$(sha256sum "$target" | awk '{print $1}')"
+          echo 'INSTALLER-GRANDSTREAM-V2-PASS'
+
+      - name: Validate catalog contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          sql='release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-catalog.sql'
+          grep -Fq "'GRP2601P','GRP2601P',2" "$sql"
+          grep -Fq "'GRP2602G','GRP2602G',4" "$sql"
+          grep -Fq "'C0:74:AD'" "$sql"
+          grep -Fq "'EC:74:D7'" "$sql"
+          echo 'INSTALLER-CATALOG-PASS'
+
+  package:
+    name: Build portable tarball
+    runs-on: ubuntu-latest
+    needs: static-audit
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          tar -czf endpoint-configuration-v1.0.1-rc1.tar.gz endpoint-configuration-v1.0.1-rc1
+          sha256sum endpoint-configuration-v1.0.1-rc1.tar.gz > endpoint-configuration-v1.0.1-rc1.tar.gz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: endpoint-configuration-v1.0.1-rc1
+          path: |
+            release/endpoint-configuration-v1.0.1-rc1.tar.gz
+            release/endpoint-configuration-v1.0.1-rc1.tar.gz.sha256
+          retention-days: 30
