@@ -1,0 +1,162 @@
+name: Endpoint Configuration v1.0.1-rc4 | Ceiba Golden Image
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/endpoint-configuration-v1.0.1-rc4/**'
+      - '.github/workflows/release-endpoint-configuration-rc4.yml'
+      - 'usr/bin/issabel-endpointconfig'
+      - 'var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CREDENTIAL_CANDIDATE_SHA: 6fc9334130b8867d7dc1722bfe35fd895e30d321
+
+jobs:
+  build-and-audit:
+    name: Build and audit Ceiba golden RC4
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RC4 branch
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout immutable Ceiba credential candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CREDENTIAL_CANDIDATE_SHA }}
+          path: credential-candidate
+          persist-credentials: false
+
+      - name: Assemble Ceiba golden payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C credential-candidate rev-parse HEAD)" = "$CREDENTIAL_CANDIDATE_SHA"
+
+          stage="$RUNNER_TEMP/endpoint-configuration-v1.0.1-rc4"
+          mkdir -p "$stage/payload/base" "$stage/payload/credentials" "$stage/payload/golden"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc4/install.sh "$stage/install.sh"
+          cp src/release/endpoint-configuration-v1.0.1-rc4/README.md "$stage/README.md"
+
+          # Build the exact Grandstream.py seen in Ceiba from the reviewed stock baseline.
+          stock='src/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          patcher='src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-vendor-patch.py'
+          test "$(sha256sum "$stock" | awk '{print $1}')" =             '238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
+          python3 -B "$patcher" "$stock" "$stage/payload/base/Grandstream.py"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-catalog.sql "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya.py "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_J129.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_global_SIP.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/avaya-j129-provisioning.conf "$stage/payload/base/"
+
+          # Files normalized against the read-only Ceiba golden audit.
+          cp src/usr/bin/issabel-endpointconfig "$stage/payload/golden/"
+          cp src/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php "$stage/payload/golden/"
+
+          # Exact Test71 credential/UI candidate deployed in Ceiba.
+          cp credential-candidate/deploy/endpoint-configurator/db/001_admin_credentials.sql "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/install-key.sh "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/credential-vault-cli.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/index.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php "$stage/payload/credentials/summary-index.php"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang "$stage/payload/credentials/summary-en.lang"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js "$stage/payload/credentials/"
+
+          chmod 0755 "$stage/install.sh" "$stage/payload/credentials/install-key.sh"
+          echo "STAGE=$stage" >> "$GITHUB_ENV"
+
+      - name: Verify exact Ceiba golden hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check() {
+            file="$1"; expected="$2"; label="$3"
+            actual="$(sha256sum "$file" | awk '{print $1}')"
+            test "$actual" = "$expected" || {
+              echo "$label mismatch: $actual != $expected" >&2
+              exit 1
+            }
+            echo "$label=$actual"
+          }
+
+          check "$STAGE/payload/base/Grandstream.py"             f145aa9bba942b9bcd5863bf591e7660e4f805c5a68bbb1b4f235444b99d5441 Grandstream.py
+          check "$STAGE/payload/base/Avaya.py"             fcb4eec19d7015cdaf7014c7d05fa179a984ae342b382ee41b069806c2c28ebf Avaya.py
+          check "$STAGE/payload/base/Avaya_J129.tpl"             0c9f60d48db4e105e91ace29909eeb3e168fdb8e16d35427a2ad85227f1fbd08 Avaya_J129.tpl
+          check "$STAGE/payload/base/Avaya_global_SIP.tpl"             575cc4b290b9919edfbf74d2643dbcaa671565b6d163a8b3856592c5dd00e492 Avaya_global_SIP.tpl
+          check "$STAGE/payload/base/avaya-j129-provisioning.conf"             9a34bc0e417dc4babcda686d18efa5f9b41a060d892de787cbd56ea24be8ed20 avaya-http
+          check "$STAGE/payload/golden/issabel-endpointconfig"             2aca894449425f4666a851e6810eb8a51309544d18f3f6fbc563c697cbfe6e32 issabel-endpointconfig
+          check "$STAGE/payload/golden/BaseEndpoint.py"             bf6aefdcca992c02a1981e2b7b4f1829bc87fb01e0efea1ba7b87130ed487814 BaseEndpoint.py
+          check "$STAGE/payload/golden/paloEndpointScanStatus.class.php"             0468b326666bf938399cb5aef69c07f43cda645de0fa45cd6b3e72134c3838a8 paloEndpointScanStatus
+          check "$STAGE/payload/golden/paloSantoEndpoints.class.php"             f4d8c9150b2709ad3725765bb03eb303427be7b7985cbecfe01b6ae39a76993c paloSantoEndpoints
+          check "$STAGE/payload/golden/EndpointManager_Standard.class.php"             d4217def2e57e472e99a665554a6d560e9dc4e0363ab4d9e2869173d684b9dc9 EndpointManager_Standard
+          check "$STAGE/payload/credentials/index.php"             64dced7a1bfe06e2e406d4fd8eddfc717e9f5a7f157ae997d8c288a850cb0c5f ui-index
+          check "$STAGE/payload/credentials/summary-index.php"             c15d6a3b2d218b551c450495d8d2ba216244a9239332a57706729f8a700e197f ui-summary
+          check "$STAGE/payload/credentials/summary-en.lang"             ebd7856ab71df56190391e4e8ed647f3b110614fb6d796e0d58c2212a5cbdf13 ui-summary-lang
+          check "$STAGE/payload/credentials/reporte_endpoints.tpl"             dc8afe7ac87bda245a4d932e65b17203055c3ce1bfca29846c5de3bc73a0a0a3 ui-template
+          check "$STAGE/payload/credentials/javascript.js"             51563b6df74aabdefd8b03454ab195bae1c37a639a5bc6d08a7d41508533d4ba ui-javascript
+          check "$STAGE/payload/credentials/EndpointCredentialVault.class.php"             186d8faf7231f0a66a70c5929b60ecfa5bf141317f181cf879b813230ae45dd2 credential-vault
+
+          echo 'RC4-CEIBA-GOLDEN-HASHES-PASS'
+
+      - name: Static safety audit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bash -n "$STAGE/install.sh"
+          bash -n "$STAGE/payload/credentials/install-key.sh"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/base/Grandstream.py"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/base/Avaya.py"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/issabel-endpointconfig"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/BaseEndpoint.py"
+          php -l "$STAGE/payload/golden/paloEndpointScanStatus.class.php"
+          php -l "$STAGE/payload/golden/paloSantoEndpoints.class.php"
+          php -l "$STAGE/payload/golden/EndpointManager_Standard.class.php"
+          php -l "$STAGE/payload/credentials/EndpointCredentialVault.class.php"
+          php -l "$STAGE/payload/credentials/credential-vault-cli.php"
+          php -l "$STAGE/payload/credentials/index.php"
+          php -l "$STAGE/payload/credentials/summary-index.php"
+
+          grep -Fq "VERSION='1.0.1-rc4'" "$STAGE/install.sh"
+          grep -Fq 'CEIBA-GOLDEN-SHA-PARITY-PASS' "$STAGE/install.sh"
+          grep -Fq 'read -r -s dba_pass' "$STAGE/install.sh"
+          grep -Fq 'phone_write=NO' "$STAGE/install.sh"
+          grep -Fq 'endpoint_discovery=NO' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-helper detect_endpoints' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-endpointconfig --applyconfig' "$STAGE/install.sh"
+          ! grep -Fq '10.3.40.' "$STAGE/install.sh"
+          ! grep -Fq '10.3.184.' "$STAGE/install.sh"
+          ! grep -Eq '4450|4452|4453|5011|5013' "$STAGE/install.sh"
+
+          echo 'RC4-STATIC-SAFETY-PASS'
+
+      - name: Build tarball and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          tar -czf endpoint-configuration-v1.0.1-rc4.tar.gz endpoint-configuration-v1.0.1-rc4
+          sha256sum endpoint-configuration-v1.0.1-rc4.tar.gz > endpoint-configuration-v1.0.1-rc4.tar.gz.sha256
+
+      - name: Upload RC4 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: endpoint-configuration-v1.0.1-rc4
+          path: |
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc4.tar.gz
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc4.tar.gz.sha256
+          retention-days: 30
