@@ -83,6 +83,26 @@ verify_schema(){
   [ "$cols" = 25 ] || die "credential schema column contract mismatch=$cols"
 }
 
+verify_ddl_grants(){
+  local df="$1" grants normalized table line privilege
+  grants="$(mysql --defaults-extra-file="$df" --batch --skip-column-names -e 'SHOW GRANTS FOR CURRENT_USER;')"
+  normalized="${grants//\`/}"
+  for table in pbx_admin_password_policy endpoint_admin_credential endpoint_credential_event; do
+    line="$(printf '%s\n' "$normalized" | grep -F "ON endpointconfig.$table " | head -n1 || true)"
+    [ -n "$line" ] || die "falta grant DDL limitado para $table"
+    case "$line" in
+      *'ALL PRIVILEGES'*|*'DROP'*) die "grant DDL demasiado amplio para $table" ;;
+    esac
+    for privilege in CREATE ALTER INDEX REFERENCES; do
+      printf '%s\n' "$line" | grep -Eq "(^|[ ,])${privilege}([ ,]|$)" || die "falta $privilege sobre $table"
+    done
+  done
+  line="$(printf '%s\n' "$normalized" | grep -F 'ON endpointconfig.endpoint ' | head -n1 || true)"
+  [ -n "$line" ] && printf '%s\n' "$line" | grep -Eq '(^|[ ,])REFERENCES([ ,]|$)' || die 'falta REFERENCES sobre endpointconfig.endpoint'
+  log 'LIMITED-DDL-GRANTS-PASS'
+}
+
+
 check_payload(){
   local f
   for f in     "$PATCHER" "$CATALOG_SQL" "$AVAYA_SRC" "$AVAYA_J129_TPL_SRC" "$AVAYA_GLOBAL_TPL_SRC" "$AVAYA_HTTP_SRC"     "$SCHEMA_SQL" "$KEY_INSTALLER" "$VAULT_SRC" "$CLI_SRC" "$INDEX_SRC" "$SUMMARY_SRC" "$SUMMARY_LANG_SRC" "$REPORT_SRC" "$JS_SRC"; do
@@ -140,6 +160,7 @@ preflight(){
   web_health
 
   df="$(make_defaults)"; trap 'rm -f "$df"' RETURN EXIT
+  verify_ddl_grants "$df"
   tables="$(schema_count "$df")"
   [ "$tables" = 0 ] || [ "$tables" = 3 ] || die "schema de credenciales parcial: $tables/3"
   if [ "$tables" = 3 ]; then
