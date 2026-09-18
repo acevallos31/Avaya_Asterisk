@@ -210,41 +210,22 @@ def main():
             eclass = endpointClasses[endpointList[ip]['manufacturer']]
             
             # Create the manufacturer-specific Endpoint object
-            # Determinar los valores de ext y secret
-        ext = endpointList[ip].get('ext', 'default_ext')
-        secret = endpointList[ip].get("secret", "default_secret") 
-        if endpointList[ip].get("manufacturer") == "Avaya":
-         endpoint = eclass(amipool, dbpool, chooseServerIP(serveriplist, ip), ip, endpointList[ip]["mac"], ext, secret) 
-        else:
-            endpoint = eclass(amipool, dbpool, chooseServerIP(serveriplist, ip), ip, endpointList[ip]['mac'])
-
-        # Validar que los valores requeridos no sean None
-        # Validar que los valores requeridos no sean None solo para Avaya
-        ext = endpointList[ip].get("ext", "default_ext") if endpointList[ip].get("manufacturer") == "Avaya" else None
-        secret = endpointList[ip].get("secret", "default_secret") if endpointList[ip].get("manufacturer") == "Avaya" else None
-        if endpointList[ip].get("manufacturer") == "Avaya" and (ext is None or secret is None):
-            raise ValueError(f"Faltan valores requeridos en endpointList para IP {ip}: ext={ext}, secret={secret}")
-
-
-        # Crear el objeto Endpoint
-        if endpointList[ip].get("manufacturer") == "Avaya":
-         endpoint = eclass(amipool, dbpool, chooseServerIP(serveriplist, ip), ip, endpointList[ip]['mac'], ext, secret)
-        else:
-            endpoint = eclass(amipool, dbpool, chooseServerIP(serveriplist, ip), ip, endpointList[ip]["mac"])
-        if endpointList[ip]['model'] != None:
+            endpoint = eclass(amipool, dbpool, chooseServerIP(serveriplist, ip),
+                ip, endpointList[ip]['mac'])
+            if endpointList[ip]['model'] != None:
                 if not endpoint.setModel(endpointList[ip]['model']):
                     raise issabel.ConfigException('manufacturer %s does not implement model: %s' % 
                         (endpointList[ip]['manufacturer'], endpointList[ip]['model']))
                 endpoint.max_accounts = endpointList[ip]['max_accounts']
                 endpoint.static_ip_supported = bool(endpointList[ip]['static_ip_supported'])
                 endpoint.dynamic_ip_supported = bool(endpointList[ip]['dynamic_ip_supported'])
-        if not endpoint.setExtraParameters(endpointList[ip]['properties']):
-            raise issabel.ConfigException('manufacturer %s model %s rejected parameters: %s' %
-                (endpointList[ip]['manufacturer'], endpointList[ip]['model'],
-                 str(endpointList[ip]['parameters'])))
-        endpoint.setAccountList(endpointList[ip]['accounts'])
-        endpointList[ip]['endpoint'] = endpoint
-        endpointByClass[endpointList[ip]['manufacturer']].append(endpoint)
+            if not endpoint.setExtraParameters(endpointList[ip]['properties']):
+                raise issabel.ConfigException('manufacturer %s model %s rejected parameters: %s' %
+                    (endpointList[ip]['manufacturer'], endpointList[ip]['model'],
+                     str(endpointList[ip]['parameters'])))
+            endpoint.setAccountList(endpointList[ip]['accounts'])
+            endpointList[ip]['endpoint'] = endpoint
+            endpointByClass[endpointList[ip]['manufacturer']].append(endpoint)
         
         if options.applyconfig:
             # Update global configuration for all the endpoint vendors

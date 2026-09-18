@@ -1,0 +1,36 @@
+name: Endpoint Configuration | Golden Baseline Static Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'usr/bin/issabel-endpointconfig'
+      - 'var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php'
+      - 'docs/endpoint-configurator/ceiba-golden-reference-2026-09-18.md'
+      - '.github/workflows/endpoint-golden-baseline-static.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-golden-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Ceiba golden baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(sha256sum usr/bin/issabel-endpointconfig | awk '{print $1}')" =             '2aca894449425f4666a851e6810eb8a51309544d18f3f6fbc563c697cbfe6e32'
+
+          test "$(sha256sum var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php | awk '{print $1}')" =             'f4d8c9150b2709ad3725765bb03eb303427be7b7985cbecfe01b6ae39a76993c'
+
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile usr/bin/issabel-endpointconfig
+          php -l var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php >/dev/null
+
+          ! grep -Fq "default_secret" usr/bin/issabel-endpointconfig
+          ! grep -Fq "Agregar esto para ver qué modelos" var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php
+
+          echo 'CEIBA-GOLDEN-BASELINE-PASS'

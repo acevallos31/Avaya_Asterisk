@@ -61,7 +61,6 @@ class paloSantoEndpoints
             $this->_errMsg = '(internal) Failed to read models: '.$db->errMsg;
             return NULL;
         }
-//        print_r($recordset); // <--- Agregar esto para ver qué modelos se cargan Briam
         $models = array();
         foreach ($recordset as $row) {
             foreach (array('max_accounts') as $k) $row[$k] = (int)$row[$k];
