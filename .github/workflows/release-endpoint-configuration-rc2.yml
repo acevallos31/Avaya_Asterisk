@@ -1,0 +1,139 @@
+name: Endpoint Configuration v1.0.1-rc2 | Complete Portable Installer
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/endpoint-configuration-v1.0.1-rc2/**'
+      - '.github/workflows/release-endpoint-configuration-rc2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CREDENTIAL_CANDIDATE_SHA: 6fc9334130b8867d7dc1722bfe35fd895e30d321
+
+jobs:
+  build-and-audit:
+    name: Build and audit complete RC2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RC2 branch
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout immutable Ceiba credential candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CREDENTIAL_CANDIDATE_SHA }}
+          path: credential-candidate
+          persist-credentials: false
+
+      - name: Assemble exact RC2 payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C credential-candidate rev-parse HEAD)" = "$CREDENTIAL_CANDIDATE_SHA"
+
+          stage="$RUNNER_TEMP/endpoint-configuration-v1.0.1-rc2"
+          mkdir -p "$stage/payload/base" "$stage/payload/credentials"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc2/install.sh "$stage/install.sh"
+          cp src/release/endpoint-configuration-v1.0.1-rc2/README.md "$stage/README.md"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-vendor-patch.py "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-catalog.sql "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya.py "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_J129.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_global_SIP.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/avaya-j129-provisioning.conf "$stage/payload/base/"
+
+          cp credential-candidate/deploy/endpoint-configurator/db/001_admin_credentials.sql "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/install-key.sh "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/credential-vault-cli.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/index.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php "$stage/payload/credentials/summary-index.php"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang "$stage/payload/credentials/summary-en.lang"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js "$stage/payload/credentials/"
+
+          chmod 0755 "$stage/install.sh" "$stage/payload/credentials/install-key.sh"
+          echo "STAGE=$stage" >> "$GITHUB_ENV"
+
+      - name: Static safety audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n "$STAGE/install.sh"
+          bash -n "$STAGE/payload/credentials/install-key.sh"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/base/grandstream-vendor-patch.py"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/base/Avaya.py"
+          php -l "$STAGE/payload/credentials/EndpointCredentialVault.class.php"
+          php -l "$STAGE/payload/credentials/credential-vault-cli.php"
+          php -l "$STAGE/payload/credentials/index.php"
+          php -l "$STAGE/payload/credentials/summary-index.php"
+
+          grep -Fq "VERSION='1.0.1-rc2'" "$STAGE/install.sh"
+          grep -Fq 'phone_write=NO' "$STAGE/install.sh"
+          grep -Fq 'endpoint_discovery=NO' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-helper detect_endpoints' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-endpointconfig --applyconfig' "$STAGE/install.sh"
+          ! grep -Fq '10.3.40.' "$STAGE/install.sh"
+          ! grep -Fq 'cei-pbx02' "$STAGE/install.sh"
+          ! grep -Eq '4450|4452|4453' "$STAGE/install.sh"
+
+          echo 'RC2-STATIC-SAFETY-PASS'
+
+      - name: Verify Ceiba UI and credential parity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          grep -Fq 'EndpointCredentialVault.class.php' "$STAGE/payload/credentials/index.php"
+          grep -Fq 'loadCredentialPolicy' "$STAGE/payload/credentials/javascript.js"
+          grep -Fq 'saveEndpointCredentialOverride' "$STAGE/payload/credentials/javascript.js"
+          grep -Fq 'endpoint-account-summary' "$STAGE/payload/credentials/reporte_endpoints.tpl"
+          grep -Fq 'Extension / Registration' "$STAGE/payload/credentials/reporte_endpoints.tpl"
+
+          test "$(git -C credential-candidate rev-parse HEAD:var/www/html/modules/endpoint_configurator/index.php)" =             "$(git hash-object "$STAGE/payload/credentials/index.php")"
+          test "$(git -C credential-candidate rev-parse HEAD:var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js)" =             "$(git hash-object "$STAGE/payload/credentials/javascript.js")"
+          test "$(git -C credential-candidate rev-parse HEAD:var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl)" =             "$(git hash-object "$STAGE/payload/credentials/reporte_endpoints.tpl")"
+
+          echo 'RC2-CEIBA-UI-PARITY-PASS'
+
+      - name: Prove Grandstream V2 transformation
+        shell: bash
+        run: |
+          set -euo pipefail
+          stock='src/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          target="$RUNNER_TEMP/Grandstream.rc2.v2.py"
+
+          test "$(sha256sum "$stock" | awk '{print $1}')" =             '238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
+
+          python3 -B "$STAGE/payload/base/grandstream-vendor-patch.py" "$stock" "$target"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$target"
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$target"
+          grep -Fq "def _loginGRP26xx" "$target"
+          grep -Fq "cookie_parts.append('session-identity=' + sid)" "$target"
+
+          echo 'RC2-GRANDSTREAM-V2-PASS'
+
+      - name: Build tarball and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          tar -czf endpoint-configuration-v1.0.1-rc2.tar.gz endpoint-configuration-v1.0.1-rc2
+          sha256sum endpoint-configuration-v1.0.1-rc2.tar.gz > endpoint-configuration-v1.0.1-rc2.tar.gz.sha256
+
+      - name: Upload RC2 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: endpoint-configuration-v1.0.1-rc2
+          path: |
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc2.tar.gz
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc2.tar.gz.sha256
+          retention-days: 30
