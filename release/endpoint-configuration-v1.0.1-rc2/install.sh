@@ -323,11 +323,13 @@ install_all(){
   save_state
 
   local installing=1
-  trap 'rc=$?; if [ "$installing" -eq 1 ]; then echo "[Endpoint Configuration 1.0.1-rc2] install failed; runtime backup remains available" >&2; fi; exit "$rc"' ERR
+  trap 'rc=$?; if [ "$installing" -eq 1 ]; then echo "[Endpoint Configuration 1.0.1-rc2] ERROR: restaurando runtime desde backup RC2" >&2; restore_runtime || true; apachectl -t >/dev/null 2>&1 && systemctl reload httpd || true; fi; exit "$rc"' ERR
 
+  # Instalar primero la foundation de credenciales. Si el usuario DB no dispone
+  # de DDL suficiente, el proceso termina antes de reemplazar Grandstream/Avaya.
+  install_credentials
   install_base_runtime
   install_catalog
-  install_credentials
   apachectl -t >/dev/null
   systemctl reload httpd
 
