@@ -185,6 +185,38 @@ jobs:
 
           echo 'GOLDEN-AUDIT-RUNTIME-PARITY-PASS' | tee -a "$REPORT"
 
+      - name: Capture exact drift for mismatched runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/ceiba-endpoint-golden-reference.txt"
+          DIFF="$RUNNER_TEMP/ceiba-endpoint-runtime-drift.diff"
+
+          : > "$DIFF"
+          chmod 0600 "$DIFF"
+
+          {
+            echo '=== RPM FILE OWNERSHIP / VERIFY ==='
+            for live in               /usr/bin/issabel-endpointconfig               /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php; do
+              echo "--- $live"
+              rpm -qf "$live" 2>/dev/null || true
+              rpm -Vf "$live" 2>/dev/null || true
+              stat -c 'meta=%U:%G:%a size=%s mtime=%y' "$live" 2>/dev/null || true
+            done
+          } >> "$REPORT"
+
+          {
+            echo '=== DIFF: /usr/bin/issabel-endpointconfig ==='
+            diff -u               "$GITHUB_WORKSPACE/usr/bin/issabel-endpointconfig"               /usr/bin/issabel-endpointconfig || true
+            echo
+            echo '=== DIFF: paloSantoEndpoints.class.php ==='
+            diff -u               "$GITHUB_WORKSPACE/var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php"               /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php || true
+          } > "$DIFF"
+
+          test -s "$DIFF"
+          echo "RUNTIME-DRIFT-DIFF-SHA256=$(sha256sum "$DIFF" | awk '{print $1}')" >> "$REPORT"
+          echo 'GOLDEN-AUDIT-RUNTIME-DRIFT-CAPTURE-PASS' | tee -a "$REPORT"
+
       - name: Verify credential schema and UI foundation
         shell: bash
         run: |
@@ -345,7 +377,7 @@ jobs:
             echo 'This audit is read-only. No endpoint configuration, discovery write, runtime install, service reload, or phone write is performed.'
             echo
             echo '## Required PASS markers'
-            for marker in               GOLDEN-AUDIT-PROD-GUARD-PASS               GOLDEN-AUDIT-PLATFORM-FINGERPRINT-PASS               GOLDEN-AUDIT-RUNTIME-PARITY-PASS               GOLDEN-AUDIT-CREDENTIAL-FOUNDATION-PASS               GOLDEN-AUDIT-GRANDSTREAM-PASS               GOLDEN-AUDIT-FLEET-PASS; do
+            for marker in               GOLDEN-AUDIT-PROD-GUARD-PASS               GOLDEN-AUDIT-PLATFORM-FINGERPRINT-PASS               GOLDEN-AUDIT-RUNTIME-PARITY-PASS               GOLDEN-AUDIT-RUNTIME-DRIFT-CAPTURE-PASS               GOLDEN-AUDIT-CREDENTIAL-FOUNDATION-PASS               GOLDEN-AUDIT-GRANDSTREAM-PASS               GOLDEN-AUDIT-FLEET-PASS; do
               if grep -Fq "$marker" "$REPORT"; then
                 echo "- PASS $marker"
               else
@@ -380,5 +412,6 @@ jobs:
             ${{ runner.temp }}/ceiba-endpoint-golden-reference.txt
             ${{ runner.temp }}/ceiba-endpoint-golden-reference.md
             ${{ runner.temp }}/ceiba-endpoint-golden-fleet.txt
+            ${{ runner.temp }}/ceiba-endpoint-runtime-drift.diff
           if-no-files-found: ignore
           retention-days: 90
