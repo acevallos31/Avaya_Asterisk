@@ -38,14 +38,17 @@ jobs:
           set -euo pipefail
           wf='.github/workflows/prod-endpoint-config-golden-audit.yml'
 
-          grep -Fq 'phone_write=NO' "$wf"
-          grep -Fq 'endpointconfig_write=NO' "$wf"
-          grep -Fq 'production_runtime_write=NO' "$wf"
+          prod="$RUNNER_TEMP/production-audit.yml"
+          awk '/^  production-audit:/{flag=1} flag' "$wf" > "$prod"
 
-          ! grep -Eq 'issabel-endpointconfig[[:space:]]+--applyconfig' "$wf"
-          ! grep -Eq 'detect_endpoints|configure-grp|rollback-runtime|Controlled runtime install' "$wf"
-          ! grep -Eq 'systemctl[[:space:]]+(restart|reload)|service[[:space:]].*(restart|reload)' "$wf"
-          ! grep -Eq 'mysql .*<.*\.sql|(^|[[:space:]])(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)[[:space:]]' "$wf"
+          grep -Fq 'phone_write=NO' "$prod"
+          grep -Fq 'endpointconfig_write=NO' "$prod"
+          grep -Fq 'production_runtime_write=NO' "$prod"
+
+          ! grep -Eq 'issabel-endpointconfig[[:space:]]+--applyconfig' "$prod"
+          ! grep -Eq 'detect_endpoints|configure-grp|rollback-runtime|Controlled runtime install' "$prod"
+          ! grep -Eq 'systemctl[[:space:]]+(restart|reload)|service[[:space:]].*(restart|reload)' "$prod"
+          ! grep -Eq 'mysql .*<.*\.sql|(^|[[:space:]])(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)[[:space:]]' "$prod"
 
           echo 'GOLDEN-AUDIT-STATIC-READONLY-PASS'
 
