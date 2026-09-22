@@ -45,8 +45,12 @@ jobs:
           cp src/release/endpoint-configuration-v1.0.1-rc5/install.sh "$stage/install.sh"
           cp src/release/endpoint-configuration-v1.0.1-rc5/README.md "$stage/README.md"
 
-          # RC5: Ceiba Grandstream V2 + clean-bootstrap Useragent fallback.
-          cp src/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py "$stage/payload/base/Grandstream.py"
+          # RC5: stock -> Ceiba Grandstream V2 -> clean-bootstrap Useragent fallback.
+          stock='src/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          v2="$RUNNER_TEMP/Grandstream.v2.py"
+          test "$(sha256sum "$stock" | awk '{print $1}')" =             '238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
+          python3 -B src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-vendor-patch.py             "$stock" "$v2"
+          python3 -B src/release/endpoint-configuration-v1.0.1-rc5/grandstream-clean-bootstrap-patch.py             "$v2" "$stage/payload/base/Grandstream.py"
           cp src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-catalog.sql "$stage/payload/base/"
           cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya.py "$stage/payload/base/"
           cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_J129.tpl "$stage/payload/base/"
@@ -130,6 +134,7 @@ jobs:
           set -euo pipefail
           bash -n "$STAGE/install.sh"
           bash -n "$STAGE/payload/credentials/install-key.sh"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile src/release/endpoint-configuration-v1.0.1-rc5/grandstream-clean-bootstrap-patch.py
           PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/issabel-endpointconfig"
           PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/BaseEndpoint.py"
           php -l "$STAGE/payload/golden/paloSantoEndpoints.class.php"
