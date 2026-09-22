@@ -109,10 +109,10 @@ FROM endpoint e
 JOIN manufacturer mf ON mf.id=e.id_manufacturer
 LEFT JOIN model m ON m.id=e.id_model;
 
-TRUNCATE TABLE model_properties;
-TRUNCATE TABLE mac_prefix;
-TRUNCATE TABLE model;
-TRUNCATE TABLE manufacturer;
+DELETE FROM model_properties;
+DELETE FROM mac_prefix;
+DELETE FROM model;
+DELETE FROM manufacturer;
 SQLHEAD
 cat "$BUNDLE/catalog.sql" >> "$APPLY_SQL"
 cat >> "$APPLY_SQL" <<'SQLTAIL'
