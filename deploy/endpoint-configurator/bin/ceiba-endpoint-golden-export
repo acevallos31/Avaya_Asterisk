@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+EXPECTED_HOST='cei-pbx02'
+EXPECTED_CALLER='github-runner-prod'
+OUT='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_ceiba_golden_bundle'
+
+log(){ printf '[CEIBA-GOLDEN-EXPORT] %s\n' "$*"; }
+fail(){ printf '[CEIBA-GOLDEN-EXPORT] ERROR: %s\n' "$*" >&2; exit 1; }
+
+[ "$(id -u)" -eq 0 ] || fail 'must run as root'
+[ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail "unexpected host $(hostname -s)"
+if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "$EXPECTED_CALLER" ] && [ "$SUDO_USER" != 'root' ]; then
+  fail "unexpected sudo caller $SUDO_USER"
+fi
+
+[ "${1:-}" = 'export' ] || fail 'usage: ceiba-endpoint-golden-export export'
+
+AMP='/etc/amportal.conf'
+[ -r "$AMP" ] || fail '/etc/amportal.conf unreadable'
+
+rm -rf "$OUT"
+mkdir -p "$OUT"
+chmod 700 "$OUT"
+
+read_amp(){ sed -n "s/^$1=//p" "$AMP" | head -n1; }
+escape_cnf(){ printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+
+DBUSER="$(read_amp AMPDBUSER)"
+DBPASS="$(read_amp AMPDBPASS)"
+DBHOST="$(read_amp AMPDBHOST)"
+[ -n "$DBHOST" ] || DBHOST='localhost'
+[ -n "$DBUSER" ] || fail 'AMPDBUSER empty'
+
+umask 077
+CNF="$(mktemp /tmp/ceiba-golden-export.XXXXXX.cnf)"
+cleanup(){ rm -f "$CNF"; }
+trap cleanup EXIT
+{
+  echo '[client]'
+  printf 'user="%s"\n' "$(escape_cnf "$DBUSER")"
+  printf 'password="%s"\n' "$(escape_cnf "$DBPASS")"
+  printf 'host="%s"\n' "$(escape_cnf "$DBHOST")"
+} > "$CNF"
+unset DBPASS
+
+mysqldump --defaults-extra-file="$CNF"   --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables   endpointconfig manufacturer mac_prefix model model_properties > "$OUT/catalog.sql"
+
+paths=(
+  /usr/share/issabel/endpoint-classes
+  /usr/share/issabel/privileged/detect_endpoints
+  /usr/bin/issabel-endpointconfig
+  /var/www/html/modules/endpoint_configurator
+)
+[ -e /etc/httpd/conf.d/avaya-j129-provisioning.conf ] &&   paths+=(/etc/httpd/conf.d/avaya-j129-provisioning.conf)
+[ -e /usr/local/libexec/issabel-endpoint-credential-vault ] &&   paths+=(/usr/local/libexec/issabel-endpoint-credential-vault)
+
+: > "$OUT/runtime.filelist"
+for p in "${paths[@]}"; do
+  if [ -d "$p" ]; then
+    find "$p" -type f -print
+  else
+    printf '%s\n' "$p"
+  fi
+done | LC_ALL=C sort -u > "$OUT/runtime.filelist"
+
+: > "$OUT/runtime.manifest"
+while IFS= read -r f; do
+  sha256sum "$f"
+done < "$OUT/runtime.filelist" > "$OUT/runtime.manifest"
+
+rel=()
+for p in "${paths[@]}"; do rel+=("${p#/}"); done
+tar -C / -czf "$OUT/runtime.tar.gz" "${rel[@]}"
+
+sha256sum "$OUT/catalog.sql" > "$OUT/catalog.sha256"
+
+{
+  echo 'source_host=cei-pbx02'
+  echo "source_fqdn=$(hostname -f 2>/dev/null || hostname)"
+  echo "source_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "asterisk_version=$(/usr/sbin/asterisk -V 2>/dev/null || true)"
+  echo "endpointconfig_rpm=$(rpm -q issabel-endpointconfig2 2>/dev/null || true)"
+  echo "catalog_rows_manufacturer=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM manufacturer')"
+  echo "catalog_rows_mac_prefix=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM mac_prefix')"
+  echo "catalog_rows_model=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM model')"
+  echo "catalog_rows_model_properties=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM model_properties')"
+} > "$OUT/meta.env"
+
+! grep -Eq 'INSERT INTO .?endpoint.? |INSERT INTO .?endpoint_account.?|10\.3\.40\.|4450|4452|4453' "$OUT/catalog.sql" ||   fail 'private Ceiba endpoint data unexpectedly present in portable catalog'
+
+chown -R github-runner-prod:github-runner-prod "$OUT"
+find "$OUT" -type d -exec chmod 700 {} +
+find "$OUT" -type f -exec chmod 600 {} +
+
+log 'CEIBA-GOLDEN-ROOT-EXPORT=PASS'
+log "bundle=$OUT"
