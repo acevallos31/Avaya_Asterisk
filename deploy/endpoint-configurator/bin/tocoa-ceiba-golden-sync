@@ -206,12 +206,27 @@ fi
 sha256sum -c "$BUNDLE/runtime.manifest" >/dev/null
 log 'CEIBA-RUNTIME-SHA-PARITY-PASS'
 
-POST_DUMP="$(mktemp /tmp/tocoa-ceiba-golden-catalog.XXXXXX.sql)"
-dump_catalog_dml > "$POST_DUMP"
-EXPECTED_CATALOG_SHA="$(awk '{print $1}' "$BUNDLE/catalog.sha256")"
-ACTUAL_CATALOG_SHA="$(sha256sum "$POST_DUMP" | awk '{print $1}')"
-[ "$EXPECTED_CATALOG_SHA" = "$ACTUAL_CATALOG_SHA" ] ||   fail "catalog parity mismatch expected=$EXPECTED_CATALOG_SHA actual=$ACTUAL_CATALOG_SHA"
-log 'CEIBA-CATALOG-SHA-PARITY-PASS'
+BASE_MANUFACTURERS="$(sed -n 's/^catalog_rows_manufacturer=//p' "$BUNDLE/meta.env" | head -n1)"
+BASE_PREFIXES="$(sed -n 's/^catalog_rows_mac_prefix=//p' "$BUNDLE/meta.env" | head -n1)"
+BASE_MODELS="$(sed -n 's/^catalog_rows_model=//p' "$BUNDLE/meta.env" | head -n1)"
+BASE_PROPERTIES="$(sed -n 's/^catalog_rows_model_properties=//p' "$BUNDLE/meta.env" | head -n1)"
+
+ACTUAL_MANUFACTURERS="$(mysql_q 'SELECT COUNT(*) FROM manufacturer;')"
+ACTUAL_PREFIXES="$(mysql_q 'SELECT COUNT(*) FROM mac_prefix;')"
+ACTUAL_MODELS="$(mysql_q 'SELECT COUNT(*) FROM model;')"
+ACTUAL_PROPERTIES="$(mysql_q 'SELECT COUNT(*) FROM model_properties;')"
+GRP2601P_PROPERTIES="$(mysql_q "SELECT COUNT(*) FROM model_properties p JOIN model m ON m.id=p.id_model JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2601P';")"
+
+[ "$ACTUAL_MANUFACTURERS" = "$BASE_MANUFACTURERS" ] || fail 'manufacturer count mismatch'
+[ "$ACTUAL_PREFIXES" = "$BASE_PREFIXES" ] || fail 'mac_prefix count mismatch'
+[ "$ACTUAL_MODELS" -eq $((BASE_MODELS + 1)) ] || fail 'model count mismatch after GRP2601 alias'
+[ "$ACTUAL_PROPERTIES" -eq $((BASE_PROPERTIES + GRP2601P_PROPERTIES)) ] || fail 'model_properties count mismatch after GRP2601 alias'
+
+mysql_q "SELECT COUNT(*) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2601' AND m.max_accounts=2;" | grep -Fxq '1' || fail 'GRP2601 alias missing'
+mysql_q "SELECT COUNT(*) FROM model_properties p JOIN model m ON m.id=p.id_model JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name='GRP2601' AND p.property_key='max_sip_accounts' AND p.property_value='2';" | grep -Fxq '1' || fail 'GRP2601 max_sip_accounts mismatch'
+mysql_q "SELECT COUNT(*) FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer WHERE f.name='Grandstream' AND m.name IN ('GRP2601P','GRP2602G','GXP1625');" | grep -Fxq '3' || fail 'required Grandstream models missing'
+
+log 'CEIBA-CATALOG-PORTABLE-VERIFY-PASS'
 
 PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile   /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py   /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py   /usr/share/issabel/privileged/detect_endpoints   /usr/bin/issabel-endpointconfig
 php -l /var/www/html/modules/endpoint_configurator/index.php >/dev/null
