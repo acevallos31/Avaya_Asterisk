@@ -231,6 +231,10 @@ check_grandstream(){
   local sha
   need_file "$GRANDSTREAM_DST"
   sha="$(sha256sum "$GRANDSTREAM_DST" | awk '{print $1}')"
+  if cmp -s "$GRANDSTREAM_DST" "$GRANDSTREAM_SRC"; then
+    log "Grandstream runtime RC5 clean-bootstrap presente sha256=$sha"
+    return 0
+  fi
   case "$sha" in
     "$GRANDSTREAM_STOCK_SHA256") log "Grandstream stock compatible sha256=$sha" ;;
     "$GRANDSTREAM_V2_SHA256") log "Grandstream runtime Ceiba V2 presente sha256=$sha" ;;
