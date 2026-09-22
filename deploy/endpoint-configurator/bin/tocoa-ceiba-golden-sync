@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 EXPECTED_HOST='toc-pbx01'
 EXPECTED_CALLER='github-runner-tocoa'
@@ -18,7 +19,6 @@ fi
 
 ACTION="${1:-}"
 CONFIRM="${2:-}"
-
 [ "$ACTION" = 'apply' ] || fail 'usage: tocoa-ceiba-golden-sync apply APPLY-CEIBA-GOLDEN-TO-TOCOA'
 [ "$CONFIRM" = "$TOKEN" ] || fail 'confirmation token mismatch'
 [ -d "$BUNDLE" ] || fail "bundle not found: $BUNDLE"
@@ -33,11 +33,21 @@ grep -Fxq 'source_host=cei-pbx02' "$BUNDLE/meta.env" || fail 'bundle source is n
   sha256sum -c catalog.sha256
 ) >/dev/null || fail 'catalog checksum failed'
 
+# DML-only contract: no DDL, no GRANT, no private endpoint rows.
+if grep -Eiq '(^|[[:space:]])(CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE|LOCK|UNLOCK)[[:space:]]' "$BUNDLE/catalog.sql"; then
+  fail 'catalog payload contains forbidden DDL/privileged SQL'
+fi
+if grep -Eq 'INSERT INTO .?endpoint.? |INSERT INTO .?endpoint_account.?' "$BUNDLE/catalog.sql"; then
+  fail 'catalog payload contains private endpoint state'
+fi
+grep -q '^INSERT INTO ' "$BUNDLE/catalog.sql" || fail 'catalog payload has no INSERT rows'
+
 AMP='/etc/amportal.conf'
 [ -r "$AMP" ] || fail '/etc/amportal.conf unreadable'
 
 read_amp(){ sed -n "s/^$1=//p" "$AMP" | head -n1; }
 escape_cnf(){ printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+sql_quote(){ printf '%s' "$1" | sed "s/'/''/g"; }
 
 DBUSER="$(read_amp AMPDBUSER)"
 DBPASS="$(read_amp AMPDBPASS)"
@@ -45,9 +55,11 @@ DBHOST="$(read_amp AMPDBHOST)"
 [ -n "$DBHOST" ] || DBHOST='localhost'
 [ -n "$DBUSER" ] || fail 'AMPDBUSER empty'
 
-umask 077
 DBCNF="$(mktemp /tmp/tocoa-ceiba-golden-db.XXXXXX.cnf)"
-cleanup(){ rm -f "$DBCNF" "${APPLY_SQL:-}" "${POST_DUMP:-}"; }
+APPLY_SQL=''
+RESTORE_SQL=''
+POST_DUMP=''
+cleanup(){ rm -f "$DBCNF" "${APPLY_SQL:-}" "${RESTORE_SQL:-}" "${POST_DUMP:-}"; }
 trap cleanup EXIT
 {
   echo '[client]'
@@ -57,18 +69,34 @@ trap cleanup EXIT
 } > "$DBCNF"
 unset DBPASS
 
+mysql_q(){
+  mysql --defaults-extra-file="$DBCNF" --batch --raw --skip-column-names endpointconfig -e "$1"
+}
+
+dump_catalog_dml(){
+  mysqldump --defaults-extra-file="$DBCNF"     --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables     endpointconfig manufacturer mac_prefix model model_properties |
+    awk '/^INSERT INTO / { print }'
+}
+
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP="$BACKUP_ROOT/ceiba-golden-$STAMP"
 mkdir -p "$BACKUP"
 chmod 700 "$BACKUP"
-
 log "backup=$BACKUP"
 
-# Full DB backup for rollback.
-mysqldump --defaults-extra-file="$DBCNF" --single-transaction --routines --triggers   endpointconfig > "$BACKUP/endpointconfig-before.sql"
-chmod 600 "$BACKUP/endpointconfig-before.sql"
+# Backup only what this sync can change, using statements asteriskuser can restore.
+dump_catalog_dml > "$BACKUP/catalog-before.sql"
+chmod 600 "$BACKUP/catalog-before.sql"
 
-# Runtime backup. Only paths that will be replaced are included.
+mysql_q "
+SELECT e.id,e.id_manufacturer,COALESCE(e.id_model,'NULL'),mf.name,COALESCE(m.name,'')
+FROM endpoint e
+JOIN manufacturer mf ON mf.id=e.id_manufacturer
+LEFT JOIN model m ON m.id=e.id_model
+ORDER BY e.id;
+" > "$BACKUP/endpoint-map-before.tsv"
+chmod 600 "$BACKUP/endpoint-map-before.tsv"
+
 backup_paths=(
   usr/share/issabel/endpoint-classes
   usr/share/issabel/privileged/detect_endpoints
@@ -81,68 +109,90 @@ backup_paths=(
 tar -C / -czf "$BACKUP/runtime-before.tar.gz" "${backup_paths[@]}"
 chmod 600 "$BACKUP/runtime-before.tar.gz"
 
+restore_catalog_and_endpoint_ids(){
+  RESTORE_SQL="$(mktemp /tmp/tocoa-ceiba-golden-restore.XXXXXX.sql)"
+  {
+    echo 'SET FOREIGN_KEY_CHECKS=0;'
+    echo 'DELETE FROM model_properties;'
+    echo 'DELETE FROM mac_prefix;'
+    echo 'DELETE FROM model;'
+    echo 'DELETE FROM manufacturer;'
+    cat "$BACKUP/catalog-before.sql"
+    while IFS=$'\t' read -r id mfid modelid mfname modelname; do
+      [ -n "$id" ] || continue
+      if [ "$modelid" = 'NULL' ] || [ -z "$modelid" ]; then
+        printf 'UPDATE endpoint SET id_manufacturer=%s,id_model=NULL WHERE id=%s;\n' "$mfid" "$id"
+      else
+        printf 'UPDATE endpoint SET id_manufacturer=%s,id_model=%s WHERE id=%s;\n' "$mfid" "$modelid" "$id"
+      fi
+    done < "$BACKUP/endpoint-map-before.tsv"
+    echo 'SET FOREIGN_KEY_CHECKS=1;'
+  } > "$RESTORE_SQL"
+  mysql --defaults-extra-file="$DBCNF" endpointconfig < "$RESTORE_SQL"
+}
+
 rollback(){
   rc=$?
   trap - ERR
   if [ "$rc" -ne 0 ]; then
     log 'failure detected; restoring Tocoa backup'
+    set +e
     rm -rf /usr/share/issabel/endpoint-classes /var/www/html/modules/endpoint_configurator
     tar -C / -xzf "$BACKUP/runtime-before.tar.gz"
-    mysql --defaults-extra-file="$DBCNF" endpointconfig < "$BACKUP/endpointconfig-before.sql" || true
+    restore_catalog_and_endpoint_ids
+    set -e
     log 'AUTO-ROLLBACK-COMPLETE'
   fi
   exit "$rc"
 }
 trap rollback ERR
 
-# Preserve Tocoa endpoint -> manufacturer/model relationships by natural key.
-APPLY_SQL="$(mktemp /tmp/tocoa-ceiba-golden-apply.XXXXXX.sql)"
-cat > "$APPLY_SQL" <<'SQLHEAD'
-SET FOREIGN_KEY_CHECKS=0;
-DROP TEMPORARY TABLE IF EXISTS _endpoint_catalog_map;
-CREATE TEMPORARY TABLE _endpoint_catalog_map AS
-SELECT
-  e.id AS id_endpoint,
-  mf.name AS manufacturer_name,
-  m.name AS model_name
+# Preserve endpoint identities using natural manufacturer/model keys before replacing catalog.
+mysql_q "
+SELECT e.id,mf.name,COALESCE(m.name,'')
 FROM endpoint e
 JOIN manufacturer mf ON mf.id=e.id_manufacturer
-LEFT JOIN model m ON m.id=e.id_model;
+LEFT JOIN model m ON m.id=e.id_model
+ORDER BY e.id;
+" > "$BACKUP/endpoint-natural-map.tsv"
+chmod 600 "$BACKUP/endpoint-natural-map.tsv"
 
-DELETE FROM model_properties;
-DELETE FROM mac_prefix;
-DELETE FROM model;
-DELETE FROM manufacturer;
-SQLHEAD
-cat "$BUNDLE/catalog.sql" >> "$APPLY_SQL"
-cat >> "$APPLY_SQL" <<'SQLTAIL'
-
-UPDATE endpoint e
-JOIN _endpoint_catalog_map x ON x.id_endpoint=e.id
-JOIN manufacturer mf ON mf.name=x.manufacturer_name
-SET e.id_manufacturer=mf.id;
-
-UPDATE endpoint e
-JOIN _endpoint_catalog_map x ON x.id_endpoint=e.id
-JOIN manufacturer mf ON mf.name=x.manufacturer_name
-JOIN model m ON m.id_manufacturer=mf.id AND m.name=x.model_name
-SET e.id_model=m.id
-WHERE x.model_name IS NOT NULL;
-
-UPDATE endpoint e
-JOIN _endpoint_catalog_map x ON x.id_endpoint=e.id
-LEFT JOIN manufacturer mf ON mf.name=x.manufacturer_name
-LEFT JOIN model m ON m.id_manufacturer=mf.id AND m.name=x.model_name
-SET e.id_model=NULL
-WHERE x.model_name IS NULL OR m.id IS NULL;
-
-SET FOREIGN_KEY_CHECKS=1;
-SQLTAIL
-
+# Replace only portable catalog tables with DML permitted to asteriskuser.
+APPLY_SQL="$(mktemp /tmp/tocoa-ceiba-golden-apply.XXXXXX.sql)"
+{
+  echo 'SET FOREIGN_KEY_CHECKS=0;'
+  echo 'DELETE FROM model_properties;'
+  echo 'DELETE FROM mac_prefix;'
+  echo 'DELETE FROM model;'
+  echo 'DELETE FROM manufacturer;'
+  cat "$BUNDLE/catalog.sql"
+  echo 'SET FOREIGN_KEY_CHECKS=1;'
+} > "$APPLY_SQL"
 mysql --defaults-extra-file="$DBCNF" endpointconfig < "$APPLY_SQL"
-log 'CATALOG-IMPORT-PASS'
+log 'CATALOG-DML-IMPORT-PASS'
 
-# Replace the actual Endpoint Configurator runtime with the live Ceiba payload.
+# Remap Tocoa endpoints to the imported Ceiba catalog by natural key.
+while IFS=$'\t' read -r id mfname modelname; do
+  [ -n "$id" ] || continue
+  mfq="$(sql_quote "$mfname")"
+  new_mf="$(mysql_q "SELECT id FROM manufacturer WHERE name='$mfq' LIMIT 1;")"
+  [ -n "$new_mf" ] || fail "manufacturer missing after import endpoint=$id manufacturer=$mfname"
+
+  if [ -n "$modelname" ]; then
+    modelq="$(sql_quote "$modelname")"
+    new_model="$(mysql_q "SELECT id FROM model WHERE id_manufacturer=$new_mf AND name='$modelq' LIMIT 1;")"
+    if [ -n "$new_model" ]; then
+      mysql_q "UPDATE endpoint SET id_manufacturer=$new_mf,id_model=$new_model WHERE id=$id;"
+    else
+      mysql_q "UPDATE endpoint SET id_manufacturer=$new_mf,id_model=NULL WHERE id=$id;"
+    fi
+  else
+    mysql_q "UPDATE endpoint SET id_manufacturer=$new_mf,id_model=NULL WHERE id=$id;"
+  fi
+done < "$BACKUP/endpoint-natural-map.tsv"
+log 'ENDPOINT-NATURAL-KEY-REMAP-PASS'
+
+# Replace actual Endpoint Configurator runtime with the live Ceiba payload.
 rm -rf /usr/share/issabel/endpoint-classes
 rm -rf /var/www/html/modules/endpoint_configurator
 tar -C / -xzf "$BUNDLE/runtime.tar.gz"
@@ -153,19 +203,16 @@ if command -v restorecon >/dev/null 2>&1; then
   [ -e /usr/local/libexec/issabel-endpoint-credential-vault ] && restorecon -F /usr/local/libexec/issabel-endpoint-credential-vault >/dev/null 2>&1 || true
 fi
 
-# Exact runtime file-content parity with Ceiba.
 sha256sum -c "$BUNDLE/runtime.manifest" >/dev/null
 log 'CEIBA-RUNTIME-SHA-PARITY-PASS'
 
-# Exact catalog parity with Ceiba.
 POST_DUMP="$(mktemp /tmp/tocoa-ceiba-golden-catalog.XXXXXX.sql)"
-mysqldump --defaults-extra-file="$DBCNF"   --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables   endpointconfig manufacturer mac_prefix model model_properties > "$POST_DUMP"
+dump_catalog_dml > "$POST_DUMP"
 EXPECTED_CATALOG_SHA="$(awk '{print $1}' "$BUNDLE/catalog.sha256")"
 ACTUAL_CATALOG_SHA="$(sha256sum "$POST_DUMP" | awk '{print $1}')"
 [ "$EXPECTED_CATALOG_SHA" = "$ACTUAL_CATALOG_SHA" ] ||   fail "catalog parity mismatch expected=$EXPECTED_CATALOG_SHA actual=$ACTUAL_CATALOG_SHA"
 log 'CEIBA-CATALOG-SHA-PARITY-PASS'
 
-# Basic runtime sanity.
 PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile   /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py   /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py   /usr/share/issabel/privileged/detect_endpoints   /usr/bin/issabel-endpointconfig
 php -l /var/www/html/modules/endpoint_configurator/index.php >/dev/null
 php -l /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php >/dev/null
