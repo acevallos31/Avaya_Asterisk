@@ -73,7 +73,7 @@ rel=()
 for p in "${paths[@]}"; do rel+=("${p#/}"); done
 tar -C / -czf "$OUT/runtime.tar.gz" "${rel[@]}"
 
-sha256sum "$OUT/catalog.sql" > "$OUT/catalog.sha256"
+( cd "$OUT" && sha256sum catalog.sql > catalog.sha256 )
 
 {
   echo 'source_host=cei-pbx02'
