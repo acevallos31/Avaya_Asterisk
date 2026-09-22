@@ -15,6 +15,8 @@ AUTH_READER='/usr/local/libexec/issabel-grp26xx-auth-read'
 STOCK_SHA256='238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
 TOKEN='DEPLOY-GRANDSTREAM-PROD'
 SUBNET='10.3.40.0/24'
+GOLDEN_EXPORT_REQUEST='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_ceiba_golden_export_request'
+GOLDEN_EXPORT_OUT='/opt/actions-runner-prod/_work/Avaya_Asterisk/Avaya_Asterisk/_ceiba_golden_bundle'
 
 fail(){ echo "GRANDSTREAM-PROD-FAIL: $*" >&2; exit 1; }
 mark(){ echo "$*"; }
@@ -147,7 +149,80 @@ install_all(){
   mark 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED'; mark 'GRANDSTREAM-PROD-DISCOVERY-SKIPPED=PASS'
   date -u +'%Y-%m-%dT%H:%M:%SZ' > "$STATE_DIR/installed.version"; chmod 0600 "$STATE_DIR/installed.version"; mark 'production_runtime_write=YES'; mark 'endpointconfig_write=YES'; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-CONTROLLED-INSTALL=PASS'
 }
-verify_all(){ grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY" || fail 'vendor marker absent'; python3 -B -m py_compile "$GRANDSTREAM_PY"; verify_catalog; verify_canaries; vendor_fingerprint; mark 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED'; mark 'phone_write=NO'; mark 'GRANDSTREAM-PROD-VERIFY-PASS'; }
+export_endpoint_golden_if_requested(){
+  [ -e "$GOLDEN_EXPORT_REQUEST" ] || return 0
+  [ -f "$GOLDEN_EXPORT_REQUEST" ] || fail 'golden export request is not a regular file'
+  [ ! -L "$GOLDEN_EXPORT_REQUEST" ] || fail 'golden export request symlink rejected'
+  [ "$(stat -c '%U' "$GOLDEN_EXPORT_REQUEST")" = "$RUNNER_USER" ] || fail 'golden export request owner mismatch'
+  [ "$(cat "$GOLDEN_EXPORT_REQUEST")" = 'EXPORT-CEIBA-ENDPOINT-GOLDEN' ] || fail 'golden export request token mismatch'
+
+  local d rel p
+  d="$(make_defaults)"
+  trap 'rm -f "$d"' RETURN EXIT
+
+  rm -rf "$GOLDEN_EXPORT_OUT"
+  mkdir -p "$GOLDEN_EXPORT_OUT"
+  chmod 0700 "$GOLDEN_EXPORT_OUT"
+
+  mysqldump --defaults-extra-file="$d"     --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables     endpointconfig manufacturer mac_prefix model model_properties > "$GOLDEN_EXPORT_OUT/catalog.sql"
+
+  local paths=(
+    /usr/share/issabel/endpoint-classes
+    /usr/share/issabel/privileged/detect_endpoints
+    /usr/bin/issabel-endpointconfig
+    /var/www/html/modules/endpoint_configurator
+  )
+  [ -e /etc/httpd/conf.d/avaya-j129-provisioning.conf ] && paths+=(/etc/httpd/conf.d/avaya-j129-provisioning.conf)
+  [ -e /usr/local/libexec/issabel-endpoint-credential-vault ] && paths+=(/usr/local/libexec/issabel-endpoint-credential-vault)
+
+  : > "$GOLDEN_EXPORT_OUT/runtime.filelist"
+  for p in "${paths[@]}"; do
+    if [ -d "$p" ]; then
+      find "$p" -type f -print
+    else
+      printf '%s\n' "$p"
+    fi
+  done | LC_ALL=C sort -u > "$GOLDEN_EXPORT_OUT/runtime.filelist"
+
+  : > "$GOLDEN_EXPORT_OUT/runtime.manifest"
+  while IFS= read -r p; do sha256sum "$p"; done < "$GOLDEN_EXPORT_OUT/runtime.filelist" > "$GOLDEN_EXPORT_OUT/runtime.manifest"
+
+  rel=()
+  for p in "${paths[@]}"; do rel+=("${p#/}"); done
+  tar -C / -czf "$GOLDEN_EXPORT_OUT/runtime.tar.gz" "${rel[@]}"
+
+  ( cd "$GOLDEN_EXPORT_OUT" && sha256sum catalog.sql > catalog.sha256 )
+  {
+    echo 'source_host=cei-pbx02'
+    echo "source_fqdn=$(hostname -f 2>/dev/null || hostname)"
+    echo "source_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "asterisk_version=$(/usr/sbin/asterisk -V 2>/dev/null || true)"
+    echo "endpointconfig_rpm=$(rpm -q issabel-endpointconfig2 2>/dev/null || true)"
+    echo "catalog_rows_manufacturer=$(scalar "$d" 'SELECT COUNT(*) FROM manufacturer;')"
+    echo "catalog_rows_mac_prefix=$(scalar "$d" 'SELECT COUNT(*) FROM mac_prefix;')"
+    echo "catalog_rows_model=$(scalar "$d" 'SELECT COUNT(*) FROM model;')"
+    echo "catalog_rows_model_properties=$(scalar "$d" 'SELECT COUNT(*) FROM model_properties;')"
+  } > "$GOLDEN_EXPORT_OUT/meta.env"
+
+  chown -R "$RUNNER_USER:$RUNNER_USER" "$GOLDEN_EXPORT_OUT"
+  find "$GOLDEN_EXPORT_OUT" -type d -exec chmod 0700 {} +
+  find "$GOLDEN_EXPORT_OUT" -type f -exec chmod 0600 {} +
+  rm -f "$GOLDEN_EXPORT_REQUEST"
+  rm -f "$d"; trap - RETURN EXIT
+  mark 'CEIBA-GOLDEN-EXPORT-VIA-PERMANENT-HELPER=PASS'
+}
+
+verify_all(){
+  grep -Fq 'CEIBA-GRANDSTREAM-PROD-V1' "$GRANDSTREAM_PY" || fail 'vendor marker absent'
+  python3 -B -m py_compile "$GRANDSTREAM_PY"
+  verify_catalog
+  verify_canaries
+  vendor_fingerprint
+  export_endpoint_golden_if_requested
+  mark 'endpoint_discovery=DEFERRED_MANUAL_CONTROLLED'
+  mark 'phone_write=NO'
+  mark 'GRANDSTREAM-PROD-VERIFY-PASS'
+}
 
 require_grp2602g_row(){
   local d n model ip account_count exact_account
