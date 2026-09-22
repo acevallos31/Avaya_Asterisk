@@ -164,7 +164,8 @@ export_endpoint_golden_if_requested(){
   mkdir -p "$GOLDEN_EXPORT_OUT"
   chmod 0700 "$GOLDEN_EXPORT_OUT"
 
-  mysqldump --defaults-extra-file="$d"     --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables     endpointconfig manufacturer mac_prefix model model_properties > "$GOLDEN_EXPORT_OUT/catalog.sql"
+  mysqldump --defaults-extra-file="$d"     --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables     endpointconfig manufacturer mac_prefix model model_properties |
+    awk '/^INSERT INTO / { print }' > "$GOLDEN_EXPORT_OUT/catalog.sql"
 
   local paths=(
     /usr/share/issabel/endpoint-classes
