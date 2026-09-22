@@ -5,6 +5,7 @@ EXPECTED_HOST='toc-pbx01'
 EXPECTED_CALLER='github-runner-tocoa'
 TOKEN='APPLY-CEIBA-GOLDEN-TO-TOCOA'
 BACKUP_ROOT='/var/backups/endpoint-configurator'
+BUNDLE='/opt/actions-runner-tocoa/actions-runner/_work/Avaya_Asterisk/Avaya_Asterisk/_ceiba_golden_bundle'
 
 log(){ printf '[TOCOA-CEIBA-GOLDEN] %s\n' "$*"; }
 fail(){ printf '[TOCOA-CEIBA-GOLDEN] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -16,10 +17,9 @@ if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "$EXPECTED_CALLER" ] && [ "$SUDO
 fi
 
 ACTION="${1:-}"
-BUNDLE="${2:-}"
-CONFIRM="${3:-}"
+CONFIRM="${2:-}"
 
-[ "$ACTION" = 'apply' ] || fail 'usage: tocoa-ceiba-golden-sync apply BUNDLE_DIR APPLY-CEIBA-GOLDEN-TO-TOCOA'
+[ "$ACTION" = 'apply' ] || fail 'usage: tocoa-ceiba-golden-sync apply APPLY-CEIBA-GOLDEN-TO-TOCOA'
 [ "$CONFIRM" = "$TOKEN" ] || fail 'confirmation token mismatch'
 [ -d "$BUNDLE" ] || fail "bundle not found: $BUNDLE"
 
