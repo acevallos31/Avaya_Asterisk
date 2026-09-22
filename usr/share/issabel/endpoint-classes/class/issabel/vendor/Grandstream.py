@@ -170,25 +170,27 @@ class Endpoint(BaseEndpoint):
             useragent = None
             for raw in ami.Command('sip show peer %s' % peer):
                 line = raw.replace('Output: ', '').strip()
-                m = re.match(r'Useragent\\s*:\\s*(.+)$', line, re.IGNORECASE)
-                if m is not None:
-                    useragent = m.group(1).strip()
+                if line.lower().startswith('useragent') and ':' in line:
+                    useragent = line.split(':', 1)[1].strip()
                     break
 
             if not useragent:
                 return None
 
-            mappings = (
-                (r'\\bGRP2601(?:P)?\\b', 'GRP2601P'),
-                (r'\\bGRP2602G\\b', 'GRP2602G'),
-                (r'\\bGXP1625\\b', 'GXP1625'),
-            )
-            for pattern, model in mappings:
-                if re.search(pattern, useragent, re.IGNORECASE):
-                    logging.info(
-                        'Endpoint %s@%s model detected from Asterisk peer %s Useragent %s -> %s' %
-                        (self._vendorname, self._ip, peer, useragent, model))
-                    return model
+            upper = useragent.upper()
+            model = None
+            if 'GRP2601' in upper:
+                model = 'GRP2601P'
+            elif 'GRP2602G' in upper:
+                model = 'GRP2602G'
+            elif 'GXP1625' in upper:
+                model = 'GXP1625'
+
+            if model is not None:
+                logging.info(
+                    'Endpoint %s@%s model detected from Asterisk peer %s Useragent %s -> %s' %
+                    (self._vendorname, self._ip, peer, useragent, model))
+                return model
         except Exception as e:
             logging.info(
                 'Endpoint %s@%s Asterisk Useragent model probe unavailable - %s' %
