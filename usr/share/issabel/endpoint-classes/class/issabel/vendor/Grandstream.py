@@ -139,70 +139,9 @@ class Endpoint(BaseEndpoint):
                     (self._vendorname, self._ip, str(e)))
                 return False
         
-        if sModel == None:
-            sModel = self._probeModelFromAsterisk()
-
         if sModel != None: self._saveModel(sModel)
 
-    def _probeModelFromAsterisk(self):
-        """Read-only fallback for modern Grandstream phones.
-
-        When the phone is already registered, Asterisk knows both the peer IP
-        and its Useragent. This lets a clean Endpoint Configurator installation
-        identify GRP26xx models without authenticating to or writing the phone.
-        """
-        ami = None
-        try:
-            ami = self._amipool.get()
-            peer = None
-            for raw in ami.Command('sip show peers'):
-                line = raw.replace('Output: ', '').strip()
-                parts = line.split()
-                if len(parts) < 2 or parts[1] != self._ip:
-                    continue
-                peer = parts[0].split('/')[0]
-                if peer:
-                    break
-
-            if not peer:
-                return None
-
-            useragent = None
-            for raw in ami.Command('sip show peer %s' % peer):
-                line = raw.replace('Output: ', '').strip()
-                if line.lower().startswith('useragent') and ':' in line:
-                    useragent = line.split(':', 1)[1].strip()
-                    break
-
-            if not useragent:
-                return None
-
-            upper = useragent.upper()
-            model = None
-            if 'GRP2601' in upper:
-                model = 'GRP2601P'
-            elif 'GRP2602G' in upper:
-                model = 'GRP2602G'
-            elif 'GXP1625' in upper:
-                model = 'GXP1625'
-
-            if model is not None:
-                logging.info(
-                    'Endpoint %s@%s model detected from Asterisk peer %s Useragent %s -> %s' %
-                    (self._vendorname, self._ip, peer, useragent, model))
-                return model
-        except Exception as e:
-            logging.info(
-                'Endpoint %s@%s Asterisk Useragent model probe unavailable - %s' %
-                (self._vendorname, self._ip, str(e)))
-        finally:
-            if ami is not None:
-                self._amipool.put(ami)
-
-        return None
-
     def updateLocalConfig(self):
-
         '''Configuration for Grandstream endpoints (local):
         
         The file cfgXXXXXXXXXXXX contains the SIP configuration. Here 
