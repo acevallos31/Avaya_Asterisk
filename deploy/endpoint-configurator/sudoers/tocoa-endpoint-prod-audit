@@ -1,0 +1,3 @@
+Cmnd_Alias TOCOA_ENDPOINT_PROD_AUDIT = /usr/local/sbin/tocoa-endpoint-prod-audit
+
+github-runner-tocoa ALL=(root) NOPASSWD: TOCOA_ENDPOINT_PROD_AUDIT
