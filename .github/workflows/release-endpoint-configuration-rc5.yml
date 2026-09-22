@@ -1,0 +1,172 @@
+name: Endpoint Configuration v1.0.1-rc5 | Ceiba Golden + Clean Bootstrap
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/endpoint-configuration-v1.0.1-rc5/**'
+      - '.github/workflows/release-endpoint-configuration-rc5.yml'
+      - 'usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+      - 'var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CREDENTIAL_CANDIDATE_SHA: 6fc9334130b8867d7dc1722bfe35fd895e30d321
+
+jobs:
+  build-and-audit:
+    name: Build and audit RC5 clean bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RC5 branch
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout immutable Ceiba credential candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CREDENTIAL_CANDIDATE_SHA }}
+          path: credential-candidate
+          persist-credentials: false
+
+      - name: Assemble RC5 payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C credential-candidate rev-parse HEAD)" = "$CREDENTIAL_CANDIDATE_SHA"
+
+          stage="$RUNNER_TEMP/endpoint-configuration-v1.0.1-rc5"
+          mkdir -p "$stage/payload/base" "$stage/payload/credentials" "$stage/payload/golden"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc5/install.sh "$stage/install.sh"
+          cp src/release/endpoint-configuration-v1.0.1-rc5/README.md "$stage/README.md"
+
+          # RC5: stock -> Ceiba Grandstream V2 -> clean-bootstrap Useragent fallback.
+          stock='src/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          v2="$RUNNER_TEMP/Grandstream.v2.py"
+          test "$(sha256sum "$stock" | awk '{print $1}')" =             '238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
+          python3 -B src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-vendor-patch.py             "$stock" "$v2"
+          python3 -B src/release/endpoint-configuration-v1.0.1-rc5/grandstream-clean-bootstrap-patch.py             "$v2" "$stage/payload/base/Grandstream.py"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-catalog.sql "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya.py "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_J129.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_global_SIP.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/avaya-j129-provisioning.conf "$stage/payload/base/"
+
+          # Golden files; ScanStatus contains only the clean-bootstrap account reconciliation fix.
+          cp src/usr/bin/issabel-endpointconfig "$stage/payload/golden/"
+          cp src/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php "$stage/payload/golden/"
+
+          cp credential-candidate/deploy/endpoint-configurator/db/001_admin_credentials.sql "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/install-key.sh "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/credential-vault-cli.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/index.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php "$stage/payload/credentials/summary-index.php"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang "$stage/payload/credentials/summary-en.lang"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js "$stage/payload/credentials/"
+
+          chmod 0755 "$stage/install.sh" "$stage/payload/credentials/install-key.sh"
+          echo "STAGE=$stage" >> "$GITHUB_ENV"
+
+      - name: Verify Ceiba golden components remain pinned
+        shell: bash
+        run: |
+          set -euo pipefail
+          check() {
+            file="$1"; expected="$2"; label="$3"
+            actual="$(sha256sum "$file" | awk '{print $1}')"
+            test "$actual" = "$expected" || { echo "$label mismatch: $actual" >&2; exit 1; }
+          }
+
+          check "$STAGE/payload/base/Avaya.py"             fcb4eec19d7015cdaf7014c7d05fa179a984ae342b382ee41b069806c2c28ebf Avaya.py
+          check "$STAGE/payload/base/Avaya_J129.tpl"             0c9f60d48db4e105e91ace29909eeb3e168fdb8e16d35427a2ad85227f1fbd08 Avaya_J129.tpl
+          check "$STAGE/payload/base/Avaya_global_SIP.tpl"             575cc4b290b9919edfbf74d2643dbcaa671565b6d163a8b3856592c5dd00e492 Avaya_global_SIP.tpl
+          check "$STAGE/payload/base/avaya-j129-provisioning.conf"             9a34bc0e417dc4babcda686d18efa5f9b41a060d892de787cbd56ea24be8ed20 avaya-http
+          check "$STAGE/payload/golden/issabel-endpointconfig"             2aca894449425f4666a851e6810eb8a51309544d18f3f6fbc563c697cbfe6e32 issabel-endpointconfig
+          check "$STAGE/payload/golden/BaseEndpoint.py"             bf6aefdcca992c02a1981e2b7b4f1829bc87fb01e0efea1ba7b87130ed487814 BaseEndpoint.py
+          check "$STAGE/payload/golden/paloSantoEndpoints.class.php"             f4d8c9150b2709ad3725765bb03eb303427be7b7985cbecfe01b6ae39a76993c paloSantoEndpoints
+          check "$STAGE/payload/golden/EndpointManager_Standard.class.php"             d4217def2e57e472e99a665554a6d560e9dc4e0363ab4d9e2869173d684b9dc9 EndpointManager_Standard
+          check "$STAGE/payload/credentials/index.php"             64dced7a1bfe06e2e406d4fd8eddfc717e9f5a7f157ae997d8c288a850cb0c5f ui-index
+          check "$STAGE/payload/credentials/summary-index.php"             c15d6a3b2d218b551c450495d8d2ba216244a9239332a57706729f8a700e197f ui-summary
+          check "$STAGE/payload/credentials/reporte_endpoints.tpl"             dc8afe7ac87bda245a4d932e65b17203055c3ce1bfca29846c5de3bc73a0a0a3 ui-template
+          check "$STAGE/payload/credentials/javascript.js"             51563b6df74aabdefd8b03454ab195bae1c37a639a5bc6d08a7d41508533d4ba ui-javascript
+          check "$STAGE/payload/credentials/EndpointCredentialVault.class.php"             186d8faf7231f0a66a70c5929b60ecfa5bf141317f181cf879b813230ae45dd2 credential-vault
+
+          echo 'RC5-CEIBA-GOLDEN-PINNED-PASS'
+
+      - name: Verify clean-bootstrap fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          gs="$STAGE/payload/base/Grandstream.py"
+          scan="$STAGE/payload/golden/paloEndpointScanStatus.class.php"
+
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$gs"
+          php -l "$scan"
+
+          grep -Fq 'CEIBA-GRANDSTREAM-PROD-V2-GXP16XX' "$gs"
+          grep -Fq 'def _probeModelFromAsterisk' "$gs"
+          grep -Fq "ami.Command('sip show peers')" "$gs"
+          grep -Fq "ami.Command('sip show peer %s' % peer)" "$gs"
+          grep -Fq "GRP2601P" "$gs"
+          grep -Fq "GRP2602G" "$gs"
+          grep -Fq "GXP1625" "$gs"
+
+          grep -Fq "\$cuentasRegistradas[\$ip]['sip'][] = \$extArray[0];" "$scan"
+          grep -Fq "\$cuentasRegistradas[\$ip]['iax2'][] = \$l[0];" "$scan"
+          grep -Fq "\$cuentasRegistradas[\$ip]['pjsip'][] = \$matches[1];" "$scan"
+          ! grep -Fq "\$cuentasRegistradas['sip'][\$extArray[0]] = \$ip;" "$scan"
+
+          echo 'RC5-CLEAN-BOOTSTRAP-CODE-PASS'
+
+      - name: Static installer safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n "$STAGE/install.sh"
+          bash -n "$STAGE/payload/credentials/install-key.sh"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile src/release/endpoint-configuration-v1.0.1-rc5/grandstream-clean-bootstrap-patch.py
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/issabel-endpointconfig"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/BaseEndpoint.py"
+          php -l "$STAGE/payload/golden/paloSantoEndpoints.class.php"
+          php -l "$STAGE/payload/golden/EndpointManager_Standard.class.php"
+          php -l "$STAGE/payload/credentials/index.php"
+          php -l "$STAGE/payload/credentials/summary-index.php"
+
+          grep -Fq "VERSION='1.0.1-rc5'" "$STAGE/install.sh"
+          grep -Fq 'RC5-CLEAN-BOOTSTRAP-PASS' "$STAGE/install.sh"
+          grep -Fq 'phone_write=NO' "$STAGE/install.sh"
+          grep -Fq 'endpoint_discovery=NO' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-helper detect_endpoints' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-endpointconfig --applyconfig' "$STAGE/install.sh"
+          ! grep -Fq '10.3.40.' "$STAGE/install.sh"
+          ! grep -Fq '10.3.184.' "$STAGE/install.sh"
+          ! grep -Eq '4450|4452|4453|5011|5013' "$STAGE/install.sh"
+
+          echo 'RC5-STATIC-SAFETY-PASS'
+
+      - name: Build tarball and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          tar -czf endpoint-configuration-v1.0.1-rc5.tar.gz endpoint-configuration-v1.0.1-rc5
+          sha256sum endpoint-configuration-v1.0.1-rc5.tar.gz > endpoint-configuration-v1.0.1-rc5.tar.gz.sha256
+
+      - name: Upload RC5 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: endpoint-configuration-v1.0.1-rc5
+          path: |
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc5.tar.gz
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc5.tar.gz.sha256
+          retention-days: 30
