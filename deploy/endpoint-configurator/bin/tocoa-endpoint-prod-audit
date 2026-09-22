@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+EXPECTED_HOST='toc-pbx01'
+EXPECTED_CALLER='github-runner-tocoa'
+
+fail(){ printf 'TOCOA-ENDPOINT-AUDIT-FAIL: %s\n' "$*" >&2; exit 1; }
+log(){ printf '[TOCOA-ENDPOINT-AUDIT] %s\n' "$*"; }
+
+[ "$(id -u)" -eq 0 ] || fail 'must run as root'
+[ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail "unexpected host $(hostname -s)"
+if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "$EXPECTED_CALLER" ] && [ "$SUDO_USER" != 'root' ]; then
+  fail "unexpected sudo caller $SUDO_USER"
+fi
+
+echo 'scope=TOCOA_ENDPOINT_PROD_READONLY'
+echo 'production_runtime_write=NO'
+echo 'endpointconfig_write=NO'
+echo 'phone_write=NO'
+echo 'service_write=NO'
+echo "timestamp_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo "host=$(hostname -f 2>/dev/null || hostname)"
+echo "kernel=$(uname -srmo)"
+echo "asterisk_version=$(/usr/sbin/asterisk -V 2>/dev/null || true)"
+echo "python_version=$(python3 --version 2>&1 || true)"
+echo "httpd_version=$(httpd -v 2>/dev/null | head -n1 || true)"
+echo "endpointconfig_rpm=$(rpm -q issabel-endpointconfig2 2>/dev/null || true)"
+echo
+
+echo '=== FILE FINGERPRINTS ==='
+files=(
+  /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py
+  /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py
+  /usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py
+  /usr/bin/issabel-endpointconfig
+  /var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php
+  /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php
+  /var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php
+  /var/www/html/modules/endpoint_configurator/index.php
+  /var/www/html/modules/endpoint_configurator/dialogs/summary/index.php
+  /var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl
+  /var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js
+  /var/www/html/modules/endpoint_configurator/libs/EndpointCredentialVault.class.php
+)
+for f in "${files[@]}"; do
+  if [ -r "$f" ]; then
+    printf 'FILE path=%s sha256=%s meta=%s size=%s\n'       "$f" "$(sha256sum "$f" | awk '{print $1}')"       "$(stat -c '%U:%G:%a' "$f")" "$(stat -c '%s' "$f")"
+  else
+    printf 'FILE path=%s state=MISSING_OR_UNREADABLE\n' "$f"
+  fi
+done
+echo
+
+echo '=== ASTERISK SIP PEERS IN TOCOA SUBNET ==='
+peer_tmp="$(mktemp /tmp/tocoa-sip-peers.XXXXXX)"
+trap 'rm -f "$peer_tmp" "${db_cnf:-}"' EXIT HUP INT TERM
+/usr/sbin/asterisk -rx 'sip show peers' > "$peer_tmp" 2>/dev/null || true
+awk '$2 ~ /^10\.3\.184\./ {print "SIP_PEER_ROW " $0}' "$peer_tmp" || true
+
+while read -r peer ip; do
+  [ -n "$peer" ] || continue
+  peer_name="${peer%%/*}"
+  [[ "$peer_name" =~ ^[A-Za-z0-9_.-]+$ ]] || continue
+  detail="$(/usr/sbin/asterisk -rx "sip show peer $peer_name" 2>/dev/null || true)"
+  status="$(printf '%s\n' "$detail" | sed -n -E 's/^[[:space:]]*Status[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1)"
+  useragent="$(printf '%s\n' "$detail" | sed -n -E 's/^[[:space:]]*Useragent[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -n1)"
+  addr="$(printf '%s\n' "$detail" | sed -n -E 's/^[[:space:]]*Addr->IP[[:space:]]*:[[:space:]]*([^[:space:]]+).*/\1/p' | head -n1)"
+  printf 'SIP_PEER peer=%q ip=%q addr=%q status=%q useragent=%q\n'     "$peer_name" "$ip" "${addr:-NONE}" "${status:-UNKNOWN}" "${useragent:-UNKNOWN}"
+done < <(awk '$2 ~ /^10\.3\.184\./ {print $1, $2}' "$peer_tmp")
+echo
+
+echo '=== ASTERISK PJSIP CONTACTS IN TOCOA SUBNET ==='
+/usr/sbin/asterisk -rx 'pjsip show contacts' 2>/dev/null |   awk '/10\.3\.184\./ {print "PJSIP_CONTACT " $0}' || true
+echo
+
+AMP='/etc/amportal.conf'
+if [ ! -r "$AMP" ]; then
+  echo 'DB_AUDIT=UNAVAILABLE_AMPORTAL'
+  echo 'TOCOA-ENDPOINT-PROD-READONLY-AUDIT=PASS-PARTIAL'
+  exit 0
+fi
+
+read_amp(){
+  sed -n "s/^$1=//p" "$AMP" | head -n1
+}
+escape_cnf(){
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+db_user="$(read_amp AMPDBUSER)"
+db_pass="$(read_amp AMPDBPASS)"
+db_host="$(read_amp AMPDBHOST)"
+[ -n "$db_host" ] || db_host='localhost'
+[ -n "$db_user" ] || fail 'AMPDBUSER empty'
+
+umask 077
+db_cnf="$(mktemp /tmp/tocoa-endpoint-audit-db.XXXXXX.cnf)"
+{
+  echo '[client]'
+  printf 'user="%s"\n' "$(escape_cnf "$db_user")"
+  printf 'password="%s"\n' "$(escape_cnf "$db_pass")"
+  printf 'host="%s"\n' "$(escape_cnf "$db_host")"
+} > "$db_cnf"
+unset db_pass
+
+mysql_ro(){
+  mysql --defaults-extra-file="$db_cnf" --batch --raw --skip-column-names endpointconfig -e "$1"
+}
+
+echo '=== ENDPOINT INVENTORY ==='
+mysql_ro "
+SELECT
+  e.id,
+  mf.name,
+  COALESCE(m.name,'NULL'),
+  e.mac_address,
+  COALESCE(e.last_known_ipv4,'NULL'),
+  COALESCE(GROUP_CONCAT(CONCAT(ea.tech,':',ea.account) ORDER BY ea.priority SEPARATOR ','),'NONE')
+FROM endpoint e
+JOIN manufacturer mf ON mf.id=e.id_manufacturer
+LEFT JOIN model m ON m.id=e.id_model
+LEFT JOIN endpoint_account ea ON ea.id_endpoint=e.id
+WHERE e.last_known_ipv4 LIKE '10.3.184.%'
+   OR mf.name IN ('Grandstream','Avaya')
+GROUP BY e.id,mf.name,m.name,e.mac_address,e.last_known_ipv4
+ORDER BY e.last_known_ipv4,e.id;
+" | while IFS=$'\t' read -r id mf model mac ip accounts; do
+  printf 'ENDPOINT id=%s manufacturer=%q model=%q mac=%s ip=%s accounts=%q\n'     "$id" "$mf" "$model" "$mac" "$ip" "$accounts"
+done
+echo
+
+echo '=== GRANDSTREAM MODEL CATALOG ==='
+mysql_ro "
+SELECT m.id,mf.name,m.name,m.max_accounts,
+       COALESCE(MAX(CASE WHEN mp.property_key='max_sip_accounts' THEN mp.property_value END),'')
+FROM model m
+JOIN manufacturer mf ON mf.id=m.id_manufacturer
+LEFT JOIN model_properties mp ON mp.id_model=m.id
+WHERE mf.name='Grandstream'
+GROUP BY m.id,mf.name,m.name,m.max_accounts
+ORDER BY m.name;
+" | while IFS=$'\t' read -r id mf model maxa maxsip; do
+  printf 'MODEL id=%s manufacturer=%q model=%q max_accounts=%s max_sip=%s\n'     "$id" "$mf" "$model" "$maxa" "${maxsip:-NONE}"
+done
+echo
+
+echo '=== GRANDSTREAM OUI CATALOG ==='
+mysql_ro "
+SELECT mf.name,mp.mac_prefix
+FROM mac_prefix mp
+JOIN manufacturer mf ON mf.id=mp.id_manufacturer
+WHERE mf.name='Grandstream'
+ORDER BY mp.mac_prefix;
+" | while IFS=$'\t' read -r mf prefix; do
+  printf 'OUI manufacturer=%q prefix=%s\n' "$mf" "$prefix"
+done
+echo
+
+echo '=== CREDENTIAL SCHEMA ==='
+mysql_ro "
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema='endpointconfig'
+  AND table_name IN ('pbx_admin_password_policy','endpoint_admin_credential','endpoint_credential_event')
+ORDER BY table_name;
+" | while read -r table; do
+  printf 'CREDENTIAL_TABLE %s\n' "$table"
+done
+
+rm -f "$db_cnf"
+db_cnf=''
+echo 'TOCOA-ENDPOINT-PROD-READONLY-AUDIT=PASS'

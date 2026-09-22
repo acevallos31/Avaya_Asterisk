@@ -1,0 +1,139 @@
+name: 77 | Tocoa Production | Endpoint Configuration | Read-Only Audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/prod-tocoa-endpoint-audit.yml'
+      - 'deploy/endpoint-configurator/bin/tocoa-endpoint-prod-audit'
+      - 'deploy/endpoint-configurator/sudoers/tocoa-endpoint-prod-audit'
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba AUDIT-TOCOA-ENDPOINT-PROD'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tocoa-endpoint-prod-audit
+  cancel-in-progress: false
+
+jobs:
+  static-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate audit helper is read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          helper='deploy/endpoint-configurator/bin/tocoa-endpoint-prod-audit'
+          sudoers='deploy/endpoint-configurator/sudoers/tocoa-endpoint-prod-audit'
+
+          bash -n "$helper"
+          grep -Fq 'production_runtime_write=NO' "$helper"
+          grep -Fq 'endpointconfig_write=NO' "$helper"
+          grep -Fq 'phone_write=NO' "$helper"
+          grep -Fq 'service_write=NO' "$helper"
+          grep -Fq 'TOCOA-ENDPOINT-PROD-READONLY-AUDIT=PASS' "$helper"
+
+          ! grep -Eq '(^|[[:space:]])(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|REPLACE|TRUNCATE)[[:space:]]' "$helper"
+          ! grep -Eq 'systemctl[[:space:]]+(restart|reload|stop|start)|service[[:space:]].*(restart|reload|stop|start)' "$helper"
+          ! grep -Eq 'issabel-endpointconfig[[:space:]]+--applyconfig|detect_endpoints|configure-grp|rollback-runtime' "$helper"
+          ! grep -Eq 'sip notify|reboot|config_update|dologin' "$helper"
+
+          grep -Fq 'github-runner-tocoa ALL=(root) NOPASSWD: TOCOA_ENDPOINT_PROD_AUDIT' "$sudoers"
+          echo 'TOCOA-ENDPOINT-AUDIT-STATIC-PASS'
+
+  production-audit:
+    name: Audit toc-pbx01 read-only
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: static-audit
+    runs-on: [self-hosted, Linux, X64, tocoa, toc-pbx01]
+    timeout-minutes: 15
+
+    steps:
+      - name: Guard Tocoa production runner
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CONFIRM" = 'AUDIT-TOCOA-ENDPOINT-PROD'
+          test "$(hostname -s)" = 'toc-pbx01'
+          test "$(id -un)" = 'github-runner-tocoa'
+          echo 'production_runtime_write=NO'
+          echo 'endpointconfig_write=NO'
+          echo 'phone_write=NO'
+          echo 'TOCOA-PROD-RUNNER-GUARD-PASS'
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
+          persist-credentials: false
+
+      - name: Verify installed helper fingerprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/sbin/tocoa-endpoint-prod-audit
+          candidate='deploy/endpoint-configurator/bin/tocoa-endpoint-prod-audit'
+          live='/usr/local/sbin/tocoa-endpoint-prod-audit'
+          test "$(sha256sum "$candidate" | awk '{print $1}')" = "$(sha256sum "$live" | awk '{print $1}')"
+          echo 'TOCOA-PROD-AUDIT-HELPER-PARITY-PASS'
+
+      - name: Run Tocoa endpoint audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/tocoa-endpoint-prod-audit.txt"
+          sudo -n /usr/local/sbin/tocoa-endpoint-prod-audit | tee "$report"
+          grep -Fq 'TOCOA-ENDPOINT-PROD-READONLY-AUDIT=PASS' "$report"
+          echo 'TOCOA-PROD-ENDPOINT-AUDIT-PASS'
+
+      - name: Build summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/tocoa-endpoint-prod-audit.txt"
+          md="$RUNNER_TEMP/tocoa-endpoint-prod-audit.md"
+          {
+            echo '# Tocoa Endpoint Configuration — Read-Only Production Audit'
+            echo
+            echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo '## Runtime'
+            grep -E '^(asterisk_version|python_version|httpd_version|endpointconfig_rpm)=' "$report" | sed 's/^/- /'
+            echo
+            echo '## SIP peers'
+            grep '^SIP_PEER ' "$report" | sed 's/^/- /' || true
+            echo
+            echo '## Endpoints'
+            grep '^ENDPOINT ' "$report" | sed 's/^/- /' || true
+            echo
+            echo '## Grandstream catalog'
+            grep '^MODEL ' "$report" | sed 's/^/- /' || true
+            echo
+            echo '## Constraints'
+            echo '- production_runtime_write=NO'
+            echo '- endpointconfig_write=NO'
+            echo '- phone_write=NO'
+          } > "$md"
+          cat "$md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Tocoa audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tocoa-endpoint-prod-audit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/tocoa-endpoint-prod-audit.txt
+            ${{ runner.temp }}/tocoa-endpoint-prod-audit.md
+          if-no-files-found: ignore
+          retention-days: 30
