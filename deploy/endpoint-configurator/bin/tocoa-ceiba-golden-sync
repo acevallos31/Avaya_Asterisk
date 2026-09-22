@@ -23,7 +23,7 @@ CONFIRM="${2:-}"
 [ "$CONFIRM" = "$TOKEN" ] || fail 'confirmation token mismatch'
 [ -d "$BUNDLE" ] || fail "bundle not found: $BUNDLE"
 
-for f in runtime.tar.gz runtime.manifest runtime.filelist catalog.sql catalog.sha256 catalog.semantic.sha256 meta.env; do
+for f in runtime.tar.gz runtime.manifest runtime.filelist catalog.sql catalog.sha256 catalog.semantic.sha256 meta.env portable/paloEndpointScanStatus.class.php portable/portable.sha256; do
   [ -r "$BUNDLE/$f" ] || fail "bundle file missing: $f"
 done
 
@@ -205,6 +205,16 @@ fi
 
 sha256sum -c "$BUNDLE/runtime.manifest" >/dev/null
 log 'CEIBA-RUNTIME-SHA-PARITY-PASS'
+
+(
+  cd "$BUNDLE/portable"
+  sha256sum -c portable.sha256
+) >/dev/null || fail 'portable account reconciliation checksum failed'
+
+install -o asterisk -g asterisk -m 0644   "$BUNDLE/portable/paloEndpointScanStatus.class.php"   /var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php
+php -l /var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php >/dev/null
+grep -Fq "\$cuentasRegistradas[\$ip]['sip'][] = \$extArray[0];"   /var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php ||   fail 'portable SIP account reconciliation fix missing'
+log 'PORTABLE-ACCOUNT-RECONCILE-PASS'
 
 BASE_MANUFACTURERS="$(sed -n 's/^catalog_rows_manufacturer=//p' "$BUNDLE/meta.env" | head -n1)"
 BASE_PREFIXES="$(sed -n 's/^catalog_rows_mac_prefix=//p' "$BUNDLE/meta.env" | head -n1)"

@@ -9,6 +9,7 @@ on:
       - 'deploy/endpoint-configurator/bin/issabel-prod-helper-sync'
       - 'deploy/endpoint-configurator/bin/tocoa-ceiba-golden-sync'
       - 'deploy/endpoint-configurator/sudoers/tocoa-ceiba-golden-sync'
+      - 'var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php'
   workflow_dispatch:
     inputs:
       confirm:
@@ -44,6 +45,12 @@ jobs:
           grep -Fq 'CATALOG-DML-IMPORT-PASS' "$h"
           grep -Fq 'ENDPOINT-NATURAL-KEY-REMAP-PASS' "$h"
           grep -Fq 'CEIBA-CATALOG-PORTABLE-VERIFY-PASS' "$h"
+          scan='var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php'
+          php -l "$scan" >/dev/null
+          grep -Fq "\$cuentasRegistradas[\$ip]['sip'][] = \$extArray[0];" "$scan"
+          grep -Fq "\$cuentasRegistradas[\$ip]['iax2'][] = \$l[0];" "$scan"
+          grep -Fq "\$cuentasRegistradas[\$ip]['pjsip'][] = \$matches[1];" "$scan"
+          ! grep -Fq "\$cuentasRegistradas['sip'][\$extArray[0]] = \$ip;" "$scan"
           grep -Fq "awk '/^INSERT INTO / { print }'" "$prod"
           ! grep -Fq 'CREATE TEMPORARY TABLE' "$h"
           ! grep -Fq 'DROP TEMPORARY TABLE' "$h"
@@ -120,8 +127,24 @@ jobs:
           test -r "$bundle/catalog.semantic.sha256"
           test -r "$bundle/runtime.manifest"
           test -r "$bundle/meta.env"
+
+          # Ceiba itself contains a legacy account-reconciliation indexing bug
+          # that is masked by its pre-existing endpoint_account rows. Carry the
+          # reviewed portable fix separately so a fresh PBX can create those rows.
+          portable="$bundle/portable"
+          mkdir -p "$portable"
+          fixed="_prod_helper_candidate/var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php"
+          php -l "$fixed" >/dev/null
+          grep -Fq "\$cuentasRegistradas[\$ip]['sip'][] = \$extArray[0];" "$fixed"
+          grep -Fq "\$cuentasRegistradas[\$ip]['iax2'][] = \$l[0];" "$fixed"
+          grep -Fq "\$cuentasRegistradas[\$ip]['pjsip'][] = \$matches[1];" "$fixed"
+          cp "$fixed" "$portable/paloEndpointScanStatus.class.php"
+          ( cd "$portable" && sha256sum paloEndpointScanStatus.class.php > portable.sha256 )
+          echo 'portable_account_reconcile=YES' >> "$bundle/meta.env"
+
           echo "BUNDLE=$bundle" >> "$GITHUB_ENV"
           echo 'CEIBA-GOLDEN-PORTABLE-EXPORT=PASS'
+          echo 'PORTABLE-ACCOUNT-RECONCILE-PAYLOAD=PASS'
 
       - name: Upload Ceiba golden bundle
         uses: actions/upload-artifact@v4
@@ -190,6 +213,7 @@ jobs:
           set -euo pipefail
           sudo -n /usr/local/sbin/tocoa-ceiba-golden-sync             apply APPLY-CEIBA-GOLDEN-TO-TOCOA | tee "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'CEIBA-RUNTIME-SHA-PARITY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+          grep -Fq 'PORTABLE-ACCOUNT-RECONCILE-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'CEIBA-CATALOG-PORTABLE-VERIFY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'TOCOA-CEIBA-GOLDEN-SYNC=PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
 
@@ -207,6 +231,7 @@ jobs:
             echo '# Ceiba -> Tocoa Endpoint Golden State'
             echo
             echo '- Runtime copied from live Ceiba: PASS'
+            echo '- Portable account reconciliation fix applied: PASS'
             echo '- Full manufacturer/model/OUI/property catalog parity: PASS'
             echo '- Tocoa endpoints/accounts preserved by natural-key remap'
             echo '- Phone writes: NO'
