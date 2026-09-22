@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/prod-ceiba-to-tocoa-golden-sync.yml'
-      - 'deploy/endpoint-configurator/bin/ceiba-endpoint-golden-export'
-      - 'deploy/endpoint-configurator/sudoers/ceiba-endpoint-golden-export'
+      - 'deploy/endpoint-configurator/bin/grandstream-prod-deploy'
+      - 'deploy/endpoint-configurator/bin/issabel-prod-helper-sync'
       - 'deploy/endpoint-configurator/bin/tocoa-ceiba-golden-sync'
       - 'deploy/endpoint-configurator/sudoers/tocoa-ceiba-golden-sync'
   workflow_dispatch:
@@ -34,7 +34,12 @@ jobs:
           set -euo pipefail
           h='deploy/endpoint-configurator/bin/tocoa-ceiba-golden-sync'
           s='deploy/endpoint-configurator/sudoers/tocoa-ceiba-golden-sync'
-          bash -n "$h"
+          prod='deploy/endpoint-configurator/bin/grandstream-prod-deploy'
+          sync='deploy/endpoint-configurator/bin/issabel-prod-helper-sync'
+          bash -n "$h" "$prod" "$sync"
+          grep -Fq 'GOLDEN_EXPORT_REQUEST=' "$prod"
+          grep -Fq 'CEIBA-GOLDEN-EXPORT-VIA-PERMANENT-HELPER=PASS' "$prod"
+          grep -Fq "RUNNER_USER='github-runner-prod'" "$sync"
           grep -Fq "EXPECTED_HOST='toc-pbx01'" "$h"
           grep -Fq "source_host=cei-pbx02" "$h"
           grep -Fq "TOCOA-CEIBA-GOLDEN-SYNC=PASS" "$h"
@@ -68,34 +73,47 @@ jobs:
           echo 'phone_write=NO'
           echo 'CEIBA-GOLDEN-EXPORT-GUARD=PASS'
 
-      - name: Checkout main
+      - name: Checkout reviewed main candidate for permanent synchronizer
         uses: actions/checkout@v4
         with:
           ref: main
+          path: _prod_helper_candidate
           clean: true
           persist-credentials: false
+          fetch-depth: 1
 
-      - name: Verify installed Ceiba root exporter
+      - name: Sync reviewed permanent helper payload
         shell: bash
         run: |
           set -euo pipefail
-          live='/usr/local/sbin/ceiba-endpoint-golden-export'
-          src='deploy/endpoint-configurator/bin/ceiba-endpoint-golden-export'
-          test -x "$live"
-          test "$(sha256sum "$live" | awk '{print $1}')" = "$(sha256sum "$src" | awk '{print $1}')"
-          sudo -n -l | grep -Fq '/usr/local/sbin/ceiba-endpoint-golden-export export'
-          echo 'CEIBA-GOLDEN-EXPORTER-PARITY=PASS'
+          PROD_SYNC='/usr/local/sbin/issabel-prod-helper-sync'
+          test -x "$PROD_SYNC"
+          sudo -n -l "$PROD_SYNC" >/dev/null
+          sudo -n "$PROD_SYNC" | tee "$RUNNER_TEMP/ceiba-helper-sync.txt"
+          grep -Fq 'PROD-HELPER-SYNC-GRANDSTREAM=PASS' "$RUNNER_TEMP/ceiba-helper-sync.txt"
+          grep -Fq 'phone_write=NO' "$RUNNER_TEMP/ceiba-helper-sync.txt"
+          echo 'CEIBA-PERMANENT-HELPER-SYNC=PASS'
 
-      - name: Export exact Ceiba runtime and portable catalog
+      - name: Request golden export through synchronized helper
         shell: bash
         run: |
           set -euo pipefail
-          sudo -n /usr/local/sbin/ceiba-endpoint-golden-export export | tee "$RUNNER_TEMP/ceiba-golden-export.txt"
-          grep -Fq 'CEIBA-GOLDEN-ROOT-EXPORT=PASS' "$RUNNER_TEMP/ceiba-golden-export.txt"
-          BUNDLE="$GITHUB_WORKSPACE/_ceiba_golden_bundle"
-          test -r "$BUNDLE/runtime.tar.gz"
-          test -r "$BUNDLE/catalog.sql"
-          echo "BUNDLE=$BUNDLE" >> "$GITHUB_ENV"
+          request="$GITHUB_WORKSPACE/_ceiba_golden_export_request"
+          bundle="$GITHUB_WORKSPACE/_ceiba_golden_bundle"
+          rm -rf "$bundle"
+          printf '%s' 'EXPORT-CEIBA-ENDPOINT-GOLDEN' > "$request"
+          chmod 600 "$request"
+          test "$(stat -c '%U' "$request")" = 'github-runner-prod'
+
+          sudo -n /usr/local/sbin/issabel-grandstream-prod verify | tee "$RUNNER_TEMP/ceiba-golden-export.txt"
+
+          grep -Fq 'CEIBA-GOLDEN-EXPORT-VIA-PERMANENT-HELPER=PASS' "$RUNNER_TEMP/ceiba-golden-export.txt"
+          test -r "$bundle/runtime.tar.gz"
+          test -r "$bundle/catalog.sql"
+          test -r "$bundle/catalog.sha256"
+          test -r "$bundle/runtime.manifest"
+          test -r "$bundle/meta.env"
+          echo "BUNDLE=$bundle" >> "$GITHUB_ENV"
           echo 'CEIBA-GOLDEN-PORTABLE-EXPORT=PASS'
 
       - name: Upload Ceiba golden bundle
