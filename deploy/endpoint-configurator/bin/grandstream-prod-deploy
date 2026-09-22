@@ -219,6 +219,46 @@ SQL_GRANDSTREAM_GRP2601
   tar -C / -czf "$GOLDEN_EXPORT_OUT/runtime.tar.gz" "${rel[@]}"
 
   ( cd "$GOLDEN_EXPORT_OUT" && sha256sum catalog.sql > catalog.sha256 )
+
+  # Semantic fingerprint by natural keys. IDs/autoincrement values are intentionally
+  # excluded so a portable import can be verified even when generated row IDs differ.
+  {
+    mysql --defaults-extra-file="$d" --batch --raw --skip-column-names endpointconfig -e "
+      SELECT 'M',HEX(name),HEX(description) FROM manufacturer;
+      SELECT 'O',HEX(f.name),HEX(p.mac_prefix),HEX(p.description)
+        FROM mac_prefix p JOIN manufacturer f ON f.id=p.id_manufacturer;
+      SELECT 'D',HEX(f.name),HEX(m.name),HEX(m.description),
+             m.max_accounts,m.static_ip_supported,m.dynamic_ip_supported,m.static_prov_supported
+        FROM model m JOIN manufacturer f ON f.id=m.id_manufacturer;
+      SELECT 'P',HEX(f.name),HEX(m.name),HEX(p.property_key),HEX(p.property_value)
+        FROM model_properties p
+        JOIN model m ON m.id=p.id_model
+        JOIN manufacturer f ON f.id=m.id_manufacturer;
+    "
+    mysql --defaults-extra-file="$d" --batch --raw --skip-column-names endpointconfig -e "
+      SELECT 'D',HEX(f.name),HEX('GRP2601'),HEX('GRP2601'),
+             2,p.static_ip_supported,p.dynamic_ip_supported,p.static_prov_supported
+      FROM model p JOIN manufacturer f ON f.id=p.id_manufacturer
+      WHERE f.name='Grandstream' AND p.name='GRP2601P'
+        AND NOT EXISTS (
+          SELECT 1 FROM model x
+          WHERE x.id_manufacturer=p.id_manufacturer AND x.name='GRP2601'
+        )
+      LIMIT 1;
+      SELECT 'P',HEX(f.name),HEX('GRP2601'),HEX(mp.property_key),
+             HEX(CASE WHEN mp.property_key='max_sip_accounts' THEN '2' ELSE mp.property_value END)
+      FROM model p
+      JOIN manufacturer f ON f.id=p.id_manufacturer
+      JOIN model_properties mp ON mp.id_model=p.id
+      WHERE f.name='Grandstream' AND p.name='GRP2601P'
+        AND NOT EXISTS (
+          SELECT 1 FROM model x
+          WHERE x.id_manufacturer=p.id_manufacturer AND x.name='GRP2601'
+        );
+    "
+  } | LC_ALL=C sort > "$GOLDEN_EXPORT_OUT/catalog.semantic.tsv"
+  ( cd "$GOLDEN_EXPORT_OUT" && sha256sum catalog.semantic.tsv > catalog.semantic.sha256 )
+
   {
     echo 'source_host=cei-pbx02'
     echo "source_fqdn=$(hostname -f 2>/dev/null || hostname)"
