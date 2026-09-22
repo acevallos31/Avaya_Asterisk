@@ -1,0 +1,2 @@
+Cmnd_Alias CEIBA_ENDPOINT_GOLDEN_EXPORT = /usr/local/sbin/ceiba-endpoint-golden-export export
+github-runner-prod ALL=(root) NOPASSWD: CEIBA_ENDPOINT_GOLDEN_EXPORT
