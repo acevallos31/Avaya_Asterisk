@@ -1,0 +1,129 @@
+name: Endpoint Configuration v1.0.1-rc6 | Discovery Bootstrap
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release/endpoint-configuration-v1.0.1-rc6/**'
+      - '.github/workflows/release-endpoint-configuration-rc6.yml'
+      - 'usr/share/issabel/privileged/detect_endpoints'
+      - 'var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CREDENTIAL_CANDIDATE_SHA: 6fc9334130b8867d7dc1722bfe35fd895e30d321
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout credential candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CREDENTIAL_CANDIDATE_SHA }}
+          path: credential-candidate
+          persist-credentials: false
+
+      - name: Assemble RC6
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          stage="$RUNNER_TEMP/endpoint-configuration-v1.0.1-rc6"
+          mkdir -p "$stage/payload/base" "$stage/payload/golden" "$stage/payload/credentials"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc6/install.sh "$stage/install.sh"
+          cp src/release/endpoint-configuration-v1.0.1-rc6/README.md "$stage/README.md"
+
+          stock='src/usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py'
+          v2="$RUNNER_TEMP/Grandstream.v2.py"
+
+          test "$(sha256sum "$stock" | awk '{print $1}')" =             '238f241a7ee394f5c7e4c5d6c998b3f213dc65066a4dd4dd79f073ab0e86cbc7'
+
+          python3 -B             src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-vendor-patch.py             "$stock" "$v2"
+
+          python3 -B             src/release/endpoint-configuration-v1.0.1-rc5/grandstream-clean-bootstrap-patch.py             "$v2" "$stage/payload/base/Grandstream.py"
+
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/grandstream-catalog.sql "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya.py "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_J129.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/Avaya_global_SIP.tpl "$stage/payload/base/"
+          cp src/release/endpoint-configuration-v1.0.1-rc1/payload/avaya-j129-provisioning.conf "$stage/payload/base/"
+
+          cp src/usr/bin/issabel-endpointconfig "$stage/payload/golden/"
+          cp src/usr/share/issabel/endpoint-classes/class/issabel/BaseEndpoint.py "$stage/payload/golden/"
+          cp src/usr/share/issabel/privileged/detect_endpoints "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php "$stage/payload/golden/"
+          cp src/var/www/html/modules/endpoint_configurator/dialogs/standard/EndpointManager_Standard.class.php "$stage/payload/golden/"
+
+          cp credential-candidate/deploy/endpoint-configurator/db/001_admin_credentials.sql "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/install-key.sh "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/libs/EndpointCredentialVault.class.php "$stage/payload/credentials/"
+          cp credential-candidate/deploy/endpoint-configurator/bin/credential-vault-cli.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/index.php "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/index.php "$stage/payload/credentials/summary-index.php"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/dialogs/summary/lang/en.lang "$stage/payload/credentials/summary-en.lang"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/reporte_endpoints.tpl "$stage/payload/credentials/"
+          cp credential-candidate/var/www/html/modules/endpoint_configurator/themes/default/js/javascript.js "$stage/payload/credentials/"
+
+          chmod 0755 "$stage/install.sh" "$stage/payload/credentials/install-key.sh"
+
+          echo "STAGE=$stage" >> "$GITHUB_ENV"
+
+      - name: Validate RC6 payload
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bash -n "$STAGE/install.sh"
+          bash -n "$STAGE/payload/credentials/install-key.sh"
+
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/base/Grandstream.py"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/issabel-endpointconfig"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/BaseEndpoint.py"
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$STAGE/payload/golden/detect_endpoints"
+
+          php -l "$STAGE/payload/golden/paloEndpointScanStatus.class.php" >/dev/null
+          php -l "$STAGE/payload/golden/paloSantoEndpoints.class.php" >/dev/null
+          php -l "$STAGE/payload/golden/EndpointManager_Standard.class.php" >/dev/null
+          php -l "$STAGE/payload/credentials/index.php" >/dev/null
+
+          grep -Fq "VERSION='1.0.1-rc6'" "$STAGE/install.sh"
+          grep -Fq 'RC6-DISCOVERY-BOOTSTRAP-PASS' "$STAGE/install.sh"
+
+          grep -Fq '_probe_grandstream_model_from_asterisk' "$STAGE/payload/golden/detect_endpoints"
+          grep -Fq '_save_registered_model_fallback' "$STAGE/payload/golden/detect_endpoints"
+          grep -Fq "'GRP2601P'" "$STAGE/payload/golden/detect_endpoints"
+
+          grep -Fq "\$cuentasRegistradas[\$ip]['sip'][] = \$extArray[0];"             "$STAGE/payload/golden/paloEndpointScanStatus.class.php"
+
+          ! grep -Fq 'issabel-helper detect_endpoints' "$STAGE/install.sh"
+          ! grep -Fq 'issabel-endpointconfig --applyconfig' "$STAGE/install.sh"
+
+          echo 'RC6-PAYLOAD-VALIDATION-PASS'
+
+      - name: Build package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          tar -czf endpoint-configuration-v1.0.1-rc6.tar.gz endpoint-configuration-v1.0.1-rc6
+          sha256sum endpoint-configuration-v1.0.1-rc6.tar.gz > endpoint-configuration-v1.0.1-rc6.tar.gz.sha256
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: endpoint-configuration-v1.0.1-rc6
+          path: |
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc6.tar.gz
+            ${{ runner.temp }}/endpoint-configuration-v1.0.1-rc6.tar.gz.sha256
+          retention-days: 30
