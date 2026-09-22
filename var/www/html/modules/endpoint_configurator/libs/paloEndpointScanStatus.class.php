@@ -493,7 +493,7 @@ SQL_LEER_ENDPOINTS;
                     $extArray = explode('/', $l[0]);
                     if (!isset($cuentasRegistradas[$ip]))
                         $cuentasRegistradas[$ip] = array('sip' => array(), 'iax2' => array(), 'pjsip' => array());
-                    $cuentasRegistradas['sip'][$extArray[0]] = $ip;
+                    $cuentasRegistradas[$ip]['sip'][] = $extArray[0];
                 }
             }
         }
@@ -507,7 +507,7 @@ SQL_LEER_ENDPOINTS;
                     $ip = $l[1];
                     if (!isset($cuentasRegistradas[$ip]))
                         $cuentasRegistradas[$ip] = array('sip' => array(), 'iax2' => array(), 'pjsip' => array());
-                    $cuentasRegistradas['iax2'][$l[0]] = $ip;
+                    $cuentasRegistradas[$ip]['iax2'][] = $l[0];
                 }
             }
         }
@@ -521,7 +521,7 @@ SQL_LEER_ENDPOINTS;
                     $ip = $matches[3];
                     if (!isset($cuentasRegistradas[$ip]))
                         $cuentasRegistradas[$ip] = array('sip' => array(), 'iax2' => array(), 'pjsip' => array());
-                    $cuentasRegistradas['pjsip'][$matches[1]] = $ip;
+                    $cuentasRegistradas[$ip]['pjsip'][] = $matches[1];
                 }
             }
         }        
