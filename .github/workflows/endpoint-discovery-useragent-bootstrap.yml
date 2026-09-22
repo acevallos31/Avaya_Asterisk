@@ -1,0 +1,82 @@
+name: Endpoint Discovery | Registered Grandstream Bootstrap
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'usr/share/issabel/privileged/detect_endpoints'
+      - 'var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php'
+      - '.github/workflows/endpoint-discovery-useragent-bootstrap.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-and-parser-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile usr/share/issabel/privileged/detect_endpoints
+          php -l var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php
+
+      - name: Test Tocoa SIP parsing and model mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ast
+          import re
+
+          path = 'usr/share/issabel/privileged/detect_endpoints'
+          source = open(path, encoding='utf-8').read()
+          tree = ast.parse(source, path)
+          names = {'_find_sip_peer_for_ip', '_grandstream_model_from_useragent'}
+          defs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
+          assert {n.name for n in defs} == names
+          module = ast.Module(body=defs, type_ignores=[])
+          ns = {'re': re}
+          exec(compile(module, path, 'exec'), ns)
+
+          peers = '''5011/5011 10.3.184.40 D No No A 57211 OK (4 ms)
+          5013/5013 10.3.184.41 D No No A 35934 OK (9 ms)
+          5019/5019 10.3.184.56 D No No A 36375 OK (4 ms)'''
+          assert ns['_find_sip_peer_for_ip'](peers, '10.3.184.40') == '5011'
+          assert ns['_find_sip_peer_for_ip'](peers, '10.3.184.41') == '5013'
+          assert ns['_find_sip_peer_for_ip'](peers, '10.3.184.99') is None
+
+          assert ns['_grandstream_model_from_useragent'](
+              'Useragent  : Grandstream GRP2601 1.0.7.11') == 'GRP2601P'
+          assert ns['_grandstream_model_from_useragent'](
+              'Useragent  : Grandstream GRP2602G 1.0.3.6') == 'GRP2602G'
+          assert ns['_grandstream_model_from_useragent'](
+              'Useragent  : Grandstream GXP1625 1.0.4.152') == 'GXP1625'
+          assert ns['_grandstream_model_from_useragent'](
+              'Useragent  : Unknown Phone') is None
+          print('TOCOA-DISCOVERY-PARSER-PASS')
+          PY
+
+      - name: Verify account reconciliation fix is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='var/www/html/modules/endpoint_configurator/libs/paloEndpointScanStatus.class.php'
+          grep -Fq "\$cuentasRegistradas[\$ip]['sip'][] = \$extArray[0];" "$f"
+          grep -Fq "\$cuentasRegistradas[\$ip]['iax2'][] = \$l[0];" "$f"
+          grep -Fq "\$cuentasRegistradas[\$ip]['pjsip'][] = \$matches[1];" "$f"
+          echo 'ENDPOINT-ACCOUNT-RECONCILIATION-PASS'
+
+      - name: Safety invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='usr/share/issabel/privileged/detect_endpoints'
+          grep -Fq "_probe_grandstream_model_from_asterisk" "$f"
+          grep -Fq "sip show peers" "$f"
+          grep -Fq "sip show peer " "$f"
+          ! grep -Eq 'sip notify|config_update|dologin|reboot' "$f"
+          echo 'DISCOVERY-READONLY-PHONE-SAFETY-PASS'
