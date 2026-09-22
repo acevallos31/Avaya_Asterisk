@@ -400,11 +400,15 @@ def process_endpoint(dbpool, ip, mac, manufacturerid):
 		for tuple in changeset:
 			broadcast_change(tuple)
 		
-		# Try to probe the model of the discovered phone
+		# Try to probe the model of the discovered phone.
+		# IMPORTANT: stock discovery creates vendor endpoints without an AMI pool.
+		# For modern Grandstream phones that do not expose their model through
+		# legacy Telnet/HTTP, the wrapper below uses a read-only Asterisk CLI
+		# fallback after the stock vendor probe.
 		if endpointClasses[manufacturerid] is not None:
 			eclass = endpointClasses[manufacturerid]
 			endpoint = eclass(None, dbpool, None, ip, mac)
-			gpool.spawn_n(probe_model, endpoint, id_endpoint)
+			gpool.spawn_n(probe_model, endpoint, id_endpoint, dbpool, manufacturerid, ip)
 		
 	except MySQLdb.Error as e:
 		if dbconn is not None: dbpool.put(dbconn)
@@ -421,8 +425,163 @@ def broadcast_change(tuple):
 		except socket.error as e:
 			pass
 
-def probe_model(endpoint, id_endpoint):
+def _find_sip_peer_for_ip(output, ip):
+	'''Return SIP peer name registered at ip from "sip show peers" output.'''
+	for raw in output.splitlines():
+		line = raw.strip()
+		if not line:
+			continue
+		parts = line.split()
+		if len(parts) < 2 or parts[1] != ip:
+			continue
+		peer = parts[0].split('/')[0]
+		if peer:
+			return peer
+	return None
+
+
+def _grandstream_model_from_useragent(output):
+	'''Map an Asterisk SIP Useragent to a supported Grandstream model name.'''
+	useragent = None
+	for raw in output.splitlines():
+		line = raw.strip()
+		m = re.match(r'^Useragent\s*:\s*(.*)
+def process_client(fd):
+	global cancelprobe
+	global clients
+	global endpointChangeLog
+	
+	index = 1
+	for tuple in endpointChangeLog:
+		fd.sendall(b'%s %d\n' % (tuple[0], tuple[1]))
+		index += 1
+	
+	# Check for running > 1 because this method is running in the gpool
+	try:
+		closedHere = False
+		while not cancelprobe and gpool.running() > 1:
+			rd,_,_ = select.select([fd], [], [], 0.1)
+			if len(rd) > 0:
+				s = fd.readline()
+				if s[:4] == 'quit':
+					cancelprobe = True
+				fd.sendall(b'quit\n')
+				fd.close()
+				closedHere = True
+				break
+		if not closedHere:
+			fd.sendall(b'quit\n')
+			fd.close()
+	except socket.error as e:
+		sys.stderr.write('WARN: got error while processing client: %s\n' % str(e));
+	clients.remove(fd)
+
+if __name__ == '__main__':
+    main()
+, line, re.IGNORECASE)
+		if m is not None:
+			useragent = m.group(1).strip()
+			break
+	if not useragent:
+		return None
+
+	upper = useragent.upper()
+	# Current GRP2601 firmware identifies itself as "GRP2601" even when the
+	# Endpoint Configurator catalog model is GRP2601P.
+	if 'GRP2601' in upper:
+		return 'GRP2601P'
+	if 'GRP2602G' in upper:
+		return 'GRP2602G'
+	if 'GXP1625' in upper:
+		return 'GXP1625'
+	return None
+
+
+def _probe_grandstream_model_from_asterisk(ip):
+	'''Read-only model fallback using Asterisk registration state.'''
+	try:
+		peers = subprocess.check_output(
+			['/usr/sbin/asterisk', '-rx', 'sip show peers'],
+			stderr=subprocess.STDOUT).decode('utf-8', 'replace')
+		peer = _find_sip_peer_for_ip(peers, ip)
+		if peer is None:
+			return None
+
+		detail = subprocess.check_output(
+			['/usr/sbin/asterisk', '-rx', 'sip show peer ' + peer],
+			stderr=subprocess.STDOUT).decode('utf-8', 'replace')
+		return _grandstream_model_from_useragent(detail)
+	except (OSError, subprocess.CalledProcessError) as e:
+		sys.stderr.write('WARN: Asterisk model fallback failed for %s: %s\n' % (ip, str(e)))
+		return None
+
+
+def _save_registered_model_fallback(dbpool, manufacturerid, id_endpoint, ip):
+	'''Persist a model only when stock probing left id_model empty.'''
+	dbconn = None
+	try:
+		dbconn = dbpool.get()
+		sth = dbconn.cursor()
+
+		sth.execute(
+			'SELECT manufacturer.name, endpoint.id_model '
+			'FROM endpoint, manufacturer '
+			'WHERE endpoint.id_manufacturer = manufacturer.id '
+			'AND endpoint.id = %s AND endpoint.id_manufacturer = %s',
+			(id_endpoint, manufacturerid))
+		row = sth.fetchone()
+		if row is None or row[1] is not None or row[0] != 'Grandstream':
+			sth.close()
+			dbpool.put(dbconn)
+			return False
+
+		model = _probe_grandstream_model_from_asterisk(ip)
+		if model is None:
+			sth.close()
+			dbpool.put(dbconn)
+			return False
+
+		sth.execute(
+			'SELECT id FROM model WHERE id_manufacturer = %s AND name = %s',
+			(manufacturerid, model))
+		modelrow = sth.fetchone()
+		if modelrow is None:
+			sys.stderr.write(
+				'WARN: Grandstream model %s from Asterisk is not in endpoint catalog\n' % model)
+			sth.close()
+			dbpool.put(dbconn)
+			return False
+
+		sth.execute(
+			'UPDATE endpoint SET id_model = %s, last_modified = NOW() '
+			'WHERE id = %s AND id_model IS NULL',
+			(modelrow[0], id_endpoint))
+		dbconn.commit()
+		sth.close()
+		dbpool.put(dbconn)
+		sys.stderr.write(
+			'INFO: Endpoint Grandstream@%s model detected from Asterisk as %s\n' %
+			(ip, model))
+		return True
+	except MySQLdb.Error as e:
+		if dbconn is not None:
+			try:
+				dbconn.rollback()
+			except Exception:
+				pass
+			try:
+				dbpool.put(dbconn)
+			except Exception:
+				pass
+		sys.stderr.write(
+			'WARN: failed to persist Asterisk model fallback for %s: %s\n' %
+			(ip, str(e)))
+		return False
+
+
+def probe_model(endpoint, id_endpoint, dbpool, manufacturerid, ip):
 	endpoint.probeModel()
+	_save_registered_model_fallback(dbpool, manufacturerid, id_endpoint, ip)
 	broadcast_change(('update', id_endpoint))
 
 def process_client(fd):
