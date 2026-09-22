@@ -1,0 +1,260 @@
+name: 78 | Ceiba -> Tocoa | Endpoint Golden State Sync
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/prod-ceiba-to-tocoa-golden-sync.yml'
+      - 'deploy/endpoint-configurator/bin/tocoa-ceiba-golden-sync'
+      - 'deploy/endpoint-configurator/sudoers/tocoa-ceiba-golden-sync'
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba CLONE-CEIBA-GOLDEN-TO-TOCOA'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ceiba-to-tocoa-endpoint-golden-sync
+  cancel-in-progress: false
+
+jobs:
+  static-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate guarded sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          h='deploy/endpoint-configurator/bin/tocoa-ceiba-golden-sync'
+          s='deploy/endpoint-configurator/sudoers/tocoa-ceiba-golden-sync'
+          bash -n "$h"
+          grep -Fq "EXPECTED_HOST='toc-pbx01'" "$h"
+          grep -Fq "source_host=cei-pbx02" "$h"
+          grep -Fq "TOCOA-CEIBA-GOLDEN-SYNC=PASS" "$h"
+          grep -Fq "phone_write=NO" "$h"
+          grep -Fq "endpoint_discovery=NO" "$h"
+          grep -Fq "service_restart=NO" "$h"
+          grep -Fq 'github-runner-tocoa ALL=(root) NOPASSWD: TOCOA_CEIBA_GOLDEN_SYNC' "$s"
+          ! grep -Eq 'sip notify|config_update|dologin|reboot|issabel-endpointconfig[[:space:]]+--applyconfig' "$h"
+          echo 'CEIBA-TO-TOCOA-STATIC-SAFETY=PASS'
+
+  export-ceiba:
+    name: Export portable golden state from Ceiba
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: static-safety
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 20
+    steps:
+      - name: Guard Ceiba source
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'CLONE-CEIBA-GOLDEN-TO-TOCOA'
+          test "$(hostname -s)" = 'cei-pbx02'
+          test "$(id -un)" = 'github-runner-prod'
+          echo 'source=cei-pbx02'
+          echo 'source_runtime_write=NO'
+          echo 'source_db_write=NO'
+          echo 'phone_write=NO'
+          echo 'CEIBA-GOLDEN-EXPORT-GUARD=PASS'
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
+          persist-credentials: false
+
+      - name: Export exact Ceiba runtime and portable catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BUNDLE="$RUNNER_TEMP/ceiba-golden-portable"
+          rm -rf "$BUNDLE"
+          mkdir -p "$BUNDLE"
+          chmod 700 "$BUNDLE"
+
+          AMP='/etc/amportal.conf'
+          test -r "$AMP"
+
+          read_amp(){ sed -n "s/^$1=//p" "$AMP" | head -n1; }
+          esc(){ printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+
+          U="$(read_amp AMPDBUSER)"
+          P="$(read_amp AMPDBPASS)"
+          H="$(read_amp AMPDBHOST)"
+          test -n "$H" || H=localhost
+          test -n "$U"
+
+          CNF="$(mktemp "$RUNNER_TEMP/ceiba-db.XXXXXX.cnf")"
+          trap 'rm -f "$CNF"' EXIT
+          chmod 600 "$CNF"
+          {
+            echo '[client]'
+            printf 'user="%s"\n' "$(esc "$U")"
+            printf 'password="%s"\n' "$(esc "$P")"
+            printf 'host="%s"\n' "$(esc "$H")"
+          } > "$CNF"
+          unset P
+
+          # Exact catalog only. No endpoints, accounts, MACs in service, or credentials.
+          mysqldump --defaults-extra-file="$CNF"             --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables             endpointconfig manufacturer mac_prefix model model_properties > "$BUNDLE/catalog.sql"
+
+          # Runtime paths that define Endpoint Configurator behavior.
+          paths=(
+            /usr/share/issabel/endpoint-classes
+            /usr/share/issabel/privileged/detect_endpoints
+            /usr/bin/issabel-endpointconfig
+            /var/www/html/modules/endpoint_configurator
+          )
+          test -e /etc/httpd/conf.d/avaya-j129-provisioning.conf &&             paths+=(/etc/httpd/conf.d/avaya-j129-provisioning.conf)
+          test -e /usr/local/libexec/issabel-endpoint-credential-vault &&             paths+=(/usr/local/libexec/issabel-endpoint-credential-vault)
+
+          : > "$BUNDLE/runtime.filelist"
+          for p in "${paths[@]}"; do
+            if [ -d "$p" ]; then
+              find "$p" -type f -print
+            else
+              printf '%s\n' "$p"
+            fi
+          done | LC_ALL=C sort -u > "$BUNDLE/runtime.filelist"
+
+          : > "$BUNDLE/runtime.manifest"
+          while IFS= read -r f; do
+            sha256sum "$f"
+          done < "$BUNDLE/runtime.filelist" > "$BUNDLE/runtime.manifest"
+
+          rel=()
+          for p in "${paths[@]}"; do rel+=("${p#/}"); done
+          tar -C / -czf "$BUNDLE/runtime.tar.gz" "${rel[@]}"
+
+          sha256sum "$BUNDLE/catalog.sql" > "$BUNDLE/catalog.sha256"
+          {
+            echo 'source_host=cei-pbx02'
+            echo "source_fqdn=$(hostname -f 2>/dev/null || hostname)"
+            echo "source_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "asterisk_version=$(/usr/sbin/asterisk -V 2>/dev/null || true)"
+            echo "endpointconfig_rpm=$(rpm -q issabel-endpointconfig2 2>/dev/null || true)"
+            echo "catalog_rows_manufacturer=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM manufacturer')"
+            echo "catalog_rows_mac_prefix=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM mac_prefix')"
+            echo "catalog_rows_model=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM model')"
+            echo "catalog_rows_model_properties=$(mysql --defaults-extra-file="$CNF" --batch --skip-column-names endpointconfig -e 'SELECT COUNT(*) FROM model_properties')"
+          } > "$BUNDLE/meta.env"
+
+          # Explicitly prove private PBX state was not exported.
+          ! grep -Eq 'INSERT INTO .?endpoint.? |INSERT INTO .?endpoint_account.?|10\.3\.40\.|4450|4452|4453' "$BUNDLE/catalog.sql"
+
+          echo "BUNDLE=$BUNDLE" >> "$GITHUB_ENV"
+          echo 'CEIBA-GOLDEN-PORTABLE-EXPORT=PASS'
+
+      - name: Upload Ceiba golden bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceiba-golden-portable
+          path: ${{ env.BUNDLE }}/*
+          if-no-files-found: error
+          retention-days: 7
+
+  apply-tocoa:
+    name: Apply exact Ceiba golden state to Tocoa
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: export-ceiba
+    runs-on: [self-hosted, Linux, X64, tocoa, toc-pbx01]
+    timeout-minutes: 25
+    steps:
+      - name: Guard Tocoa target
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'main'
+          test "$CONFIRM" = 'CLONE-CEIBA-GOLDEN-TO-TOCOA'
+          test "$(hostname -s)" = 'toc-pbx01'
+          test "$(id -un)" = 'github-runner-tocoa'
+          echo 'target=toc-pbx01'
+          echo 'phone_write=NO'
+          echo 'endpoint_discovery=NO'
+          echo 'TOCOA-GOLDEN-APPLY-GUARD=PASS'
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
+          persist-credentials: false
+
+      - name: Verify installed root helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          live='/usr/local/sbin/tocoa-ceiba-golden-sync'
+          src='deploy/endpoint-configurator/bin/tocoa-ceiba-golden-sync'
+          test -x "$live"
+          test "$(sha256sum "$live" | awk '{print $1}')" = "$(sha256sum "$src" | awk '{print $1}')"
+          sudo -n -l | grep -Fq '/usr/local/sbin/tocoa-ceiba-golden-sync apply APPLY-CEIBA-GOLDEN-TO-TOCOA'
+          echo 'TOCOA-GOLDEN-HELPER-PARITY=PASS'
+
+      - name: Prepare fixed bundle path
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _ceiba_golden_bundle
+          mkdir -p _ceiba_golden_bundle
+
+      - name: Download Ceiba golden bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: ceiba-golden-portable
+          path: _ceiba_golden_bundle
+
+      - name: Apply Ceiba golden state
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/tocoa-ceiba-golden-sync             apply APPLY-CEIBA-GOLDEN-TO-TOCOA | tee "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+          grep -Fq 'CEIBA-RUNTIME-SHA-PARITY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+          grep -Fq 'CEIBA-CATALOG-SHA-PARITY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+          grep -Fq 'TOCOA-CEIBA-GOLDEN-SYNC=PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+
+      - name: Read-only post-sync audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n /usr/local/sbin/tocoa-endpoint-prod-audit | tee "$RUNNER_TEMP/tocoa-post-golden-audit.txt"
+          grep -Fq 'TOCOA-ENDPOINT-PROD-READONLY-AUDIT=PASS' "$RUNNER_TEMP/tocoa-post-golden-audit.txt"
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo '# Ceiba -> Tocoa Endpoint Golden State'
+            echo
+            echo '- Runtime copied from live Ceiba: PASS'
+            echo '- Full manufacturer/model/OUI/property catalog parity: PASS'
+            echo '- Tocoa endpoints/accounts preserved by natural-key remap'
+            echo '- Phone writes: NO'
+            echo '- Discovery executed automatically: NO'
+            echo
+            grep '^ENDPOINT ' "$RUNNER_TEMP/tocoa-post-golden-audit.txt" | sed 's/^/- /' || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tocoa-after-ceiba-golden-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/tocoa-ceiba-golden-sync.txt
+            ${{ runner.temp }}/tocoa-post-golden-audit.txt
+          if-no-files-found: ignore
+          retention-days: 30
