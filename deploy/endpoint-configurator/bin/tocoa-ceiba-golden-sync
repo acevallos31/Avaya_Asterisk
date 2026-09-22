@@ -23,7 +23,7 @@ CONFIRM="${2:-}"
 [ "$CONFIRM" = "$TOKEN" ] || fail 'confirmation token mismatch'
 [ -d "$BUNDLE" ] || fail "bundle not found: $BUNDLE"
 
-for f in runtime.tar.gz runtime.manifest runtime.filelist catalog.sql catalog.sha256 meta.env; do
+for f in runtime.tar.gz runtime.manifest runtime.filelist catalog.sql catalog.sha256 catalog.semantic.sha256 meta.env; do
   [ -r "$BUNDLE/$f" ] || fail "bundle file missing: $f"
 done
 
