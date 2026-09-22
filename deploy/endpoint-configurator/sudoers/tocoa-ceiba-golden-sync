@@ -1,0 +1,2 @@
+Cmnd_Alias TOCOA_CEIBA_GOLDEN_SYNC = /usr/local/sbin/tocoa-ceiba-golden-sync apply APPLY-CEIBA-GOLDEN-TO-TOCOA
+github-runner-tocoa ALL=(root) NOPASSWD: TOCOA_CEIBA_GOLDEN_SYNC
