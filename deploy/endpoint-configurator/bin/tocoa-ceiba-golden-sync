@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+EXPECTED_HOST='toc-pbx01'
+EXPECTED_CALLER='github-runner-tocoa'
+TOKEN='APPLY-CEIBA-GOLDEN-TO-TOCOA'
+BACKUP_ROOT='/var/backups/endpoint-configurator'
+
+log(){ printf '[TOCOA-CEIBA-GOLDEN] %s\n' "$*"; }
+fail(){ printf '[TOCOA-CEIBA-GOLDEN] ERROR: %s\n' "$*" >&2; exit 1; }
+
+[ "$(id -u)" -eq 0 ] || fail 'must run as root'
+[ "$(hostname -s)" = "$EXPECTED_HOST" ] || fail "unexpected host $(hostname -s)"
+if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "$EXPECTED_CALLER" ] && [ "$SUDO_USER" != 'root' ]; then
+  fail "unexpected sudo caller $SUDO_USER"
+fi
+
+ACTION="${1:-}"
+BUNDLE="${2:-}"
+CONFIRM="${3:-}"
+
+[ "$ACTION" = 'apply' ] || fail 'usage: tocoa-ceiba-golden-sync apply BUNDLE_DIR APPLY-CEIBA-GOLDEN-TO-TOCOA'
+[ "$CONFIRM" = "$TOKEN" ] || fail 'confirmation token mismatch'
+[ -d "$BUNDLE" ] || fail "bundle not found: $BUNDLE"
+
+for f in runtime.tar.gz runtime.manifest runtime.filelist catalog.sql catalog.sha256 meta.env; do
+  [ -r "$BUNDLE/$f" ] || fail "bundle file missing: $f"
+done
+
+grep -Fxq 'source_host=cei-pbx02' "$BUNDLE/meta.env" || fail 'bundle source is not cei-pbx02'
+(
+  cd "$BUNDLE"
+  sha256sum -c catalog.sha256
+) >/dev/null || fail 'catalog checksum failed'
+
+AMP='/etc/amportal.conf'
+[ -r "$AMP" ] || fail '/etc/amportal.conf unreadable'
+
+read_amp(){ sed -n "s/^$1=//p" "$AMP" | head -n1; }
+escape_cnf(){ printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+
+DBUSER="$(read_amp AMPDBUSER)"
+DBPASS="$(read_amp AMPDBPASS)"
+DBHOST="$(read_amp AMPDBHOST)"
+[ -n "$DBHOST" ] || DBHOST='localhost'
+[ -n "$DBUSER" ] || fail 'AMPDBUSER empty'
+
+umask 077
+DBCNF="$(mktemp /tmp/tocoa-ceiba-golden-db.XXXXXX.cnf)"
+cleanup(){ rm -f "$DBCNF" "${APPLY_SQL:-}" "${POST_DUMP:-}"; }
+trap cleanup EXIT
+{
+  echo '[client]'
+  printf 'user="%s"\n' "$(escape_cnf "$DBUSER")"
+  printf 'password="%s"\n' "$(escape_cnf "$DBPASS")"
+  printf 'host="%s"\n' "$(escape_cnf "$DBHOST")"
+} > "$DBCNF"
+unset DBPASS
+
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+BACKUP="$BACKUP_ROOT/ceiba-golden-$STAMP"
+mkdir -p "$BACKUP"
+chmod 700 "$BACKUP"
+
+log "backup=$BACKUP"
+
+# Full DB backup for rollback.
+mysqldump --defaults-extra-file="$DBCNF" --single-transaction --routines --triggers   endpointconfig > "$BACKUP/endpointconfig-before.sql"
+chmod 600 "$BACKUP/endpointconfig-before.sql"
+
+# Runtime backup. Only paths that will be replaced are included.
+backup_paths=(
+  usr/share/issabel/endpoint-classes
+  usr/share/issabel/privileged/detect_endpoints
+  usr/bin/issabel-endpointconfig
+  var/www/html/modules/endpoint_configurator
+)
+[ -e /etc/httpd/conf.d/avaya-j129-provisioning.conf ] && backup_paths+=(etc/httpd/conf.d/avaya-j129-provisioning.conf)
+[ -e /usr/local/libexec/issabel-endpoint-credential-vault ] && backup_paths+=(usr/local/libexec/issabel-endpoint-credential-vault)
+
+tar -C / -czf "$BACKUP/runtime-before.tar.gz" "${backup_paths[@]}"
+chmod 600 "$BACKUP/runtime-before.tar.gz"
+
+rollback(){
+  rc=$?
+  trap - ERR
+  if [ "$rc" -ne 0 ]; then
+    log 'failure detected; restoring Tocoa backup'
+    rm -rf /usr/share/issabel/endpoint-classes /var/www/html/modules/endpoint_configurator
+    tar -C / -xzf "$BACKUP/runtime-before.tar.gz"
+    mysql --defaults-extra-file="$DBCNF" endpointconfig < "$BACKUP/endpointconfig-before.sql" || true
+    log 'AUTO-ROLLBACK-COMPLETE'
+  fi
+  exit "$rc"
+}
+trap rollback ERR
+
+# Preserve Tocoa endpoint -> manufacturer/model relationships by natural key.
+APPLY_SQL="$(mktemp /tmp/tocoa-ceiba-golden-apply.XXXXXX.sql)"
+cat > "$APPLY_SQL" <<'SQLHEAD'
+SET FOREIGN_KEY_CHECKS=0;
+DROP TEMPORARY TABLE IF EXISTS _endpoint_catalog_map;
+CREATE TEMPORARY TABLE _endpoint_catalog_map AS
+SELECT
+  e.id AS id_endpoint,
+  mf.name AS manufacturer_name,
+  m.name AS model_name
+FROM endpoint e
+JOIN manufacturer mf ON mf.id=e.id_manufacturer
+LEFT JOIN model m ON m.id=e.id_model;
+
+TRUNCATE TABLE model_properties;
+TRUNCATE TABLE mac_prefix;
+TRUNCATE TABLE model;
+TRUNCATE TABLE manufacturer;
+SQLHEAD
+cat "$BUNDLE/catalog.sql" >> "$APPLY_SQL"
+cat >> "$APPLY_SQL" <<'SQLTAIL'
+
+UPDATE endpoint e
+JOIN _endpoint_catalog_map x ON x.id_endpoint=e.id
+JOIN manufacturer mf ON mf.name=x.manufacturer_name
+SET e.id_manufacturer=mf.id;
+
+UPDATE endpoint e
+JOIN _endpoint_catalog_map x ON x.id_endpoint=e.id
+JOIN manufacturer mf ON mf.name=x.manufacturer_name
+JOIN model m ON m.id_manufacturer=mf.id AND m.name=x.model_name
+SET e.id_model=m.id
+WHERE x.model_name IS NOT NULL;
+
+UPDATE endpoint e
+JOIN _endpoint_catalog_map x ON x.id_endpoint=e.id
+LEFT JOIN manufacturer mf ON mf.name=x.manufacturer_name
+LEFT JOIN model m ON m.id_manufacturer=mf.id AND m.name=x.model_name
+SET e.id_model=NULL
+WHERE x.model_name IS NULL OR m.id IS NULL;
+
+SET FOREIGN_KEY_CHECKS=1;
+SQLTAIL
+
+mysql --defaults-extra-file="$DBCNF" endpointconfig < "$APPLY_SQL"
+log 'CATALOG-IMPORT-PASS'
+
+# Replace the actual Endpoint Configurator runtime with the live Ceiba payload.
+rm -rf /usr/share/issabel/endpoint-classes
+rm -rf /var/www/html/modules/endpoint_configurator
+tar -C / -xzf "$BUNDLE/runtime.tar.gz"
+
+if command -v restorecon >/dev/null 2>&1; then
+  restorecon -RF /usr/share/issabel/endpoint-classes     /usr/share/issabel/privileged/detect_endpoints     /usr/bin/issabel-endpointconfig     /var/www/html/modules/endpoint_configurator >/dev/null 2>&1 || true
+  [ -e /etc/httpd/conf.d/avaya-j129-provisioning.conf ] && restorecon -F /etc/httpd/conf.d/avaya-j129-provisioning.conf >/dev/null 2>&1 || true
+  [ -e /usr/local/libexec/issabel-endpoint-credential-vault ] && restorecon -F /usr/local/libexec/issabel-endpoint-credential-vault >/dev/null 2>&1 || true
+fi
+
+# Exact runtime file-content parity with Ceiba.
+sha256sum -c "$BUNDLE/runtime.manifest" >/dev/null
+log 'CEIBA-RUNTIME-SHA-PARITY-PASS'
+
+# Exact catalog parity with Ceiba.
+POST_DUMP="$(mktemp /tmp/tocoa-ceiba-golden-catalog.XXXXXX.sql)"
+mysqldump --defaults-extra-file="$DBCNF"   --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables   endpointconfig manufacturer mac_prefix model model_properties > "$POST_DUMP"
+EXPECTED_CATALOG_SHA="$(awk '{print $1}' "$BUNDLE/catalog.sha256")"
+ACTUAL_CATALOG_SHA="$(sha256sum "$POST_DUMP" | awk '{print $1}')"
+[ "$EXPECTED_CATALOG_SHA" = "$ACTUAL_CATALOG_SHA" ] ||   fail "catalog parity mismatch expected=$EXPECTED_CATALOG_SHA actual=$ACTUAL_CATALOG_SHA"
+log 'CEIBA-CATALOG-SHA-PARITY-PASS'
+
+# Basic runtime sanity.
+PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile   /usr/share/issabel/endpoint-classes/class/issabel/vendor/Grandstream.py   /usr/share/issabel/endpoint-classes/class/issabel/vendor/Avaya.py   /usr/share/issabel/privileged/detect_endpoints   /usr/bin/issabel-endpointconfig
+php -l /var/www/html/modules/endpoint_configurator/index.php >/dev/null
+php -l /var/www/html/modules/endpoint_configurator/libs/paloSantoEndpoints.class.php >/dev/null
+httpd -t
+
+log 'phone_write=NO'
+log 'endpoint_discovery=NO'
+log 'service_restart=NO'
+log 'TOCOA-CEIBA-GOLDEN-SYNC=PASS'
+trap - ERR
