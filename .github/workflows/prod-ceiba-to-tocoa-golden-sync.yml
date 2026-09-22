@@ -43,6 +43,7 @@ jobs:
           grep -Fq "EXPECTED_HOST='toc-pbx01'" "$h"
           grep -Fq 'CATALOG-DML-IMPORT-PASS' "$h"
           grep -Fq 'ENDPOINT-NATURAL-KEY-REMAP-PASS' "$h"
+          grep -Fq 'CEIBA-CATALOG-PORTABLE-VERIFY-PASS' "$h"
           grep -Fq "awk '/^INSERT INTO / { print }'" "$prod"
           ! grep -Fq 'CREATE TEMPORARY TABLE' "$h"
           ! grep -Fq 'DROP TEMPORARY TABLE' "$h"
@@ -116,6 +117,7 @@ jobs:
           test -r "$bundle/runtime.tar.gz"
           test -r "$bundle/catalog.sql"
           test -r "$bundle/catalog.sha256"
+          test -r "$bundle/catalog.semantic.sha256"
           test -r "$bundle/runtime.manifest"
           test -r "$bundle/meta.env"
           echo "BUNDLE=$bundle" >> "$GITHUB_ENV"
@@ -188,7 +190,7 @@ jobs:
           set -euo pipefail
           sudo -n /usr/local/sbin/tocoa-ceiba-golden-sync             apply APPLY-CEIBA-GOLDEN-TO-TOCOA | tee "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'CEIBA-RUNTIME-SHA-PARITY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
-          grep -Fq 'CEIBA-CATALOG-SHA-PARITY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+          grep -Fq 'CEIBA-CATALOG-PORTABLE-VERIFY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'TOCOA-CEIBA-GOLDEN-SYNC=PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
 
       - name: Read-only post-sync audit
