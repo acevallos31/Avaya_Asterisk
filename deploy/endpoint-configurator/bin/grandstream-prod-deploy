@@ -167,6 +167,32 @@ export_endpoint_golden_if_requested(){
   mysqldump --defaults-extra-file="$d"     --no-create-info --complete-insert --skip-comments --skip-add-locks --skip-lock-tables     endpointconfig manufacturer mac_prefix model model_properties |
     awk '/^INSERT INTO / { print }' > "$GOLDEN_EXPORT_OUT/catalog.sql"
 
+  # Portable compatibility extension from the live Tocoa fingerprint audit:
+  # the non-P hardware reports GRP2601 exactly, while Ceiba currently stores
+  # GRP2601P. Add the literal model so stock Ceiba probeModel() can persist it.
+  cat >> "$GOLDEN_EXPORT_OUT/catalog.sql" <<'SQL_GRANDSTREAM_GRP2601'
+INSERT INTO model (id_manufacturer,name,description,max_accounts,static_ip_supported,dynamic_ip_supported,static_prov_supported)
+SELECT p.id_manufacturer,'GRP2601','GRP2601',2,p.static_ip_supported,p.dynamic_ip_supported,p.static_prov_supported
+FROM model p JOIN manufacturer f ON f.id=p.id_manufacturer
+WHERE f.name='Grandstream' AND p.name='GRP2601P'
+AND NOT EXISTS (
+  SELECT 1 FROM model x
+  WHERE x.id_manufacturer=p.id_manufacturer AND x.name='GRP2601'
+);
+INSERT INTO model_properties (id_model,property_key,property_value)
+SELECT g.id,mp.property_key,
+       CASE WHEN mp.property_key='max_sip_accounts' THEN '2' ELSE mp.property_value END
+FROM model g
+JOIN manufacturer f ON f.id=g.id_manufacturer
+JOIN model p ON p.id_manufacturer=f.id AND p.name='GRP2601P'
+JOIN model_properties mp ON mp.id_model=p.id
+WHERE f.name='Grandstream' AND g.name='GRP2601'
+AND NOT EXISTS (
+  SELECT 1 FROM model_properties x
+  WHERE x.id_model=g.id AND x.property_key=mp.property_key
+);
+SQL_GRANDSTREAM_GRP2601
+
   local paths=(
     /usr/share/issabel/endpoint-classes
     /usr/share/issabel/privileged/detect_endpoints
