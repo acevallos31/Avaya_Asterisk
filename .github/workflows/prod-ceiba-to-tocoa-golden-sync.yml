@@ -213,6 +213,7 @@ jobs:
           set -euo pipefail
           sudo -n /usr/local/sbin/tocoa-ceiba-golden-sync             apply APPLY-CEIBA-GOLDEN-TO-TOCOA | tee "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'CEIBA-RUNTIME-SHA-PARITY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
+          grep -Fq 'PORTABLE-ACCOUNT-RECONCILE-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'CEIBA-CATALOG-PORTABLE-VERIFY-PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
           grep -Fq 'TOCOA-CEIBA-GOLDEN-SYNC=PASS' "$RUNNER_TEMP/tocoa-ceiba-golden-sync.txt"
 
