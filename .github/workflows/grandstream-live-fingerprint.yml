@@ -1,0 +1,201 @@
+name: 79 | Grandstream | Live Read-Only Fingerprint
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/grandstream-live-fingerprint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ceiba-reference:
+    name: Ceiba known-model fingerprints
+    runs-on: [self-hosted, Linux, X64, j129-production, cei-pbx02]
+    timeout-minutes: 10
+    steps:
+      - name: Guard read-only Ceiba
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(hostname -s)" = 'cei-pbx02'
+          test "$(id -un)" = 'github-runner-prod'
+          echo 'phone_write=NO'
+          echo 'pbx_write=NO'
+
+      - name: Probe known Grandstream references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, http.client, json, re, socket, ssl
+
+          targets = [
+              ('GXP1625', '10.3.40.29'),
+              ('GRP2601P', '10.3.40.42'),
+              ('GRP2602G', '10.3.40.43'),
+          ]
+          paths = [
+              '/',
+              '/manager?action=product&time=0',
+              '/cgi-bin/api.values.get?request=phone_model:1395',
+              '/cgi-bin/api.values.get?request=phone_model',
+              '/cgi-bin/api-get_phone_status',
+              '/cgi-bin/api-get_device_status',
+          ]
+
+          token_re = re.compile(rb'(?:Grandstream|GRP[0-9A-Z-]+|GXP[0-9A-Z-]+|GXV[0-9A-Z-]+|DP[0-9A-Z-]+|WP[0-9A-Z-]+|HT[0-9A-Z-]+)', re.I)
+
+          def clean_tokens(body):
+              vals=[]
+              for m in token_re.findall(body):
+                  s=m.decode('utf-8','ignore')
+                  if s.lower() not in [v.lower() for v in vals]:
+                      vals.append(s)
+              return vals[:10]
+
+          def probe_http(label, ip, scheme, path):
+              conn=None
+              try:
+                  if scheme == 'http':
+                      conn=http.client.HTTPConnection(ip, 80, timeout=3)
+                  else:
+                      ctx=ssl._create_unverified_context()
+                      conn=http.client.HTTPSConnection(ip, 443, timeout=3, context=ctx)
+                  conn.request('GET', path, headers={'User-Agent':'EndpointGoldenAudit/1.0','Accept':'*/*'})
+                  r=conn.getresponse()
+                  body=r.read(65536)
+                  print('FP model=%s ip=%s scheme=%s path=%s status=%s ctype=%r server=%r len=%s sha256=%s tokens=%s' % (
+                      label, ip, scheme, path, r.status,
+                      r.getheader('Content-Type',''), r.getheader('Server',''),
+                      len(body), hashlib.sha256(body).hexdigest(),
+                      json.dumps(clean_tokens(body), separators=(',',':'))))
+              except Exception as e:
+                  print('FP model=%s ip=%s scheme=%s path=%s error=%s' % (label,ip,scheme,path,type(e).__name__))
+              finally:
+                  try:
+                      if conn: conn.close()
+                  except Exception:
+                      pass
+
+          def probe_telnet(label, ip):
+              try:
+                  s=socket.create_connection((ip,23), timeout=3)
+                  s.settimeout(3)
+                  try:
+                      body=s.recv(4096)
+                  except Exception:
+                      body=b''
+                  s.close()
+                  print('TELNET model=%s ip=%s len=%s sha256=%s tokens=%s' % (
+                      label, ip, len(body), hashlib.sha256(body).hexdigest(),
+                      json.dumps(clean_tokens(body), separators=(',',':'))))
+              except Exception as e:
+                  print('TELNET model=%s ip=%s error=%s' % (label,ip,type(e).__name__))
+
+          for label,ip in targets:
+              print('TARGET model=%s ip=%s' % (label,ip))
+              probe_telnet(label,ip)
+              for scheme in ('http','https'):
+                  for path in paths:
+                      probe_http(label,ip,scheme,path)
+          print('CEIBA-REFERENCE-FINGERPRINT=PASS')
+          PY
+
+  tocoa-candidates:
+    name: Tocoa unassigned fingerprints
+    runs-on: [self-hosted, Linux, X64, tocoa, toc-pbx01]
+    timeout-minutes: 10
+    steps:
+      - name: Guard read-only Tocoa
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(hostname -s)" = 'toc-pbx01'
+          test "$(id -un)" = 'github-runner-tocoa'
+          echo 'phone_write=NO'
+          echo 'pbx_write=NO'
+
+      - name: Probe unassigned Grandstream candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, http.client, json, re, socket, ssl
+
+          targets = [
+              ('UNKNOWN','10.3.184.44'),
+              ('UNKNOWN','10.3.184.45'),
+              ('UNKNOWN','10.3.184.46'),
+              ('UNKNOWN','10.3.184.47'),
+              ('UNKNOWN','10.3.184.48'),
+              ('UNKNOWN','10.3.184.49'),
+          ]
+          paths = [
+              '/',
+              '/manager?action=product&time=0',
+              '/cgi-bin/api.values.get?request=phone_model:1395',
+              '/cgi-bin/api.values.get?request=phone_model',
+              '/cgi-bin/api-get_phone_status',
+              '/cgi-bin/api-get_device_status',
+          ]
+
+          token_re = re.compile(rb'(?:Grandstream|GRP[0-9A-Z-]+|GXP[0-9A-Z-]+|GXV[0-9A-Z-]+|DP[0-9A-Z-]+|WP[0-9A-Z-]+|HT[0-9A-Z-]+)', re.I)
+
+          def clean_tokens(body):
+              vals=[]
+              for m in token_re.findall(body):
+                  s=m.decode('utf-8','ignore')
+                  if s.lower() not in [v.lower() for v in vals]:
+                      vals.append(s)
+              return vals[:10]
+
+          def probe_http(label, ip, scheme, path):
+              conn=None
+              try:
+                  if scheme == 'http':
+                      conn=http.client.HTTPConnection(ip, 80, timeout=3)
+                  else:
+                      ctx=ssl._create_unverified_context()
+                      conn=http.client.HTTPSConnection(ip, 443, timeout=3, context=ctx)
+                  conn.request('GET', path, headers={'User-Agent':'EndpointGoldenAudit/1.0','Accept':'*/*'})
+                  r=conn.getresponse()
+                  body=r.read(65536)
+                  print('FP model=%s ip=%s scheme=%s path=%s status=%s ctype=%r server=%r len=%s sha256=%s tokens=%s' % (
+                      label, ip, scheme, path, r.status,
+                      r.getheader('Content-Type',''), r.getheader('Server',''),
+                      len(body), hashlib.sha256(body).hexdigest(),
+                      json.dumps(clean_tokens(body), separators=(',',':'))))
+              except Exception as e:
+                  print('FP model=%s ip=%s scheme=%s path=%s error=%s' % (label,ip,scheme,path,type(e).__name__))
+              finally:
+                  try:
+                      if conn: conn.close()
+                  except Exception:
+                      pass
+
+          def probe_telnet(label, ip):
+              try:
+                  s=socket.create_connection((ip,23), timeout=3)
+                  s.settimeout(3)
+                  try:
+                      body=s.recv(4096)
+                  except Exception:
+                      body=b''
+                  s.close()
+                  print('TELNET model=%s ip=%s len=%s sha256=%s tokens=%s' % (
+                      label, ip, len(body), hashlib.sha256(body).hexdigest(),
+                      json.dumps(clean_tokens(body), separators=(',',':'))))
+              except Exception as e:
+                  print('TELNET model=%s ip=%s error=%s' % (label,ip,type(e).__name__))
+
+          for label,ip in targets:
+              print('TARGET model=%s ip=%s' % (label,ip))
+              probe_telnet(label,ip)
+              for scheme in ('http','https'):
+                  for path in paths:
+                      probe_http(label,ip,scheme,path)
+          print('TOCOA-CANDIDATE-FINGERPRINT=PASS')
+          PY
