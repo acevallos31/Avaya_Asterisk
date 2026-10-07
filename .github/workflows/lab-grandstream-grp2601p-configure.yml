@@ -169,3 +169,5 @@ jobs:
             echo '## Test 66 — GRP2601P E2E audit'
             cat "$RUNNER_TEMP/test66-grp2601p-e2e.txt" 2>/dev/null || true
           } >> "$GITHUB_STEP_SUMMARY"
+
+# manual-trigger: 2026-10-07 restore-lab
